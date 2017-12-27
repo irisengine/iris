@@ -1,5 +1,4 @@
 SET(SRCS
-    "hello.cpp"
 )
 
 ADD_LIBRARY(engine STATIC ${SRCS})
