@@ -4,6 +4,7 @@ SET(SRCS
     "gl/shader.cpp"
     "gl/vertex_data.cpp"
     "gl/vertex_state.cpp"
+    "matrix.cpp"
     "mesh.cpp"
     "opengl_render_system.cpp"
     "vector3.cpp"
