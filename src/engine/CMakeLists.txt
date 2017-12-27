@@ -1,4 +1,11 @@
 SET(SRCS
+    "gl/material.cpp"
+    "gl/opengl.cpp"
+    "gl/shader.cpp"
+    "gl/vertex_data.cpp"
+    "gl/vertex_state.cpp"
+    "mesh.cpp"
+    "opengl_render_system.cpp"
 )
 
 IF(PLATFORM MATCHES "OSX")

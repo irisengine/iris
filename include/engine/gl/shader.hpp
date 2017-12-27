@@ -1,0 +1,67 @@
+#pragma once
+
+#include <string_view>
+
+#include "gl/shader_type.hpp"
+
+namespace eng::gl
+{
+
+/**
+ * Class encapsulating an opengl shader.
+ */
+class shader final
+{
+    public:
+
+        /**
+         * Construct a new shader.
+         *
+         * @param source
+         *   Source of the opengl shader.
+         *
+         * @param type
+         *   The type of shader.
+         */
+        shader(std::string_view source, shader_type type);
+
+        /**
+         * Destructor, performs opengl cleanup.
+         */
+        ~shader();
+
+        /**
+         * Move constructor, steals the state from the moved-in object.
+         *
+         * @param other
+         *   Object to take state from. Do not use after this call.
+         */
+        shader(shader &&other) noexcept;
+
+        /**
+         * Move operator, steals the state from the moved-in object.
+         *
+         * @param other
+         *   Object to take state from. Do not use after this call.
+         */
+        shader& operator=(shader&&) noexcept;
+
+        /** Disabled */
+        shader(const shader&) = delete;
+        shader& operator=(const shader&) = delete;
+
+        /**
+         * Get the native opengl handle.
+         *
+         * @returns native opengl handle.
+         */
+        std::uint32_t native_handle() const noexcept;
+
+    private:
+
+        /** Opengl shader object. */
+        std::uint32_t shader_;
+};
+
+}
+
