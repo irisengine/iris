@@ -6,6 +6,7 @@ SET(SRCS
     "gl/vertex_state.cpp"
     "mesh.cpp"
     "opengl_render_system.cpp"
+    "vector3.cpp"
 )
 
 IF(PLATFORM MATCHES "OSX")
