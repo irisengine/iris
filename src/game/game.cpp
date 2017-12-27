@@ -1,10 +1,16 @@
 #include <iostream>
 
-#include "hello.hpp"
+#include "window.hpp"
 
 int main()
 {
-    std::cout << eng::message() << std::endl;
+    eng::window w{ 800.0f, 800.0f };
+
+    for(;;)
+    {
+        w.pre_render();
+        w.post_render();
+    }
 
     return 0;
 }
