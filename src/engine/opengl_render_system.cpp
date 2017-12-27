@@ -1,5 +1,6 @@
 #include "opengl_render_system.hpp"
 
+#include <cmath>
 #include <string>
 #include <utility>
 
@@ -12,6 +13,7 @@
 #include "gl/vertex_data.hpp"
 #include "gl/vertex_state.hpp"
 #include "mesh.hpp"
+#include "vector3.hpp"
 
 namespace
 {
@@ -21,9 +23,12 @@ namespace
     #version 330 core
     precision mediump float;
     in vec2 position;
+    uniform mat4 projection;
+    uniform mat4 view;
+    uniform mat4 model;
     void main()
     {
-        gl_Position = vec4(position, 0.0, 1.0);
+        gl_Position = transpose(projection) * transpose(view) *transpose(model) * vec4(position, 0.0, 1.0);
     }
 )" };
 
@@ -37,10 +42,65 @@ namespace
         outColor = vec4(colour, 1.0);
     }
 )"};
+
 }
 
 namespace eng
 {
+
+opengl_render_system::opengl_render_system(
+            std::shared_ptr<camera> c,
+            const float width,
+            const float height)
+    : scene_(),
+      projection_(matrix::make_projection(0.785398f, 1.0f, 0.0f, 1000.0f)),
+      view_()
+{
+    // calculate view matrix
+
+    const auto pitch = 0.0f;
+    const auto yaw = -3.141592654f / 2.0f;
+
+    vector3 look_at{
+        std::cos(yaw) * std::cos(pitch),
+        std::sin(pitch),
+        std::sin(yaw) * std::cos(pitch)
+    };
+    look_at.normalise();
+
+    vector3 up{ 0.0f, 1.0f, 0.0f };
+
+    auto s = vector3::cross(look_at, up);
+    s.normalise();
+
+    auto u = vector3::cross(s, look_at);
+    u.normalise();
+
+    // set view matrix
+    view_[0] = s.x;
+    view_[1] = s.y;
+    view_[2] = s.z;
+    view_[3] = 0.0f;
+    view_[4] = u.x;
+    view_[5] = u.y;
+    view_[6] = u.z;
+    view_[7] = 0.0f;
+    view_[8] = look_at.x;
+    view_[9] = look_at.y;
+    view_[10] = look_at.z;
+    view_[11] = 1.0f;
+    view_[12] = 0.0f;
+    view_[13] = 0.0f;
+    view_[14] = 0.0f;
+    view_[15] = 0.0f;
+
+    ::glViewport(
+        0,
+        0,
+        static_cast<std::uint32_t>(width),
+        static_cast<std::uint32_t>(height));
+    gl::check_opengl_error("could not set viewport");
+}
 
 void opengl_render_system::add(std::shared_ptr<mesh> m)
 {
@@ -88,16 +148,33 @@ void opengl_render_system::render() const
         gl::auto_bind<gl::vertex_state> auto_state{ state };
         gl::auto_bind<gl::material> auto_program{ material };
 
-        // set uniform
-        const auto uniform = ::glGetUniformLocation(material.native_handle(), "colour");
+        const auto proj_uniform = ::glGetUniformLocation(material.native_handle(), "projection");
+        gl::check_opengl_error("could not get projection uniform location");
+
+        ::glUniformMatrix4fv(proj_uniform, 1, GL_FALSE, projection_.data());
+        gl::check_opengl_error("could not set projection matrix uniform data");
+
+        const auto view_uniform = ::glGetUniformLocation(material.native_handle(), "view");
+        gl::check_opengl_error("could not get view uniform location");
+
+        ::glUniformMatrix4fv(view_uniform, 1, GL_FALSE, view_.data());
+        gl::check_opengl_error("could not set view matrix uniform data");
+
+        const auto model_uniform = ::glGetUniformLocation(material.native_handle(), "model");
+        gl::check_opengl_error("could not get model uniform location");
+
+        ::glUniformMatrix4fv(model_uniform, 1, GL_FALSE, mesh->model().data());
+        gl::check_opengl_error("could not set model matrix uniform data");
+
+        const auto colour_uniform = ::glGetUniformLocation(material.native_handle(), "colour");
         gl::check_opengl_error("could not get colour uniform location");
 
         const auto r = static_cast<float>((mesh->colour() >> 24) & 0xFF) / 255.0f;
         const auto g = static_cast<float>((mesh->colour() >> 16) & 0xFF) / 255.0f;
         const auto b = static_cast<float>((mesh->colour() >>  8) & 0xFF) / 255.0f;
 
-        ::glUniform3f(uniform, r, g, b);
-        gl::check_opengl_error("could not set uniform data");
+        ::glUniform3f(colour_uniform, r, g, b);
+        gl::check_opengl_error("could not set colour uniform data");
 
         // draw!
         ::glDrawArrays(GL_TRIANGLES, 0, 3);
