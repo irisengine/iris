@@ -1,5 +1,6 @@
 SET(SRCS
     "camera.cpp"
+    "event_dispatcher.cpp"
     "gl/material.cpp"
     "gl/opengl.cpp"
     "gl/shader.cpp"
