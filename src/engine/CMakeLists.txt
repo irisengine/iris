@@ -1,4 +1,5 @@
 SET(SRCS
+    "camera.cpp"
     "gl/material.cpp"
     "gl/opengl.cpp"
     "gl/shader.cpp"
