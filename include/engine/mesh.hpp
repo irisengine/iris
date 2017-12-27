@@ -3,6 +3,9 @@
 #include <cstdint>
 #include <vector>
 
+#include "matrix.hpp"
+#include "vector3.hpp"
+
 namespace eng
 {
 
@@ -21,8 +24,18 @@ class mesh final
          *
          * @param colour
          *   Colour of vertices.
+         *
+         * @param position
+         *   Position in world space of mesh.
+         *
+         * @param scale
+         *   Scale of mesh.
          */
-        mesh(const std::vector<float> &vertices, const std::uint32_t colour);
+        mesh(
+            const std::vector<float> &vertices,
+            const std::uint32_t colour,
+            const vector3 &position,
+            const float scale);
 
         /** Default */
         ~mesh() = default;
@@ -30,6 +43,14 @@ class mesh final
         mesh& operator=(const mesh&) = default;
         mesh(mesh&&) = default;
         mesh& operator=(mesh&&) = default;
+
+        /**
+         * Translate the mesh.
+         *
+         * @param t
+         *   Amount to translate.
+         */
+        void translate(const vector3 &t) noexcept;
 
         /**
          * Get mesh vertices.
@@ -47,6 +68,14 @@ class mesh final
          */
         std::uint32_t colour() const noexcept;
 
+        /**
+         * Get the model transformation matrix.
+         *
+         * @returns
+         *   Model matrix.
+         */
+        matrix model() const noexcept;
+
     private:
 
         /** Mesh vertex data. */
@@ -54,6 +83,9 @@ class mesh final
 
         /** Mesh colour. */
         std::uint32_t colour_;
+
+        /** Model transformation matrix. */
+        matrix model_;
 };
 
 }
