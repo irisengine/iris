@@ -1,20 +1,31 @@
+#include <cstdint>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <vector>
 
 #include "camera.hpp"
+#include "event_dispatcher.hpp"
+#include "keyboard_event.hpp"
 #include "mesh.hpp"
 #include "opengl_render_system.hpp"
 #include "vector3.hpp"
 #include "window.hpp"
+
+void keyevent_handler(const eng::keyboard_event &event)
+{
+    std::cout << std::hex << static_cast<std::uint32_t>(event.key) << " " << static_cast<std::uint32_t>(event.state) << std::endl;
+    std::cout << std::dec;
+}
 
 void go()
 {
     const auto width = 800.0f;
     const auto height = 800.0f;
 
-    eng::window w{ width, height };
+    eng::event_dispatcher dispatcher{ keyevent_handler };
+
+    eng::window w{ dispatcher, width, height };
 
     auto camera = std::make_shared<eng::camera>();
     eng::opengl_render_system rs{ camera, width, height };
