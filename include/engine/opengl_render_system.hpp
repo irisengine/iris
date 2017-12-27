@@ -4,8 +4,10 @@
 #include <tuple>
 #include <vector>
 
-#include "mesh.hpp"
+#include "camera.hpp"
 #include "gl/entity_data.hpp"
+#include "matrix.hpp"
+#include "mesh.hpp"
 
 namespace eng
 {
@@ -17,8 +19,24 @@ class opengl_render_system final
 {
     public:
 
+        /**
+         * Create a new opengl rendering system.
+         *
+         * @param c
+         *   Camera to render scene through.
+         *
+         * @param width
+         *   Width of render window.
+         *
+         * @param height
+         *   Height of render window.
+         */
+        opengl_render_system(
+            std::shared_ptr<camera> c,
+            const float width,
+            const float height);
+
         /** Default */
-        opengl_render_system() = default;
         ~opengl_render_system() = default;
         opengl_render_system(opengl_render_system&&) = default;
         opengl_render_system& operator=(opengl_render_system&&) = default;
@@ -50,6 +68,12 @@ class opengl_render_system final
 
         /** Collection of entities in a scene to render. */
         std::vector<entity> scene_;
+
+        /** Projection matrix. */
+        matrix projection_;
+
+        /* View matrix */
+        matrix view_;
 };
 
 }
