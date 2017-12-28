@@ -7,6 +7,11 @@ ADD_EXECUTABLE(ilis ${SRCS})
 # create application and link in engine
 TARGET_LINK_LIBRARIES(ilis engine)
 
+FIND_PACKAGE(zlib)
+
+TARGET_LINK_LIBRARIES(ilis ${ZLIB_LIBRARIES})
+TARGET_LINK_LIBRARIES(ilis assimp)
+
 IF(PLATFORM MATCHES "OSX")
     # osx specific linking
     FIND_PACKAGE(OpenGL REQUIRED)
