@@ -72,8 +72,8 @@ class opengl_render_system final
         /** Projection matrix. */
         matrix projection_;
 
-        /* View matrix */
-        matrix view_;
+        /** Camera to render scene through */
+        std::shared_ptr<camera> camera_;
 };
 
 }
