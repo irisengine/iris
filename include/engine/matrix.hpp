@@ -50,6 +50,26 @@ class matrix final
             const float far) noexcept;
 
         /**
+         * Make a matrix that can be used as a view matrix for a camera.
+         *
+         * @param eye
+         *   Position of the camera.
+         *
+         * @param look_at
+         *   The point where the camera is looking.
+         *
+         * @param up
+         *   The up vector of the camera.
+         *
+         * @returns
+         *   A matrix that can be used as a camera view matrix.
+         */
+        static matrix make_look_at(
+            const vector3 &eye,
+            const vector3 &look_at,
+            const vector3 &up) noexcept;
+
+        /**
          * Static method to create scale matrix.
          *
          * @param width
