@@ -66,6 +66,14 @@ class camera final
         matrix view() const noexcept;
 
         /**
+         * Get the projection matrix.
+         *
+         * @returns
+         *   Projection matrix.
+         */
+        matrix projection() const noexcept;
+
+        /**
          * Set the yaw of the camera.
          *
          * @param yaw
@@ -110,6 +118,9 @@ class camera final
 
         /** View matrix for the camera. */
         matrix view_;
+
+        /** Projection matrix for the camera. */
+        matrix projection_;
 
         /** Pitch of camera. */
         float pitch_;

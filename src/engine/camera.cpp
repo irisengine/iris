@@ -43,6 +43,7 @@ camera::camera()
       direction_(0.0f, 0.0f, -1.0f),
       up_(0.0f, 1.0f, 0.0f),
       view_(),
+      projection_(matrix::make_projection(0.785398f, 1.0f, 0.0f, 1000.0f)),
       pitch_(0.0f),
       yaw_(3.141592654f / 2.0f)
 {
@@ -74,6 +75,11 @@ vector3 camera::right() const noexcept
 matrix camera::view() const noexcept
 {
     return view_;
+}
+
+matrix camera::projection() const noexcept
+{
+    return projection_;
 }
 
 void camera::set_yaw(const float yaw) noexcept

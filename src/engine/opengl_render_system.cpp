@@ -52,7 +52,6 @@ opengl_render_system::opengl_render_system(
             const float width,
             const float height)
     : scene_(),
-      projection_(matrix::make_projection(0.785398f, 1.0f, 0.0f, 1000.0f)),
       camera_(c)
 {
     ::glViewport(
@@ -112,7 +111,7 @@ void opengl_render_system::render() const
         const auto proj_uniform = ::glGetUniformLocation(material.native_handle(), "projection");
         gl::check_opengl_error("could not get projection uniform location");
 
-        ::glUniformMatrix4fv(proj_uniform, 1, GL_FALSE, projection_.data());
+        ::glUniformMatrix4fv(proj_uniform, 1, GL_FALSE, camera_->projection().data());
         gl::check_opengl_error("could not set projection matrix uniform data");
 
         const auto view_uniform = ::glGetUniformLocation(material.native_handle(), "view");
