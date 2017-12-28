@@ -1,5 +1,7 @@
 #pragma once
 
+#include "event_dispatcher.hpp"
+
 namespace eng
 {
 
@@ -13,13 +15,19 @@ class window final
         /**
          * Create and display a new native window.
          *
+         * @param dispatcher
+         *   An object used for dispatching input event.
+         *
          * @param width
          *   Width of the window.
          *
          * @param height
          *   Height of the window.
          */
-        window(const float with, const float height);
+        window(
+            event_dispatcher &dispatcher,
+            const float with,
+            const float height);
 
         /** Default */
         ~window() = default;
@@ -57,6 +65,9 @@ class window final
         float height() const noexcept;
 
     private:
+
+        /** Referecne to an input dispatcher */
+        event_dispatcher &dispatcher_;
 
         /** Window width. */
         float width_;

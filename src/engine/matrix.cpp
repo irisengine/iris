@@ -35,6 +35,29 @@ matrix matrix::make_projection(
     return m;
 }
 
+matrix matrix::make_look_at(
+    const vector3 &eye,
+    const vector3 &look_at,
+    const vector3 &up) noexcept
+{
+    const auto f = vector3::normalise(look_at - eye);
+    const auto up_normalised = vector3::normalise(up);
+
+    const auto s = vector3::cross(f, up_normalised).normalise();
+    const auto u = vector3::cross(s, f).normalise();
+
+    matrix m;
+
+    m.elements_ = {{
+        s.x, s.y, s.z, 0.0f,
+        u.x, u.y, u.z, 0.0f,
+        -f.x, -f.y, -f.z, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f
+    }};
+
+    return m * make_translate(-eye);
+}
+
 matrix matrix::make_scale(const float width, const float height) noexcept
 {
     matrix m;
