@@ -9,6 +9,7 @@
 #include "event_dispatcher.hpp"
 #include "keyboard_event.hpp"
 #include "mesh.hpp"
+#include "mouse_event.hpp"
 #include "opengl_render_system.hpp"
 #include "vector3.hpp"
 #include "window.hpp"
@@ -22,6 +23,14 @@ void keyevent_handler(const eng::keyboard_event &event)
     key_map[event.key] = event.state;
 }
 
+void mouseevent_handler(const eng::mouse_event &event)
+{
+    static const auto sensitivity = 0.0025f;
+
+    camera->adjust_yaw(-event.delta_x * sensitivity);
+    camera->adjust_pitch(event.delta_y * sensitivity);
+}
+
 void go()
 {
     key_map[eng::key::W] = eng::key_state::UP;
@@ -32,7 +41,7 @@ void go()
     const auto width = 800.0f;
     const auto height = 800.0f;
 
-    eng::event_dispatcher dispatcher{ keyevent_handler };
+    eng::event_dispatcher dispatcher{ keyevent_handler, mouseevent_handler };
 
     eng::window w{ dispatcher, width, height };
 
@@ -72,33 +81,31 @@ void go()
 
     for(;;)
     {
-        eng::vector3 velocity{ };
         static const float speed = 2.0f;
 
-        if(key_map[eng::key::A] == eng::key_state::DOWN)
-        {
-            velocity.x = 1.0f;
-        }
+        auto direction = camera->direction();
+        direction.y = 0.0f;
 
-        if(key_map[eng::key::D] == eng::key_state::DOWN)
-        {
-            velocity.x = -1.0f;
-        }
 
         if(key_map[eng::key::W] == eng::key_state::DOWN)
         {
-            velocity.z = 1.0f;
+            camera->translate(direction * -speed);
         }
 
         if(key_map[eng::key::S] == eng::key_state::DOWN)
         {
-            velocity.z = -1.0f;
+            camera->translate(direction * speed);
         }
 
-        velocity.normalise();
-        velocity *= speed;
+        if(key_map[eng::key::A] == eng::key_state::DOWN)
+        {
+            camera->translate(camera->right() * -speed);
+        }
 
-        camera->translate(velocity);
+        if(key_map[eng::key::D] == eng::key_state::DOWN)
+        {
+            camera->translate(camera->right() * speed);
+        }
 
         w.pre_render();
         rs.render();
