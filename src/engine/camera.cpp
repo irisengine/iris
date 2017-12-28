@@ -2,58 +2,58 @@
 
 #include <cmath>
 
+#include "matrix.cpp"
 #include "vector3.hpp"
+
+namespace
+{
+
+/**
+ * Helper method to create a direction vector from a pitch and yaw
+ *
+ * @param pitch
+ *   pitch (in radians) of camera
+ *
+ * @param yaw
+ *   yaw (in radians) of camera
+ *
+ * @returns
+ *   A new direction vector for the camera
+ */
+eng::vector3 create_direction(const float pitch, const float yaw) noexcept
+{
+    eng::vector3 direction;
+
+    direction.x = std::cos(yaw) * std::cos(pitch);
+    direction.y = std::sin(pitch);
+    direction.z = std::sin(yaw) * std::cos(pitch);
+
+    direction.normalise();
+
+    return direction;
+}
+
+}
 
 namespace eng
 {
 
 camera::camera()
     : position_(),
-      view_()
+      direction_(0.0f, 0.0f, -1.0f),
+      up_(0.0f, 1.0f, 0.0f),
+      view_(),
+      pitch_(0.0f),
+      yaw_(3.141592654f / 2.0f)
 {
-    // calculate view matrix
-
-    const auto pitch = 0.0f;
-    const auto yaw = -3.141592654f / 2.0f;
-
-    vector3 look_at{
-        std::cos(yaw) * std::cos(pitch),
-        std::sin(pitch),
-        std::sin(yaw) * std::cos(pitch)
-    };
-    look_at.normalise();
-
-    vector3 up{ 0.0f, 1.0f, 0.0f };
-
-    auto s = vector3::cross(look_at, up);
-    s.normalise();
-
-    auto u = vector3::cross(s, look_at);
-    u.normalise();
-
-    // set view matrix
-    view_[0] = s.x;
-    view_[1] = s.y;
-    view_[2] = s.z;
-    view_[3] = 0.0f;
-    view_[4] = u.x;
-    view_[5] = u.y;
-    view_[6] = u.z;
-    view_[7] = 0.0f;
-    view_[8] = look_at.x;
-    view_[9] = look_at.y;
-    view_[10] = look_at.z;
-    view_[11] = 1.0f;
-    view_[12] = 0.0f;
-    view_[13] = 0.0f;
-    view_[14] = 0.0f;
-    view_[15] = 0.0f;
+    direction_ = create_direction(pitch_, yaw_);
+    view_ = matrix::make_look_at(position_, position_ + direction_, up_);
 }
 
 void camera::translate(const vector3 &t) noexcept
 {
     position_ += t;
-    view_ = view_ * matrix::make_translate(t);
+    view_ = matrix::make_look_at(position_, position_ + direction_, up_);
 }
 
 vector3 camera::position() const noexcept
@@ -61,9 +61,45 @@ vector3 camera::position() const noexcept
     return position_;
 }
 
+vector3 camera::direction() const noexcept
+{
+    return direction_;
+}
+
+vector3 camera::right() const noexcept
+{
+    return vector3::normalise(vector3::cross(direction_, up_));
+}
+
 matrix camera::view() const noexcept
 {
     return view_;
+}
+
+void camera::set_yaw(const float yaw) noexcept
+{
+    yaw_ = yaw;
+
+    direction_ = create_direction(pitch_, yaw_);
+    view_ = matrix::make_look_at(position_, position_ + direction_, up_);
+}
+
+void camera::adjust_yaw(const float adjust) noexcept
+{
+    set_yaw(yaw_ + adjust);
+}
+
+void camera::set_pitch(const float pitch) noexcept
+{
+    pitch_ = pitch;
+
+    direction_ = create_direction(pitch_, yaw_);
+    view_ = matrix::make_look_at(position_, position_ + direction_, up_);
+}
+
+void camera::adjust_pitch(const float adjust) noexcept
+{
+    set_pitch(pitch_ + adjust);
 }
 
 }
