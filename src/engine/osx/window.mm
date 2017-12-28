@@ -147,6 +147,78 @@ eng::key osx_key_to_engine_key(const std::uint16_t key_code)
     return key;
 }
 
+/**
+ * Helper method to convert a mouse NSEvent coordinates into screen
+ * coordinates, where the origin is the upper left corner of the window.
+ *
+ * @param event
+ *   The mouse event.
+ *
+ * @returns
+ *   The coordinates of the mouse event in transformed to screen coordinates.
+ */
+[[maybe_unused]] NSPoint event_screen_point(NSEvent *event)
+{
+    const auto window = [NSApp windowWithWindowNumber:[event windowNumber]];
+    const NSPoint event_location = [event locationInWindow];
+    NSPoint point = [[window contentView] convertPoint:event_location fromView:nil];
+
+    // adjust so origin is upper left corner of window
+    point.y = 800.0f - point.y;
+
+    const auto scale = [window backingScaleFactor];
+
+    point.x *= scale;
+    point.y *= scale;
+
+    return point;
+}
+
+/**
+ * Helper method to handle and dispatch native keyboard events.
+ *
+ * @param dispatcher
+ *   event_dispatcher to dispatch events to.
+ *
+ * @param event
+ *   Native event object.
+ */
+void handle_keyboard_event(eng::event_dispatcher &dispatcher, NSEvent *event)
+{
+    // extract the key code from the event
+    const std::uint16_t key_code = [event keyCode];
+
+    // convert the NSEventType to our event state
+    const auto type = ([event type] == NSEventTypeKeyDown)
+        ? eng::key_state::DOWN
+        : eng::key_state::UP;
+
+    // convert key code and dispatch
+    const auto key = osx_key_to_engine_key(key_code);
+    dispatcher.dispatch(eng::keyboard_event{ key, type });
+}
+
+/**
+ * Helper method to handle and dispatch native mouse events.
+ *
+ * @param dispatcher
+ *   event_dispatcher to dispatch events to.
+ *
+ * @param event
+ *   Native event object.
+ */
+void handle_mouse_event(eng::event_dispatcher &dispatcher, NSEvent *event)
+{
+    // get mouse delta
+    std::int32_t dx = 0;
+    std::int32_t dy = 0;
+    ::CGGetLastMouseDelta(&dx, &dy);
+
+    // convert and dispatch
+    eng::mouse_event eng_event{ static_cast<float>(dx), static_cast<float>(dy) };
+    dispatcher.dispatch(eng_event);
+}
+
 }
 
 namespace eng
@@ -209,25 +281,26 @@ void window::pre_render() const noexcept
             inMode:NSDefaultRunLoopMode
             dequeue:YES];
 
-        // check if event is a keypress
-        if(([event type] == NSEventTypeKeyDown) || ([event type] == NSEventTypeKeyUp))
+        if(event != nil)
         {
-            // extract the key code from the event
-            const std::uint16_t key_code = [event keyCode];
+            // handle native event
+            switch([event type])
+            {
+                case NSEventTypeKeyDown: [[fallthrough]];
+                case NSEventTypeKeyUp:
+                    handle_keyboard_event(dispatcher_, event);
+                    break;
+                case NSEventTypeMouseMoved:
+                    handle_mouse_event(dispatcher_, event);
+                    break;
+                default:
+                    break;
+            }
 
-            // convert the NSEventType to our event state
-            const auto type = ([event type] == NSEventTypeKeyDown)
-                ? key_state::DOWN
-                : key_state::UP;
-
-            // convert key code and dispatch
-            const auto key = osx_key_to_engine_key(key_code);
-            dispatcher_.dispatch(keyboard_event{ key, type });
+            // dispatch the event to other objects, this stops us swallowing
+            // all events and preventing anything else from receiving them
+            [NSApp sendEvent:event];
         }
-
-        // dispatch the event to other objects, this stops us swallowing
-        // all events and preventing anything else from receiving them
-        [NSApp sendEvent:event];
 
     } while(event != nil);
 
