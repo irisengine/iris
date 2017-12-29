@@ -1,5 +1,6 @@
 SET(SRCS
     "camera.cpp"
+    "entity.cpp"
     "event_dispatcher.cpp"
     "gl/buffer.cpp"
     "gl/material.cpp"
