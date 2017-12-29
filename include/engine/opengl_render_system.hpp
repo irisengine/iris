@@ -5,9 +5,9 @@
 #include <vector>
 
 #include "camera.hpp"
-#include "gl/entity_data.hpp"
+#include "entity.hpp"
+#include "gl/material.hpp"
 #include "matrix.hpp"
-#include "mesh.hpp"
 
 namespace eng
 {
@@ -46,31 +46,30 @@ class opengl_render_system final
         opengl_render_system& operator=(const opengl_render_system&) = delete;
 
         /**
-         * Add a mesh to the scene.
+         * Add an entity to the scene.
          *
-         * @param m
-         *   Mesh to add.
+         * @param e
+         *   Entity to add.
          */
-        void add(std::shared_ptr<mesh> m);
+        void add(std::shared_ptr<entity> e);
 
         /**
          * Render the current scene.
          */
         void render() const;
 
+        /**
+
     private:
 
-        /**
-         * Convenient alias for type consisting of a mesh and opengl rendering
-         * data.
-         * */
-        using entity = std::tuple<std::shared_ptr<mesh>, gl::entity_data>;
-
         /** Collection of entities in a scene to render. */
-        std::vector<entity> scene_;
+        std::vector<std::shared_ptr<entity>> scene_;
 
         /** Camera to render scene through */
         std::shared_ptr<camera> camera_;
+
+        /** Global material. */
+        std::unique_ptr<gl::material> material_;
 };
 
 }
