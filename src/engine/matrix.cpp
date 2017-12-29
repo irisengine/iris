@@ -58,15 +58,15 @@ matrix matrix::make_look_at(
     return m * make_translate(-eye);
 }
 
-matrix matrix::make_scale(const float width, const float height) noexcept
+matrix matrix::make_scale(const vector3 &scale) noexcept
 {
     matrix m;
 
     m.elements_ =
     {{
-         width, 0.0f, 0.0f, 0.0f,
-         0.0f, height, 0.0f, 0.0f,
-         0.0f, 0.0f, 1.0f, 0.0f,
+         scale.x, 0.0f, 0.0f, 0.0f,
+         0.0f, scale.y, 0.0f, 0.0f,
+         0.0f, 0.0f, scale.z, 0.0f,
          0.0f, 0.0f, 0.0f, 1.0f
     }};
 

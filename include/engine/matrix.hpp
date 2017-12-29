@@ -70,18 +70,15 @@ class matrix final
             const vector3 &up) noexcept;
 
         /**
-         * Static method to create scale matrix.
+         * Static method to create a scale matrix.
          *
-         * @param width
-         *   Value to scale width.
-         *
-         * @param height
-         *   Value to scale height.
+         * @param scale
+         *   Vector3 specifying amount to scale along each axis.
          *
          * @returns
          *   Scale transformation matrix.
          */
-        static matrix make_scale(const float width, const float height) noexcept;
+        static matrix make_scale(const vector3 &scale) noexcept;
 
         /**
          * Static method to create translation matrix.
