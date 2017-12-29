@@ -59,6 +59,12 @@ class opengl_render_system final
         void render() const;
 
         /**
+         * Set whether the scene should be drawn in wireframe mode.
+         *
+         * @param wireframe
+         *   True if scene should be rendered in wireframe mode, false otherwise.
+         */
+        void set_wireframe_mode(bool wireframe);
 
     private:
 
