@@ -1,10 +1,10 @@
 SET(SRCS
     "camera.cpp"
     "event_dispatcher.cpp"
+    "gl/buffer.cpp"
     "gl/material.cpp"
     "gl/opengl.cpp"
     "gl/shader.cpp"
-    "gl/vertex_data.cpp"
     "gl/vertex_state.cpp"
     "matrix.cpp"
     "mesh.cpp"

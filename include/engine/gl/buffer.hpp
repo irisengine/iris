@@ -10,32 +10,34 @@ namespace eng::gl
 {
 
 /**
- * Class encapsulating an opengl vertex data buffer.
+ * Class encapsulating an opengl data buffer.
  */
-class vertex_data final
+class buffer final
 {
     public:
 
         /**
-         * Construct a new vertex_data and buffer supplied data.
+         * Construct a new buffer and copy supplied data.
          *
          * @typeparam T
-         *   Type of data to buffer.
+         *   Type of data to opy.
          *
          * @param data
-         *   Data to buffer.
+         *   Data to copy.
          */
         template<class T>
-        explicit vertex_data(const std::vector<T> &data)
-            : vbo_(0u)
+        buffer(const std::vector<T> &data, const std::uint32_t type)
+            : handle_(0u),
+              type_(type)
         {
-            ::glGenBuffers(1, &vbo_);
-            gl::check_opengl_error("could not generate vbo");
+            ::glGenBuffers(1, &handle_);
+            gl::check_opengl_error("could not generate opengl buffer");
 
+            // bind so we can copy data
             auto_bind<decltype(*this)> auto_data{ *this };
 
             ::glBufferData(
-                GL_ARRAY_BUFFER,
+                type_,
                 data.size() * sizeof(T),
                 data.data(),
                 GL_STATIC_DRAW);
@@ -45,7 +47,7 @@ class vertex_data final
         /**
          * Destructor, performs opengl cleanup.
          */
-        ~vertex_data();
+        ~buffer();
 
         /**
          * Move constructor, steals the state from the moved-in object.
@@ -53,7 +55,7 @@ class vertex_data final
          * @param other
          *   Object to take state from. Do not use after this call.
          */
-        vertex_data(vertex_data &&other) noexcept;
+        buffer(buffer &&other) noexcept;
 
         /**
          * Move operator, steals the state from the moved-in object.
@@ -61,11 +63,11 @@ class vertex_data final
          * @param other
          *   Object to take state from. Do not use after this call.
          */
-        vertex_data& operator=(vertex_data &&other) noexcept;
+        buffer& operator=(buffer &&other) noexcept;
 
         /** Disabled */
-        vertex_data(const vertex_data&) = delete;
-        vertex_data& operator=(const vertex_data&) = delete;;
+        buffer(const buffer&) = delete;
+        buffer& operator=(const buffer&) = delete;;
 
         /**
          * Bind this data.
@@ -79,8 +81,11 @@ class vertex_data final
 
     private:
 
-        /** Opengl VBO object. */
-        std::uint32_t vbo_;
+        /** Opengl buffer handle. */
+        std::uint32_t handle_;
+
+        /** Type of buffer object. */
+        std::uint32_t type_;
 };
 
 }
