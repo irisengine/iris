@@ -1,14 +1,15 @@
 #include <cstdint>
+#include <experimental/filesystem>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <stdexcept>
 #include <vector>
-#include <map>
 
 #include "camera.hpp"
+#include "entity.hpp"
 #include "event_dispatcher.hpp"
 #include "keyboard_event.hpp"
-#include "mesh.hpp"
 #include "mouse_event.hpp"
 #include "opengl_render_system.hpp"
 #include "vector3.hpp"
@@ -16,7 +17,6 @@
 
 std::shared_ptr<eng::camera> camera;
 std::map<eng::key, eng::key_state> key_map;
-
 
 void keyevent_handler(const eng::keyboard_event &event)
 {
@@ -31,12 +31,14 @@ void mouseevent_handler(const eng::mouse_event &event)
     camera->adjust_pitch(event.delta_y * sensitivity);
 }
 
-void go()
+void go(int argc, char **argv)
 {
     key_map[eng::key::W] = eng::key_state::UP;
     key_map[eng::key::A] = eng::key_state::UP;
     key_map[eng::key::S] = eng::key_state::UP;
     key_map[eng::key::D] = eng::key_state::UP;
+    key_map[eng::key::Q] = eng::key_state::UP;
+    key_map[eng::key::P] = eng::key_state::UP;
 
     const auto width = 800.0f;
     const auto height = 800.0f;
@@ -54,32 +56,18 @@ void go()
        -0.5f, -0.5f
     };
 
-    auto mesh1 = std::make_shared<eng::mesh>(
-        triangle_verts,
-        0xFF000000,
+    auto entity1 = std::make_shared<eng::entity>(
+        std::experimental::filesystem::path{ argv[1] },
+        0xFFFFFFFF,
         eng::vector3{ 0.0f, 0.0f, -100.0f },
-        10.0f);
-    rs.add(mesh1);
+        eng::vector3{ 10.0f, 10.0f, 10.0f });
+    rs.add(entity1);
 
-    auto mesh2  = std::make_shared<eng::mesh>(
-        triangle_verts,
-        0x00FF0000,
-       eng::vector3{  0.0f, 0.0f, -100.0f },
-       10.0f);
-    rs.add(mesh2);
+    camera->translate({ 0.0f, 120.0f, 0.0f });
 
-    auto mesh3 = std::make_shared<eng::mesh>(
-        triangle_verts,
-        0x0000FF00,
-       eng::vector3{ 0.0f, 0.0f, -100.0f },
-       10.0f);
-    rs.add(mesh3);
+    auto wireframe = false;
 
-    mesh1->translate(eng::vector3{ 10.0f, 0.0f, 0.0f });
-    mesh2->translate(eng::vector3{ -10.0f, 0.0f, 0.0f });
-    mesh3->translate(eng::vector3{ 0.0f, 10.0f, 0.0f });
-
-    for(;;)
+    while(key_map[eng::key::Q] == eng::key_state::UP)
     {
         static const float speed = 2.0f;
 
@@ -107,17 +95,24 @@ void go()
             camera->translate(camera->right() * speed);
         }
 
+        if(key_map[eng::key::P] == eng::key_state::DOWN)
+        {
+            wireframe = !wireframe;
+            rs.set_wireframe_mode(wireframe);
+            key_map[eng::key::P] = eng::key_state::UP;
+        }
+
         w.pre_render();
         rs.render();
         w.post_render();
     }
 }
 
-int main()
+int main(int argc, char **argv)
 {
     try
     {
-        go();
+        go(argc, argv);
     }
     catch(std::runtime_error &err)
     {
