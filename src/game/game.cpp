@@ -27,8 +27,8 @@ void mouseevent_handler(const eng::mouse_event &event)
 {
     static const auto sensitivity = 0.0025f;
 
-    camera->adjust_yaw(-event.delta_x * sensitivity);
-    camera->adjust_pitch(event.delta_y * sensitivity);
+    camera->adjust_yaw(event.delta_x * sensitivity);
+    camera->adjust_pitch(-event.delta_y * sensitivity);
 }
 
 void go(int argc, char **argv)
@@ -59,17 +59,17 @@ void go(int argc, char **argv)
     auto entity1 = std::make_shared<eng::entity>(
         std::experimental::filesystem::path{ argv[1] },
         0xFFFFFFFF,
-        eng::vector3{ 0.0f, 0.0f, -100.0f },
-        eng::vector3{ 10.0f, 10.0f, 10.0f });
+        eng::vector3{ 0.0f, 0.0f, -10.0f },
+        eng::vector3{ 1.0f, 1.0f, 1.0f });
     rs.add(entity1);
 
-    camera->translate({ 0.0f, 120.0f, 0.0f });
+    camera->translate({ 0.0f, 14.0f, 0.0f });
 
     auto wireframe = false;
 
     while(key_map[eng::key::Q] == eng::key_state::UP)
     {
-        static const float speed = 2.0f;
+        static const float speed = 0.1f;
 
         auto direction = camera->direction();
         direction.y = 0.0f;
@@ -77,12 +77,12 @@ void go(int argc, char **argv)
 
         if(key_map[eng::key::W] == eng::key_state::DOWN)
         {
-            camera->translate(direction * -speed);
+            camera->translate(direction * speed);
         }
 
         if(key_map[eng::key::S] == eng::key_state::DOWN)
         {
-            camera->translate(direction * speed);
+            camera->translate(direction * -speed);
         }
 
         if(key_map[eng::key::A] == eng::key_state::DOWN)
