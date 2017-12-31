@@ -60,6 +60,12 @@ opengl_render_system::opengl_render_system(
       camera_(c),
       material_(nullptr)
 {
+    ::glEnable(GL_DEPTH_TEST);
+    gl::check_opengl_error("could not enable depth testing");
+
+    ::glDepthFunc(GL_LESS);
+    gl::check_opengl_error("could not set depth test function");
+
     ::glViewport(
         0,
         0,
