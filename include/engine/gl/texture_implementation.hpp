@@ -62,9 +62,7 @@ class texture_implementation final
 
     private:
 
-        /**
-         * Opengl handle to texture.
-         */
+        /** Opengl handle to texture. */
         std::uint32_t handle_;
 };
 
