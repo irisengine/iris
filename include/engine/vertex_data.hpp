@@ -15,13 +15,22 @@ struct vertex_data
      *
      * @param position
      *   The position of the vertex.
+     *
+     * @param texture_coords
+     *   Coordinates of texture.
      */
-    vertex_data(const vector3 &position)
-        : position(position)
+    vertex_data(
+        const vector3 &position,
+        const vector3 &texture_coords)
+        : position(position),
+          texture_coords(texture_coords)
     { }
 
     /** Vertex position. */
     vector3 position;
+
+    /** Texture coordinates. */
+    vector3 texture_coords;
 };
 
 }
