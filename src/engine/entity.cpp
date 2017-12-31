@@ -1,5 +1,6 @@
 #include "entity.hpp"
 
+#include <iostream>
 #include <cstdint>
 #include <experimental/filesystem>
 #include <queue>
@@ -22,7 +23,7 @@ namespace
  *   Assimp mesh object.
  *
  * @param path
- *   Path to model file to load.
+ *   Path to texture file for mesh.
  *
  * @param colour
  *   Colour of meshes.
@@ -38,6 +39,7 @@ namespace
  */
 eng::mesh create_mesh(
     const aiMesh * const mesh,
+    const std::experimental::filesystem::path &path,
     const std::uint32_t colour,
     const eng::vector3 &position,
     const eng::vector3 &scale)
@@ -54,10 +56,22 @@ eng::mesh create_mesh(
     {
         // parse each assimp vertex data
         const auto ai_vertex = mesh->mVertices[j];
-        vertices.emplace_back(eng::vector3{
+
+        eng::vector3 position = {
             ai_vertex.x,
             ai_vertex.y,
-            ai_vertex.z });
+            ai_vertex.z };
+
+        eng::vector3 texture_coords{ };
+
+        // if mesh has vertex coords then extract them
+        if(mesh->mTextureCoords[0] != nullptr)
+        {
+            texture_coords.x = mesh->mTextureCoords[0][j].x;
+            texture_coords.y = mesh->mTextureCoords[0][j].y;
+        }
+
+        vertices.emplace_back(position, texture_coords);
     }
 
     // parse each assimp index
@@ -71,7 +85,7 @@ eng::mesh create_mesh(
         }
     }
 
-    return{ vertices, indices, colour, position, scale };
+    return{ vertices, indices, eng::texture{ path }, colour, position, scale };
 }
 
 /**
@@ -109,7 +123,7 @@ std::vector<eng::mesh> load_file(
     ::Assimp::Importer importer{ };
 
     // parse the mesh using assimp and check it was successful
-    const auto *scene = importer.ReadFile(path.c_str(), aiProcess_Triangulate);
+    const auto *scene = importer.ReadFile(path.c_str(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
     if((scene == nullptr) ||
        (scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE) ||
        (scene->mRootNode == nullptr))
@@ -133,9 +147,28 @@ std::vector<eng::mesh> load_file(
         for(int i = 0u; i < node->mNumMeshes; ++i)
         {
             const auto *mesh = scene->mMeshes[node->mMeshes[i]];
+            const auto *material = scene->mMaterials[mesh->mMaterialIndex];
+            std::experimental::filesystem::path image_path{ };
+
+            // get diffuse texture information
+            for(int j = 0u; j < material->GetTextureCount(aiTextureType_DIFFUSE); ++j)
+            {
+                // get name of texture file
+                ::aiString ai_name{ };
+                material->GetTexture(aiTextureType_DIFFUSE, j, &ai_name);
+
+                // we assume texture files are located in the same directory
+                // as the model file, so construct a new path
+                std::string filename{ ai_name.C_Str() };
+                image_path = std::experimental::filesystem::path(path).replace_filename(filename);
+
+                // only currently support loading a single texture so break here
+                break;
+            }
 
             meshes.emplace_back(create_mesh(
                 mesh,
+                image_path,
                 colour,
                 position,
                 scale));

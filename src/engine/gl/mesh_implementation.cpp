@@ -30,10 +30,18 @@ mesh_implementation::mesh_implementation(
     const auto pos_attribute = 0u;
 
     ::glEnableVertexAttribArray(pos_attribute);
-    gl::check_opengl_error("could not enable vertex attribute");
+    gl::check_opengl_error("could not enable position attribute");
 
-    ::glVertexAttribPointer(pos_attribute, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    gl::check_opengl_error("could not set vertex attributes");
+    ::glVertexAttribPointer(pos_attribute, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 0);
+    gl::check_opengl_error("could not set position attributes");
+
+    const auto tex_attribute = 1u;
+
+    ::glEnableVertexAttribArray(tex_attribute);
+    gl::check_opengl_error("could not enable tex attribute");
+
+    ::glVertexAttribPointer(tex_attribute, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
+    gl::check_opengl_error("could not set tex attributes");
 }
 
 void mesh_implementation::bind() const

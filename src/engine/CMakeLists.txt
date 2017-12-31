@@ -7,10 +7,12 @@ SET(SRCS
     "gl/mesh_implementation.cpp"
     "gl/opengl.cpp"
     "gl/shader.cpp"
+    "gl/texture_implementation.cpp"
     "gl/vertex_state.cpp"
     "matrix.cpp"
     "mesh.cpp"
     "opengl_render_system.cpp"
+    "texture.cpp"
     "vector3.cpp"
 )
 
@@ -25,4 +27,5 @@ ENDIF()
 ADD_LIBRARY(engine STATIC ${SRCS} ${PLATFORM_SRCS})
 
 INCLUDE_DIRECTORIES(engine PUBLIC "${CMAKE_SOURCE_DIR}/include/engine")
+INCLUDE_DIRECTORIES(engine SYSTEM "${CMAKE_SOURCE_DIR}/third_party")
 INCLUDE_DIRECTORIES(engine SYSTEM "${CMAKE_SOURCE_DIR}/third_party/assimp/include")
