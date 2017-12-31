@@ -1,12 +1,10 @@
 #pragma once
 
-#include <memory>
-#include <tuple>
 #include <vector>
 
 #include "camera.hpp"
 #include "entity.hpp"
-#include "gl/material.hpp"
+#include "material.hpp"
 #include "matrix.hpp"
 
 namespace eng
@@ -75,7 +73,7 @@ class opengl_render_system final
         std::shared_ptr<camera> camera_;
 
         /** Global material. */
-        std::unique_ptr<gl::material> material_;
+        material material_;
 };
 
 }
