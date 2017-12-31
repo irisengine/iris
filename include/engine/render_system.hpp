@@ -1,11 +1,13 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include "camera.hpp"
 #include "entity.hpp"
 #include "material.hpp"
 #include "matrix.hpp"
+#include "window.hpp"
 
 namespace eng
 {
@@ -23,6 +25,9 @@ class render_system final
          * @param c
          *   Camera to render scene through.
          *
+         * @param w
+         *   Rendering window.
+         *
          * @param width
          *   Width of render window.
          *
@@ -31,6 +36,7 @@ class render_system final
          */
         render_system(
             std::shared_ptr<camera> c,
+            std::shared_ptr<window> w,
             const float width,
             const float height);
 
@@ -71,6 +77,9 @@ class render_system final
 
         /** Camera to render scene through */
         std::shared_ptr<camera> camera_;
+
+        /** Rendering window. */
+        std::shared_ptr<window> window_;
 
         /** Global material. */
         material material_;

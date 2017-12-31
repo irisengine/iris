@@ -52,10 +52,12 @@ namespace eng
 
 render_system::render_system(
             std::shared_ptr<camera> c,
+            std::shared_ptr<window> w,
             const float width,
             const float height)
     : scene_(),
       camera_(c),
+      window_(w),
       material_(vertex_source, fragment_source)
 {
     ::glEnable(GL_DEPTH_TEST);
@@ -79,6 +81,8 @@ void render_system::add(std::shared_ptr<entity> e)
 
 void render_system::render() const
 {
+    window_->pre_render();
+
     // render each element in scene
     for(const auto &e : scene_)
     {
@@ -124,6 +128,8 @@ void render_system::render() const
             gl::check_opengl_error("could not draw triangles");
         }
     }
+
+    window_->post_render();
 }
 
 void render_system::set_wireframe_mode(bool wireframe)
