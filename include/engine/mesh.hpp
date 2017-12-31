@@ -5,6 +5,7 @@
 
 #include "gl/mesh_implementation.hpp"
 #include "matrix.hpp"
+#include "texture.hpp"
 #include "vector3.hpp"
 #include "vertex_data.hpp"
 
@@ -34,6 +35,9 @@ class mesh final
          * @param indices
          *   Collection of indices representing vertex draw order.
          *
+         * @param tex
+         *   The texture to render the mesh with.
+         *
          * @param colour
          *   Colour of vertices.
          *
@@ -46,6 +50,7 @@ class mesh final
         mesh(
             const std::vector<vertex_data> &vertices,
             const std::vector<std::uint32_t> &indices,
+            texture &&tex,
             const std::uint32_t colour,
             const vector3 &position,
             const vector3 &scale);
@@ -116,6 +121,9 @@ class mesh final
 
         /** Mesh index data. */
         std::vector<std::uint32_t> indices_;
+
+        /** Texture to render mesh with. */
+        texture texture_;
 
         /** Mesh colour. */
         std::uint32_t colour_;
