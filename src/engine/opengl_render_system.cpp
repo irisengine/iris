@@ -22,23 +22,28 @@ namespace
     #version 330 core
     precision mediump float;
     layout (location = 0) in vec3 position;
+    layout (location = 1) in vec3 tex;
     uniform mat4 projection;
     uniform mat4 view;
     uniform mat4 model;
+    out vec2 texCoord;
     void main()
     {
         gl_Position = transpose(projection) * transpose(view) *transpose(model) * vec4(position, 1.0);
+        texCoord = vec2(tex.x, tex.y);
     }
 )" };
 
     static const std::string fragment_source { R"(
     #version 330 core
     precision mediump float;
+    in vec2 texCoord;
     out vec4 outColor;
     uniform vec3 colour;
+    uniform sampler2D texture1;
     void main()
     {
-        outColor = vec4(colour, 1.0);
+        outColor = texture(texture1, texCoord);
     }
 )"};
 
