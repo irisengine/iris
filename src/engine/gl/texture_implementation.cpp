@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "gl/auto_bind.hpp"
+#include "auto_bind.hpp"
 #include "gl/opengl.hpp"
 
 namespace
@@ -56,7 +56,7 @@ texture_implementation::texture_implementation(
     ::glGenTextures(1, &handle_);
     gl::check_opengl_error("could not generate texture");
 
-    gl::auto_bind<texture_implementation> auto_bind{ *this };
+    auto_bind<texture_implementation> auto_bind{ *this };
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     gl::check_opengl_error("could not set wrap s parameter");

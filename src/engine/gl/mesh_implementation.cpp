@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "auto_bind.hpp"
 #include "gl/buffer.hpp"
 #include "gl/opengl.hpp"
 #include "gl/vertex_state.hpp"
@@ -20,7 +21,7 @@ mesh_implementation::mesh_implementation(
       ebo_(indices, GL_ELEMENT_ARRAY_BUFFER)
 {
     // bind the vao
-    gl::auto_bind<gl::vertex_state> auto_state{ vao_ };
+    auto_bind<gl::vertex_state> auto_state{ vao_ };
 
     // ensure both buffers are bound for the vao
     vbo_.bind();

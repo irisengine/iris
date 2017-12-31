@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "gl/auto_bind.hpp"
+#include "auto_bind.hpp"
 #include "gl/opengl.hpp"
 
 namespace eng::gl

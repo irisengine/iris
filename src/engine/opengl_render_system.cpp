@@ -3,8 +3,8 @@
 #include <string>
 #include <utility>
 
+#include "auto_bind.hpp"
 #include "entity.hpp"
-#include "gl/auto_bind.hpp"
 #include "gl/buffer.hpp"
 #include "gl/material.hpp"
 #include "gl/opengl.hpp"
@@ -89,7 +89,7 @@ void opengl_render_system::render() const
     // render each element in scene
     for(const auto &e : scene_)
     {
-        gl::auto_bind<gl::material> auto_program{ *material_ };
+        auto_bind<gl::material> auto_program{ *material_ };
 
         const auto proj_uniform = ::glGetUniformLocation(material_->native_handle(), "projection");
         gl::check_opengl_error("could not get projection uniform location");
@@ -109,7 +109,7 @@ void opengl_render_system::render() const
         // render each mesh in element
         for(const auto &m : e->meshes())
         {
-            gl::auto_bind<mesh> auto_mesh{ m };
+            auto_bind<mesh> auto_mesh{ m };
 
             ::glUniformMatrix4fv(model_uniform, 1, GL_FALSE, m.model().data());
             gl::check_opengl_error("could not set model matrix uniform data");
