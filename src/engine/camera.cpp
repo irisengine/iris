@@ -43,9 +43,9 @@ camera::camera()
       direction_(0.0f, 0.0f, -1.0f),
       up_(0.0f, 1.0f, 0.0f),
       view_(),
-      projection_(matrix::make_projection(0.785398f, 1.0f, 0.0f, 1000.0f)),
+      projection_(matrix::make_projection(0.785398f, 1.0f, 0.1f, 1000.0f)),
       pitch_(0.0f),
-      yaw_(3.141592654f / 2.0f)
+      yaw_(-3.141592654f / 2.0f)
 {
     direction_ = create_direction(pitch_, yaw_);
     view_ = matrix::make_look_at(position_, position_ + direction_, up_);

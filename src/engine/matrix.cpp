@@ -29,7 +29,7 @@ matrix matrix::make_projection(
         focal_length, 0.0f, 0.0f, 0.0f,
         0.0f, focal_length, 0.0f, 0.0f,
         0.0f, 0.0f, -(far + near) / (far - near), -(2 * far * near) / (far - near),
-        0.0f, 0.0f, 1.0f, 0.0f
+        0.0f, 0.0f, -1.0f, 0.0f
     }};
 
     return m;
