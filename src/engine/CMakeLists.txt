@@ -12,6 +12,7 @@ SET(SRCS
     "matrix.cpp"
     "mesh.cpp"
     "opengl_render_system.cpp"
+    "texture.cpp"
     "vector3.cpp"
 )
 
