@@ -7,6 +7,7 @@ SET(SRCS
     "gl/mesh_implementation.cpp"
     "gl/opengl.cpp"
     "gl/shader.cpp"
+    "gl/texture_implementation.cpp"
     "gl/vertex_state.cpp"
     "matrix.cpp"
     "mesh.cpp"
