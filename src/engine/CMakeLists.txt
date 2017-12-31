@@ -3,6 +3,7 @@ SET(SRCS
     "entity.cpp"
     "event_dispatcher.cpp"
     "gl/buffer.cpp"
+    "gl/material_implementation.cpp"
     "gl/mesh_implementation.cpp"
     "gl/opengl.cpp"
     "gl/shader.cpp"
