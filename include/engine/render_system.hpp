@@ -11,9 +11,9 @@ namespace eng
 {
 
 /**
- * Class for rendering scenes with opengl.
+ * Class for rendering scenes.
  */
-class opengl_render_system final
+class render_system final
 {
     public:
 
@@ -29,19 +29,19 @@ class opengl_render_system final
          * @param height
          *   Height of render window.
          */
-        opengl_render_system(
+        render_system(
             std::shared_ptr<camera> c,
             const float width,
             const float height);
 
         /** Default */
-        ~opengl_render_system() = default;
-        opengl_render_system(opengl_render_system&&) = default;
-        opengl_render_system& operator=(opengl_render_system&&) = default;
+        ~render_system() = default;
+        render_system(render_system&&) = default;
+        render_system& operator=(render_system&&) = default;
 
         /** Disabled */
-        opengl_render_system(const opengl_render_system&) = delete;
-        opengl_render_system& operator=(const opengl_render_system&) = delete;
+        render_system(const render_system&) = delete;
+        render_system& operator=(const render_system&) = delete;
 
         /**
          * Add an entity to the scene.

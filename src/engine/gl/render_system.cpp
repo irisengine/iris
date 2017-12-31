@@ -1,4 +1,4 @@
-#include "opengl_render_system.hpp"
+#include "render_system.hpp"
 
 #include <string>
 #include <utility>
@@ -50,7 +50,7 @@ namespace
 namespace eng
 {
 
-opengl_render_system::opengl_render_system(
+render_system::render_system(
             std::shared_ptr<camera> c,
             const float width,
             const float height)
@@ -72,12 +72,12 @@ opengl_render_system::opengl_render_system(
     gl::check_opengl_error("could not set viewport");
 }
 
-void opengl_render_system::add(std::shared_ptr<entity> e)
+void render_system::add(std::shared_ptr<entity> e)
 {
     scene_.emplace_back(e);
 }
 
-void opengl_render_system::render() const
+void render_system::render() const
 {
     // render each element in scene
     for(const auto &e : scene_)
@@ -126,7 +126,7 @@ void opengl_render_system::render() const
     }
 }
 
-void opengl_render_system::set_wireframe_mode(bool wireframe)
+void render_system::set_wireframe_mode(bool wireframe)
 {
     const auto mode = wireframe
         ? GL_LINE

@@ -11,7 +11,7 @@
 #include "event_dispatcher.hpp"
 #include "keyboard_event.hpp"
 #include "mouse_event.hpp"
-#include "opengl_render_system.hpp"
+#include "render_system.hpp"
 #include "vector3.hpp"
 #include "window.hpp"
 
@@ -48,7 +48,7 @@ void go(int argc, char **argv)
     eng::window w{ dispatcher, width, height };
 
     camera = std::make_shared<eng::camera>();
-    eng::opengl_render_system rs{ camera, width, height };
+    eng::render_system rs{ camera, width, height };
 
     const std::vector<float> triangle_verts = {
         0.0f, 0.5f,
