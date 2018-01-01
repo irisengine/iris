@@ -15,13 +15,11 @@ mesh::mesh(
     const std::vector<vertex_data> &vertices,
     const std::vector<std::uint32_t> &indices,
     texture &&textures,
-    const std::uint32_t colour,
     const vector3 &position,
     const vector3 &scale)
     : vertices_(vertices),
       indices_(indices),
       texture_(std::move(textures)),
-      colour_(colour),
       model_(matrix::make_translate(position) * matrix::make_scale(scale)),
       impl_(vertices_, indices_)
 { }
@@ -51,11 +49,6 @@ const std::vector<vertex_data>& mesh::vertices() const noexcept
 const std::vector<std::uint32_t>& mesh::indices() const noexcept
 {
     return indices_;
-}
-
-std::uint32_t mesh::colour() const noexcept
-{
-    return colour_;
 }
 
 matrix mesh::model() const noexcept

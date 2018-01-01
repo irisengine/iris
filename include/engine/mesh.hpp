@@ -38,9 +38,6 @@ class mesh final
          * @param tex
          *   The texture to render the mesh with.
          *
-         * @param colour
-         *   Colour of vertices.
-         *
          * @param position
          *   Position in world space of mesh.
          *
@@ -51,7 +48,6 @@ class mesh final
             const std::vector<vertex_data> &vertices,
             const std::vector<std::uint32_t> &indices,
             texture &&tex,
-            const std::uint32_t colour,
             const vector3 &position,
             const vector3 &scale);
 
@@ -99,14 +95,6 @@ class mesh final
         const std::vector<std::uint32_t>& indices() const noexcept;
 
         /**
-         * Get colour.
-         *
-         * @returns
-         *   Mesh colour.
-         */
-        std::uint32_t colour() const noexcept;
-
-        /**
          * Get the model transformation matrix.
          *
          * @returns
@@ -124,9 +112,6 @@ class mesh final
 
         /** Texture to render mesh with. */
         texture texture_;
-
-        /** Mesh colour. */
-        std::uint32_t colour_;
 
         /** Model transformation matrix. */
         matrix model_;

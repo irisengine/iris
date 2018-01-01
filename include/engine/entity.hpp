@@ -22,9 +22,6 @@ class entity final
          * @param path
          *   Path to model file to load.
          *
-         * @param colour
-         *   Colour of meshes.
-         *
          * @param position
          *   Position of mesh in world space.
          *
@@ -33,7 +30,6 @@ class entity final
          */
         entity(
             const std::experimental::filesystem::path &path,
-            const std::uint32_t colour,
             const vector3 &position,
             const vector3 &scale);
 

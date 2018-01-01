@@ -20,13 +20,16 @@ namespace
     #version 330 core
     precision mediump float;
     layout (location = 0) in vec3 position;
-    layout (location = 1) in vec3 tex;
+    layout (location = 1) in vec3 colour;
+    layout (location = 2) in vec3 tex;
     uniform mat4 projection;
     uniform mat4 view;
     uniform mat4 model;
     out vec2 texCoord;
+    out vec3 col;
     void main()
     {
+        col = colour;
         gl_Position = transpose(projection) * transpose(view) *transpose(model) * vec4(position, 1.0);
         texCoord = vec2(tex.x, tex.y);
     }
@@ -36,12 +39,12 @@ namespace
     #version 330 core
     precision mediump float;
     in vec2 texCoord;
+    in vec3 col;
     out vec4 outColor;
-    uniform vec3 colour;
     uniform sampler2D texture1;
     void main()
     {
-        outColor = texture(texture1, texCoord);
+        outColor = texture(texture1, texCoord) * vec4(col, 1.0);
     }
 )"};
 
@@ -112,16 +115,6 @@ void render_system::render() const
 
             ::glUniformMatrix4fv(model_uniform, 1, GL_FALSE, m.model().data());
             gl::check_opengl_error("could not set model matrix uniform data");
-
-            const auto colour_uniform = ::glGetUniformLocation(program, "colour");
-            gl::check_opengl_error("could not get colour uniform location");
-
-            const auto r = static_cast<float>((m.colour() >> 24) & 0xFF) / 255.0f;
-            const auto g = static_cast<float>((m.colour() >> 16) & 0xFF) / 255.0f;
-            const auto b = static_cast<float>((m.colour() >>  8) & 0xFF) / 255.0f;
-
-            ::glUniform3f(colour_uniform, r, g, b);
-            gl::check_opengl_error("could not set colour uniform data");
 
             // draw!
             ::glDrawElements(GL_TRIANGLES, m.indices().size(), GL_UNSIGNED_INT, 0);

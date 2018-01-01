@@ -21,13 +21,17 @@ struct vertex_data
      */
     vertex_data(
         const vector3 &position,
+        const vector3 &colour,
         const vector3 &texture_coords)
         : position(position),
+          colour(colour),
           texture_coords(texture_coords)
     { }
 
     /** Vertex position. */
     vector3 position;
+
+    vector3 colour;
 
     /** Texture coordinates. */
     vector3 texture_coords;
