@@ -60,6 +60,30 @@ texture::texture(const std::experimental::filesystem::path &path)
         num_channels_);
 }
 
+texture::texture(
+    const std::vector<std::uint8_t> &data,
+    const std::uint32_t width,
+    const std::uint32_t height,
+    const std::uint32_t num_channels)
+    : data_(data),
+      width_(width),
+      height_(height),
+      num_channels_(num_channels),
+      impl_()
+{
+    const auto expected_size = width * height * num_channels;
+    if(data.size() != expected_size)
+    {
+        throw std::runtime_error("incorrect data size");
+    }
+
+    impl_ = std::make_unique<gl::texture_implementation>(
+        data_,
+        width_,
+        height_,
+        num_channels_);
+}
+
 void texture::bind() const
 {
     impl_->bind();
