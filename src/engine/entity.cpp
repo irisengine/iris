@@ -85,7 +85,12 @@ eng::mesh create_mesh(
         }
     }
 
-    return{ vertices, indices, eng::texture{ path }, colour, position, scale };
+    //create texture from file if it exists, else default to an all white image
+    auto texture = std::experimental::filesystem::exists(path)
+        ? eng::texture{ path }
+        : eng::texture{ { 0xFF, 0xFF, 0xFF }, 1u, 1u, 3u };
+
+    return{ vertices, indices, std::move(texture), colour, position, scale };
 }
 
 /**
@@ -151,19 +156,16 @@ std::vector<eng::mesh> load_file(
             std::experimental::filesystem::path image_path{ };
 
             // get diffuse texture information
-            for(int j = 0u; j < material->GetTextureCount(aiTextureType_DIFFUSE); ++j)
+            if(material->GetTextureCount(aiTextureType_DIFFUSE) > 0)
             {
                 // get name of texture file
                 ::aiString ai_name{ };
-                material->GetTexture(aiTextureType_DIFFUSE, j, &ai_name);
+                material->GetTexture(aiTextureType_DIFFUSE, 0, &ai_name);
 
                 // we assume texture files are located in the same directory
                 // as the model file, so construct a new path
                 std::string filename{ ai_name.C_Str() };
                 image_path = std::experimental::filesystem::path(path).replace_filename(filename);
-
-                // only currently support loading a single texture so break here
-                break;
             }
 
             meshes.emplace_back(create_mesh(

@@ -11,7 +11,7 @@
 #include "event_dispatcher.hpp"
 #include "keyboard_event.hpp"
 #include "mouse_event.hpp"
-#include "opengl_render_system.hpp"
+#include "render_system.hpp"
 #include "vector3.hpp"
 #include "window.hpp"
 
@@ -45,10 +45,10 @@ void go(int argc, char **argv)
 
     eng::event_dispatcher dispatcher{ keyevent_handler, mouseevent_handler };
 
-    eng::window w{ dispatcher, width, height };
+    auto window = std::make_shared<eng::window>(dispatcher, width, height);
 
     camera = std::make_shared<eng::camera>();
-    eng::opengl_render_system rs{ camera, width, height };
+    eng::render_system rs{ camera, window, width, height };
 
     const std::vector<float> triangle_verts = {
         0.0f, 0.5f,
@@ -102,9 +102,7 @@ void go(int argc, char **argv)
             key_map[eng::key::P] = eng::key_state::UP;
         }
 
-        w.pre_render();
         rs.render();
-        w.post_render();
     }
 }
 

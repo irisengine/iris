@@ -1,21 +1,21 @@
 #pragma once
 
 #include <memory>
-#include <tuple>
 #include <vector>
 
 #include "camera.hpp"
 #include "entity.hpp"
-#include "gl/material.hpp"
+#include "material.hpp"
 #include "matrix.hpp"
+#include "window.hpp"
 
 namespace eng
 {
 
 /**
- * Class for rendering scenes with opengl.
+ * Class for rendering scenes.
  */
-class opengl_render_system final
+class render_system final
 {
     public:
 
@@ -25,25 +25,29 @@ class opengl_render_system final
          * @param c
          *   Camera to render scene through.
          *
+         * @param w
+         *   Rendering window.
+         *
          * @param width
          *   Width of render window.
          *
          * @param height
          *   Height of render window.
          */
-        opengl_render_system(
+        render_system(
             std::shared_ptr<camera> c,
+            std::shared_ptr<window> w,
             const float width,
             const float height);
 
         /** Default */
-        ~opengl_render_system() = default;
-        opengl_render_system(opengl_render_system&&) = default;
-        opengl_render_system& operator=(opengl_render_system&&) = default;
+        ~render_system() = default;
+        render_system(render_system&&) = default;
+        render_system& operator=(render_system&&) = default;
 
         /** Disabled */
-        opengl_render_system(const opengl_render_system&) = delete;
-        opengl_render_system& operator=(const opengl_render_system&) = delete;
+        render_system(const render_system&) = delete;
+        render_system& operator=(const render_system&) = delete;
 
         /**
          * Add an entity to the scene.
@@ -74,8 +78,11 @@ class opengl_render_system final
         /** Camera to render scene through */
         std::shared_ptr<camera> camera_;
 
+        /** Rendering window. */
+        std::shared_ptr<window> window_;
+
         /** Global material. */
-        std::unique_ptr<gl::material> material_;
+        material material_;
 };
 
 }

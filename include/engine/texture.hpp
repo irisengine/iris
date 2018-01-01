@@ -19,12 +19,33 @@ class texture final
     public:
 
         /**
-         * Create a new texture class/
+         * Create a new texture from an image file.
          *
          * @param path
          *   Path to image file to load.
          */
         explicit texture(const std::experimental::filesystem::path &path);
+
+        /**
+         * Creates a new texture with custom values.
+         *
+         * @param data
+         *   Raw data of image.
+         *
+         * @param width
+         *   Width of image.
+         *
+         * @param height
+         *   Height of image.
+         *
+         * @param num_channels
+         *   Number of channels.
+         */
+        texture(
+            const std::vector<std::uint8_t> &data,
+            const std::uint32_t width,
+            const std::uint32_t height,
+            const std::uint32_t num_channels);
 
         /** Default */
         ~texture() = default;

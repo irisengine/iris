@@ -1,21 +1,26 @@
-#include "gl/material.hpp"
+#include "gl/material_implementation.hpp"
 
 #include <cstdint>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "gl/opengl.hpp"
 #include "gl/shader.hpp"
+#include "gl/shader_type.hpp"
 
 namespace eng::gl
 {
 
-material::material(const shader &vertex_shader, const shader &fragment_shader)
+material_implementation::material_implementation(
+    const std::string &vertex_shader_source,
+    const std::string &fragment_shader_source)
     : program_(0u)
 {
     program_ = ::glCreateProgram();
     gl::check_opengl_error("could not create new program");
+
+    const shader vertex_shader{ vertex_shader_source, shader_type::VERTEX };
+    const shader fragment_shader{ fragment_shader_source, shader_type::FRAGMENT };
 
     ::glAttachShader(program_, vertex_shader.native_handle());
     gl::check_opengl_error("could not attach vertex shader");
@@ -58,44 +63,45 @@ material::material(const shader &vertex_shader, const shader &fragment_shader)
     }
 }
 
-material::~material()
+material_implementation::~material_implementation()
 {
     ::glDeleteProgram(program_);
 }
 
-material::material(material &&other) noexcept
+material_implementation::material_implementation(material_implementation &&other) noexcept
     : program_(0u)
 {
     std::swap(program_, other.program_);
 }
 
-material& material::operator=(material &&other) noexcept
+material_implementation& material_implementation::operator=(material_implementation &&other) noexcept
 {
-    // create a new material object to 'steal' the internal state of the supplied
+    // create a new material_implementation object to 'steal' the internal state of the supplied
     // object then swap
-    // this ensures that the current material is correctly deleted at the end
+    // this ensures that the current material_implementation is correctly deleted at the end
     // of this call
-    material new_material{ std::move(other) };
+    material_implementation new_material{ std::move(other) };
     std::swap(program_, new_material.program_);
 
     return *this;
 }
 
-std::uint32_t material::native_handle() const noexcept
-{
-    return program_;
-}
 
-void material::bind() const
+void material_implementation::bind() const
 {
     ::glUseProgram(program_);
     gl::check_opengl_error("could not bind program");
 }
 
-void material::unbind() const
+void material_implementation::unbind() const
 {
     ::glUseProgram(0u);
     gl::check_opengl_error("could not unbind program");
+}
+
+std::uint32_t material_implementation::native_handle() const noexcept
+{
+    return program_;
 }
 
 }
