@@ -43,6 +43,22 @@ class entity final
         entity& operator=(const entity&) = delete;
 
         /**
+         * Translate entity.
+         *
+         * @param t
+         *   Amount to transalte.
+         */
+        void translate(const vector3 &t) noexcept;
+
+        /**
+         * Rotate entity around y axis.
+         *
+         * @param angle
+         *   Angle to rotate by in radians.
+         */
+        void rotate_y(const float angle) noexcept;
+
+        /**
          * Get a const reference to the meshes that make up the entity.
          *
          * @returns

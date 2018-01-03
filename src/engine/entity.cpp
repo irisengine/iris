@@ -207,6 +207,24 @@ entity::entity(
     : meshes_(load_file(path, position, scale))
 { }
 
+void entity::translate(const vector3 &t) noexcept
+{
+    // translate all meshes
+    for(auto &m : meshes_)
+    {
+        m.translate(t);
+    }
+}
+
+void entity::rotate_y(const float angle) noexcept
+{
+    // rotate all meshes
+    for(auto &m : meshes_)
+    {
+        m.rotate_y(angle);
+    }
+}
+
 const std::vector<mesh>& entity::meshes() const noexcept
 {
     return meshes_;
