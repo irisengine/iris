@@ -61,7 +61,8 @@ render_system::render_system(
     : scene_(),
       camera_(c),
       window_(w),
-      material_(vertex_source, fragment_source)
+      material_(vertex_source, fragment_source),
+      light_position()
 {
     ::glEnable(GL_DEPTH_TEST);
     gl::check_opengl_error("could not enable depth testing");
@@ -123,6 +124,11 @@ void render_system::render() const
     }
 
     window_->post_render();
+}
+
+void render_system::set_light_position(const vector3 &position) noexcept
+{
+    light_position = position;
 }
 
 void render_system::set_wireframe_mode(bool wireframe)
