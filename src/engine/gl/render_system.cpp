@@ -110,9 +110,12 @@ void render_system::render() const
     // render each element in scene
     for(const auto &e : scene_)
     {
+        // bind material so render with it
         auto_bind<material> auto_program{ material_ };
 
         const auto program = material_.native_handle<std::uint32_t>();
+
+        // set uniforms
 
         const auto proj_uniform = ::glGetUniformLocation(program, "projection");
         gl::check_opengl_error("could not get projection uniform location");
@@ -138,6 +141,7 @@ void render_system::render() const
         // render each mesh in element
         for(const auto &m : e->meshes())
         {
+            // bind mesh so the final draw call renders it
             auto_bind<mesh> auto_mesh{ m };
 
             ::glUniformMatrix4fv(model_uniform, 1, GL_FALSE, m.model().data());
