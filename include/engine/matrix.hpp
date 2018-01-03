@@ -89,6 +89,14 @@ class matrix final
         static matrix make_translate(const vector3 &translate) noexcept;
 
         /**
+         * Static method to create a rotation matrix about the y axis.
+         *
+         * @param angle
+         *   Angle to rotate by in radians.
+         */
+        static matrix make_rotate_y(const float angle) noexcept;
+
+        /**
          * Performs matrix multiplication.
          *
          * @param m
