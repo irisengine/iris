@@ -79,6 +79,11 @@ render_system::render_system(
       material_(vertex_source, fragment_source),
       light_position()
 {
+    // opengl setup
+
+    ::glClearColor(0.0f, 0.0f, 0.1f, 1.0f);
+    gl::check_opengl_error("could not set clear colour");
+
     ::glEnable(GL_DEPTH_TEST);
     gl::check_opengl_error("could not enable depth testing");
 

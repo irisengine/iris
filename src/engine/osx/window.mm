@@ -263,9 +263,6 @@ window::window(
     [[NSAutoreleasePool alloc] init];
 
     [NSCursor hide];
-
-    // perform OpenGl setup
-    ::glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 void window::pre_render() const noexcept
