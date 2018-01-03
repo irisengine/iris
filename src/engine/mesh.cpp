@@ -41,6 +41,11 @@ void mesh::translate(const vector3 &t) noexcept
     model_ = matrix::make_translate(t) * model_;
 }
 
+void mesh::rotate_y(const float angle) noexcept
+{
+    model_ = matrix::make_rotate_y(angle) * model_;
+}
+
 const std::vector<vertex_data>& mesh::vertices() const noexcept
 {
     return vertices_;
