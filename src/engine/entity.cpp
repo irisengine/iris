@@ -40,7 +40,7 @@ namespace
 eng::mesh create_mesh(
     const aiMesh * const mesh,
     const std::experimental::filesystem::path &path,
-    const std::uint32_t colour,
+    const eng::vector3 &colour,
     const eng::vector3 &position,
     const eng::vector3 &scale)
 {
@@ -54,13 +54,20 @@ eng::mesh create_mesh(
 
     for(auto j = 0u; j < mesh->mNumVertices; ++j)
     {
-        // parse each assimp vertex data
-        const auto ai_vertex = mesh->mVertices[j];
-
-        eng::vector3 position = {
+        // copy vertex position
+        const auto &ai_vertex = mesh->mVertices[j];
+        eng::vector3 position{
             ai_vertex.x,
             ai_vertex.y,
             ai_vertex.z };
+
+        // copy vertex normal
+        const auto &ai_normal = mesh->mNormals[j];
+        eng::vector3 normal{
+            ai_normal.x,
+            ai_normal.y,
+            ai_normal.z,
+        };
 
         eng::vector3 texture_coords{ };
 
@@ -71,7 +78,7 @@ eng::mesh create_mesh(
             texture_coords.y = mesh->mTextureCoords[0][j].y;
         }
 
-        vertices.emplace_back(position, texture_coords);
+        vertices.emplace_back(position, normal, colour, texture_coords);
     }
 
     // parse each assimp index
@@ -90,7 +97,7 @@ eng::mesh create_mesh(
         ? eng::texture{ path }
         : eng::texture{ { 0xFF, 0xFF, 0xFF }, 1u, 1u, 3u };
 
-    return{ vertices, indices, std::move(texture), colour, position, scale };
+    return{ vertices, indices, std::move(texture), position, scale };
 }
 
 /**
@@ -116,7 +123,6 @@ eng::mesh create_mesh(
  */
 std::vector<eng::mesh> load_file(
     const std::experimental::filesystem::path &path,
-    const std::uint32_t colour,
     const eng::vector3 &position,
     const eng::vector3 &scale)
 {
@@ -168,6 +174,10 @@ std::vector<eng::mesh> load_file(
                 image_path = std::experimental::filesystem::path(path).replace_filename(filename);
             }
 
+            aiColor3D ai_colour{ 0.0f, 0.0f, 0.0f };
+            material->Get(AI_MATKEY_COLOR_DIFFUSE, ai_colour);
+            const eng::vector3 colour{ ai_colour.r, ai_colour.g, ai_colour.b };
+
             meshes.emplace_back(create_mesh(
                 mesh,
                 image_path,
@@ -192,10 +202,9 @@ namespace eng
 
 entity::entity(
     const std::experimental::filesystem::path &path,
-    const std::uint32_t colour,
     const vector3 &position,
     const vector3 &scale)
-    : meshes_(load_file(path, colour, position, scale))
+    : meshes_(load_file(path, position, scale))
 { }
 
 const std::vector<mesh>& entity::meshes() const noexcept

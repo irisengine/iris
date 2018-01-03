@@ -58,7 +58,6 @@ void go(int argc, char **argv)
 
     auto entity1 = std::make_shared<eng::entity>(
         std::experimental::filesystem::path{ argv[1] },
-        0xFFFFFFFF,
         eng::vector3{ 0.0f, 0.0f, -10.0f },
         eng::vector3{ 1.0f, 1.0f, 1.0f });
     rs.add(entity1);

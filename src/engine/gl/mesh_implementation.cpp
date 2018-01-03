@@ -33,15 +33,33 @@ mesh_implementation::mesh_implementation(
     ::glEnableVertexAttribArray(pos_attribute);
     gl::check_opengl_error("could not enable position attribute");
 
-    ::glVertexAttribPointer(pos_attribute, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 0);
+    const auto data_size = 12 * sizeof(float);
+
+    ::glVertexAttribPointer(pos_attribute, 3, GL_FLOAT, GL_FALSE, data_size, 0);
     gl::check_opengl_error("could not set position attributes");
 
-    const auto tex_attribute = 1u;
+    const auto normal_attribute = 1u;
+
+    ::glEnableVertexAttribArray(normal_attribute);
+    gl::check_opengl_error("could not enable normal attribute");
+
+    ::glVertexAttribPointer(normal_attribute, 3, GL_FLOAT, GL_FALSE, data_size, reinterpret_cast<void*>(3 * sizeof(float)));
+    gl::check_opengl_error("could not set normal attributes");
+
+    const auto colour_attribute = 2u;
+
+    ::glEnableVertexAttribArray(colour_attribute);
+    gl::check_opengl_error("could not enable colour attribute");
+
+    ::glVertexAttribPointer(colour_attribute, 3, GL_FLOAT, GL_FALSE, data_size, reinterpret_cast<void*>(6 * sizeof(float)));
+    gl::check_opengl_error("could not set colour attributes");
+
+    const auto tex_attribute = 3u;
 
     ::glEnableVertexAttribArray(tex_attribute);
     gl::check_opengl_error("could not enable tex attribute");
 
-    ::glVertexAttribPointer(tex_attribute, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
+    ::glVertexAttribPointer(tex_attribute, 3, GL_FLOAT, GL_FALSE, data_size, reinterpret_cast<void*>(9 * sizeof(float)));
     gl::check_opengl_error("could not set tex attributes");
 }
 

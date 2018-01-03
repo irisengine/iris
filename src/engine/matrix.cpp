@@ -73,7 +73,7 @@ matrix matrix::make_scale(const vector3 &scale) noexcept
     return m;
 }
 
- matrix matrix::make_translate(const vector3 &translate) noexcept
+matrix matrix::make_translate(const vector3 &translate) noexcept
 {
     matrix m;
 

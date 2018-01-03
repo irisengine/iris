@@ -63,6 +63,14 @@ class render_system final
         void render() const;
 
         /**
+         * Set the position of the one light in the scene.
+         *
+         * @param position.
+         *   New position of light in world space.
+         */
+        void set_light_position(const vector3 &position) noexcept;
+
+        /**
          * Set whether the scene should be drawn in wireframe mode.
          *
          * @param wireframe
@@ -83,6 +91,9 @@ class render_system final
 
         /** Global material. */
         material material_;
+
+        /** Light position. */
+        vector3 light_position;
 };
 
 }
