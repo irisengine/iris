@@ -88,6 +88,21 @@ matrix matrix::make_translate(const vector3 &translate) noexcept
     return m;
 }
 
+matrix matrix::make_rotate_y(const float angle) noexcept
+{
+    matrix m;
+
+    m.elements_ =
+    {{
+         std::cos(angle), 0.0f, std::sin(angle), 0.f,
+         0.0f, 1.0f, 0.0f, 0.f,
+         -std::sin(angle), 0.0f, std::cos(angle), 0.f,
+         0.0f, 0.0f, 0.0f, 1.0f
+    }};
+
+    return m;
+}
+
 matrix& matrix::operator*=(const matrix &m) noexcept
 {
     const auto e = elements_;
