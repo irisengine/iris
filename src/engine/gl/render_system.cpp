@@ -20,18 +20,23 @@ namespace
     #version 330 core
     precision mediump float;
     layout (location = 0) in vec3 position;
-    layout (location = 1) in vec3 colour;
-    layout (location = 2) in vec3 tex;
+    layout (location = 1) in vec3 normal;
+    layout (location = 2) in vec3 colour;
+    layout (location = 3) in vec3 tex;
     uniform mat4 projection;
     uniform mat4 view;
     uniform mat4 model;
+    out vec3 fragPos;
     out vec2 texCoord;
     out vec3 col;
+    out vec3 norm;
     void main()
     {
         col = colour;
-        gl_Position = transpose(projection) * transpose(view) *transpose(model) * vec4(position, 1.0);
+        norm = mat3(transpose(inverse(transpose(model)))) * normal;
         texCoord = vec2(tex.x, tex.y);
+        fragPos = vec3(transpose(model) * vec4(position, 1.0));
+        gl_Position = transpose(projection) * transpose(view) * vec4(fragPos, 1.0);
     }
 )" };
 
@@ -40,11 +45,21 @@ namespace
     precision mediump float;
     in vec2 texCoord;
     in vec3 col;
+    in vec3 norm;
+    in vec3 fragPos;
     out vec4 outColor;
     uniform sampler2D texture1;
+    uniform vec3 light;
     void main()
     {
-        outColor = texture(texture1, texCoord) * vec4(col, 1.0);
+        const vec3 amb = vec3(0.2, 0.2, 0.2);
+        const vec3 lightColour = vec3(1.0, 1.0, 1.0);
+        vec3 n = normalize(norm);
+        vec3 light_dir = normalize(light - fragPos);
+        float diff = max(dot(n, light_dir), 0.0);
+        vec3 diffuse = diff * lightColour;
+        vec3 l = amb + diffuse;
+        outColor = vec4(l, 1.0) * texture(texture1, texCoord) * vec4(col, 1.0);
     }
 )"};
 
@@ -105,6 +120,12 @@ void render_system::render() const
 
         ::glUniformMatrix4fv(view_uniform, 1, GL_FALSE, camera_->view().data());
         gl::check_opengl_error("could not set view matrix uniform data");
+
+        const auto light_uniform = ::glGetUniformLocation(program, "light");
+        gl::check_opengl_error("could not get light uniform location");
+
+        ::glUniform3f(light_uniform, light_position.x, light_position.y, light_position.z);
+        gl::check_opengl_error("could not set light uniform data");
 
         const auto model_uniform = ::glGetUniformLocation(program, "model");
         gl::check_opengl_error("could not get model uniform location");
