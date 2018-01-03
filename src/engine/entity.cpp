@@ -54,13 +54,20 @@ eng::mesh create_mesh(
 
     for(auto j = 0u; j < mesh->mNumVertices; ++j)
     {
-        // parse each assimp vertex data
-        const auto ai_vertex = mesh->mVertices[j];
-
-        eng::vector3 position = {
+        // copy vertex position
+        const auto &ai_vertex = mesh->mVertices[j];
+        eng::vector3 position{
             ai_vertex.x,
             ai_vertex.y,
             ai_vertex.z };
+
+        // copy vertex normal
+        const auto &ai_normal = mesh->mNormals[j];
+        eng::vector3 normal{
+            ai_normal.x,
+            ai_normal.y,
+            ai_normal.z,
+        };
 
         eng::vector3 texture_coords{ };
 
@@ -71,7 +78,7 @@ eng::mesh create_mesh(
             texture_coords.y = mesh->mTextureCoords[0][j].y;
         }
 
-        vertices.emplace_back(position, colour, texture_coords);
+        vertices.emplace_back(position, normal, colour, texture_coords);
     }
 
     // parse each assimp index
