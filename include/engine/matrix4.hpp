@@ -13,20 +13,20 @@ namespace eng
  *
  * Elements are stored in row-major order.
  */
-class matrix final
+class matrix4 final
 {
     public:
 
         /**
-         * Constructs a new identity matrix.
+         * Constructs a new identity matrix4.
          */
-        matrix();
+        matrix4();
 
         /** Default */
-        matrix(const matrix&) = default;
-        matrix& operator=(const matrix&) = default;
-        matrix(matrix&&) = default;
-        matrix& operator=(matrix&&) = default;
+        matrix4(const matrix4&) = default;
+        matrix4& operator=(const matrix4&) = default;
+        matrix4(matrix4&&) = default;
+        matrix4& operator=(matrix4&&) = default;
 
         /**
          * Static method to create a projection matrix.
@@ -43,14 +43,14 @@ class matrix final
          * @far
          *   Far clip plane.
          */
-        static matrix make_projection(
+        static matrix4 make_projection(
             const float fov,
             const float aspect_ratio,
             const float near,
             const float far) noexcept;
 
         /**
-         * Make a matrix that can be used as a view matrix for a camera.
+         * Make a matrix4 that can be used as a view matrix for a camera.
          *
          * @param eye
          *   Position of the camera.
@@ -62,9 +62,9 @@ class matrix final
          *   The up vector of the camera.
          *
          * @returns
-         *   A matrix that can be used as a camera view matrix.
+         *   A matrix4 that can be used as a camera view matrix.
          */
-        static matrix make_look_at(
+        static matrix4 make_look_at(
             const vector3 &eye,
             const vector3 &look_at,
             const vector3 &up) noexcept;
@@ -78,7 +78,7 @@ class matrix final
          * @returns
          *   Scale transformation matrix.
          */
-        static matrix make_scale(const vector3 &scale) noexcept;
+        static matrix4 make_scale(const vector3 &scale) noexcept;
 
         /**
          * Static method to create translation matrix.
@@ -86,7 +86,7 @@ class matrix final
          * @param translate
          *   Vector to translate by.
          */
-        static matrix make_translate(const vector3 &translate) noexcept;
+        static matrix4 make_translate(const vector3 &translate) noexcept;
 
         /**
          * Static method to create a rotation matrix about the y axis.
@@ -94,29 +94,29 @@ class matrix final
          * @param angle
          *   Angle to rotate by in radians.
          */
-        static matrix make_rotate_y(const float angle) noexcept;
+        static matrix4 make_rotate_y(const float angle) noexcept;
 
         /**
          * Performs matrix multiplication.
          *
          * @param m
-         *   The matrix to multiply.
+         *   The matrix4 to multiply.
          *
          * @returns
-         *   This matrix multiplied the supplied matrix.
+         *   This matrix4 multiplied the supplied matrix4.
          */
-        matrix& operator*=(const matrix &m) noexcept;
+        matrix4& operator*=(const matrix4 &m) noexcept;
 
         /**
-         * Performs matrix multiplication.
+         * Performs matrix4 multiplication.
          *
          * @param m
-         *   The matrix to multiply.
+         *   The matrix4 to multiply.
          *
          * @returns
-         *   New matrix which is this matrix multiplied the supplied matrix.
+         *   New matrix4 which is this matrix4 multiplied the supplied matrix4.
          */
-        matrix operator*(const matrix &m) const noexcept;
+        matrix4 operator*(const matrix4 &m) const noexcept;
 
         /**
          * Get a reference to the element at the supplied index.
@@ -141,31 +141,31 @@ class matrix final
         float operator[](const size_t index) const noexcept;
 
         /**
-         * Get a pointer to the start of the internal matrix data array.
+         * Get a pointer to the start of the internal matrix4 data array.
          *
          * @returns
-         *   Pointer to start if matrix data.
+         *   Pointer to start if matrix4 data.
          */
         const float* data() const noexcept;
 
         /**
-         * Writes the matrix to the stream, useful for debugging.
+         * Writes the matrix4 to the stream, useful for debugging.
          *
          * @param out
          *   The stream to write to.
          *
          * @param out
-         *   The matrix to write to the stream.
+         *   The matrix4 to write to the stream.
          *
          * @return
-         *   A reference to the supplied stream, after the matrix has been
+         *   A reference to the supplied stream, after the matrix4 has been
          *   written.
          */
-        friend std::ostream& operator<<( std::ostream &out, const matrix &m) noexcept;
+        friend std::ostream& operator<<( std::ostream &out, const matrix4 &m) noexcept;
 
     private:
 
-        /** Matrix data */
+        /** matrix4 data */
         std::array<float, 16u> elements_;
 };
 

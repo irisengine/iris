@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "gl/mesh_implementation.hpp"
-#include "matrix.hpp"
+#include "matrix4.hpp"
 #include "texture.hpp"
 #include "vector3.hpp"
 #include "vertex_data.hpp"
@@ -103,12 +103,12 @@ class mesh final
         const std::vector<std::uint32_t>& indices() const noexcept;
 
         /**
-         * Get the model transformation matrix.
+         * Get the model transformation matrix4.
          *
          * @returns
-         *   Model matrix.
+         *   Model matrix4.
          */
-        matrix model() const noexcept;
+        matrix4 model() const noexcept;
 
     private:
 
@@ -121,8 +121,8 @@ class mesh final
         /** Texture to render mesh with. */
         texture texture_;
 
-        /** Model transformation matrix. */
-        matrix model_;
+        /** Model transformation matrix4. */
+        matrix4 model_;
 
         /** Graphics API specific implementation. */
         gl::mesh_implementation impl_;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "matrix.hpp"
+#include "matrix4.hpp"
 #include "vector3.hpp"
 
 namespace eng
@@ -58,20 +58,20 @@ class camera final
         vector3 right() const noexcept;
 
         /**
-         * Get the view matrix.
+         * Get the view matrix4.
          *
          * @returns
-         *   View matrix.
+         *   View matrix4.
          */
-        matrix view() const noexcept;
+        matrix4 view() const noexcept;
 
         /**
-         * Get the projection matrix.
+         * Get the projection matrix4.
          *
          * @returns
-         *   Projection matrix.
+         *   Projection matrix4.
          */
-        matrix projection() const noexcept;
+        matrix4 projection() const noexcept;
 
         /**
          * Set the yaw of the camera.
@@ -116,11 +116,11 @@ class camera final
         /** Camera up vector. */
         vector3 up_;
 
-        /** View matrix for the camera. */
-        matrix view_;
+        /** View matrix4 for the camera. */
+        matrix4 view_;
 
-        /** Projection matrix for the camera. */
-        matrix projection_;
+        /** Projection matrix4 for the camera. */
+        matrix4 projection_;
 
         /** Pitch of camera. */
         float pitch_;

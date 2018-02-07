@@ -10,7 +10,6 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include "matrix.hpp"
 #include "vector3.hpp"
 
 namespace

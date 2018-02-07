@@ -11,7 +11,7 @@ SET(SRCS
     "gl/texture_implementation.cpp"
     "gl/vertex_state.cpp"
     "material.cpp"
-    "matrix.cpp"
+    "matrix4.cpp"
     "mesh.cpp"
     "quaternion.cpp"
     "texture.cpp"
