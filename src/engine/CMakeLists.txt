@@ -13,6 +13,7 @@ SET(SRCS
     "material.cpp"
     "matrix.cpp"
     "mesh.cpp"
+    "quaternion.cpp"
     "texture.cpp"
     "vector3.cpp"
 )
