@@ -136,6 +136,17 @@ class vector3 final
         vector3 operator-() const noexcept;
 
         /**
+         * Calculate the vector dot product.
+         *
+         * @param v
+         *   vector3 to calculate dot product with.
+         *
+         * @returns
+         *   Dot product of this vector with supplied one.
+         */
+        float dot(const vector3 &v) const noexcept;
+
+        /**
          * Perform cross product of this vector3 with a supplied one.
          *
          * @param v
@@ -153,6 +164,14 @@ class vector3 final
          *   Reference to this vector3.
          */
         vector3& normalise() noexcept;
+
+        /**
+         * Get the magnitude of this vector.
+         *
+         * @retunrs
+         *   Vector magnitude.
+         */
+        float magnitude() const noexcept;
 
         /**
          * Cross two vector3 objects with each other.
