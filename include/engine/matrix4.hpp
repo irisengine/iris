@@ -3,6 +3,7 @@
 #include <array>
 #include <iostream>
 
+#include "quaternion.hpp"
 #include "vector3.hpp"
 
 namespace eng
@@ -21,6 +22,35 @@ class matrix4 final
          * Constructs a new identity matrix4.
          */
         matrix4();
+
+        /**
+         * Constructs a new matrix with the supplied (row-major) values.
+         *
+         * @param elements
+         *   Row major elements.
+         */
+        explicit matrix4(const std::array<float, 16> &elements) noexcept;
+
+        /**
+         * Construct a new matrix4 which represents a rotation by the
+         * supplied quaternion.
+         *
+         * @param rotation
+         *   Rotation to represent.
+         */
+        explicit matrix4(const quaternion &rotation) noexcept;
+
+        /**
+         * Construct a new matrix4 which represents a rotation and translation
+         * by the supplied quaternion and vector.
+         *
+         * @param rotation
+         *   Rotation to represent.
+         *
+         * @param translation
+         *   Translation to represent.
+         */
+        matrix4(const quaternion &rotation, const vector3 &translation) noexcept;
 
         /** Default */
         matrix4(const matrix4&) = default;
@@ -119,6 +149,20 @@ class matrix4 final
         matrix4 operator*(const matrix4 &m) const noexcept;
 
         /**
+         * Multiply this matrix by a given vector3.
+         *
+         * Internally this extends the vector3 to have a fourth element with
+         * a value of 1.0
+         *
+         * @param v
+         *   vector3 to multiply by.
+         *
+         * @returns
+         *   This matrix multiplied by the supplied vector3.
+         */
+        vector3 operator*(const vector3 &v) const noexcept;
+
+        /**
          * Get a reference to the element at the supplied index.
          *
          * @param index
@@ -147,6 +191,18 @@ class matrix4 final
          *   Pointer to start if matrix4 data.
          */
         const float* data() const noexcept;
+
+        /**
+         * Get a column from the matrix and return as a vector3. This ignores
+         * the bottom row of the matrix.
+         *
+         * @param index
+         *   The index of the column to return.
+         *
+         * @returns
+         *   The first three value of the supplied column.
+         */
+        vector3 column(const std::size_t index) const noexcept;
 
         /**
          * Writes the matrix4 to the stream, useful for debugging.

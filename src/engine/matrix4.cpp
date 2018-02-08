@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iostream>
 
+#include "quaternion.hpp"
 #include "vector3.hpp"
 
 namespace eng
@@ -14,6 +15,34 @@ matrix4::matrix4()
                    0.0f, 0.0f, 1.0f, 0.0f,
                    0.0f, 0.0f, 0.0f, 1.0f  }})
 { }
+
+matrix4::matrix4(const std::array<float, 16> &elements) noexcept
+    : elements_(elements)
+{ }
+
+matrix4::matrix4(const quaternion &q) noexcept
+    : matrix4()
+{
+    elements_[0] = 1.0f - 2.0f * q.y * q.y - 2.0f * q.z * q.z;
+    elements_[1] = 2.0f * q.x * q.y - 2.0f * q.z * q.w;
+    elements_[2] = 2.0f * q.x * q.z + 2.0f * q.y * q.w;
+
+    elements_[4] = 2.0f * q.x * q.y + 2.0f * q.z * q.w;
+    elements_[5] = 1.0f - 2.0f * q.x * q.x  - 2.0f * q.z * q.z;
+    elements_[6] = 2.0f * q.y * q.z - 2.0f * q.x * q.w;
+
+    elements_[8] = 2.0f * q.x * q.z - 2.0f * q.y * q.w;
+    elements_[9] = 2.0f * q.y * q.z + 2.0f * q.x * q.w;
+    elements_[10] = 1.0f - 2.0f * q.x * q.x - 2.0f * q.y * q.y;
+}
+
+matrix4::matrix4(const quaternion &q, const vector3 &p) noexcept
+    : matrix4(q)
+{
+    elements_[3u] = p.x;
+    elements_[7u] = p.y;
+    elements_[11u] = p.z;
+}
 
 matrix4 matrix4::make_projection(
     const float fov,
@@ -145,6 +174,26 @@ matrix4 matrix4::operator*(const matrix4 &m) const noexcept
     return matrix4(*this) *= m;
 }
 
+vector3 matrix4::operator*(const vector3 &v) const noexcept
+{
+    return {
+        v.x * elements_[0] +
+        v.y * elements_[1] +
+        v.z * elements_[2] +
+        elements_[3],
+
+        v.x * elements_[4] +
+        v.y * elements_[5] +
+        v.z * elements_[6] +
+        elements_[7],
+
+        v.x * elements_[8] +
+        v.y * elements_[9] +
+        v.z * elements_[10] +
+        elements_[11],
+    };
+}
+
 float& matrix4::operator[](const size_t index) noexcept
 {
     return elements_[index];
@@ -158,6 +207,11 @@ float matrix4::operator[](const size_t index) const noexcept
 const float* matrix4::data() const noexcept
 {
     return elements_.data();
+}
+
+vector3 matrix4::column(const std::size_t index) const noexcept
+{
+    return{ elements_[index], elements_[index + 4u], elements_[index + 8u] };
 }
 
 std::ostream& operator<<(std::ostream &out, const matrix4 &m) noexcept
