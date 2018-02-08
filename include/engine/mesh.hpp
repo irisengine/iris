@@ -5,6 +5,7 @@
 
 #include "gl/mesh_implementation.hpp"
 #include "matrix4.hpp"
+#include "quaternion.hpp"
 #include "texture.hpp"
 #include "vector3.hpp"
 #include "vertex_data.hpp"
@@ -87,6 +88,14 @@ class mesh final
         void rotate_y(const float angle) noexcept;
 
         /**
+         * Rotate the mesh by the given quaternion.
+         *
+         * @param q
+         *   Quaternion to rotate by.
+         */
+        void rotate(const quaternion &q) noexcept;
+
+        /**
          * Get const reference to mesh vertices.
          *
          * @returns
@@ -109,6 +118,8 @@ class mesh final
          *   Model matrix4.
          */
         matrix4 model() const noexcept;
+
+        void set_model(const matrix4 &model) noexcept;
 
     private:
 

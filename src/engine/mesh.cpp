@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "matrix4.hpp"
+#include "quaternion.hpp"
 #include "vector3.hpp"
 #include "vertex_data.hpp"
 
@@ -46,6 +47,11 @@ void mesh::rotate_y(const float angle) noexcept
     model_ = matrix4::make_rotate_y(angle) * model_;
 }
 
+void mesh::rotate(const quaternion &q) noexcept
+{
+    model_ = matrix4{ q } * model_;
+}
+
 const std::vector<vertex_data>& mesh::vertices() const noexcept
 {
     return vertices_;
@@ -59,6 +65,11 @@ const std::vector<std::uint32_t>& mesh::indices() const noexcept
 matrix4 mesh::model() const noexcept
 {
     return model_;
+}
+
+void mesh::set_model(const matrix4 &model) noexcept
+{
+    model_ = model;
 }
 
 }
