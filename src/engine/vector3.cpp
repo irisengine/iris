@@ -57,10 +57,7 @@ vector3 vector3::operator+(const vector3 &v) const noexcept
 
 vector3& vector3::operator-=(const vector3 &v) noexcept
 {
-    x -= v.x;
-    y -= v.y;
-    z -= v.z;
-
+    *this += -v;
     return *this;
 }
 
@@ -71,7 +68,8 @@ vector3 vector3::operator-(const vector3 &v) const noexcept
 
 vector3 vector3::operator-() const noexcept
 {
-    return vector3(-x, -y, -z);
+    return vector3{ -x, -y, -z };
+}
 
 float vector3::dot(const vector3 &v) const noexcept
 {
