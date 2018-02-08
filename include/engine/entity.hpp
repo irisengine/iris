@@ -3,7 +3,9 @@
 #include <experimental/filesystem>
 #include <vector>
 
+#include "matrix4.hpp"
 #include "mesh.hpp"
+#include "quaternion.hpp"
 
 namespace eng
 {
@@ -57,6 +59,22 @@ class entity final
          *   Angle to rotate by in radians.
          */
         void rotate_y(const float angle) noexcept;
+
+        /**
+         * Rotate entity by the given quaternion.
+         *
+         * @param q
+         *   Quaternion to rotate by.
+         */
+        void rotate(const quaternion &q) noexcept;
+
+        /**
+         * Set the model matrix for the entity.
+         *
+         * @param model
+         *   New model matrix.
+         */
+        void set_model(const matrix4 &model) noexcept;
 
         /**
          * Get a const reference to the meshes that make up the entity.
