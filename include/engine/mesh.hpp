@@ -80,14 +80,6 @@ class mesh final
         void translate(const vector3 &t) noexcept;
 
         /**
-         * Rotate the mesh around the y axis.
-         *
-         * @param angle
-         *   Angle to rotate by in radians.
-         */
-        void rotate_y(const float angle) noexcept;
-
-        /**
          * Rotate the mesh by the given quaternion.
          *
          * @param q

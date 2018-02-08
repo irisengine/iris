@@ -53,14 +53,6 @@ class entity final
         void translate(const vector3 &t) noexcept;
 
         /**
-         * Rotate entity around y axis.
-         *
-         * @param angle
-         *   Angle to rotate by in radians.
-         */
-        void rotate_y(const float angle) noexcept;
-
-        /**
          * Rotate entity by the given quaternion.
          *
          * @param q

@@ -217,15 +217,6 @@ void entity::translate(const vector3 &t) noexcept
     }
 }
 
-void entity::rotate_y(const float angle) noexcept
-{
-    // rotate all meshes
-    for(auto &m : meshes_)
-    {
-        m.rotate_y(angle);
-    }
-}
-
 void entity::rotate(const quaternion &q) noexcept
 {
     // rotate all meshes

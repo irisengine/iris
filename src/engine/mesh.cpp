@@ -42,11 +42,6 @@ void mesh::translate(const vector3 &t) noexcept
     model_ = matrix4::make_translate(t) * model_;
 }
 
-void mesh::rotate_y(const float angle) noexcept
-{
-    model_ = matrix4::make_rotate_y(angle) * model_;
-}
-
 void mesh::rotate(const quaternion &q) noexcept
 {
     model_ = matrix4{ q } * model_;
