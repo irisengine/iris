@@ -1,4 +1,5 @@
 SET(SRCS
+    "box.cpp"
     "camera.cpp"
     "entity.cpp"
     "event_dispatcher.cpp"
