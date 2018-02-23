@@ -15,6 +15,7 @@ SET(SRCS
     "matrix4.cpp"
     "mesh.cpp"
     "quaternion.cpp"
+    "rigid_body.cpp"
     "texture.cpp"
     "vector3.cpp"
 )
