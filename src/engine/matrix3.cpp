@@ -1,6 +1,7 @@
 #include "matrix3.hpp"
 
 #include <array>
+#include <cmath>
 #include <cstddef>
 #include <iostream>
 #include <utility>
@@ -149,6 +150,33 @@ matrix3 matrix3::invert(const matrix3 &m) noexcept
 matrix3 matrix3::transpose(const matrix3 &m) noexcept
 {
     return matrix3(m).transpose();
+}
+
+matrix3 matrix3::make_orthonormal_basis(const vector3 &x) noexcept
+{
+    // we needed to generate a y and z axis, we take a guess at one of those
+    // by using either world y or world x, which ever is furthest from our
+    // supplied x
+    const auto guess = std::abs(x.x) > std::abs(x.y)
+        ? vector3(0.0f, 1.0f, 0.0f)
+        : vector3(1.0f, 0.0f, 0.0f);
+
+    // calculate z axis, which is guaranteed to be orthogonal to supplied x
+    auto z = vector3::cross(x, guess);
+
+    // we now have x and z, so calculate y
+    auto y = vector3::cross(z, x);
+
+    // ensure normalised
+    z.normalise();
+    y.normalise();
+
+    // create transform matrix
+    return matrix3{{{
+        x.x, y.x, z.x,
+        x.y, y.y, z.y,
+        x.z, y.z, z.z,
+    }}};
 }
 
 std::ostream& operator<<(std::ostream &out, const matrix3 &m) noexcept

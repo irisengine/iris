@@ -143,6 +143,19 @@ class matrix3 final
         static matrix3 transpose(const matrix3 &m) noexcept;
 
         /**
+         * Make an orthonormal basis from a starting vector. This will create
+         * an orthogonal y and z axis for the supplied x and the resulting
+         * matrix will transform points into the orthonormal basis.
+         *
+         * @param x
+         *   x axis of the orthonormal basis.
+         *
+         * @returns
+         *   Transform matrix which will transform points to orthonormal basis.
+         */
+        static matrix3 make_orthonormal_basis(const vector3 &x) noexcept;
+
+        /**
          * Writes the matrix3 to the stream, useful for debugging.
          *
          * @param out
