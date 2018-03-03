@@ -18,6 +18,7 @@ SET(SRCS
     "matrix3.cpp"
     "matrix4.cpp"
     "mesh.cpp"
+    "physics_system.cpp"
     "plane.cpp"
     "quaternion.cpp"
     "rigid_body.cpp"
