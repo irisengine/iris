@@ -10,7 +10,8 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include "matrix.hpp"
+#include "matrix4.hpp"
+#include "quaternion.hpp"
 #include "vector3.hpp"
 
 namespace
@@ -216,12 +217,20 @@ void entity::translate(const vector3 &t) noexcept
     }
 }
 
-void entity::rotate_y(const float angle) noexcept
+void entity::rotate(const quaternion &q) noexcept
 {
     // rotate all meshes
     for(auto &m : meshes_)
     {
-        m.rotate_y(angle);
+        m.rotate(q);
+    }
+}
+
+void entity::set_model(const matrix4 &model) noexcept
+{
+    for(auto &m : meshes_)
+    {
+        m.set_model(model);
     }
 }
 

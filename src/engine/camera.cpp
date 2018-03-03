@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-#include "matrix.cpp"
+#include "matrix4.cpp"
 #include "vector3.hpp"
 
 namespace
@@ -43,18 +43,18 @@ camera::camera()
       direction_(0.0f, 0.0f, -1.0f),
       up_(0.0f, 1.0f, 0.0f),
       view_(),
-      projection_(matrix::make_projection(0.785398f, 1.0f, 0.1f, 1000.0f)),
+      projection_(matrix4::make_projection(0.785398f, 1.0f, 0.1f, 1000.0f)),
       pitch_(0.0f),
       yaw_(-3.141592654f / 2.0f)
 {
     direction_ = create_direction(pitch_, yaw_);
-    view_ = matrix::make_look_at(position_, position_ + direction_, up_);
+    view_ = matrix4::make_look_at(position_, position_ + direction_, up_);
 }
 
 void camera::translate(const vector3 &t) noexcept
 {
     position_ += t;
-    view_ = matrix::make_look_at(position_, position_ + direction_, up_);
+    view_ = matrix4::make_look_at(position_, position_ + direction_, up_);
 }
 
 vector3 camera::position() const noexcept
@@ -72,12 +72,12 @@ vector3 camera::right() const noexcept
     return vector3::normalise(vector3::cross(direction_, up_));
 }
 
-matrix camera::view() const noexcept
+matrix4 camera::view() const noexcept
 {
     return view_;
 }
 
-matrix camera::projection() const noexcept
+matrix4 camera::projection() const noexcept
 {
     return projection_;
 }
@@ -87,7 +87,7 @@ void camera::set_yaw(const float yaw) noexcept
     yaw_ = yaw;
 
     direction_ = create_direction(pitch_, yaw_);
-    view_ = matrix::make_look_at(position_, position_ + direction_, up_);
+    view_ = matrix4::make_look_at(position_, position_ + direction_, up_);
 }
 
 void camera::adjust_yaw(const float adjust) noexcept
@@ -100,7 +100,7 @@ void camera::set_pitch(const float pitch) noexcept
     pitch_ = pitch;
 
     direction_ = create_direction(pitch_, yaw_);
-    view_ = matrix::make_look_at(position_, position_ + direction_, up_);
+    view_ = matrix4::make_look_at(position_, position_ + direction_, up_);
 }
 
 void camera::adjust_pitch(const float adjust) noexcept

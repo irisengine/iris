@@ -4,7 +4,8 @@
 #include <utility>
 #include <vector>
 
-#include "matrix.hpp"
+#include "matrix4.hpp"
+#include "quaternion.hpp"
 #include "vector3.hpp"
 #include "vertex_data.hpp"
 
@@ -20,7 +21,7 @@ mesh::mesh(
     : vertices_(vertices),
       indices_(indices),
       texture_(std::move(textures)),
-      model_(matrix::make_translate(position) * matrix::make_scale(scale)),
+      model_(matrix4::make_translate(position) * matrix4::make_scale(scale)),
       impl_(vertices_, indices_)
 { }
 
@@ -38,12 +39,12 @@ void mesh::unbind() const
 
 void mesh::translate(const vector3 &t) noexcept
 {
-    model_ = matrix::make_translate(t) * model_;
+    model_ = matrix4::make_translate(t) * model_;
 }
 
-void mesh::rotate_y(const float angle) noexcept
+void mesh::rotate(const quaternion &q) noexcept
 {
-    model_ = matrix::make_rotate_y(angle) * model_;
+    model_ = matrix4{ q } * model_;
 }
 
 const std::vector<vertex_data>& mesh::vertices() const noexcept
@@ -56,9 +57,14 @@ const std::vector<std::uint32_t>& mesh::indices() const noexcept
     return indices_;
 }
 
-matrix mesh::model() const noexcept
+matrix4 mesh::model() const noexcept
 {
     return model_;
+}
+
+void mesh::set_model(const matrix4 &model) noexcept
+{
+    model_ = model;
 }
 
 }

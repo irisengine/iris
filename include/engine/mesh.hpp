@@ -4,7 +4,8 @@
 #include <vector>
 
 #include "gl/mesh_implementation.hpp"
-#include "matrix.hpp"
+#include "matrix4.hpp"
+#include "quaternion.hpp"
 #include "texture.hpp"
 #include "vector3.hpp"
 #include "vertex_data.hpp"
@@ -79,12 +80,12 @@ class mesh final
         void translate(const vector3 &t) noexcept;
 
         /**
-         * Rotate the mesh around the y axis.
+         * Rotate the mesh by the given quaternion.
          *
-         * @param angle
-         *   Angle to rotate by in radians.
+         * @param q
+         *   Quaternion to rotate by.
          */
-        void rotate_y(const float angle) noexcept;
+        void rotate(const quaternion &q) noexcept;
 
         /**
          * Get const reference to mesh vertices.
@@ -103,12 +104,14 @@ class mesh final
         const std::vector<std::uint32_t>& indices() const noexcept;
 
         /**
-         * Get the model transformation matrix.
+         * Get the model transformation matrix4.
          *
          * @returns
-         *   Model matrix.
+         *   Model matrix4.
          */
-        matrix model() const noexcept;
+        matrix4 model() const noexcept;
+
+        void set_model(const matrix4 &model) noexcept;
 
     private:
 
@@ -121,8 +124,8 @@ class mesh final
         /** Texture to render mesh with. */
         texture texture_;
 
-        /** Model transformation matrix. */
-        matrix model_;
+        /** Model transformation matrix4. */
+        matrix4 model_;
 
         /** Graphics API specific implementation. */
         gl::mesh_implementation impl_;

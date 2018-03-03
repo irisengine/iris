@@ -6,7 +6,6 @@
 #include "camera.hpp"
 #include "entity.hpp"
 #include "material.hpp"
-#include "matrix.hpp"
 #include "window.hpp"
 
 namespace eng

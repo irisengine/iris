@@ -57,10 +57,7 @@ vector3 vector3::operator+(const vector3 &v) const noexcept
 
 vector3& vector3::operator-=(const vector3 &v) noexcept
 {
-    x -= v.x;
-    y -= v.y;
-    z -= v.z;
-
+    *this += -v;
     return *this;
 }
 
@@ -71,7 +68,12 @@ vector3 vector3::operator-(const vector3 &v) const noexcept
 
 vector3 vector3::operator-() const noexcept
 {
-    return vector3(-x, -y, -z);
+    return vector3{ -x, -y, -z };
+}
+
+float vector3::dot(const vector3 &v) const noexcept
+{
+    return x * v.x + y * v.y + z * v.z;
 }
 
 vector3& vector3::cross(const vector3 &v) noexcept
@@ -100,6 +102,11 @@ vector3& vector3::normalise() noexcept
     }
 
     return *this;
+}
+
+float vector3::magnitude() const noexcept
+{
+    return std::sqrt(std::pow(x, 2.0f) + std::pow(y, 2.0f) + std::pow(z, 2.0f));
 }
 
 vector3 vector3::cross(const vector3 &v1, const vector3 &v2) noexcept
