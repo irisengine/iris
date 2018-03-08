@@ -69,14 +69,6 @@ class render_system final
          */
         void set_light_position(const vector3 &position) noexcept;
 
-        /**
-         * Set whether the scene should be drawn in wireframe mode.
-         *
-         * @param wireframe
-         *   True if scene should be rendered in wireframe mode, false otherwise.
-         */
-        void set_wireframe_mode(bool wireframe);
-
     private:
 
         /** Collection of entities in a scene to render. */

@@ -161,13 +161,5 @@ void render_system::set_light_position(const vector3 &position) noexcept
     light_position = position;
 }
 
-void render_system::set_wireframe_mode(bool wireframe)
-{
-    const auto mode = wireframe
-        ? GL_LINE
-        : GL_FILL;
-    ::glPolygonMode(GL_FRONT_AND_BACK, mode);
-}
-
 }
 
