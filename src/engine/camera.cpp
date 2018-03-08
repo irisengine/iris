@@ -57,6 +57,11 @@ void camera::translate(const vector3 &t) noexcept
     view_ = matrix4::make_look_at(position_, position_ + direction_, up_);
 }
 
+void camera::set_view(const matrix4 &view)
+{
+    view_ = view;
+}
+
 vector3 camera::position() const noexcept
 {
     return position_;

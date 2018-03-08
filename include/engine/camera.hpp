@@ -34,6 +34,14 @@ class camera final
         void translate(const vector3 &t) noexcept;
 
         /**
+         * Set the view matrix for the camera.
+         *
+         * @param view
+         *   New view matrix.
+         */
+        void set_view(const matrix4 &view);
+
+        /**
          * Get position of camera.
          *
          * @returns
