@@ -160,22 +160,10 @@ std::map<std::string, std::tuple<eng::vector3, std::experimental::filesystem::pa
  * @param path
  *   Path to model file to load.
  *
- * @param colour
- *   Colour of meshes.
- *
- * @param position
- *   Position of mesh in world space.
- *
- * @param scale
- *   Scale of entity.
- *
  * @returns
  *   Collection of parsed meshes.
  */
-std::vector<eng::mesh> load_file(
-    const std::experimental::filesystem::path &path,
-    const eng::vector3 &position,
-    const eng::vector3 &scale)
+std::vector<eng::mesh> load_file(const std::experimental::filesystem::path &path)
 {
     std::vector<eng::mesh> meshes{ };
 
@@ -241,7 +229,7 @@ std::vector<eng::mesh> load_file(
                     ? eng::texture{ tex_path }
                     : eng::texture{ { 0xFF, 0xFF, 0xFF }, 1u, 1u, 3u };
 
-                meshes.emplace_back(vertex_data, indices, std::move(texture), position, scale);
+                meshes.emplace_back(vertex_data, indices, std::move(texture));
 
                 // clear stored data for next object
                 vertex_data = { };
@@ -373,7 +361,7 @@ std::vector<eng::mesh> load_file(
     auto texture = std::experimental::filesystem::exists(tex_path)
         ? eng::texture{ tex_path }
         : eng::texture{ { 0xFF, 0xFF, 0xFF }, 1u, 1u, 3u };
-    meshes.emplace_back(vertex_data, indices, std::move(texture), position, scale);
+    meshes.emplace_back(vertex_data, indices, std::move(texture));
 
     return meshes;
 }
@@ -385,39 +373,47 @@ namespace eng
 entity::entity(
     const std::experimental::filesystem::path &path,
     const vector3 &position,
+    const quaternion &orientation,
     const vector3 &scale)
-    : meshes_(load_file(path, position, scale))
+    : meshes_(load_file(path)),
+      position_(position),
+      orientation_(orientation),
+      scale_(scale),
+      model_(matrix4::make_translate(position) * matrix4(orientation) * matrix4::make_scale(scale)),
+      wireframe_(false)
 { }
 
-void entity::translate(const vector3 &t) noexcept
+void entity::set_position(const vector3 &position) noexcept
 {
-    // translate all meshes
-    for(auto &m : meshes_)
-    {
-        m.translate(t);
-    }
+    position_ = position;
+
+    model_ = matrix4::make_translate(position_) * matrix4(orientation_) * matrix4::make_scale(scale_);
 }
 
-void entity::rotate(const quaternion &q) noexcept
+void entity::set_orientation(const quaternion &orientation) noexcept
 {
-    // rotate all meshes
-    for(auto &m : meshes_)
-    {
-        m.rotate(q);
-    }
+    orientation_ = orientation;
+    model_ = matrix4::make_translate(position_) * matrix4(orientation_) * matrix4::make_scale(scale_);
 }
 
-void entity::set_model(const matrix4 &model) noexcept
+matrix4 entity::transform() const noexcept
 {
-    for(auto &m : meshes_)
-    {
-        m.set_model(model);
-    }
+    return model_;
 }
 
 const std::vector<mesh>& entity::meshes() const noexcept
 {
     return meshes_;
+}
+
+bool entity::should_render_wireframe() const noexcept
+{
+    return wireframe_;
+}
+
+void entity::set_wireframe(const bool wireframe) noexcept
+{
+    wireframe_ = wireframe;
 }
 
 }
