@@ -647,40 +647,45 @@ std::vector<contact> detect(rigid_body &body1, rigid_body &body2)
 {
     std::vector<contact> contacts{ };
 
-    // generate contacts using specific algorithm for each supported collision
-    // pair
-
-    if((body1.shape() == rigid_body_shape::BOX) &&
-       (body2.shape() == rigid_body_shape::BOX))
+    // only check for collision if both bodies aren't static, weird things
+    // happen if we don't check plus this allows of overlapping static bodies
+    if(!(body1.is_static() && body2.is_static()))
     {
-        // safe cast back to concrete objects as we have checked shape type
-        auto &box1 = static_cast<box&>(body1);
-        auto &box2 = static_cast<box&>(body2);
+        // generate contacts using specific algorithm for each supported collision
+        // pair
 
-        // ensure that if one of the bodies is static then it is the second
-        // argument, this ensures that the body2 field of the resulting contact
-        // object points to the static body
-        contacts = box2.is_static()
-            ? resolve_box_box(box1, box2)
-            : resolve_box_box(box2, box1);
-    }
-    else if((body1.shape() == rigid_body_shape::BOX) &&
-            (body2.shape() == rigid_body_shape::PLANE))
-    {
-        // safe cast back to concrete objects as we have checked shape type
-        auto &b = static_cast<box&>(body1);
-        auto &p = static_cast<plane&>(body2);
+        if((body1.shape() == rigid_body_shape::BOX) &&
+           (body2.shape() == rigid_body_shape::BOX))
+        {
+            // safe cast back to concrete objects as we have checked shape type
+            auto &box1 = static_cast<box&>(body1);
+            auto &box2 = static_cast<box&>(body2);
 
-        contacts = resolve_box_plane(b, p);
-    }
-    else if((body1.shape() == rigid_body_shape::PLANE) &&
-            (body2.shape() == rigid_body_shape::BOX))
-    {
-        // safe cast back to concrete objects as we have checked shape type
-        auto &p = static_cast<plane&>(body1);
-        auto &b = static_cast<box&>(body2);
+            // ensure that if one of the bodies is static then it is the second
+            // argument, this ensures that the body2 field of the resulting contact
+            // object points to the static body
+            contacts = box2.is_static()
+                ? resolve_box_box(box1, box2)
+                : resolve_box_box(box2, box1);
+        }
+        else if((body1.shape() == rigid_body_shape::BOX) &&
+                (body2.shape() == rigid_body_shape::PLANE))
+        {
+            // safe cast back to concrete objects as we have checked shape type
+            auto &b = static_cast<box&>(body1);
+            auto &p = static_cast<plane&>(body2);
 
-        contacts = resolve_box_plane(b, p);
+            contacts = resolve_box_plane(b, p);
+        }
+        else if((body1.shape() == rigid_body_shape::PLANE) &&
+                (body2.shape() == rigid_body_shape::BOX))
+        {
+            // safe cast back to concrete objects as we have checked shape type
+            auto &p = static_cast<plane&>(body1);
+            auto &b = static_cast<box&>(body2);
+
+            contacts = resolve_box_plane(b, p);
+        }
     }
 
     return contacts;
