@@ -7,8 +7,7 @@ namespace eng
 {
 
 /**
- * Implementation of rigid_body for a box shaped object. The box has dimensions
- * 2x2x2 i.e. it has a unit vector as its half size.
+ * Implementation of rigid_body for a box shaped object.
  */
 class box final : public rigid_body
 {
@@ -23,12 +22,16 @@ class box final : public rigid_body
          * @param mass
          *   Mass of body.
          *
+         * @param half_size
+         *   The half size of the box.
+         *
          * @param is_static
          *   Whether the rigid body is sttaic or not.
          */
         box(
             const vector3 &position,
             const float mass,
+            const vector3 &half_size,
             const bool is_static);
 
         /** Default */
