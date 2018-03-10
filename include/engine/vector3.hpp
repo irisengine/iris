@@ -128,6 +128,30 @@ class vector3 final
         vector3 operator-(const vector3 &v) const noexcept;
 
         /**
+         * Component wise multiple a vector3 to this vector3.
+         *
+         * @param v
+         *   The vector3 to multiply.
+         *
+         * @returns
+         *   Reference to this vector3.
+         */
+        vector3& operator*=(const vector3 &v) noexcept;
+
+        /**
+         * Create a new vector3 which us this vector3 component wise multiplied
+         * with a supplied vector3.
+         *
+         * @param c
+         *   vector3 to multiply with this.
+         *
+         * @returns
+         *   Copy of this vector3 component wise multiplied with the supplied
+         *   vector3.
+         */
+        vector3 operator*(const vector3 &v) const noexcept;
+
+        /**
          * Negate operator.
          *
          * @return
