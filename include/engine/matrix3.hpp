@@ -75,6 +75,51 @@ class matrix3 final
         vector3 operator*(const vector3 &v) const noexcept;
 
         /**
+         * Multiply each element in the matrix by a scalar value.
+         *
+         * @param s
+         *   Scalar value to multiply by.
+         *
+         * @returns
+         *   This matrix3 with each element multiplied by scalar value.
+         */
+        matrix3& operator*=(const float s) noexcept;
+
+        /**
+         * Multiply each element in the matrix by a scalar value.
+         *
+         * @param s
+         *   Scalar value to multiply by.
+         *
+         * @returns
+         *   New matrix3 which is this matrix3 with each element multiplied by
+         *   scalar value
+         */
+        matrix3 operator*(const float s) const noexcept;
+
+        /**
+         * Perform matrix additions.
+         *
+         * @param m
+         *   matrix3 to add to this.
+         *
+         * @returns
+         *   This matrix3 added to the supplied matrix3.
+         */
+        matrix3& operator+=(const matrix3 &m) noexcept;
+
+        /**
+         * Perform matrix additions.
+         *
+         * @param m
+         *   matrix3 to add to this.
+         *
+         * @returns
+         *   New matrix3 which is this matrix3 added to the supplied matrix3.
+         */
+        matrix3 operator+(const matrix3 &m) const noexcept;
+
+        /**
          * Get a reference to the element at the supplied index.
          *
          * @param index
@@ -154,6 +199,20 @@ class matrix3 final
          *   Transform matrix which will transform points to orthonormal basis.
          */
         static matrix3 make_orthonormal_basis(const vector3 &x) noexcept;
+
+        /**
+         * Static method to make a skew-symmetric matrix, i.e. a matrix whose
+         * transpose is equal to its negative. This takes a vector as a
+         * skew-symmetric matrix can be used to compute a cross product.
+         *
+         * @param v
+         *   vector3 from which values will be used so that a cross product
+         *   can be calculated.
+         *
+         * @returns
+         *   Skew-symmetric matrix.
+         */
+        static matrix3 make_skew_symmetric(const vector3 &v) noexcept;
 
         /**
          * Writes the matrix3 to the stream, useful for debugging.
