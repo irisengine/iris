@@ -1,13 +1,12 @@
 #include "window.hpp"
 
-#include <stdexcept>
-
 #import <Appkit/Appkit.h>
 #import <Foundation/Foundation.h>
 #include <OpenGL/gl3.h>
 #include <OpenGL/gl3ext.h>
 
 #include "event_dispatcher.hpp"
+#include "exception.hpp"
 #include "keyboard_event.hpp"
 #include "osx/AppDelegate.h"
 
@@ -141,7 +140,7 @@ eng::key osx_key_to_engine_key(const std::uint16_t key_code)
         case 0x7C: key = eng::key::RIGHT_ARROW;      break;
         case 0x7D: key = eng::key::DOWN_ARROW;       break;
         case 0x7E: key = eng::key::UP_ARROW;         break;
-        default : throw std::runtime_error("unknown key type");
+        default : throw eng::exception("unknown key type");
     }
 
     return key;
@@ -247,7 +246,7 @@ window::window(
     // check that we created the delegate
     if(appDelegate == nil)
     {
-        throw std::runtime_error("failed to create AppDelegate");
+        throw exception("failed to create AppDelegate");
     }
 
     // set the delegate
