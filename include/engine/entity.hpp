@@ -27,12 +27,16 @@ class entity final
          * @param position
          *   Position of mesh in world space.
          *
+         * @param orientation
+         *   Orientation of entity.
+         *
          * @param scale
          *   Scale of entity.
          */
         entity(
             const std::experimental::filesystem::path &path,
             const vector3 &position,
+            const quaternion &orientation,
             const vector3 &scale);
 
         /** Default */
@@ -45,28 +49,28 @@ class entity final
         entity& operator=(const entity&) = delete;
 
         /**
-         * Translate entity.
+         * Set the position of the entity.
          *
-         * @param t
-         *   Amount to transalte.
+         * @param position
+         *   New position.
          */
-        void translate(const vector3 &t) noexcept;
+        void set_position(const vector3 &position) noexcept;
 
         /**
-         * Rotate entity by the given quaternion.
+         * Set the orientation of the matrix.
          *
-         * @param q
-         *   Quaternion to rotate by.
+         * @param orientation
+         *   New oritentation.
          */
-        void rotate(const quaternion &q) noexcept;
+        void set_orientation(const quaternion &orientation) noexcept;
 
         /**
-         * Set the model matrix for the entity.
+         * Get the transformation matrix of the entity.
          *
-         * @param model
-         *   New model matrix.
+         * @returns
+         *   Transformation matrix.
          */
-        void set_model(const matrix4 &model) noexcept;
+        matrix4 transform() const noexcept;
 
         /**
          * Get a const reference to the meshes that make up the entity.
@@ -76,10 +80,41 @@ class entity final
          */
         const std::vector<mesh>& meshes() const noexcept;
 
+        /**
+         * Returns whether the object should be rendered as a wireframe.
+         *
+         * @returns
+         *   True if should be rendered as a wireframe, false otherwise.
+         */
+        bool should_render_wireframe() const noexcept;
+
+        /**
+         * Sets whether the object should be rendered as a wireframe.
+         *
+         * @param wrireframe
+         *   True if should be rendered as a wireframe, false otherwise.
+         */
+        void set_wireframe(const bool wireframe) noexcept;
+
     private:
 
         /** Collection of meshes. */
         std::vector<mesh> meshes_;
+
+        /** The position of the entity. */
+        vector3 position_;
+
+        /** The orientation of the entity. */
+        quaternion orientation_;
+
+        /** The scale of the entity. */
+        vector3 scale_;
+
+        /** Model transformation matrix4. */
+        matrix4 model_;
+
+        /** Whether the object should be rendered as a wireframe. */
+        bool wireframe_;
 };
 
 }

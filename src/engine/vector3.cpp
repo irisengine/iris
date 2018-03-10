@@ -66,6 +66,20 @@ vector3 vector3::operator-(const vector3 &v) const noexcept
     return vector3(*this) -= v;
 }
 
+vector3& vector3::operator*=(const vector3 &v) noexcept
+{
+    x *= v.x;
+    y *= v.y;
+    z *= v.z;
+
+    return *this;
+}
+
+vector3 vector3::operator*(const vector3 &v) const noexcept
+{
+    return vector3{ *this } *= v;
+}
+
 vector3 vector3::operator-() const noexcept
 {
     return vector3{ -x, -y, -z };

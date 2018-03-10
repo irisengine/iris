@@ -73,9 +73,39 @@ vector3 matrix3::operator*(const vector3 &v) const noexcept
     };
 }
 
+matrix3& matrix3::operator*=(const float s) noexcept
+{
+    for(auto &e : elements_)
+    {
+        e *= s;
+    }
+
+    return *this;
+}
+
+matrix3 matrix3::operator*(const float s) const noexcept
+{
+    return matrix3{ *this } *= s;
+}
+
 float& matrix3::operator[](const std::size_t index) noexcept
 {
     return elements_[index];
+}
+
+matrix3& matrix3::operator+=(const matrix3 &m) noexcept
+{
+    for(auto i = 0u; i < elements_.size(); ++i)
+    {
+        elements_[i] += m[i];
+    }
+
+    return *this;
+}
+
+matrix3 matrix3::operator+(const matrix3 &m) const noexcept
+{
+    return matrix3{ *this } += m;
 }
 
 float matrix3::operator[](const std::size_t index) const noexcept
@@ -176,6 +206,15 @@ matrix3 matrix3::make_orthonormal_basis(const vector3 &x) noexcept
         x.x, y.x, z.x,
         x.y, y.y, z.y,
         x.z, y.z, z.z,
+    }}};
+}
+
+matrix3 matrix3::make_skew_symmetric(const vector3 &v) noexcept
+{
+    return matrix3{{{
+        0.0f, -v.z, v.y,
+        v.z, 0.0f, -v.x,
+        -v.y, v.x, 0.0f
     }}};
 }
 

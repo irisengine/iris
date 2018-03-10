@@ -32,7 +32,8 @@ rigid_body::rigid_body(
       angular_damping_(0.9f),
       transform_(),
       is_static_(is_static),
-      shape_(shape)
+      shape_(shape),
+      angular_factor_({1.0f, 1.0f, 1.0f})
 {
     // compute inverse inertia tensor as that is what is used in calculations
     inverse_inertia_tensor_ = matrix3::invert(inertia_tensor);
@@ -104,7 +105,7 @@ void rigid_body::add_force(const vector3 &force)
 
 void rigid_body::add_torque(const vector3 &torque)
 {
-    torque_accumulator_ += torque;
+    torque_accumulator_ += torque * angular_factor_;
 }
 
 vector3 rigid_body::add_impulse(const vector3 &impulse)
@@ -117,7 +118,7 @@ vector3 rigid_body::add_impulse(const vector3 &impulse)
 
 vector3 rigid_body::add_angular_impulse(const vector3 &impulse)
 {
-    const auto delta_angular_velocity = inverse_inertia_tensor_world_ * impulse;
+    const auto delta_angular_velocity = (inverse_inertia_tensor_world_ * impulse) * angular_factor_;
     angular_velocity_ += delta_angular_velocity;
 
     return delta_angular_velocity;
@@ -193,6 +194,16 @@ bool rigid_body::is_static() const
 rigid_body_shape rigid_body::shape() const noexcept
 {
     return shape_;
+}
+
+void rigid_body::set_angular_factor(const vector3 &f)
+{
+    angular_factor_ = f;
+}
+
+void rigid_body::set_linear_damping(const float damping)
+{
+    linear_damping_ = damping;
 }
 
 }

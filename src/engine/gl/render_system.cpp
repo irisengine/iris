@@ -110,6 +110,11 @@ void render_system::render() const
     // render each element in scene
     for(const auto &e : scene_)
     {
+        if(e->should_render_wireframe())
+        {
+            ::glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        }
+
         // bind material so render with it
         auto_bind<material> auto_program{ material_ };
 
@@ -138,18 +143,24 @@ void render_system::render() const
         const auto model_uniform = ::glGetUniformLocation(program, "model");
         gl::check_opengl_error("could not get model uniform location");
 
+        ::glUniformMatrix4fv(model_uniform, 1, GL_FALSE, e->transform().data());
+        gl::check_opengl_error("could not set model matrix uniform data");
+
         // render each mesh in element
         for(const auto &m : e->meshes())
         {
             // bind mesh so the final draw call renders it
             auto_bind<mesh> auto_mesh{ m };
 
-            ::glUniformMatrix4fv(model_uniform, 1, GL_FALSE, m.model().data());
-            gl::check_opengl_error("could not set model matrix uniform data");
 
             // draw!
             ::glDrawElements(GL_TRIANGLES, m.indices().size(), GL_UNSIGNED_INT, 0);
             gl::check_opengl_error("could not draw triangles");
+        }
+
+        if(e->should_render_wireframe())
+        {
+            ::glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
     }
 
@@ -159,14 +170,6 @@ void render_system::render() const
 void render_system::set_light_position(const vector3 &position) noexcept
 {
     light_position = position;
-}
-
-void render_system::set_wireframe_mode(bool wireframe)
-{
-    const auto mode = wireframe
-        ? GL_LINE
-        : GL_FILL;
-    ::glPolygonMode(GL_FRONT_AND_BACK, mode);
 }
 
 }

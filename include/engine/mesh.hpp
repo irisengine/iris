@@ -48,9 +48,7 @@ class mesh final
         mesh(
             const std::vector<vertex_data> &vertices,
             const std::vector<std::uint32_t> &indices,
-            texture &&tex,
-            const vector3 &position,
-            const vector3 &scale);
+            texture &&tex);
 
         /** Default */
         ~mesh() = default;
@@ -70,22 +68,6 @@ class mesh final
          * Perform all actions needed after rendering.
          */
         void unbind() const;
-
-        /**
-         * Translate the mesh.
-         *
-         * @param t
-         *   Amount to translate.
-         */
-        void translate(const vector3 &t) noexcept;
-
-        /**
-         * Rotate the mesh by the given quaternion.
-         *
-         * @param q
-         *   Quaternion to rotate by.
-         */
-        void rotate(const quaternion &q) noexcept;
 
         /**
          * Get const reference to mesh vertices.
@@ -123,9 +105,6 @@ class mesh final
 
         /** Texture to render mesh with. */
         texture texture_;
-
-        /** Model transformation matrix4. */
-        matrix4 model_;
 
         /** Graphics API specific implementation. */
         gl::mesh_implementation impl_;
