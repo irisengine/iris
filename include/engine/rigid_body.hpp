@@ -272,6 +272,17 @@ class rigid_body
          */
         rigid_body_shape shape() const noexcept;
 
+        /**
+         * Set the angular factor. This is a value that is multiplied by
+         * torques and angular impulses internally before they are applied. This
+         * can be used, for example, to restrict which axis of the rigid body
+         * are rotated, by setting the angular factor for that axis to 0.
+         *
+         * @param f
+         *   New angular factor.
+         */
+        void set_angular_factor(const vector3 &f);
+
     private:
 
         /** Inverse mass of body. */
@@ -321,6 +332,9 @@ class rigid_body
 
         /** Shape of rigid body. */
         rigid_body_shape shape_;
+
+        /** vector3 to multiply torques and angular impulses by. */
+        vector3 angular_factor_;
 };
 
 }
