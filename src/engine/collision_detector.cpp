@@ -610,9 +610,7 @@ std::vector<eng::contact> resolve_box_plane(
     for(auto corner : corners)
     {
         // scale the corner to the size of the box
-        corner.x *= box.half_size().x;
-        corner.y *= box.half_size().y;
-        corner.z *= box.half_size().z;
+        corner *= box.half_size();
 
         // transform corner to world coordinates
         corner = box.transform() * corner;
