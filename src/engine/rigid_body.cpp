@@ -201,5 +201,10 @@ void rigid_body::set_angular_factor(const vector3 &f)
     angular_factor_ = f;
 }
 
+void rigid_body::set_linear_damping(const float damping)
+{
+    linear_damping_ = damping;
+}
+
 }
 

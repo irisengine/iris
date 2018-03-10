@@ -283,6 +283,14 @@ class rigid_body
          */
         void set_angular_factor(const vector3 &f);
 
+        /**
+         * Set linear damping value.
+         *
+         * @param damping
+         *   New damping value.
+         */
+        void set_linear_damping(const float damping);
+
     private:
 
         /** Inverse mass of body. */
