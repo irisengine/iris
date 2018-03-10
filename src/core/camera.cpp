@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-#include "matrix4.cpp"
+#include "matrix4.hpp"
 #include "vector3.hpp"
 
 namespace
