@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "exception.hpp"
 #include "gl/opengl.hpp"
 #include "gl/shader.hpp"
 #include "gl/shader_type.hpp"
@@ -42,7 +43,7 @@ material_implementation::material_implementation(
 
         if(program_param == 0)
         {
-            throw std::runtime_error("program link failed: no log");
+            throw exception("program link failed: no log");
         }
         else
         {
@@ -58,7 +59,7 @@ material_implementation::material_implementation(
             eng::gl::check_opengl_error("failed to get error log");
 
             const std::string error(error_log.data(), log_length);
-            throw std::runtime_error("program link failed: " + error);
+            throw exception("program link failed: " + error);
         }
     }
 }

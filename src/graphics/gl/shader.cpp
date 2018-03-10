@@ -6,6 +6,7 @@
 #include <utility>
 #include <vector>
 
+#include "exception.hpp"
 #include "gl/opengl.hpp"
 #include "gl/shader_type.hpp"
 
@@ -42,7 +43,7 @@ shader::shader(std::string_view source, shader_type type)
 
         if(shader_param == 0)
         {
-            throw std::runtime_error("shader compilation failed: no log");
+            throw exception("shader compilation failed: no log");
         }
         else
         {
@@ -59,7 +60,7 @@ shader::shader(std::string_view source, shader_type type)
 
             // convert to string and throw
             const std::string error(error_log.data(), log_length);
-            throw std::runtime_error("shader compilation failed: " + error);
+            throw exception("shader compilation failed: " + error);
         }
     }
 }

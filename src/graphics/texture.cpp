@@ -3,12 +3,12 @@
 #include <cstdint>
 #include <experimental/filesystem>
 #include <memory>
-#include <stdexcept>
 #include <vector>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
+#include "exception.hpp"
 #include "gl/texture_implementation.hpp"
 
 namespace eng
@@ -23,7 +23,7 @@ texture::texture(const std::experimental::filesystem::path &path)
 {
     if(!std::experimental::filesystem::exists(path))
     {
-        throw std::runtime_error(path.string() + " does not exist");
+        throw exception(path.string() + " does not exist");
     }
 
     int width = 0;
@@ -37,7 +37,7 @@ texture::texture(const std::experimental::filesystem::path &path)
 
     if(raw_data == nullptr)
     {
-        throw std::runtime_error("failed to load image");
+        throw exception("failed to load image");
     }
 
     // cast data members
@@ -74,7 +74,7 @@ texture::texture(
     const auto expected_size = width * height * num_channels;
     if(data.size() != expected_size)
     {
-        throw std::runtime_error("incorrect data size");
+        throw exception("incorrect data size");
     }
 
     impl_ = std::make_unique<gl::texture_implementation>(

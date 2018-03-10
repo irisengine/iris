@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "exception.hpp"
 #include "matrix4.hpp"
 #include "quaternion.hpp"
 #include "vector3.hpp"
@@ -29,7 +30,7 @@ std::string read_file(const std::experimental::filesystem::path &path)
 {
     if(!std::experimental::filesystem::exists(path))
     {
-        throw std::runtime_error(path.string() + " does not exist");
+        throw eng::exception(path.string() + " does not exist");
     }
 
     std::ifstream in{ path };
@@ -132,7 +133,7 @@ std::map<std::string, std::tuple<eng::vector3, std::experimental::filesystem::pa
             // extract colour values
             if(std::sscanf(args.c_str(), "%f %f %f", &r, &g, &b) != 3u)
             {
-                throw std::runtime_error("only support colour in format: v r g b");
+                throw eng::exception("only support colour in format: v r g b");
             }
 
             current_diffuse = { r, g, b };
@@ -250,7 +251,7 @@ std::vector<eng::mesh> load_file(const std::experimental::filesystem::path &path
             // extract vertex data
             if(std::sscanf(args.c_str(), "%f %f %f", &x, &y, &z) != 3u)
             {
-                throw std::runtime_error("only support vertex in format: v x y z");
+                throw eng::exception("only support vertex in format: v x y z");
             }
 
             vertices.emplace_back(x, y, z);
@@ -266,7 +267,7 @@ std::vector<eng::mesh> load_file(const std::experimental::filesystem::path &path
             // extract normal data
             if(std::sscanf(args.c_str(), "%f %f %f", &x, &y, &z) != 3u)
             {
-                throw std::runtime_error("only support normals in format: vn x y z");
+                throw eng::exception("only support normals in format: vn x y z");
             }
 
             normals.emplace_back(x, y, z);
@@ -282,7 +283,7 @@ std::vector<eng::mesh> load_file(const std::experimental::filesystem::path &path
             // extract texture coordinate data
             if(std::sscanf(args.c_str(), "%f %f", &x, &y) != 2u)
             {
-                throw std::runtime_error("only support tex coords in format: vt x y");
+                throw eng::exception("only support tex coords in format: vt x y");
             }
 
             texture_coords.emplace_back(x, y, 0.0f);
@@ -304,7 +305,7 @@ std::vector<eng::mesh> load_file(const std::experimental::filesystem::path &path
                 // only support subset of the wavefront format
                 if(parts.size() != 3u)
                 {
-                    throw std::runtime_error("only support faces with format: f v1/vt1/vn1");
+                    throw eng::exception("only support faces with format: f v1/vt1/vn1");
                 }
 
                 // check if we have processed data for this vertex before
@@ -328,14 +329,14 @@ std::vector<eng::mesh> load_file(const std::experimental::filesystem::path &path
                     const auto vertex_index = std::stoi(parts[0u]) - 1u;
                     if(vertex_index > vertices.size())
                     {
-                        throw std::runtime_error("missing vertex");
+                        throw eng::exception("missing vertex");
                     }
 
                     // check and get vertex normal data
                     const auto normal_index = std::stoi(parts[2u]) - 1u;
                     if(normal_index > normals.size())
                     {
-                        throw std::runtime_error("missing normal");
+                        throw eng::exception("missing normal");
                     }
 
                     // create vertex
