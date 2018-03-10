@@ -312,7 +312,7 @@ void resolve_penetrations(std::vector<eng::contact> &contacts)
 }
 
 /**
- * Helper function to calculate the impulse for a fricionless contact.
+ * Helper function to calculate the impulse for a friction based contact.
  *
  * @param inverse_inertia_tensor1
  *   The inverse inertia tensor for the first colliding body.
@@ -324,37 +324,82 @@ void resolve_penetrations(std::vector<eng::contact> &contacts)
  *   Contact to resolve.
  *
  * @returns
- *   Impulse for colliding frictionless collision.
+ *   Impulse for collision with friction.
  */
-eng::vector3 calculate_frictionless_impulse(
+eng::vector3 calculate_friction_impulse(
     const eng::matrix3 &inverse_inertia_tensor1,
     const eng::matrix3 &inverse_inertia_tensor2,
     const eng::contact &contact)
 {
-    auto delta_velocity_world =
-        eng::vector3::cross(contact.relative_contact_position1, contact.normal);
-    delta_velocity_world = inverse_inertia_tensor1 * delta_velocity_world;
-    delta_velocity_world.cross(contact.relative_contact_position1);
+    eng::vector3 impulse_contact{ };
+    auto inverse_mass = contact.body1->inverse_mass();
 
-    auto delta_velocity = delta_velocity_world.dot(contact.normal);
-    delta_velocity += contact.body1->inverse_mass();
+    // create matrix for converting between linear and angular quantities
+    auto impulse_to_torque =
+        eng::matrix3::make_skew_symmetric(contact.relative_contact_position1);
 
+    // create matrix for converting contact impulse to verlocity
+    auto delta_velocity_world = impulse_to_torque;
+    delta_velocity_world *= inverse_inertia_tensor1;
+    delta_velocity_world *= impulse_to_torque;
+    delta_velocity_world *= -1.0f;
+
+    // add data from body2 if needed
     if(!contact.body2->is_static())
     {
-        delta_velocity_world =
-            eng::vector3::cross(contact.relative_contact_position2, contact.normal);
-        delta_velocity_world = inverse_inertia_tensor2 * delta_velocity_world;
-        delta_velocity_world.cross(contact.relative_contact_position2);
+        impulse_to_torque =
+            eng::matrix3::make_skew_symmetric(contact.relative_contact_position2);
 
-        delta_velocity += delta_velocity_world.dot(contact.normal);
-        delta_velocity += contact.body2->inverse_mass();
+        auto delta_velocity_world2 = impulse_to_torque;
+        delta_velocity_world2 *= inverse_inertia_tensor2;
+        delta_velocity_world2 *= impulse_to_torque;
+        delta_velocity_world2 *= -1.0f;
+
+        delta_velocity_world += delta_velocity_world2;
+        inverse_mass += contact.body2->inverse_mass();
     }
 
-    return {
-        contact.desired_delta_velocity / delta_velocity,
-        0.0f,
-        0.0f
-    };
+    // convert delta velocity world into contact coordinates
+    auto delta_velocity = eng::matrix3::transpose(contact.contact_basis);
+    delta_velocity *= delta_velocity_world;
+    delta_velocity *= contact.contact_basis;
+
+    // add linear velocity change
+    delta_velocity[0u] += inverse_mass;
+    delta_velocity[4u] += inverse_mass;
+    delta_velocity[8u] += inverse_mass;
+
+    const auto impulse_matrix = eng::matrix3::invert(delta_velocity);
+
+    // find target velocity to kill
+    const eng::vector3 velocity_kill{
+        contact.desired_delta_velocity,
+        -contact.closing_velocity.y,
+        -contact.closing_velocity.z };
+
+    impulse_contact = impulse_matrix * velocity_kill;
+
+    const auto planar_impulse = std::sqrt(
+        std::pow(impulse_contact.y, 2.0f) + std::pow(impulse_contact.z, 2.0f));
+
+    static const auto friction = 1.0f;
+
+    // if we exceed static friction then apply dynamic friction
+    if(planar_impulse > (impulse_contact.x * friction))
+    {
+        impulse_contact.y /= planar_impulse;
+        impulse_contact.z /= planar_impulse;
+
+        impulse_contact.x =
+            delta_velocity[0u] +
+            delta_velocity[1u] * friction * impulse_contact.y +
+            delta_velocity[2u] * friction * impulse_contact.z;
+        impulse_contact.x = contact.desired_delta_velocity / impulse_contact.x;
+        impulse_contact.y *= friction * impulse_contact.x;
+        impulse_contact.z *= friction * impulse_contact.x;
+    }
+
+    return impulse_contact;
 }
 
 /**
@@ -417,8 +462,8 @@ std::tuple<eng::vector3, eng::vector3, eng::vector3, eng::vector3> apply_velocit
        ? contact.body2->inverse_inertia_tensor_world()
        : eng::matrix3{ {{ 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f }} };
 
-    // calculate impulse based on frictionless collision
-    const auto impulse_contact = calculate_frictionless_impulse(
+    // calculate impulse based on collision with friction
+    const auto impulse_contact = calculate_friction_impulse(
         inverse_inertia_tensor_world1,
         inverse_inertia_tensor_world2,
         contact);
