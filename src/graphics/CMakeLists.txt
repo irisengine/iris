@@ -17,6 +17,7 @@ SET(GRAPHICS_SRCS
     "${SOURCE_ROOT}/gl/vertex_state.cpp" "${INCLUDE_ROOT}/gl/vertex_state.hpp"
     "${SOURCE_ROOT}/material.cpp" "${INCLUDE_ROOT}/material.hpp"
     "${SOURCE_ROOT}/mesh.cpp" "${INCLUDE_ROOT}/mesh.hpp"
+    "${SOURCE_ROOT}/shape_factory.cpp" "${INCLUDE_ROOT}/shape_factory.hpp"
     "${SOURCE_ROOT}/texture.cpp" "${INCLUDE_ROOT}/texture.hpp"
 
     PARENT_SCOPE

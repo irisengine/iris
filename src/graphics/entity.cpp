@@ -7,6 +7,7 @@
 #include <map>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "exception.hpp"
@@ -376,7 +377,15 @@ entity::entity(
     const vector3 &position,
     const quaternion &orientation,
     const vector3 &scale)
-    : meshes_(load_file(path)),
+    : entity(load_file(path), position, orientation, scale)
+{ }
+
+entity::entity(
+    std::vector<mesh> &&meshes,
+    const vector3 &position,
+    const quaternion &orientation,
+    const vector3 &scale)
+    : meshes_(std::move(meshes)),
       position_(position),
       orientation_(orientation),
       scale_(scale),
