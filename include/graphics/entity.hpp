@@ -19,7 +19,7 @@ class entity final
     public:
 
         /**
-         * Create a new entity.
+         * Create a new entity from a file.
          *
          * @param path
          *   Path to model file to load.
@@ -35,6 +35,27 @@ class entity final
          */
         entity(
             const std::experimental::filesystem::path &path,
+            const vector3 &position,
+            const quaternion &orientation,
+            const vector3 &scale);
+
+        /**
+         * Create a new entity with mesh data.
+         *
+         * @meshes
+         *   Collection of mesh data.
+         *
+         * @param position
+         *   Position of mesh in world space.
+         *
+         * @param orientation
+         *   Orientation of entity.
+         *
+         * @param scale
+         *   Scale of entity.
+         */
+        entity(
+            std::vector<mesh> &&meshes,
             const vector3 &position,
             const quaternion &orientation,
             const vector3 &scale);
