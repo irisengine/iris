@@ -8,6 +8,7 @@
 #include "gl/buffer.hpp"
 #include "gl/opengl.hpp"
 #include "gl/vertex_state.hpp"
+#include "log.hpp"
 #include "material.hpp"
 #include "mesh.hpp"
 #include "vector3.hpp"
@@ -96,16 +97,22 @@ render_system::render_system(
         static_cast<std::uint32_t>(width),
         static_cast<std::uint32_t>(height));
     gl::check_opengl_error("could not set viewport");
+
+    LOG_INFO("render_system", "constructed opengl render system");
 }
 
 void render_system::add(std::shared_ptr<entity> e)
 {
     scene_.emplace_back(e);
+
+    LOG_INFO("render_system", "adding entity");
 }
 
 void render_system::render() const
 {
     window_->pre_render();
+
+    LOG_INFO("render_system", "rendering {} entities", scene_.size());
 
     // render each element in scene
     for(const auto &e : scene_)
@@ -170,6 +177,7 @@ void render_system::render() const
 void render_system::set_light_position(const vector3 &position) noexcept
 {
     light_position = position;
+    LOG_INFO("render_system", "light position set: {}", light_position);
 }
 
 }

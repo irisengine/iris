@@ -2,6 +2,7 @@
 
 #include <cmath>
 
+#include "log.hpp"
 #include "matrix4.hpp"
 #include "vector3.hpp"
 
@@ -49,6 +50,8 @@ camera::camera()
 {
     direction_ = create_direction(pitch_, yaw_);
     view_ = matrix4::make_look_at(position_, position_ + direction_, up_);
+
+    LOG_ENGINE_INFO("camera", "constructed");
 }
 
 void camera::translate(const vector3 &t) noexcept

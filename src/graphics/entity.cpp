@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "exception.hpp"
+#include "log.hpp"
 #include "matrix4.hpp"
 #include "quaternion.hpp"
 #include "vector3.hpp"
@@ -391,7 +392,9 @@ entity::entity(
       scale_(scale),
       model_(matrix4::make_translate(position) * matrix4(orientation) * matrix4::make_scale(scale)),
       wireframe_(false)
-{ }
+{
+    LOG_INFO("entity", "constructed at: {}", position_);
+}
 
 void entity::set_position(const vector3 &position) noexcept
 {

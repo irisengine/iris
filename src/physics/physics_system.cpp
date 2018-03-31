@@ -7,6 +7,7 @@
 #include "collision_detector.hpp"
 #include "collision_resolver.hpp"
 #include "contact.hpp"
+#include "log.hpp"
 #include "rigid_body.hpp"
 
 namespace eng
@@ -15,10 +16,14 @@ namespace eng
 void physics_system::add(std::shared_ptr<rigid_body> body)
 {
     bodies_.emplace_back(body);
+
+    LOG_INFO("physics_system", "adding body");
 }
 
 void physics_system::step(const float delta) const
 {
+    LOG_INFO("physics_system", "integrating {} bodies", bodies_.size());
+
     // integrate all bodies
     for(const auto &body : bodies_)
     {
@@ -39,6 +44,8 @@ void physics_system::step(const float delta) const
                 std::end(current_contacts));
         }
     }
+
+    LOG_INFO("physics_system", "resolving {} constacts", contacts.size());
 
     // resolve all collision contacts
     collision::resolve(contacts);
