@@ -10,6 +10,7 @@
 
 #include "exception.hpp"
 #include "gl/texture_implementation.hpp"
+#include "log.hpp"
 
 namespace eng
 {
@@ -82,6 +83,8 @@ texture::texture(
         width_,
         height_,
         num_channels_);
+
+    LOG_INFO("texture", "loaded");
 }
 
 void texture::bind() const

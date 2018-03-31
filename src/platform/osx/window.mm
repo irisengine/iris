@@ -8,6 +8,7 @@
 #include "event_dispatcher.hpp"
 #include "exception.hpp"
 #include "keyboard_event.hpp"
+#include "log.hpp"
 #include "osx/AppDelegate.h"
 
 namespace
@@ -262,6 +263,8 @@ window::window(
     [[NSAutoreleasePool alloc] init];
 
     [NSCursor hide];
+
+    LOG_INFO("window", "osx window created");
 }
 
 void window::pre_render() const noexcept
