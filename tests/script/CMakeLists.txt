@@ -1,6 +1,8 @@
 SET(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 
 SET(SCRIPT_TEST_SRCS
+    "${SOURCE_ROOT}/cactus_stack_tests.cpp"
+
     PARENT_SCOPE
 )
 
