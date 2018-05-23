@@ -6,6 +6,7 @@ SET(SCRIPT_SRCS
     "${INCLUDE_ROOT}/function.hpp"
     "${INCLUDE_ROOT}/location_data.hpp"
     "${INCLUDE_ROOT}/object.hpp"
+    "${INCLUDE_ROOT}/value.hpp"
 
     PARENT_SCOPE
 )
