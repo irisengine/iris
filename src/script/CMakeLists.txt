@@ -5,6 +5,7 @@ SET(SCRIPT_SRCS
     "${INCLUDE_ROOT}/cactus_stack.hpp"
     "${INCLUDE_ROOT}/function.hpp"
     "${INCLUDE_ROOT}/location_data.hpp"
+    "${INCLUDE_ROOT}/object.hpp"
 
     PARENT_SCOPE
 )
