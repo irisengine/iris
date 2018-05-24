@@ -10,6 +10,7 @@ SET(SCRIPT_SRCS
     "${INCLUDE_ROOT}/token.hpp"
     "${INCLUDE_ROOT}/token_type.hpp"
     "${INCLUDE_ROOT}/value.hpp"
+    "${SOURCE_ROOT}/error.cpp" "${INCLUDE_ROOT}/error.hpp"
 
     PARENT_SCOPE
 )
