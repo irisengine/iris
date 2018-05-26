@@ -6,6 +6,7 @@ SET(SCRIPT_SRCS
     "${INCLUDE_ROOT}/cast.hpp"
     "${INCLUDE_ROOT}/error_type.hpp"
     "${INCLUDE_ROOT}/expression_type.hpp"
+    "${INCLUDE_ROOT}/expression_visitor.hpp"
     "${INCLUDE_ROOT}/function.hpp"
     "${INCLUDE_ROOT}/location_data.hpp"
     "${INCLUDE_ROOT}/object.hpp"
