@@ -3,6 +3,7 @@ SET(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/script")
 
 SET(SCRIPT_SRCS
     "${INCLUDE_ROOT}/cactus_stack.hpp"
+    "${INCLUDE_ROOT}/cast.hpp"
     "${INCLUDE_ROOT}/error_type.hpp"
     "${INCLUDE_ROOT}/function.hpp"
     "${INCLUDE_ROOT}/location_data.hpp"
