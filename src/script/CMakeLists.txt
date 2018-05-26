@@ -5,6 +5,7 @@ SET(SCRIPT_SRCS
     "${INCLUDE_ROOT}/cactus_stack.hpp"
     "${INCLUDE_ROOT}/cast.hpp"
     "${INCLUDE_ROOT}/error_type.hpp"
+    "${INCLUDE_ROOT}/expression.hpp"
     "${INCLUDE_ROOT}/expression_type.hpp"
     "${INCLUDE_ROOT}/expression_visitor.hpp"
     "${INCLUDE_ROOT}/function.hpp"
