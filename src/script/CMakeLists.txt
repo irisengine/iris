@@ -11,6 +11,7 @@ SET(SCRIPT_SRCS
     "${INCLUDE_ROOT}/token_type.hpp"
     "${INCLUDE_ROOT}/value.hpp"
     "${SOURCE_ROOT}/error.cpp" "${INCLUDE_ROOT}/error.hpp"
+    "${SOURCE_ROOT}/lexer.cpp" "${INCLUDE_ROOT}/lexer.hpp"
     "${SOURCE_ROOT}/script_exception.cpp" "${INCLUDE_ROOT}/script_exception.hpp"
 
     PARENT_SCOPE
