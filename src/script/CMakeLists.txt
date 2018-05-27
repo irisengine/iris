@@ -20,6 +20,7 @@ SET(SCRIPT_SRCS
     "${SOURCE_ROOT}/ast_printer.cpp" "${INCLUDE_ROOT}/ast_printer.hpp"
     "${SOURCE_ROOT}/error.cpp" "${INCLUDE_ROOT}/error.hpp"
     "${SOURCE_ROOT}/lexer.cpp" "${INCLUDE_ROOT}/lexer.hpp"
+    "${SOURCE_ROOT}/panic_exception.cpp" "${INCLUDE_ROOT}/panic_exception.hpp"
     "${SOURCE_ROOT}/script_exception.cpp" "${INCLUDE_ROOT}/script_exception.hpp"
 
     PARENT_SCOPE
