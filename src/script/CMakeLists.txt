@@ -20,6 +20,7 @@ SET(SCRIPT_SRCS
     "${INCLUDE_ROOT}/value.hpp"
     "${SOURCE_ROOT}/ast_printer.cpp" "${INCLUDE_ROOT}/ast_printer.hpp"
     "${SOURCE_ROOT}/chunk.cpp" "${INCLUDE_ROOT}/chunk.hpp"
+    "${SOURCE_ROOT}/compiler.cpp" "${INCLUDE_ROOT}/compiler.hpp"
     "${SOURCE_ROOT}/error.cpp" "${INCLUDE_ROOT}/error.hpp"
     "${SOURCE_ROOT}/lexer.cpp" "${INCLUDE_ROOT}/lexer.hpp"
     "${SOURCE_ROOT}/panic_exception.cpp" "${INCLUDE_ROOT}/panic_exception.hpp"
