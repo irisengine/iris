@@ -9,6 +9,7 @@ SET(SCRIPT_TEST_SRCS
     "${SOURCE_ROOT}/parser_error_tests.cpp"
     "${SOURCE_ROOT}/parser_tests.cpp"
     "${SOURCE_ROOT}/value_tests.cpp"
+    "${SOURCE_ROOT}/script_tests.cpp"
     "${SOURCE_ROOT}/virtual_machine_tests.cpp"
     "${SOURCE_ROOT}/virtual_machine_error_tests.cpp"
 
