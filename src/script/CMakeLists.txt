@@ -11,6 +11,7 @@ SET(SCRIPT_SRCS
     "${INCLUDE_ROOT}/function.hpp"
     "${INCLUDE_ROOT}/location_data.hpp"
     "${INCLUDE_ROOT}/object.hpp"
+    "${INCLUDE_ROOT}/opcode.hpp"
     "${INCLUDE_ROOT}/statement.hpp"
     "${INCLUDE_ROOT}/statement_type.hpp"
     "${INCLUDE_ROOT}/statement_visitor.hpp"
