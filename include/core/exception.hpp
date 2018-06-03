@@ -10,7 +10,7 @@ namespace eng
 /**
  * A custom exception class that includes a stack trace.
  */
-class exception final : public std::runtime_error
+class exception : public std::runtime_error
 {
     public:
 
