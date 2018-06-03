@@ -26,6 +26,7 @@ SET(SCRIPT_SRCS
     "${SOURCE_ROOT}/panic_exception.cpp" "${INCLUDE_ROOT}/panic_exception.hpp"
     "${SOURCE_ROOT}/parser.cpp" "${INCLUDE_ROOT}/parser.hpp"
     "${SOURCE_ROOT}/script_exception.cpp" "${INCLUDE_ROOT}/script_exception.hpp"
+    "${SOURCE_ROOT}/virtual_machine.cpp" "${INCLUDE_ROOT}/virtual_machine.hpp"
 
     PARENT_SCOPE
 )
