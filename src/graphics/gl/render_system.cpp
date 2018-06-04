@@ -91,13 +91,6 @@ render_system::render_system(
     ::glDepthFunc(GL_LESS);
     gl::check_opengl_error("could not set depth test function");
 
-    ::glViewport(
-        0,
-        0,
-        static_cast<std::uint32_t>(width),
-        static_cast<std::uint32_t>(height));
-    gl::check_opengl_error("could not set viewport");
-
     LOG_INFO("render_system", "constructed opengl render system");
 }
 
