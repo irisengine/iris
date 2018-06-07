@@ -256,12 +256,6 @@ window::window(
     // activate the app
     [app finishLaunching];
 
-    // create an auto release pool for this thread, according to the Apple
-    // docs this will get automatically drained when the main thread
-    // terminates
-    // http://tinyurl.com/nmdem83
-    [[NSAutoreleasePool alloc] init];
-
     [NSCursor hide];
 
     LOG_INFO("window", "osx window created");

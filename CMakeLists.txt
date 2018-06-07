@@ -3,7 +3,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.6)
 PROJECT(iris)
 
 SET(CMAKE_CXX_STANDARD 17)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pedantic -ggdb -fno-rtti")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pedantic -ggdb -fno-rtti -fobjc-arc")
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lc++experimental")
 
 # put all artifacts in same directory
