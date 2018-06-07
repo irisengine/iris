@@ -11,6 +11,7 @@ SET(PLATFORM_SRCS
 IF(PLATFORM MATCHES "OSX")
     SET(PLATFORM_SRCS
         ${PLATFORM_SRCS}
+        "${INCLUDE_ROOT}/osx/cf_ptr.hpp"
         "${SOURCE_ROOT}/osx/AppDelegate.m" "${INCLUDE_ROOT}/osx/AppDelegate.h"
         "${SOURCE_ROOT}/osx/OpenGLView.m" "${INCLUDE_ROOT}/osx/OpenGLView.h"
         "${SOURCE_ROOT}/osx/window.mm"
