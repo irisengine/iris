@@ -2,6 +2,7 @@ SET(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 SET(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/platform")
 
 SET(PLATFORM_SRCS
+    "${INCLUDE_ROOT}/file_event_type.hpp"
     "${INCLUDE_ROOT}/keyboard_event.hpp"
     "${INCLUDE_ROOT}/mouse_event.hpp"
     "${INCLUDE_ROOT}/window.hpp"
