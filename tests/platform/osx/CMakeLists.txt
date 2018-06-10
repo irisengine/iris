@@ -2,6 +2,8 @@ SET(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 
 SET(OSX_PLATFORM_TEST_SRCS
     "${SOURCE_ROOT}/cf_ptr_tests.cpp"
+    "${SOURCE_ROOT}/runloop_helper.hpp"
+    "${SOURCE_ROOT}/runloop_helper.mm"
 
     PARENT_SCOPE
 )
