@@ -91,21 +91,21 @@ render_system::render_system(
     ::glDepthFunc(GL_LESS);
     gl::check_opengl_error("could not set depth test function");
 
-    LOG_INFO("render_system", "constructed opengl render system");
+    LOG_ENGINE_INFO("render_system", "constructed opengl render system");
 }
 
 void render_system::add(std::shared_ptr<entity> e)
 {
     scene_.emplace_back(e);
 
-    LOG_INFO("render_system", "adding entity");
+    LOG_ENGINE_INFO("render_system", "adding entity");
 }
 
 void render_system::render() const
 {
     window_->pre_render();
 
-    LOG_INFO("render_system", "rendering {} entities", scene_.size());
+    LOG_ENGINE_INFO("render_system", "rendering {} entities", scene_.size());
 
     // render each element in scene
     for(const auto &e : scene_)
@@ -170,7 +170,7 @@ void render_system::render() const
 void render_system::set_light_position(const vector3 &position) noexcept
 {
     light_position = position;
-    LOG_INFO("render_system", "light position set: {}", light_position);
+    LOG_ENGINE_INFO("render_system", "light position set: {}", light_position);
 }
 
 }
