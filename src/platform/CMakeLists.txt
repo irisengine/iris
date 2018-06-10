@@ -7,6 +7,7 @@ SET(PLATFORM_SRCS
     "${INCLUDE_ROOT}/mouse_event.hpp"
     "${INCLUDE_ROOT}/window.hpp"
     "${SOURCE_ROOT}/event_dispatcher.cpp" "${INCLUDE_ROOT}/event_dispatcher.hpp"
+    "${SOURCE_ROOT}/file_watcher.cpp" "${INCLUDE_ROOT}/file_watcher.hpp"
 )
 
 IF(PLATFORM MATCHES "OSX")
