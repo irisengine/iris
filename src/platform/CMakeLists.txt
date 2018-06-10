@@ -15,6 +15,7 @@ IF(PLATFORM MATCHES "OSX")
         "${INCLUDE_ROOT}/osx/cf_ptr.hpp"
         "${SOURCE_ROOT}/osx/AppDelegate.m" "${INCLUDE_ROOT}/osx/AppDelegate.h"
         "${SOURCE_ROOT}/osx/OpenGLView.m" "${INCLUDE_ROOT}/osx/OpenGLView.h"
+        "${SOURCE_ROOT}/osx/file_watcher_implementation.mm" "${INCLUDE_ROOT}/osx/file_watcher_implementation.hpp"
         "${SOURCE_ROOT}/osx/window.mm"
 
         PARENT_SCOPE
