@@ -19,7 +19,7 @@
         // create our window. It should have a title and render all content
         // to a buffer before being flushed, do not defer the creation of the
         // window
-        window = [[NSWindow alloc]
+        NSWindow *window = [[NSWindow alloc]
             initWithContentRect:rect
             styleMask:NSWindowStyleMaskTitled
             backing:NSBackingStoreBuffered
@@ -43,7 +43,7 @@
             [[NSOpenGLPixelFormat alloc] initWithAttributes:pixelFormatAttributes];
 
         // create our OpenGl view, make it the same size as the window
-        view = [[OpenGLView alloc]
+        OpenGLView *view = [[OpenGLView alloc]
             initWithFrame:rect
             pixelFormat:pixel_format];
 
