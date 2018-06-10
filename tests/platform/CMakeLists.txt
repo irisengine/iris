@@ -1,0 +1,9 @@
+SET(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
+
+SET(PLATFORM_TEST_SRCS
+    "${SOURCE_ROOT}/file_watcher_tests.cpp"
+
+    PARENT_SCOPE
+)
+
+
