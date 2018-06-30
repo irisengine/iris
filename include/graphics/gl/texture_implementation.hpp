@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace eng::gl
+namespace eng
 {
 
 /**

@@ -43,7 +43,7 @@ std::uint32_t channels_to_format(const std::uint32_t num_channels)
 
 }
 
-namespace eng::gl
+namespace eng
 {
 
 texture_implementation::texture_implementation(
@@ -54,21 +54,21 @@ texture_implementation::texture_implementation(
     : handle_(0u)
 {
     ::glGenTextures(1, &handle_);
-    gl::check_opengl_error("could not generate texture");
+    check_opengl_error("could not generate texture");
 
     auto_bind<texture_implementation> auto_bind{ *this };
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    gl::check_opengl_error("could not set wrap s parameter");
+    check_opengl_error("could not set wrap s parameter");
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    gl::check_opengl_error("could not set wrap t parameter");
+    check_opengl_error("could not set wrap t parameter");
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    gl::check_opengl_error("could not set min filter parameter");
+    check_opengl_error("could not set min filter parameter");
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    gl::check_opengl_error("could not set max filter parameter");
+    check_opengl_error("could not set max filter parameter");
 
     const auto format = channels_to_format(num_channels);
 
@@ -82,10 +82,10 @@ texture_implementation::texture_implementation(
         format,
         GL_UNSIGNED_BYTE,
         data.data());
-    gl::check_opengl_error("could not set texture data");
+    check_opengl_error("could not set texture data");
 
     ::glGenerateMipmap(GL_TEXTURE_2D);
-    gl::check_opengl_error("could not generate mipmaps");
+    check_opengl_error("could not generate mipmaps");
 }
 
 texture_implementation::~texture_implementation()
@@ -95,12 +95,6 @@ texture_implementation::~texture_implementation()
 
 void texture_implementation::bind() const
 {
-    // use default texture unit
-    ::glActiveTexture(GL_TEXTURE0);
-    gl::check_opengl_error("could not activiate texture");
-
-    ::glBindTexture(GL_TEXTURE_2D, handle_);
-    gl::check_opengl_error("could not bind texture");
 }
 
 void texture_implementation::unbind() const

@@ -5,7 +5,7 @@
 
 #include "exception.hpp"
 
-namespace eng::gl
+namespace eng
 {
 
 void check_opengl_error(std::string_view error_message)

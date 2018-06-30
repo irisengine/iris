@@ -6,7 +6,7 @@
 
 #include "gl/opengl.hpp"
 
-namespace eng::gl
+namespace eng
 {
 
 buffer::~buffer()
@@ -35,13 +35,13 @@ buffer& buffer::operator=(buffer &&other) noexcept
 void buffer::bind() const
 {
     ::glBindBuffer(type_, handle_);
-    gl::check_opengl_error("could not bind buffer");
+    check_opengl_error("could not bind buffer");
 }
 
 void buffer::unbind() const
 {
     ::glBindBuffer(type_, 0u);
-    gl::check_opengl_error("could not unbind buffer");
+    check_opengl_error("could not unbind buffer");
 }
 
 }

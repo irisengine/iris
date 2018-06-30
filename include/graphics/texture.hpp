@@ -113,7 +113,7 @@ class texture final
         std::uint32_t num_channels_;
 
         /** Graphics API specific implementation. */
-        std::unique_ptr<gl::texture_implementation> impl_;
+        std::unique_ptr<texture_implementation> impl_;
 };
 
 }

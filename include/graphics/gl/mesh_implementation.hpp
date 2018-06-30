@@ -8,7 +8,7 @@
 #include "vector3.hpp"
 #include "vertex_data.hpp"
 
-namespace eng::gl
+namespace eng
 {
 
 /**

@@ -10,7 +10,7 @@
 #include "gl/opengl.hpp"
 #include "gl/shader_type.hpp"
 
-namespace eng::gl
+namespace eng
 {
 
 shader::shader(std::string_view source, shader_type type)
@@ -21,25 +21,25 @@ shader::shader(std::string_view source, shader_type type)
         : GL_FRAGMENT_SHADER;
 
     shader_ = ::glCreateShader(native_type);
-    gl::check_opengl_error("could not create vertex shader");
+    check_opengl_error("could not create vertex shader");
 
     const auto shader_c_str = source.data();
 
     ::glShaderSource(shader_, 1, &shader_c_str, nullptr);
-    eng::gl::check_opengl_error("could not set shader source");
+    eng::check_opengl_error("could not set shader source");
 
     ::glCompileShader(shader_);
 
     std::int32_t shader_param = 0;
 
     ::glGetShaderiv(shader_, GL_COMPILE_STATUS, &shader_param);
-    eng::gl::check_opengl_error("could not get shader parameter");
+    eng::check_opengl_error("could not get shader parameter");
 
     // if shader failed to compile then get the opengl error
     if(shader_param != GL_TRUE)
     {
         ::glGetShaderiv(shader_, GL_INFO_LOG_LENGTH, &shader_param);
-        eng::gl::check_opengl_error("could not get shader log length");
+        eng::check_opengl_error("could not get shader log length");
 
         if(shader_param == 0)
         {
@@ -56,7 +56,7 @@ shader::shader(std::string_view source, shader_type type)
                 static_cast<std::int32_t>(error_log.size()),
                 &log_length,
                 error_log.data());
-            eng::gl::check_opengl_error("failed to get error log");
+            eng::check_opengl_error("failed to get error log");
 
             // convert to string and throw
             const std::string error(error_log.data(), log_length);

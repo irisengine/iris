@@ -6,7 +6,7 @@
 #include "auto_bind.hpp"
 #include "gl/opengl.hpp"
 
-namespace eng::gl
+namespace eng
 {
 
 /**
@@ -31,7 +31,7 @@ class buffer final
               type_(type)
         {
             ::glGenBuffers(1, &handle_);
-            gl::check_opengl_error("could not generate opengl buffer");
+            check_opengl_error("could not generate opengl buffer");
 
             // bind so we can copy data
             auto_bind<decltype(*this)> auto_data{ *this };
@@ -41,7 +41,7 @@ class buffer final
                 data.size() * sizeof(T),
                 data.data(),
                 GL_STATIC_DRAW);
-            gl::check_opengl_error("could not buffer data");
+            check_opengl_error("could not buffer data");
         }
 
         /**

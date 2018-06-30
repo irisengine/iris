@@ -83,13 +83,13 @@ render_system::render_system(
     // opengl setup
 
     ::glClearColor(0.0f, 0.0f, 0.1f, 1.0f);
-    gl::check_opengl_error("could not set clear colour");
+    check_opengl_error("could not set clear colour");
 
     ::glEnable(GL_DEPTH_TEST);
-    gl::check_opengl_error("could not enable depth testing");
+    check_opengl_error("could not enable depth testing");
 
     ::glDepthFunc(GL_LESS);
-    gl::check_opengl_error("could not set depth test function");
+    check_opengl_error("could not set depth test function");
 
     LOG_ENGINE_INFO("render_system", "constructed opengl render system");
 }
@@ -123,28 +123,28 @@ void render_system::render() const
         // set uniforms
 
         const auto proj_uniform = ::glGetUniformLocation(program, "projection");
-        gl::check_opengl_error("could not get projection uniform location");
+        check_opengl_error("could not get projection uniform location");
 
         ::glUniformMatrix4fv(proj_uniform, 1, GL_FALSE, camera_->projection().data());
-        gl::check_opengl_error("could not set projection matrix uniform data");
+        check_opengl_error("could not set projection matrix uniform data");
 
         const auto view_uniform = ::glGetUniformLocation(program, "view");
-        gl::check_opengl_error("could not get view uniform location");
+        check_opengl_error("could not get view uniform location");
 
         ::glUniformMatrix4fv(view_uniform, 1, GL_FALSE, camera_->view().data());
-        gl::check_opengl_error("could not set view matrix uniform data");
+        check_opengl_error("could not set view matrix uniform data");
 
         const auto light_uniform = ::glGetUniformLocation(program, "light");
-        gl::check_opengl_error("could not get light uniform location");
+        check_opengl_error("could not get light uniform location");
 
         ::glUniform3f(light_uniform, light_position.x, light_position.y, light_position.z);
-        gl::check_opengl_error("could not set light uniform data");
+        check_opengl_error("could not set light uniform data");
 
         const auto model_uniform = ::glGetUniformLocation(program, "model");
-        gl::check_opengl_error("could not get model uniform location");
+        check_opengl_error("could not get model uniform location");
 
         ::glUniformMatrix4fv(model_uniform, 1, GL_FALSE, e->transform().data());
-        gl::check_opengl_error("could not set model matrix uniform data");
+        check_opengl_error("could not set model matrix uniform data");
 
         // render each mesh in element
         for(const auto &m : e->meshes())
@@ -155,7 +155,7 @@ void render_system::render() const
 
             // draw!
             ::glDrawElements(GL_TRIANGLES, m.indices().size(), GL_UNSIGNED_INT, 0);
-            gl::check_opengl_error("could not draw triangles");
+            check_opengl_error("could not draw triangles");
         }
 
         if(e->should_render_wireframe())

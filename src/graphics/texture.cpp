@@ -54,7 +54,7 @@ texture::texture(const std::experimental::filesystem::path &path)
         static_cast<std::uint8_t*>(raw_data.get()),
         static_cast<std::uint8_t*>(raw_data.get()) + size);
 
-    impl_ = std::make_unique<gl::texture_implementation>(
+    impl_ = std::make_unique<texture_implementation>(
         data_,
         width_,
         height_,

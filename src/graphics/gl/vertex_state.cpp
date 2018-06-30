@@ -5,14 +5,14 @@
 
 #include "gl/opengl.hpp"
 
-namespace eng::gl
+namespace eng
 {
 
 vertex_state::vertex_state()
     : vao_(0u)
 {
     ::glGenVertexArrays(1, &vao_);
-    gl::check_opengl_error("could not generate vao");
+    check_opengl_error("could not generate vao");
 }
 
 vertex_state::~vertex_state()
@@ -46,13 +46,13 @@ std::uint32_t vertex_state::native_handle() const noexcept
 void vertex_state::bind() const
 {
     ::glBindVertexArray(vao_);
-    gl::check_opengl_error("could not bind vao");
+    check_opengl_error("could not bind vao");
 }
 
 void vertex_state::unbind() const
 {
     ::glBindVertexArray(0u);
-    gl::check_opengl_error("could not unbind vao");
+    check_opengl_error("could not unbind vao");
 }
 
 }
