@@ -150,9 +150,19 @@ void render_system::render() const
         // render each mesh in element
         for(const auto &m : e->meshes())
         {
+            const auto t = m.native_handle();
+            assert(t.has_value());
             // bind mesh so the final draw call renders it
-            auto_bind<mesh> auto_mesh{ m };
+            const auto *vao = std::any_cast<const vertex_state*>(t);
+            auto_bind<vertex_state> auto_state{ *vao };
 
+            const auto tex_handle = std::any_cast<std::uint32_t>(m.tex().native_handle());
+            // use default texture unit
+            ::glActiveTexture(GL_TEXTURE0);
+            check_opengl_error("could not activiate texture");
+
+            ::glBindTexture(GL_TEXTURE_2D, tex_handle);
+            check_opengl_error("could not bind texture");
 
             // draw!
             ::glDrawElements(GL_TRIANGLES, m.indices().size(), GL_UNSIGNED_INT, 0);
