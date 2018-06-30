@@ -1,5 +1,6 @@
 #pragma once
 
+#include <any>
 #include <cstdint>
 #include <experimental/filesystem>
 #include <memory>
@@ -57,16 +58,6 @@ class texture final
         texture& operator=(const texture&) = delete;
 
         /**
-         * Perform all actions needed to use texture for rendering.
-         */
-        void bind() const;
-
-        /**
-         * Perform all actions needed after texture has been rendered.
-         */
-        void unbind() const;
-
-        /**
          * Get the raw image data.
          *
          * @returns
@@ -97,6 +88,15 @@ class texture final
          *   Number of channels.
          */
         std::uint32_t num_channels() const noexcept;
+
+        /**
+         * Get a native handle for the texture. The type of this is dependant
+         * on the current graphics API.
+         *
+         * @returns
+         *   Graphics API specific handle.
+         */
+        std::any native_handle() const;
 
     private:
 

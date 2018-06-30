@@ -1,5 +1,6 @@
 #include "gl/texture_implementation.hpp"
 
+#include <any>
 #include <cstdint>
 #include <stdexcept>
 #include <vector>
@@ -56,7 +57,12 @@ texture_implementation::texture_implementation(
     ::glGenTextures(1, &handle_);
     check_opengl_error("could not generate texture");
 
-    auto_bind<texture_implementation> auto_bind{ *this };
+    // use default texture unit
+    ::glActiveTexture(GL_TEXTURE0);
+    check_opengl_error("could not activiate texture");
+
+    ::glBindTexture(GL_TEXTURE_2D, handle_);
+    check_opengl_error("could not bind texture");
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     check_opengl_error("could not set wrap s parameter");
@@ -93,13 +99,9 @@ texture_implementation::~texture_implementation()
     ::glDeleteTextures(1, &handle_);
 }
 
-void texture_implementation::bind() const
+std::any texture_implementation::native_handle() const
 {
-}
-
-void texture_implementation::unbind() const
-{
-    // nothing to be done for texture unbinding
+    return std::any{ handle_ };
 }
 
 }

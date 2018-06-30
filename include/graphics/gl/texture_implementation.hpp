@@ -1,5 +1,6 @@
 #pragma once
 
+#include <any>
 #include <cstdint>
 #include <vector>
 
@@ -51,14 +52,12 @@ class texture_implementation final
         texture_implementation& operator=(const texture_implementation&) = delete;
 
         /**
-         * Performs all opengl actions required to be able to use the texture.
+         * Gets the native handle for the opengl texutre.
+         *
+         * @returns
+         *   Opengl texture handle.
          */
-        void bind() const;
-
-        /**
-         * Performs all opengl actions needed after using the texture.
-         */
-        void unbind() const;
+        std::any native_handle() const;
 
     private:
 

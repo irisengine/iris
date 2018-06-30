@@ -1,5 +1,6 @@
 #include "texture.hpp"
 
+#include <any>
 #include <cstdint>
 #include <experimental/filesystem>
 #include <memory>
@@ -78,23 +79,13 @@ texture::texture(
         throw exception("incorrect data size");
     }
 
-    impl_ = std::make_unique<gl::texture_implementation>(
+    impl_ = std::make_unique<texture_implementation>(
         data_,
         width_,
         height_,
         num_channels_);
 
-    LOG_INFO("texture", "loaded");
-}
-
-void texture::bind() const
-{
-    impl_->bind();
-}
-
-void texture::unbind() const
-{
-    impl_->unbind();
+    LOG_ENGINE_INFO("texture", "loaded");
 }
 
 std::vector<std::uint8_t> texture::data() const noexcept
@@ -115,6 +106,11 @@ std::uint32_t texture::height() const noexcept
 std::uint32_t texture::num_channels() const noexcept
 {
     return num_channels_;
+}
+
+std::any texture::native_handle() const
+{
+    return impl_->native_handle();
 }
 
 }
