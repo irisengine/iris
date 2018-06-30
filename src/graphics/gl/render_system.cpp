@@ -105,6 +105,9 @@ void render_system::render() const
 {
     window_->pre_render();
 
+    // clear current target
+    ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     LOG_ENGINE_INFO("render_system", "rendering {} entities", scene_.size());
 
     // render each element in scene

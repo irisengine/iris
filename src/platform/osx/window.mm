@@ -148,33 +148,6 @@ eng::key osx_key_to_engine_key(const std::uint16_t key_code)
 }
 
 /**
- * Helper method to convert a mouse NSEvent coordinates into screen
- * coordinates, where the origin is the upper left corner of the window.
- *
- * @param event
- *   The mouse event.
- *
- * @returns
- *   The coordinates of the mouse event in transformed to screen coordinates.
- */
-[[maybe_unused]] NSPoint event_screen_point(NSEvent *event)
-{
-    const auto window = [NSApp windowWithWindowNumber:[event windowNumber]];
-    const NSPoint event_location = [event locationInWindow];
-    NSPoint point = [[window contentView] convertPoint:event_location fromView:nil];
-
-    // adjust so origin is upper left corner of window
-    point.y = 800.0f - point.y;
-
-    const auto scale = [window backingScaleFactor];
-
-    point.x *= scale;
-    point.y *= scale;
-
-    return point;
-}
-
-/**
  * Helper method to handle and dispatch native keyboard events.
  *
  * @param dispatcher
@@ -256,9 +229,10 @@ window::window(
     // activate the app
     [app finishLaunching];
 
+
     [NSCursor hide];
 
-    LOG_INFO("window", "osx window created");
+    LOG_ENGINE_INFO("window", "osx window created");
 }
 
 void window::pre_render() const noexcept
@@ -296,14 +270,13 @@ void window::pre_render() const noexcept
         }
 
     } while(event != nil);
-
-    // clear current target
-    ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void window::post_render() const noexcept
 {
+#if defined(GRAPHICS_API_OPENGL) and defined(PLATFORM_OSX)
     ::glSwapAPPLE();
+#endif
 }
 
 float window::width() const noexcept
