@@ -108,6 +108,11 @@ void render_system::render() const
 
     LOG_ENGINE_INFO("render_system", "rendering {} entities", scene_.size());
 
+    // bind material to render with
+    const auto program = std::any_cast<std::uint32_t>(material_.native_handle());
+    ::glUseProgram(program);
+    check_opengl_error("could not bind program");
+
     // render each element in scene
     for(const auto &e : scene_)
     {
@@ -115,11 +120,6 @@ void render_system::render() const
         {
             ::glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         }
-
-        // bind material so render with it
-        auto_bind<material> auto_program{ material_ };
-
-        const auto program = material_.native_handle<std::uint32_t>();
 
         // set uniforms
 
@@ -164,6 +164,10 @@ void render_system::render() const
             ::glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
     }
+
+    // unbind program
+    ::glUseProgram(0u);
+    check_opengl_error("could not unbind program");
 
     window_->post_render();
 }
