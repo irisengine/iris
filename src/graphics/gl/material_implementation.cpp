@@ -1,5 +1,6 @@
 #include "gl/material_implementation.hpp"
 
+#include <any>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -85,19 +86,6 @@ material_implementation& material_implementation::operator=(material_implementat
     std::swap(program_, new_material.program_);
 
     return *this;
-}
-
-
-void material_implementation::bind() const
-{
-    ::glUseProgram(program_);
-    check_opengl_error("could not bind program");
-}
-
-void material_implementation::unbind() const
-{
-    ::glUseProgram(0u);
-    check_opengl_error("could not unbind program");
 }
 
 std::uint32_t material_implementation::native_handle() const noexcept

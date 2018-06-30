@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstdint>
+#include <any>
 #include <string>
 
 #include "gl/material_implementation.hpp"
@@ -37,27 +37,19 @@ class material final
         material(const material&) = delete;
         material& operator=(const material&) = delete;
 
-        template<class T>
-        T native_handle() const noexcept
-        {
-            return impl_.native_handle();
-        }
-
         /**
-         * Bind this material, all future draw calls will be rendered with
-         * this material.
+         * Get a native handle for the material. The type of this is dependant
+         * on the current graphics API.
+         *
+         * @returns
+         *   Graphics API specific handle.
          */
-        void bind() const;
-
-        /**
-         * Unbind this material.
-         */
-        void unbind() const;
+        std::any native_handle() const noexcept;
 
     private:
 
         /** Graphics API implementation. */
-        gl::material_implementation impl_;
+        material_implementation impl_;
 };
 
 }

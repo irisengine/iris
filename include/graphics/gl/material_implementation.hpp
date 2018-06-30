@@ -1,5 +1,6 @@
 #pragma once
 
+#include <any>
 #include <cstdint>
 #include <string>
 
@@ -7,8 +8,8 @@ namespace eng
 {
 
 /**
- * This class is the opengl implementation of material. This encapsulates all the
- * logic needed for an opengl material.
+ * This class is the opengl implementation of material. This encapsulates all
+ * the logic needed for an opengl material.
  */
 class material_implementation final
 {
@@ -51,18 +52,6 @@ class material_implementation final
         /** Disabled */
         material_implementation(const material_implementation&) = delete;
         material_implementation& operator=(const material_implementation&) = delete;
-
-        /**
-         * Performs all opengl actions required to use this material for
-         * rendering with.
-         */
-        void bind() const;
-
-        /**
-         * Performs all opengl actions needed after rendering with this
-         * material.
-         */
-        void unbind() const;
 
         /**
          * Get the native handle for the opengl program.

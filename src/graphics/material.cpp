@@ -1,12 +1,7 @@
 #include "material.hpp"
 
+#include <any>
 #include <string>
-#include <utility>
-#include <vector>
-
-#include "gl/material_implementation.hpp"
-#include "gl/opengl.hpp"
-#include "gl/shader.hpp"
 
 namespace eng
 {
@@ -17,14 +12,9 @@ material::material(
     : impl_(vertex_shader_source, fragment_shader_source)
 { }
 
-void material::bind() const
+std::any material::native_handle() const noexcept
 {
-    impl_.bind();
-}
-
-void material::unbind() const
-{
-    impl_.unbind();
+    return impl_.native_handle();
 }
 
 }
