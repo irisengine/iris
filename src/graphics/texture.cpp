@@ -10,8 +10,12 @@
 #include <stb/stb_image.h>
 
 #include "exception.hpp"
-#include "gl/texture_implementation.hpp"
 #include "log.hpp"
+#if defined(GRAPHICS_API_OPENGL)
+#include "gl/texture_implementation.hpp"
+#elif defined(GRAPHICS_API_METAL)
+#include "metal/texture_implementation.hpp"
+#endif
 
 namespace eng
 {
@@ -31,6 +35,10 @@ texture::texture(const std::experimental::filesystem::path &path)
     int width = 0;
     int height = 0;
     int num_channels = 0;
+
+    // ensure that images are flipped along the y axis when loaded, this is so
+    // they work with what the graphics api treats as the origin
+    ::stbi_set_flip_vertically_on_load(true);
 
     // load image using stb library
     std::unique_ptr<::stbi_uc, decltype(&::stbi_image_free)> raw_data(
