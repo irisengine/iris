@@ -1,7 +1,5 @@
 #import <AppKit/AppKit.h>
 
-#import "osx/OpenGLView.h"
-
 /**
  * Delegate for our app which will handle window creation
  */

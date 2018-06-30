@@ -71,6 +71,8 @@
         // redraw the view before displaying
         [view setNeedsDisplay:YES];
 
+        [window makeFirstResponder:view];
+
         // create a tracking area the size of the screen
         NSTrackingArea *tracking = [[NSTrackingArea alloc]
             initWithRect:rect
