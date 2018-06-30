@@ -1,5 +1,6 @@
 #include "gl/mesh_implementation.hpp"
 
+#include <any>
 #include <cstdint>
 #include <vector>
 
@@ -21,7 +22,7 @@ mesh_implementation::mesh_implementation(
       ebo_(indices, GL_ELEMENT_ARRAY_BUFFER)
 {
     // bind the vao
-    auto_bind<gl::vertex_state> auto_state{ vao_ };
+    auto_bind<vertex_state> auto_state{ vao_ };
 
     // ensure both buffers are bound for the vao
     vbo_.bind();
@@ -63,14 +64,19 @@ mesh_implementation::mesh_implementation(
     check_opengl_error("could not set tex attributes");
 }
 
-void mesh_implementation::bind() const
+const buffer& mesh_implementation::vertex_buffer() const noexcept
 {
-    vao_.bind();
+    return vbo_;
 }
 
-void mesh_implementation::unbind() const
+const buffer& mesh_implementation::index_buffer() const noexcept
 {
-    vao_.unbind();
+    return ebo_;
+}
+
+std::any mesh_implementation::native_handle() const
+{
+    return std::any{ &vao_ };
 }
 
 }

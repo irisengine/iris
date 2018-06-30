@@ -1,5 +1,6 @@
 #pragma once
 
+#include <any>
 #include <cstdint>
 #include <vector>
 
@@ -12,9 +13,6 @@
 
 namespace eng
 {
-
-// forward declaration
-struct mesh_implementation;
 
 /**
  * Class representing a renderable mesh.
@@ -60,24 +58,6 @@ class mesh final
         mesh& operator=(const mesh&) = delete;
 
         /**
-         * Perform all actions needed to render.
-         */
-        void bind() const;
-
-        /**
-         * Perform all actions needed after rendering.
-         */
-        void unbind() const;
-
-        /**
-         * Get const reference to mesh vertices.
-         *
-         * @returns
-         *   Mesh vertices.
-         */
-        const std::vector<vertex_data>& vertices() const noexcept;
-
-        /**
          * Get const reference to mesh indices.
          *
          * @returns
@@ -86,19 +66,39 @@ class mesh final
         const std::vector<std::uint32_t>& indices() const noexcept;
 
         /**
-         * Get the model transformation matrix4.
+         * Get a reference to the vertex buffer for this mesh.
          *
          * @returns
-         *   Model matrix4.
+         *   Const reference to vertex buffer.
          */
-        matrix4 model() const noexcept;
+        const buffer& vertex_buffer() const noexcept;
 
-        void set_model(const matrix4 &model) noexcept;
+        /**
+         * Get a reference to the index buffer for this mesh.
+         *
+         * @returns
+         *   Const reference to index buffer.
+         */
+        const buffer& index_buffer() const noexcept;
+
+        /**
+         * Get a reference to the texture for this mesh.
+         *
+         * @returns
+         *   Const reference to texture.
+         */
+        const texture& tex() const noexcept;
+
+        /**
+         * Get a native handle for the mesh. The type of this is dependant on
+         * the current graphics API.
+         *
+         * @returns
+         *   Graphics API specific handle.
+         */
+        std::any native_handle() const;
 
     private:
-
-        /** Mesh vertex data. */
-        std::vector<vertex_data> vertices_;
 
         /** Mesh index data. */
         std::vector<std::uint32_t> indices_;
@@ -107,7 +107,7 @@ class mesh final
         texture texture_;
 
         /** Graphics API specific implementation. */
-        gl::mesh_implementation impl_;
+        std::unique_ptr<mesh_implementation> impl_;
 };
 
 }

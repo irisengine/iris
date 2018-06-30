@@ -1,5 +1,6 @@
 #pragma once
 
+#include <any>
 #include <cstdint>
 #include <vector>
 
@@ -42,19 +43,33 @@ class mesh_implementation final
         mesh_implementation& operator=(const mesh_implementation&) = delete;
 
         /**
-         * Performs all opengl actions required to be able to render the mesh.
+         * Get a reference to the vertex buffer for this mesh.
+         *
+         * @returns
+         *   Const reference to vertex buffer.
          */
-        void bind() const;
+        const buffer& vertex_buffer() const noexcept;
 
         /**
-         * Performs all opengl actions after rendering is done.
+         * Get a reference to the index buffer for this mesh.
+         *
+         * @returns
+         *   Const reference to index buffer.
          */
-        void unbind() const;
+        const buffer& index_buffer() const noexcept;
+
+        /**
+         * Get a native handle for the mesh. The type of this is dependant on
+         * the current graphics API.
+         *
+         * @returns
+         *   Graphics API specific handle.
+         */
+        std::any native_handle() const;
 
     private:
 
-        /**
-         * The vertex array object. */
+        /** The vertex array object. */
         vertex_state vao_;
 
         /** The vertex buffer object. */

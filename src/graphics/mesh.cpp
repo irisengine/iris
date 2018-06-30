@@ -1,5 +1,6 @@
 #include "mesh.hpp"
 
+#include <any>
 #include <cstdint>
 #include <utility>
 #include <vector>
@@ -16,32 +17,34 @@ mesh::mesh(
     const std::vector<vertex_data> &vertices,
     const std::vector<std::uint32_t> &indices,
     texture &&textures)
-    : vertices_(vertices),
-      indices_(indices),
+    : indices_(indices),
       texture_(std::move(textures)),
-      impl_(vertices_, indices_)
+      impl_(std::make_unique<mesh_implementation>(vertices, indices_))
 { }
-
-void mesh::bind() const
-{
-    impl_.bind();
-    texture_.bind();
-}
-
-void mesh::unbind() const
-{
-    impl_.unbind();
-    texture_.unbind();
-}
-
-const std::vector<vertex_data>& mesh::vertices() const noexcept
-{
-    return vertices_;
-}
 
 const std::vector<std::uint32_t>& mesh::indices() const noexcept
 {
     return indices_;
+}
+
+const buffer& mesh::vertex_buffer() const noexcept
+{
+    return impl_->vertex_buffer();
+}
+
+const buffer& mesh::index_buffer() const noexcept
+{
+    return impl_->index_buffer();
+}
+
+const texture& mesh::tex() const noexcept
+{
+    return texture_;
+}
+
+std::any mesh::native_handle() const
+{
+    return impl_->native_handle();
 }
 
 }
