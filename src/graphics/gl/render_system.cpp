@@ -70,13 +70,11 @@ namespace eng
 {
 
 render_system::render_system(
-            std::shared_ptr<camera> c,
-            std::shared_ptr<window> w,
-            const float width,
-            const float height)
+            std::shared_ptr<camera> cam,
+            std::shared_ptr<window> win)
     : scene_(),
-      camera_(c),
-      window_(w),
+      camera_(cam),
+      window_(win),
       material_(vertex_source, fragment_source),
       light_position()
 {

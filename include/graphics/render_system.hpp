@@ -21,23 +21,15 @@ class render_system final
         /**
          * Create a new opengl rendering system.
          *
-         * @param c
+         * @param cam
          *   Camera to render scene through.
          *
-         * @param w
+         * @param win
          *   Rendering window.
-         *
-         * @param width
-         *   Width of render window.
-         *
-         * @param height
-         *   Height of render window.
          */
         render_system(
-            std::shared_ptr<camera> c,
-            std::shared_ptr<window> w,
-            const float width,
-            const float height);
+            std::shared_ptr<camera> cam,
+            std::shared_ptr<window> win);
 
         /** Default */
         ~render_system() = default;
