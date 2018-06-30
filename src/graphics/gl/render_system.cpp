@@ -106,8 +106,6 @@ void render_system::render() const
     // clear current target
     ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    LOG_ENGINE_INFO("render_system", "rendering {} entities", scene_.size());
-
     // bind material to render with
     const auto program = std::any_cast<std::uint32_t>(material_.native_handle());
     ::glUseProgram(program);
