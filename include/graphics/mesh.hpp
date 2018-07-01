@@ -4,12 +4,21 @@
 #include <cstdint>
 #include <vector>
 
-#include "gl/mesh_implementation.hpp"
 #include "matrix4.hpp"
 #include "quaternion.hpp"
 #include "texture.hpp"
 #include "vector3.hpp"
 #include "vertex_data.hpp"
+
+#if defined(GRAPHICS_API_OPENGL)
+#include "gl/buffer.hpp"
+#include "gl/mesh_implementation.hpp"
+#elif defined(GRAPHICS_API_METAL)
+#include "metal/buffer.hpp"
+#include "metal/mesh_implementation.hpp"
+#else
+#error "no graphics api set"
+#endif
 
 namespace eng
 {
