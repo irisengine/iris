@@ -16,6 +16,10 @@ IF(GRAPHICS_API MATCHES "OPENGL")
         "${SOURCE_ROOT}/osx/OpenGLAppDelegate.m"
         "${SOURCE_ROOT}/osx/OpenGLView.m" "${INCLUDE_ROOT}/osx/OpenGLView.h"
     )
+ELSEIF(GRAPHICS_API MATCHES "METAL")
+    SET(PLATFORM_SRCS
+        ${PLATFORM_SRCS}
+        "${SOURCE_ROOT}/osx/MetalView.m" "${INCLUDE_ROOT}/osx/MetalView.h"
     )
 ENDIF()
 
