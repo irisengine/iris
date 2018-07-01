@@ -69,6 +69,21 @@ namespace
 namespace eng
 {
 
+/**
+ * Struct contatining implementation specific data.
+ */
+struct render_system::implementation final
+{
+    /** Default */
+    implementation() = default;
+    ~implementation() = default;
+    implementation(const implementation&) = default;
+    implementation& operator=(const implementation&) = default;
+    implementation(implementation&&) = default;
+    implementation& operator=(implementation&&) = default;
+};
+
+
 render_system::render_system(
             std::shared_ptr<camera> cam,
             std::shared_ptr<window> win)
@@ -76,7 +91,8 @@ render_system::render_system(
       camera_(cam),
       window_(win),
       material_(vertex_source, fragment_source),
-      light_position()
+      light_position(),
+      impl_(nullptr)
 {
     // opengl setup
 
@@ -91,6 +107,11 @@ render_system::render_system(
 
     LOG_ENGINE_INFO("render_system", "constructed opengl render system");
 }
+
+/** Default */
+render_system::~render_system() = default;
+render_system::render_system(render_system&&) = default;
+render_system& render_system::operator=(render_system&&) = default;
 
 void render_system::add(std::shared_ptr<entity> e)
 {
