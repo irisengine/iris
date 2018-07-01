@@ -19,6 +19,7 @@ IF(GRAPHICS_API MATCHES "OPENGL")
 ELSEIF(GRAPHICS_API MATCHES "METAL")
     SET(PLATFORM_SRCS
         ${PLATFORM_SRCS}
+        "${SOURCE_ROOT}/osx/MetalAppDelegate.m"
         "${SOURCE_ROOT}/osx/MetalView.m" "${INCLUDE_ROOT}/osx/MetalView.h"
     )
 ENDIF()
