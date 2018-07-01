@@ -18,6 +18,7 @@ ELSEIF(GRAPHICS_API MATCHES "METAL")
         "${SOURCE_ROOT}/metal/buffer.mm" "${INCLUDE_ROOT}/metal/buffer.hpp"
         "${SOURCE_ROOT}/metal/material_implementation.mm" "${INCLUDE_ROOT}/metal/material_implementation.hpp"
         "${SOURCE_ROOT}/metal/mesh_implementation.mm" "${INCLUDE_ROOT}/metal/mesh_implementation.hpp"
+        "${SOURCE_ROOT}/metal/render_system.mm"
         "${SOURCE_ROOT}/metal/texture_implementation.mm" "${INCLUDE_ROOT}/metal/texture_implementation.hpp"
     )
 ENDIF()
