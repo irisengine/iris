@@ -3,7 +3,13 @@
 #include <any>
 #include <string>
 
+#if defined(GRAPHICS_API_OPENGL)
 #include "gl/material_implementation.hpp"
+#elif defined(GRAPHICS_API_METAL)
+#include "metal/material_implementation.hpp"
+#else
+#error "no graphics api set"
+#endif
 
 namespace eng
 {
