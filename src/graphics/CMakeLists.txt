@@ -17,6 +17,7 @@ ELSEIF(GRAPHICS_API MATCHES "METAL")
     SET(GRAPHICS_SRCS
         "${SOURCE_ROOT}/metal/buffer.mm" "${INCLUDE_ROOT}/metal/buffer.hpp"
         "${SOURCE_ROOT}/metal/material_implementation.mm" "${INCLUDE_ROOT}/metal/material_implementation.hpp"
+        "${SOURCE_ROOT}/metal/texture_implementation.mm" "${INCLUDE_ROOT}/metal/texture_implementation.hpp"
     )
 ENDIF()
 
