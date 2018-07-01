@@ -6,7 +6,13 @@
 #include <memory>
 #include <vector>
 
+#if defined(GRAPHICS_API_OPENGL)
 #include "gl/texture_implementation.hpp"
+#elif defined(GRAPHICS_API_METAL)
+#include "metal/texture_implementation.hpp"
+#else
+#error "no graphics api set"
+#endif
 
 namespace eng
 {
