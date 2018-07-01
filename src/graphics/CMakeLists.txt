@@ -15,6 +15,7 @@ IF(GRAPHICS_API MATCHES "OPENGL")
     )
 ELSEIF(GRAPHICS_API MATCHES "METAL")
     SET(GRAPHICS_SRCS
+        "${SOURCE_ROOT}/metal/buffer.mm" "${INCLUDE_ROOT}/metal/buffer.hpp"
     )
 ENDIF()
 
