@@ -6,14 +6,6 @@
 #include <memory>
 #include <vector>
 
-#if defined(GRAPHICS_API_OPENGL)
-#include "gl/texture_implementation.hpp"
-#elif defined(GRAPHICS_API_METAL)
-#include "metal/texture_implementation.hpp"
-#else
-#error "no graphics api set"
-#endif
-
 namespace eng
 {
 
@@ -54,14 +46,10 @@ class texture final
             const std::uint32_t height,
             const std::uint32_t num_channels);
 
-        /** Default */
-        ~texture() = default;
-        texture(texture&&) = default;
-        texture& operator=(texture&&) = default;
-
-        /** Disabled */
-        texture(const texture&) = delete;
-        texture& operator=(const texture&) = delete;
+        /** Declared in mm/cpp file as implementation is an incomplete type. */
+        ~texture();
+        texture(texture&&);
+        texture& operator=(texture&&);
 
         /**
          * Get the raw image data.
@@ -118,8 +106,9 @@ class texture final
         /** Number of channels in image. */
         std::uint32_t num_channels_;
 
-        /** Graphics API specific implementation. */
-        std::unique_ptr<texture_implementation> impl_;
+        /** Graphics API implementation. */
+        struct implementation;
+        std::unique_ptr<implementation> impl_;
 };
 
 }
