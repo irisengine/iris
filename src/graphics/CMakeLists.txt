@@ -33,6 +33,7 @@ SET(GRAPHICS_SRCS
     "${SOURCE_ROOT}/mesh.cpp" "${INCLUDE_ROOT}/mesh.hpp"
     "${SOURCE_ROOT}/shape_factory.cpp" "${INCLUDE_ROOT}/shape_factory.hpp"
     "${SOURCE_ROOT}/texture.cpp" "${INCLUDE_ROOT}/texture.hpp"
+    "${SOURCE_ROOT}/utility.cpp" "${INCLUDE_ROOT}/utility.hpp"
 
     PARENT_SCOPE
 )
