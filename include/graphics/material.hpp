@@ -1,15 +1,8 @@
 #pragma once
 
 #include <any>
+#include <memory>
 #include <string>
-
-#if defined(GRAPHICS_API_OPENGL)
-#include "gl/material_implementation.hpp"
-#elif defined(GRAPHICS_API_METAL)
-#include "metal/material_implementation.hpp"
-#else
-#error "no graphics api set"
-#endif
 
 namespace eng
 {
@@ -34,14 +27,10 @@ class material final
             const std::string &vertex_shader_source,
             const std::string &fragment_shader_source);
 
-        /** Default */
-        ~material() = default;
-        material(material&&) = default;
-        material& operator=(material&&) = default;
-
-        /** Disabled */
-        material(const material&) = delete;
-        material& operator=(const material&) = delete;
+        /** Declared in mm/cpp file as implementation is an incomplete file. */
+        ~material();
+        material(material&&);
+        material& operator=(material&&);
 
         /**
          * Get a native handle for the material. The type of this is dependant
@@ -50,12 +39,13 @@ class material final
          * @returns
          *   Graphics API specific handle.
          */
-        std::any native_handle() const noexcept;
+        std::any native_handle() const;
 
     private:
 
         /** Graphics API implementation. */
-        material_implementation impl_;
+        struct implementation;
+        std::unique_ptr<implementation> impl_;
 };
 
 }
