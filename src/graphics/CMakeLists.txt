@@ -26,6 +26,7 @@ ENDIF()
 SET(GRAPHICS_SRCS
     ${GRAPHICS_SRCS}
     "${INCLUDE_ROOT}/auto_bind.hpp"
+    "${INCLUDE_ROOT}/buffer_type.hpp"
     "${INCLUDE_ROOT}/material.hpp"
     "${INCLUDE_ROOT}/render_system.hpp"
     "${INCLUDE_ROOT}/texture.hpp"
