@@ -1,9 +1,12 @@
-#include "metal/buffer.hpp"
+#include "buffer.hpp"
 
 #include <any>
 #include <vector>
 
 #import <Metal/Metal.h>
+
+#include "buffer_type.hpp"
+#include "vertex_data.hpp"
 
 namespace
 {
@@ -18,7 +21,7 @@ namespace
  *   Handle to metal buffer.
  */
 template<class T>
-id<MTLBuffer> create_metal_buffer(const std::vector<T> &data)
+id<MTLBuffer> create_buffer(const std::vector<T> &data)
 {
     // get metal device handle
     static const auto *device =
@@ -35,17 +38,56 @@ id<MTLBuffer> create_metal_buffer(const std::vector<T> &data)
 namespace eng
 {
 
-buffer::buffer(const std::vector<float> &data)
-    : buffer_(create_metal_buffer(data))
+/**
+ * Struct containing implementation specific data.
+ */
+struct buffer::implementation
+{
+    /** Simple constructor which takes a value for each member. */
+    implementation(id<MTLBuffer> handle)
+        : handle(handle)
+    { }
+
+    /** Default */
+    implementation() = default;
+    ~implementation() = default;
+    implementation(const implementation&) = default;
+    implementation& operator=(const implementation&) = default;
+    implementation(implementation&&) = default;
+    implementation& operator=(implementation&&) = default;
+
+    /** Metal handle for buffer. */
+    id<MTLBuffer> handle;
+};
+
+buffer::buffer(const std::vector<float> &data, const buffer_type type)
+    : impl_(std::make_unique<implementation>(create_buffer(data))),
+      type_(type)
 { }
 
-buffer::buffer(const std::vector<std::uint32_t> &data)
-    : buffer_(create_metal_buffer(data))
+buffer::buffer(const std::vector<std::uint32_t> &data, const buffer_type type)
+    : impl_(std::make_unique<implementation>(create_buffer(data))),
+      type_(type)
 { }
+
+buffer::buffer(const std::vector<vertex_data> &data, const buffer_type type)
+    : impl_(std::make_unique<implementation>(create_buffer(data))),
+      type_(type)
+{ }
+
+/** Default. */
+buffer::~buffer() = default;
+buffer::buffer(buffer &&other) = default;
+buffer& buffer::operator=(buffer &&other) = default;
 
 std::any buffer::native_handle() const
 {
-    return buffer_;
+    return std::any{ impl_->handle };
+}
+
+buffer_type buffer::type() const noexcept
+{
+    return type_;
 }
 
 }

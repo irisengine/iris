@@ -5,11 +5,60 @@
 #include <vector>
 
 #include "auto_bind.hpp"
-#include "gl/buffer.hpp"
+#include "buffer.hpp"
+#include "buffer_type.hpp"
+#include "exception.hpp"
 #include "gl/opengl.hpp"
 #include "gl/vertex_state.hpp"
 #include "vector3.hpp"
 #include "vertex_data.hpp"
+
+namespace
+{
+
+/**
+ * Helper function to convert internal buffer type to a opengl type.
+ *
+ * @param type
+ *   Type to convert.
+ *
+ * @returns
+ *   Supplied type as opengl type.
+ */
+std::uint32_t type_to_gl_type(const eng::buffer_type type)
+{
+    auto gl_type = GL_ARRAY_BUFFER;
+
+    switch(type)
+    {
+        case eng::buffer_type::VERTEX_ATTRIBUTES:
+            gl_type = GL_ARRAY_BUFFER;
+            break;
+        case eng::buffer_type::VERTEX_INDICES:
+            gl_type = GL_ELEMENT_ARRAY_BUFFER;
+            break;
+        default:
+            throw eng::exception("unknown buffer type");
+    }
+
+    return gl_type;
+}
+
+/**
+ * Helper function to bind an opengl buffer.
+ *
+ * @param buffer
+ *   Buffer to bind.
+ */
+void bind_buffer(const eng::buffer &buffer)
+{
+    const auto handle = std::any_cast<std::uint32_t>(buffer.native_handle());
+
+    ::glBindBuffer(type_to_gl_type(buffer.type()), handle);
+    eng::check_opengl_error("could not bind buffer");
+}
+
+}
 
 namespace eng
 {
@@ -18,15 +67,15 @@ mesh_implementation::mesh_implementation(
     const std::vector<vertex_data> &vertices,
     const std::vector<std::uint32_t> &indices)
     : vao_(),
-      vbo_(vertices, GL_ARRAY_BUFFER),
-      ebo_(indices, GL_ELEMENT_ARRAY_BUFFER)
+      vbo_(vertices, buffer_type::VERTEX_ATTRIBUTES),
+      ebo_(indices, buffer_type::VERTEX_INDICES)
 {
     // bind the vao
     auto_bind<vertex_state> auto_state{ vao_ };
 
     // ensure both buffers are bound for the vao
-    vbo_.bind();
-    ebo_.bind();
+    bind_buffer(vbo_);
+    bind_buffer(ebo_);
 
     // setup attributes
     const auto pos_attribute = 0u;

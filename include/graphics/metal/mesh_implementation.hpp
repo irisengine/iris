@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "metal/buffer.hpp"
+#include "buffer.hpp"
 #include "vertex_data.hpp"
 
 namespace eng

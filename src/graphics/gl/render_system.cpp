@@ -4,8 +4,8 @@
 #include <utility>
 
 #include "auto_bind.hpp"
+#include "buffer.hpp"
 #include "entity.hpp"
-#include "gl/buffer.hpp"
 #include "gl/opengl.hpp"
 #include "gl/vertex_state.hpp"
 #include "log.hpp"

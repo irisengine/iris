@@ -4,12 +4,12 @@
 #import <MetalKit/MetalKit.h>
 #import <QuartzCore/QuartzCore.h>
 
+#include "buffer.hpp"
 #include "entity.hpp"
 #include "exception.hpp"
 #include "log.hpp"
 #include "material.hpp"
 #include "matrix4.hpp"
-#include "metal/buffer.hpp"
 #include "vector3.hpp"
 
 namespace

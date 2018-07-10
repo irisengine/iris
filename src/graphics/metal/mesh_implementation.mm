@@ -4,6 +4,8 @@
 #include <utility>
 #include <vector>
 
+#include "buffer.hpp"
+#include "buffer_type.hpp"
 #include "vector3.hpp"
 #include "vertex_data.hpp"
 
@@ -14,7 +16,7 @@ mesh_implementation::mesh_implementation(
     const std::vector<vertex_data> &vertices,
     const std::vector<std::uint32_t> &indices)
     : vertex_buffer_(nullptr),
-      index_buffer_(std::make_unique<buffer>(indices))
+      index_buffer_(std::make_unique<buffer>(indices, eng::buffer_type::DONT_CARE))
 {
     // metal prefers four byte aligned data types, as vertex_data consists of
     // three byte components we 'extend' them by copying them into an enlarged
@@ -65,7 +67,7 @@ mesh_implementation::mesh_implementation(
     }
 
     // create buffer with four byte aligned data
-    vertex_buffer_ = std::make_unique<buffer>(data);
+    vertex_buffer_ = std::make_unique<buffer>(data, buffer_type::VERTEX_ATTRIBUTES);
 }
 
 const buffer& mesh_implementation::vertex_buffer() const noexcept

@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "gl/buffer.hpp"
+#include "buffer.hpp"
 #include "gl/vertex_state.hpp"
 #include "vector3.hpp"
 #include "vertex_data.hpp"

@@ -4,7 +4,7 @@ SET(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/graphics")
 IF(GRAPHICS_API MATCHES "OPENGL")
     SET(GRAPHICS_SRCS
         "${INCLUDE_ROOT}/gl/shader_type.hpp"
-        "${SOURCE_ROOT}/gl/buffer.cpp" "${INCLUDE_ROOT}/gl/buffer.hpp"
+        "${SOURCE_ROOT}/gl/buffer.cpp"
         "${SOURCE_ROOT}/gl/material.cpp"
         "${SOURCE_ROOT}/gl/mesh_implementation.cpp" "${INCLUDE_ROOT}/gl/mesh_implementation.hpp"
         "${SOURCE_ROOT}/gl/opengl.cpp" "${INCLUDE_ROOT}/gl/opengl.hpp"
@@ -15,7 +15,7 @@ IF(GRAPHICS_API MATCHES "OPENGL")
     )
 ELSEIF(GRAPHICS_API MATCHES "METAL")
     SET(GRAPHICS_SRCS
-        "${SOURCE_ROOT}/metal/buffer.mm" "${INCLUDE_ROOT}/metal/buffer.hpp"
+        "${SOURCE_ROOT}/metal/buffer.mm"
         "${SOURCE_ROOT}/metal/material.mm"
         "${SOURCE_ROOT}/metal/mesh_implementation.mm" "${INCLUDE_ROOT}/metal/mesh_implementation.hpp"
         "${SOURCE_ROOT}/metal/render_system.mm"
@@ -26,6 +26,7 @@ ENDIF()
 SET(GRAPHICS_SRCS
     ${GRAPHICS_SRCS}
     "${INCLUDE_ROOT}/auto_bind.hpp"
+    "${INCLUDE_ROOT}/buffer.hpp"
     "${INCLUDE_ROOT}/buffer_type.hpp"
     "${INCLUDE_ROOT}/material.hpp"
     "${INCLUDE_ROOT}/render_system.hpp"
