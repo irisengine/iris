@@ -1,11 +1,10 @@
 #pragma once
 
+#include <any>
 #include <cstdint>
 #include <experimental/filesystem>
 #include <memory>
 #include <vector>
-
-#include "gl/texture_implementation.hpp"
 
 namespace eng
 {
@@ -47,24 +46,10 @@ class texture final
             const std::uint32_t height,
             const std::uint32_t num_channels);
 
-        /** Default */
-        ~texture() = default;
-        texture(texture&&) = default;
-        texture& operator=(texture&&) = default;
-
-        /** Disabled */
-        texture(const texture&) = delete;
-        texture& operator=(const texture&) = delete;
-
-        /**
-         * Perform all actions needed to use texture for rendering.
-         */
-        void bind() const;
-
-        /**
-         * Perform all actions needed after texture has been rendered.
-         */
-        void unbind() const;
+        /** Declared in mm/cpp file as implementation is an incomplete type. */
+        ~texture();
+        texture(texture&&);
+        texture& operator=(texture&&);
 
         /**
          * Get the raw image data.
@@ -98,6 +83,15 @@ class texture final
          */
         std::uint32_t num_channels() const noexcept;
 
+        /**
+         * Get a native handle for the texture. The type of this is dependant
+         * on the current graphics API.
+         *
+         * @returns
+         *   Graphics API specific handle.
+         */
+        std::any native_handle() const;
+
     private:
 
         /** Raw image data. */
@@ -112,8 +106,9 @@ class texture final
         /** Number of channels in image. */
         std::uint32_t num_channels_;
 
-        /** Graphics API specific implementation. */
-        std::unique_ptr<gl::texture_implementation> impl_;
+        /** Graphics API implementation. */
+        struct implementation;
+        std::unique_ptr<implementation> impl_;
 };
 
 }

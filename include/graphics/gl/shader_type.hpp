@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace eng::gl
+namespace eng
 {
 
 /**

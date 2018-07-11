@@ -5,16 +5,14 @@
 #include <vector>
 
 #include "buffer.hpp"
-#include "gl/vertex_state.hpp"
-#include "vector3.hpp"
 #include "vertex_data.hpp"
 
 namespace eng
 {
 
 /**
- * This class is the opengl implementation of mesh. This encapsulates all the
- * logic and data needed for opengl rendering.
+ * This class is the metal implementation of mesh. This encapsulates all the
+ * logic and data needed for metal rendering.
  */
 class mesh_implementation final
 {
@@ -39,7 +37,7 @@ class mesh_implementation final
         mesh_implementation& operator=(mesh_implementation&&) = default;
 
         /** Disabled */
-        mesh_implementation(const mesh_implementation&) = delete;;
+        mesh_implementation(const mesh_implementation&) = delete;
         mesh_implementation& operator=(const mesh_implementation&) = delete;
 
         /**
@@ -59,25 +57,22 @@ class mesh_implementation final
         const buffer& index_buffer() const noexcept;
 
         /**
-         * Get a native handle for the mesh. The type of this is dependant on
-         * the current graphics API.
+         * Unused in metal.
          *
          * @returns
-         *   Graphics API specific handle.
+         *   Empty std::any.
          */
         std::any native_handle() const;
 
     private:
 
-        /** The vertex array object. */
-        vertex_state vao_;
+        /** The vertex data buffer. */
+        std::unique_ptr<buffer> vertex_buffer_;
 
-        /** The vertex buffer object. */
-        buffer vbo_;
-
-        /** The element buffer object. */
-        buffer ebo_;
+        /** The index data buffer. */
+        std::unique_ptr<buffer> index_buffer_;
 };
 
 }
+
 

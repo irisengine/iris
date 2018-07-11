@@ -4,7 +4,7 @@
 
 #include "gl/shader_type.hpp"
 
-namespace eng::gl
+namespace eng
 {
 
 /**

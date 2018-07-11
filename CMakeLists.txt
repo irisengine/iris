@@ -12,14 +12,28 @@ SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 # set platform variable
-if(NOT PLATFORM)
+IF(NOT PLATFORM)
+    # handle apple platform
     IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         SET(PLATFORM "OSX")
         ADD_DEFINITIONS(-DPLATFORM_OSX)
+
+        # set graphics api, defults to metal
+        IF(GRAPHICS_API MATCHES "Metal" OR NOT GRAPHICS_API)
+            SET(GRAPHICS_API "METAL")
+            ADD_DEFINITIONS(-DGRAPHICS_API_METAL)
+        ELSEIF(GRAPHICS_API MATCHES "Opengl")
+            SET(GRAPHICS_API "OPENGL")
+            ADD_DEFINITIONS(-DGRAPHICS_API_OPENGL)
+        ELSE()
+            MESSAGE(FATAL_ERROR "Unsupported graphics API")
+        ENDIF()
     ELSE()
         MESSAGE(FATAL_ERROR "Unsupported platform")
     ENDIF()
 ENDIF()
+
+MESSAGE(STATUS "Building for ${PLATFORM} with ${GRAPHICS_API}")
 
 ADD_SUBDIRECTORY("${CMAKE_SOURCE_DIR}/src")
 ADD_SUBDIRECTORY("${CMAKE_SOURCE_DIR}/tests")

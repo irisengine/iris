@@ -21,32 +21,20 @@ class render_system final
         /**
          * Create a new opengl rendering system.
          *
-         * @param c
+         * @param cam
          *   Camera to render scene through.
          *
-         * @param w
+         * @param win
          *   Rendering window.
-         *
-         * @param width
-         *   Width of render window.
-         *
-         * @param height
-         *   Height of render window.
          */
         render_system(
-            std::shared_ptr<camera> c,
-            std::shared_ptr<window> w,
-            const float width,
-            const float height);
+            std::shared_ptr<camera> cam,
+            std::shared_ptr<window> win);
 
-        /** Default */
-        ~render_system() = default;
-        render_system(render_system&&) = default;
-        render_system& operator=(render_system&&) = default;
-
-        /** Disabled */
-        render_system(const render_system&) = delete;
-        render_system& operator=(const render_system&) = delete;
+        /** Declared in mm/cpp file as implementation is an incomplete file. */
+        ~render_system();
+        render_system(render_system&&);
+        render_system& operator=(render_system&&);
 
         /**
          * Add an entity to the scene.
@@ -85,6 +73,10 @@ class render_system final
 
         /** Light position. */
         vector3 light_position;
+
+        /** Pointer to implementation. */
+        struct implementation;
+        std::unique_ptr<implementation> impl_;
 };
 
 }

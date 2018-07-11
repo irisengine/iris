@@ -9,7 +9,7 @@
 #error unsupported platform
 #endif
 
-namespace eng::gl
+namespace eng
 {
 
 /**

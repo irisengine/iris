@@ -1,9 +1,11 @@
 #pragma once
 
+#include <any>
 #include <cstdint>
+#include <memory>
 #include <vector>
 
-#include "gl/mesh_implementation.hpp"
+#include "buffer.hpp"
 #include "matrix4.hpp"
 #include "quaternion.hpp"
 #include "texture.hpp"
@@ -12,9 +14,6 @@
 
 namespace eng
 {
-
-// forward declaration
-struct mesh_implementation;
 
 /**
  * Class representing a renderable mesh.
@@ -50,32 +49,10 @@ class mesh final
             const std::vector<std::uint32_t> &indices,
             texture &&tex);
 
-        /** Default */
-        ~mesh() = default;
-        mesh(mesh&&) = default;
-        mesh& operator=(mesh&&) = default;
-
-        /** Disabled */
-        mesh(const mesh&) = delete;
-        mesh& operator=(const mesh&) = delete;
-
-        /**
-         * Perform all actions needed to render.
-         */
-        void bind() const;
-
-        /**
-         * Perform all actions needed after rendering.
-         */
-        void unbind() const;
-
-        /**
-         * Get const reference to mesh vertices.
-         *
-         * @returns
-         *   Mesh vertices.
-         */
-        const std::vector<vertex_data>& vertices() const noexcept;
+        /** Declared in mm/cpp file as implementation is an incomplete file. */
+        ~mesh();
+        mesh(mesh&&);
+        mesh& operator=(mesh&&);
 
         /**
          * Get const reference to mesh indices.
@@ -86,19 +63,39 @@ class mesh final
         const std::vector<std::uint32_t>& indices() const noexcept;
 
         /**
-         * Get the model transformation matrix4.
+         * Get a reference to the vertex buffer for this mesh.
          *
          * @returns
-         *   Model matrix4.
+         *   Const reference to vertex buffer.
          */
-        matrix4 model() const noexcept;
+        const buffer& vertex_buffer() const noexcept;
 
-        void set_model(const matrix4 &model) noexcept;
+        /**
+         * Get a reference to the index buffer for this mesh.
+         *
+         * @returns
+         *   Const reference to index buffer.
+         */
+        const buffer& index_buffer() const noexcept;
+
+        /**
+         * Get a reference to the texture for this mesh.
+         *
+         * @returns
+         *   Const reference to texture.
+         */
+        const texture& tex() const noexcept;
+
+        /**
+         * Get a native handle for the mesh. The type of this is dependant on
+         * the current graphics API.
+         *
+         * @returns
+         *   Graphics API specific handle.
+         */
+        std::any native_handle() const;
 
     private:
-
-        /** Mesh vertex data. */
-        std::vector<vertex_data> vertices_;
 
         /** Mesh index data. */
         std::vector<std::uint32_t> indices_;
@@ -106,8 +103,15 @@ class mesh final
         /** Texture to render mesh with. */
         texture texture_;
 
+        /** Buffer for vertex data. */
+        std::unique_ptr<buffer> vertex_buffer_;
+
+        /** Buffer for vertex indices. */
+        std::unique_ptr<buffer> index_buffer_;
+
         /** Graphics API specific implementation. */
-        gl::mesh_implementation impl_;
+        struct implementation;
+        std::unique_ptr<implementation> impl_;
 };
 
 }

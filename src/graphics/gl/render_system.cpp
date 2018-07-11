@@ -3,11 +3,9 @@
 #include <string>
 #include <utility>
 
-#include "auto_bind.hpp"
+#include "buffer.hpp"
 #include "entity.hpp"
-#include "gl/buffer.hpp"
 #include "gl/opengl.hpp"
-#include "gl/vertex_state.hpp"
 #include "log.hpp"
 #include "material.hpp"
 #include "mesh.hpp"
@@ -69,43 +67,68 @@ namespace
 namespace eng
 {
 
+/**
+ * Struct contatining implementation specific data.
+ */
+struct render_system::implementation final
+{
+    /** Default */
+    implementation() = default;
+    ~implementation() = default;
+    implementation(const implementation&) = default;
+    implementation& operator=(const implementation&) = default;
+    implementation(implementation&&) = default;
+    implementation& operator=(implementation&&) = default;
+};
+
+
 render_system::render_system(
-            std::shared_ptr<camera> c,
-            std::shared_ptr<window> w,
-            const float width,
-            const float height)
+            std::shared_ptr<camera> cam,
+            std::shared_ptr<window> win)
     : scene_(),
-      camera_(c),
-      window_(w),
+      camera_(cam),
+      window_(win),
       material_(vertex_source, fragment_source),
-      light_position()
+      light_position(),
+      impl_(nullptr)
 {
     // opengl setup
 
     ::glClearColor(0.0f, 0.0f, 0.1f, 1.0f);
-    gl::check_opengl_error("could not set clear colour");
+    check_opengl_error("could not set clear colour");
 
     ::glEnable(GL_DEPTH_TEST);
-    gl::check_opengl_error("could not enable depth testing");
+    check_opengl_error("could not enable depth testing");
 
     ::glDepthFunc(GL_LESS);
-    gl::check_opengl_error("could not set depth test function");
+    check_opengl_error("could not set depth test function");
 
-    LOG_INFO("render_system", "constructed opengl render system");
+    LOG_ENGINE_INFO("render_system", "constructed opengl render system");
 }
+
+/** Default */
+render_system::~render_system() = default;
+render_system::render_system(render_system&&) = default;
+render_system& render_system::operator=(render_system&&) = default;
 
 void render_system::add(std::shared_ptr<entity> e)
 {
     scene_.emplace_back(e);
 
-    LOG_INFO("render_system", "adding entity");
+    LOG_ENGINE_INFO("render_system", "adding entity");
 }
 
 void render_system::render() const
 {
     window_->pre_render();
 
-    LOG_INFO("render_system", "rendering {} entities", scene_.size());
+    // clear current target
+    ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // bind material to render with
+    const auto program = std::any_cast<std::uint32_t>(material_.native_handle());
+    ::glUseProgram(program);
+    check_opengl_error("could not bind program");
 
     // render each element in scene
     for(const auto &e : scene_)
@@ -115,47 +138,57 @@ void render_system::render() const
             ::glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         }
 
-        // bind material so render with it
-        auto_bind<material> auto_program{ material_ };
-
-        const auto program = material_.native_handle<std::uint32_t>();
-
         // set uniforms
 
         const auto proj_uniform = ::glGetUniformLocation(program, "projection");
-        gl::check_opengl_error("could not get projection uniform location");
+        check_opengl_error("could not get projection uniform location");
 
         ::glUniformMatrix4fv(proj_uniform, 1, GL_FALSE, camera_->projection().data());
-        gl::check_opengl_error("could not set projection matrix uniform data");
+        check_opengl_error("could not set projection matrix uniform data");
 
         const auto view_uniform = ::glGetUniformLocation(program, "view");
-        gl::check_opengl_error("could not get view uniform location");
+        check_opengl_error("could not get view uniform location");
 
         ::glUniformMatrix4fv(view_uniform, 1, GL_FALSE, camera_->view().data());
-        gl::check_opengl_error("could not set view matrix uniform data");
+        check_opengl_error("could not set view matrix uniform data");
 
         const auto light_uniform = ::glGetUniformLocation(program, "light");
-        gl::check_opengl_error("could not get light uniform location");
+        check_opengl_error("could not get light uniform location");
 
         ::glUniform3f(light_uniform, light_position.x, light_position.y, light_position.z);
-        gl::check_opengl_error("could not set light uniform data");
+        check_opengl_error("could not set light uniform data");
 
         const auto model_uniform = ::glGetUniformLocation(program, "model");
-        gl::check_opengl_error("could not get model uniform location");
+        check_opengl_error("could not get model uniform location");
 
         ::glUniformMatrix4fv(model_uniform, 1, GL_FALSE, e->transform().data());
-        gl::check_opengl_error("could not set model matrix uniform data");
+        check_opengl_error("could not set model matrix uniform data");
 
         // render each mesh in element
         for(const auto &m : e->meshes())
         {
             // bind mesh so the final draw call renders it
-            auto_bind<mesh> auto_mesh{ m };
+            const auto vao = std::any_cast<std::uint32_t>(m.native_handle());
 
+            // bind the vao
+            ::glBindVertexArray(vao);
+            check_opengl_error("could not bind vao");
+
+            const auto tex_handle = std::any_cast<std::uint32_t>(m.tex().native_handle());
+            // use default texture unit
+            ::glActiveTexture(GL_TEXTURE0);
+            check_opengl_error("could not activiate texture");
+
+            ::glBindTexture(GL_TEXTURE_2D, tex_handle);
+            check_opengl_error("could not bind texture");
 
             // draw!
             ::glDrawElements(GL_TRIANGLES, m.indices().size(), GL_UNSIGNED_INT, 0);
-            gl::check_opengl_error("could not draw triangles");
+            check_opengl_error("could not draw triangles");
+
+            // unbind vao
+            ::glBindVertexArray(0u);
+            check_opengl_error("could not unbind vao");
         }
 
         if(e->should_render_wireframe())
@@ -164,13 +197,17 @@ void render_system::render() const
         }
     }
 
+    // unbind program
+    ::glUseProgram(0u);
+    check_opengl_error("could not unbind program");
+
     window_->post_render();
 }
 
 void render_system::set_light_position(const vector3 &position) noexcept
 {
     light_position = position;
-    LOG_INFO("render_system", "light position set: {}", light_position);
+    LOG_ENGINE_INFO("render_system", "light position set: {}", light_position);
 }
 
 }
