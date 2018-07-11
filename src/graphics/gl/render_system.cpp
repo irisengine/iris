@@ -3,11 +3,9 @@
 #include <string>
 #include <utility>
 
-#include "auto_bind.hpp"
 #include "buffer.hpp"
 #include "entity.hpp"
 #include "gl/opengl.hpp"
-#include "gl/vertex_state.hpp"
 #include "log.hpp"
 #include "material.hpp"
 #include "mesh.hpp"
@@ -169,11 +167,12 @@ void render_system::render() const
         // render each mesh in element
         for(const auto &m : e->meshes())
         {
-            const auto t = m.native_handle();
-            assert(t.has_value());
             // bind mesh so the final draw call renders it
-            const auto *vao = std::any_cast<const vertex_state*>(t);
-            auto_bind<vertex_state> auto_state{ *vao };
+            const auto vao = std::any_cast<std::uint32_t>(m.native_handle());
+
+            // bind the vao
+            ::glBindVertexArray(vao);
+            check_opengl_error("could not bind vao");
 
             const auto tex_handle = std::any_cast<std::uint32_t>(m.tex().native_handle());
             // use default texture unit
@@ -186,6 +185,10 @@ void render_system::render() const
             // draw!
             ::glDrawElements(GL_TRIANGLES, m.indices().size(), GL_UNSIGNED_INT, 0);
             check_opengl_error("could not draw triangles");
+
+            // unbind vao
+            ::glBindVertexArray(0u);
+            check_opengl_error("could not unbind vao");
         }
 
         if(e->should_render_wireframe())

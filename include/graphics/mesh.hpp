@@ -2,6 +2,7 @@
 
 #include <any>
 #include <cstdint>
+#include <memory>
 #include <vector>
 
 #include "buffer.hpp"
@@ -10,14 +11,6 @@
 #include "texture.hpp"
 #include "vector3.hpp"
 #include "vertex_data.hpp"
-
-#if defined(GRAPHICS_API_OPENGL)
-#include "gl/mesh_implementation.hpp"
-#elif defined(GRAPHICS_API_METAL)
-#include "metal/mesh_implementation.hpp"
-#else
-#error "no graphics api set"
-#endif
 
 namespace eng
 {
@@ -56,14 +49,10 @@ class mesh final
             const std::vector<std::uint32_t> &indices,
             texture &&tex);
 
-        /** Default */
-        ~mesh() = default;
-        mesh(mesh&&) = default;
-        mesh& operator=(mesh&&) = default;
-
-        /** Disabled */
-        mesh(const mesh&) = delete;
-        mesh& operator=(const mesh&) = delete;
+        /** Declared in mm/cpp file as implementation is an incomplete file. */
+        ~mesh();
+        mesh(mesh&&);
+        mesh& operator=(mesh&&);
 
         /**
          * Get const reference to mesh indices.
@@ -114,8 +103,15 @@ class mesh final
         /** Texture to render mesh with. */
         texture texture_;
 
+        /** Buffer for vertex data. */
+        std::unique_ptr<buffer> vertex_buffer_;
+
+        /** Buffer for vertex indices. */
+        std::unique_ptr<buffer> index_buffer_;
+
         /** Graphics API specific implementation. */
-        std::unique_ptr<mesh_implementation> impl_;
+        struct implementation;
+        std::unique_ptr<implementation> impl_;
 };
 
 }

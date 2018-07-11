@@ -1,22 +1,36 @@
-#include "metal/mesh_implementation.hpp"
+#include "mesh.hpp"
 
-#include <cstring>
+#include <any>
+#include <cstdint>
+#include <memory>
 #include <utility>
 #include <vector>
 
 #include "buffer.hpp"
 #include "buffer_type.hpp"
+#include "matrix4.hpp"
+#include "quaternion.hpp"
 #include "vector3.hpp"
 #include "vertex_data.hpp"
 
 namespace eng
 {
 
-mesh_implementation::mesh_implementation(
+/**
+ * Struct containing implementation specific data.
+ */
+struct mesh::implementation final
+{ };
+
+mesh::mesh(
     const std::vector<vertex_data> &vertices,
-    const std::vector<std::uint32_t> &indices)
-    : vertex_buffer_(nullptr),
-      index_buffer_(std::make_unique<buffer>(indices, eng::buffer_type::DONT_CARE))
+    const std::vector<std::uint32_t> &indices,
+    texture &&textures)
+    : indices_(indices),
+      texture_(std::move(textures)),
+      vertex_buffer_(nullptr),
+      index_buffer_(std::make_unique<buffer>(indices, buffer_type::DONT_CARE)),
+      impl_(nullptr)
 {
     // metal prefers four byte aligned data types, as vertex_data consists of
     // three byte components we 'extend' them by copying them into an enlarged
@@ -70,21 +84,35 @@ mesh_implementation::mesh_implementation(
     vertex_buffer_ = std::make_unique<buffer>(data, buffer_type::VERTEX_ATTRIBUTES);
 }
 
-const buffer& mesh_implementation::vertex_buffer() const noexcept
+/** Default */
+mesh::~mesh() = default;
+mesh::mesh(mesh&&) = default;
+mesh& mesh::operator=(mesh&&) = default;
+
+const std::vector<std::uint32_t>& mesh::indices() const noexcept
+{
+    return indices_;
+}
+
+const buffer& mesh::vertex_buffer() const noexcept
 {
     return *vertex_buffer_;
 }
 
-const buffer& mesh_implementation::index_buffer() const noexcept
+const buffer& mesh::index_buffer() const noexcept
 {
     return *index_buffer_;
 }
 
-std::any mesh_implementation::native_handle() const
+const texture& mesh::tex() const noexcept
+{
+    return texture_;
+}
+
+std::any mesh::native_handle() const
 {
     return { };
 }
 
 }
-
 

@@ -1,15 +1,17 @@
-#include "gl/mesh_implementation.hpp"
+#include "mesh.hpp"
 
 #include <any>
 #include <cstdint>
+#include <memory>
+#include <utility>
 #include <vector>
 
-#include "auto_bind.hpp"
 #include "buffer.hpp"
 #include "buffer_type.hpp"
 #include "exception.hpp"
 #include "gl/opengl.hpp"
-#include "gl/vertex_state.hpp"
+#include "matrix4.hpp"
+#include "quaternion.hpp"
 #include "vector3.hpp"
 #include "vertex_data.hpp"
 
@@ -63,19 +65,49 @@ void bind_buffer(const eng::buffer &buffer)
 namespace eng
 {
 
-mesh_implementation::mesh_implementation(
-    const std::vector<vertex_data> &vertices,
-    const std::vector<std::uint32_t> &indices)
-    : vao_(),
-      vbo_(vertices, buffer_type::VERTEX_ATTRIBUTES),
-      ebo_(indices, buffer_type::VERTEX_INDICES)
+/**
+ * Struct containing implementation specific data.
+ */
+struct mesh::implementation final
 {
+    /** Simple constructor which takes a value for each member. */
+    implementation(std::uint32_t vao)
+        : vao(vao)
+    { }
+
+    /** Default */
+    implementation() = default;
+    ~implementation() = default;
+    implementation(const implementation&) = default;
+    implementation& operator=(const implementation&) = default;
+    implementation(implementation&&) = default;
+    implementation& operator=(implementation&&) = default;
+
+    /** Opengl handle for vao. */
+    std::uint32_t vao;
+};
+
+mesh::mesh(
+    const std::vector<vertex_data> &vertices,
+    const std::vector<std::uint32_t> &indices,
+    texture &&textures)
+    : indices_(indices),
+      texture_(std::move(textures)),
+      vertex_buffer_(std::make_unique<buffer>(vertices, buffer_type::VERTEX_ATTRIBUTES)),
+      index_buffer_(std::make_unique<buffer>(indices, buffer_type::VERTEX_INDICES)),
+      impl_(std::make_unique<implementation>(0u))
+{
+    // create vao
+    ::glGenVertexArrays(1, std::addressof(impl_->vao));
+    check_opengl_error("could not generate vao");
+
     // bind the vao
-    auto_bind<vertex_state> auto_state{ vao_ };
+    ::glBindVertexArray(impl_->vao);
+    check_opengl_error("could not bind vao");
 
     // ensure both buffers are bound for the vao
-    bind_buffer(vbo_);
-    bind_buffer(ebo_);
+    bind_buffer(*vertex_buffer_);
+    bind_buffer(*index_buffer_);
 
     // setup attributes
     const auto pos_attribute = 0u;
@@ -111,21 +143,46 @@ mesh_implementation::mesh_implementation(
 
     ::glVertexAttribPointer(tex_attribute, 3, GL_FLOAT, GL_FALSE, data_size, reinterpret_cast<void*>(9 * sizeof(float)));
     check_opengl_error("could not set tex attributes");
+
+    // unbind vao
+    ::glBindVertexArray(0u);
+    check_opengl_error("could not unbind vao");
 }
 
-const buffer& mesh_implementation::vertex_buffer() const noexcept
+mesh::~mesh()
 {
-    return vbo_;
+    if(impl_)
+    {
+        ::glDeleteVertexArrays(1, std::addressof(impl_->vao));
+    }
 }
 
-const buffer& mesh_implementation::index_buffer() const noexcept
+mesh::mesh(mesh&&) = default;
+mesh& mesh::operator=(mesh&&) = default;
+
+const std::vector<std::uint32_t>& mesh::indices() const noexcept
 {
-    return ebo_;
+    return indices_;
 }
 
-std::any mesh_implementation::native_handle() const
+const buffer& mesh::vertex_buffer() const noexcept
 {
-    return std::any{ &vao_ };
+    return *vertex_buffer_;
+}
+
+const buffer& mesh::index_buffer() const noexcept
+{
+    return *index_buffer_;
+}
+
+const texture& mesh::tex() const noexcept
+{
+    return texture_;
+}
+
+std::any mesh::native_handle() const
+{
+    return std::any{ impl_->vao };
 }
 
 }
