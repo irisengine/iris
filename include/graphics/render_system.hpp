@@ -68,9 +68,6 @@ class render_system final
         /** Rendering window. */
         std::shared_ptr<window> window_;
 
-        /** Global material. */
-        material material_;
-
         /** Light position. */
         vector3 light_position;
 
