@@ -12,6 +12,8 @@
 
 #include "exception.hpp"
 #include "log.hpp"
+#include "material.hpp"
+#include "material_factory.hpp"
 #include "matrix4.hpp"
 #include "quaternion.hpp"
 #include "vector3.hpp"
@@ -382,15 +384,34 @@ entity::entity(
 { }
 
 entity::entity(
+    const std::experimental::filesystem::path &path,
+    const vector3 &position,
+    const quaternion &orientation,
+    const vector3 &scale,
+    std::shared_ptr<material> mat)
+    : entity(load_file(path), position, orientation, scale, mat)
+{ }
+
+entity::entity(
     std::vector<mesh> &&meshes,
     const vector3 &position,
     const quaternion &orientation,
     const vector3 &scale)
+    : entity(std::move(meshes), position, orientation, scale, material_factory::basic_mesh())
+{ }
+
+entity::entity(
+    std::vector<mesh> &&meshes,
+    const vector3 &position,
+    const quaternion &orientation,
+    const vector3 &scale,
+    std::shared_ptr<material> mat)
     : meshes_(std::move(meshes)),
       position_(position),
       orientation_(orientation),
       scale_(scale),
       model_(matrix4::make_translate(position) * matrix4(orientation) * matrix4::make_scale(scale)),
+      material_(mat),
       wireframe_(false)
 {
     LOG_INFO("entity", "constructed at: {}", position_);
@@ -417,6 +438,11 @@ matrix4 entity::transform() const noexcept
 const std::vector<mesh>& entity::meshes() const noexcept
 {
     return meshes_;
+}
+
+const material& entity::mat() const
+{
+    return *material_;
 }
 
 bool entity::should_render_wireframe() const noexcept

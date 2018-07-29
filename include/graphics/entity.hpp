@@ -3,6 +3,7 @@
 #include <experimental/filesystem>
 #include <vector>
 
+#include "material.hpp"
 #include "matrix4.hpp"
 #include "mesh.hpp"
 #include "quaternion.hpp"
@@ -19,7 +20,7 @@ class entity final
     public:
 
         /**
-         * Create a new entity from a file.
+         * Create a new entity from a file. Will use an in built basic material.
          *
          * @param path
          *   Path to model file to load.
@@ -40,7 +41,33 @@ class entity final
             const vector3 &scale);
 
         /**
-         * Create a new entity with mesh data.
+         * Create a new entity from a file.
+         *
+         * @param path
+         *   Path to model file to load.
+         *
+         * @param position
+         *   Position of mesh in world space.
+         *
+         * @param orientation
+         *   Orientation of entity.
+         *
+         * @param scale
+         *   Scale of entity.
+         *
+         * @param mat
+         *   Material to render with.
+         */
+        entity(
+            const std::experimental::filesystem::path &path,
+            const vector3 &position,
+            const quaternion &orientation,
+            const vector3 &scale,
+            std::shared_ptr<material> mat);
+
+        /**
+         * Create a new entity with mesh data. Will use an in build default
+         * material.
          *
          * @meshes
          *   Collection of mesh data.
@@ -59,6 +86,31 @@ class entity final
             const vector3 &position,
             const quaternion &orientation,
             const vector3 &scale);
+
+        /**
+         * Create a new entity with mesh data.
+         *
+         * @meshes
+         *   Collection of mesh data.
+         *
+         * @param position
+         *   Position of mesh in world space.
+         *
+         * @param orientation
+         *   Orientation of entity.
+         *
+         * @param scale
+         *   Scale of entity.
+         *
+         * @param mat
+         *   Material to render with.
+         */
+        entity(
+            std::vector<mesh> &&meshes,
+            const vector3 &position,
+            const quaternion &orientation,
+            const vector3 &scale,
+            std::shared_ptr<material> mat);
 
         /** Default */
         ~entity() = default;
@@ -102,6 +154,14 @@ class entity final
         const std::vector<mesh>& meshes() const noexcept;
 
         /**
+         * Get a const reference to the entities rendering material.
+         *
+         * @returns
+         *   Const reference to material.
+         */
+        const material& mat() const;
+
+        /**
          * Returns whether the object should be rendered as a wireframe.
          *
          * @returns
@@ -133,6 +193,9 @@ class entity final
 
         /** Model transformation matrix4. */
         matrix4 model_;
+
+        /** Material to render with. */
+        std::shared_ptr<material> material_;
 
         /** Whether the object should be rendered as a wireframe. */
         bool wireframe_;
