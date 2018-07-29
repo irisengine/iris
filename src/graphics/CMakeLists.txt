@@ -22,8 +22,15 @@ ELSEIF(GRAPHICS_API MATCHES "METAL")
     )
 ENDIF()
 
+IF(PLATFORM MATCHES "OSX")
+    SET(PLATFORM_SRCS
+        "${INCLUDE_ROOT}/osx/cf_ptr.hpp"
+    )
+ENDIF()
+
 SET(GRAPHICS_SRCS
     ${GRAPHICS_SRCS}
+    ${PLATFORM_SRCS}
     "${INCLUDE_ROOT}/buffer.hpp"
     "${INCLUDE_ROOT}/buffer_type.hpp"
     "${INCLUDE_ROOT}/material.hpp"
