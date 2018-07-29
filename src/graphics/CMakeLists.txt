@@ -43,6 +43,7 @@ SET(GRAPHICS_SRCS
     "${INCLUDE_ROOT}/vertex_data.hpp"
     "${SOURCE_ROOT}/entity.cpp" "${INCLUDE_ROOT}/entity.hpp"
     "${SOURCE_ROOT}/shape_factory.cpp" "${INCLUDE_ROOT}/shape_factory.hpp"
+    "${SOURCE_ROOT}/sprite.cpp" "${INCLUDE_ROOT}/sprite.hpp"
     "${SOURCE_ROOT}/utility.cpp" "${INCLUDE_ROOT}/utility.hpp"
 
     PARENT_SCOPE
