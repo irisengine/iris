@@ -6,6 +6,7 @@ IF(GRAPHICS_API MATCHES "OPENGL")
         "${INCLUDE_ROOT}/gl/shader_type.hpp"
         "${SOURCE_ROOT}/gl/buffer.cpp"
         "${SOURCE_ROOT}/gl/material.cpp"
+        "${SOURCE_ROOT}/gl/material_factory.cpp"
         "${SOURCE_ROOT}/gl/mesh.cpp"
         "${SOURCE_ROOT}/gl/opengl.cpp" "${INCLUDE_ROOT}/gl/opengl.hpp"
         "${SOURCE_ROOT}/gl/render_system.cpp"
@@ -16,6 +17,7 @@ ELSEIF(GRAPHICS_API MATCHES "METAL")
     SET(GRAPHICS_SRCS
         "${SOURCE_ROOT}/metal/buffer.mm"
         "${SOURCE_ROOT}/metal/material.mm"
+        "${SOURCE_ROOT}/metal/material_factory.cpp"
         "${SOURCE_ROOT}/metal/mesh.mm"
         "${SOURCE_ROOT}/metal/render_system.mm"
         "${SOURCE_ROOT}/metal/texture.mm"
@@ -34,6 +36,7 @@ SET(GRAPHICS_SRCS
     "${INCLUDE_ROOT}/buffer.hpp"
     "${INCLUDE_ROOT}/buffer_type.hpp"
     "${INCLUDE_ROOT}/material.hpp"
+    "${INCLUDE_ROOT}/material_factory.hpp"
     "${INCLUDE_ROOT}/mesh.hpp"
     "${INCLUDE_ROOT}/render_system.hpp"
     "${INCLUDE_ROOT}/texture.hpp"
