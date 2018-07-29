@@ -9,6 +9,7 @@
 #include "log.hpp"
 #include "material.hpp"
 #include "mesh.hpp"
+#include "sprite.hpp"
 #include "vector3.hpp"
 
 namespace eng
@@ -62,6 +63,13 @@ void render_system::add(std::shared_ptr<entity> e)
     scene_.emplace_back(e);
 
     LOG_ENGINE_INFO("render_system", "adding entity");
+}
+
+void render_system::add(std::shared_ptr<sprite> s)
+{
+    add(s->renderable());
+
+    LOG_ENGINE_INFO("render_system", "adding sprite");
 }
 
 void render_system::render() const

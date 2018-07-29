@@ -9,6 +9,7 @@
 #include "exception.hpp"
 #include "log.hpp"
 #include "matrix4.hpp"
+#include "sprite.hpp"
 #include "vector3.hpp"
 
 namespace
@@ -145,6 +146,13 @@ render_system& render_system::operator=(render_system&&) = default;
 void render_system::add(std::shared_ptr<entity> e)
 {
     scene_.emplace_back(e);
+
+    LOG_ENGINE_INFO("render_system", "adding entity");
+}
+
+void render_system::add(std::shared_ptr<sprite> s)
+{
+    scene_.emplace_back(s->renderable());
 
     LOG_ENGINE_INFO("render_system", "adding entity");
 }

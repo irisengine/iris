@@ -6,6 +6,7 @@
 #include "camera.hpp"
 #include "entity.hpp"
 #include "material.hpp"
+#include "sprite.hpp"
 #include "window.hpp"
 
 namespace eng
@@ -43,6 +44,14 @@ class render_system final
          *   Entity to add.
          */
         void add(std::shared_ptr<entity> e);
+
+        /**
+         * Add a sprite to the scene.
+         *
+         * @param s
+         *   Sprite to add.
+         */
+        void add(std::shared_ptr<sprite> s);
 
         /**
          * Render the current scene.
