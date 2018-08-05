@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "entity.hpp"
+#include "material_factory.hpp"
 #include "quaternion.hpp"
 #include "vector3.hpp"
 #include "vertex_data.hpp"
@@ -18,6 +19,16 @@ std::shared_ptr<entity> box(
     const vector3 &colour,
     const vector3 &position,
     const quaternion &orientation)
+{
+    return box(half_size, colour, position, orientation, material_factory::basic_mesh());
+}
+
+std::shared_ptr<entity> box(
+    const vector3 &half_size,
+    const vector3 &colour,
+    const vector3 &position,
+    const quaternion &orientation,
+    std::shared_ptr<material> mat)
 {
     std::vector<vertex_data> vertices {
         { { 1.0f, -1.0f, 1.0f }, { 0.0f, -1.0f, 0.0f } , colour, { } },
@@ -55,18 +66,27 @@ std::shared_ptr<entity> box(
     meshes.emplace_back(
         vertices,
         indices,
-        eng::texture{ { 0xFF, 0xFF, 0xFF }, 1u, 1u, 3u });
+        texture::blank());
 
     return std::make_shared<entity>(
         std::move(meshes),
         position,
         orientation,
-        half_size);
+        half_size,
+        mat);
 }
 
 std::shared_ptr<entity> plane(
     const vector3 &colour,
     const vector3 &position)
+{
+    return plane(colour, position, material_factory::basic_mesh());
+}
+
+std::shared_ptr<entity> plane(
+    const vector3 &colour,
+    const vector3 &position,
+    std::shared_ptr<material> mat)
 {
     std::vector<vertex_data> vertices {
         { { 1.0f, 0.0f, 1 }, { 0.0f, 1.0f, 0.0f }, colour, { } },
@@ -83,19 +103,29 @@ std::shared_ptr<entity> plane(
     meshes.emplace_back(
         vertices,
         indices,
-        eng::texture{ { 0xFF, 0xFF, 0xFF }, 1u, 1u, 3u });
+        texture::blank());
 
     return std::make_shared<entity>(
         std::move(meshes),
         position,
         quaternion{ },
-        vector3{ 10000.0f, 10000.0f, 10000.0f });
+        vector3{ 10000.0f, 10000.0f, 10000.0f },
+        mat);
 }
 
 std::shared_ptr<entity> sphere(
     const float radius,
     const vector3 &colour,
     const vector3 &position)
+{
+    return sphere(radius, colour, position, material_factory::basic_mesh());
+}
+
+std::shared_ptr<entity> sphere(
+    const float radius,
+    const vector3 &colour,
+    const vector3 &position,
+    std::shared_ptr<material> mat)
 {
     std::vector<vertex_data> vertices {
         { { 0, -0.55557, -0.831469 }, { 0, -0.552806, -0.83331 }, colour, { } },
@@ -785,7 +815,7 @@ std::shared_ptr<entity> sphere(
     meshes.emplace_back(
         vertices,
         indices,
-        eng::texture{ { 0xFF, 0xFF, 0xFF }, 1u, 1u, 3u });
+        texture::blank());
 
     return std::make_shared<entity>(
         std::move(meshes),
