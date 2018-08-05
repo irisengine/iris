@@ -821,7 +821,53 @@ std::shared_ptr<entity> sphere(
         std::move(meshes),
         position,
         quaternion{ },
-        vector3{ radius, radius, radius });
+        vector3{ radius, radius, radius },
+        mat);
+}
+
+std::shared_ptr<entity> sprite(
+    const float x,
+    const float y,
+    const float width,
+    const float height,
+    const vector3 &colour,
+    texture &&tex)
+{
+    return sprite(x, y, width, height, colour, std::move(tex), material_factory::basic_sprite());
+}
+
+std::shared_ptr<entity> sprite(
+    const float x,
+    const float y,
+    const float width,
+    const float height,
+    const vector3 &colour,
+    texture &&tex,
+    std::shared_ptr<material> mat)
+{
+    std::vector<vertex_data> vertices {
+        { { -0.5f,  0.5f, 0.0f }, { } , colour, { 0.0f, 1.0f, 0.0f } },
+        { {  0.5f,  0.5f, 0.0f }, { } , colour, { 1.0f, 1.0f, 0.0f } },
+        { {  0.5f, -0.5f, 0.0f }, { } , colour, { 1.0f, 0.0f, 0.0f } },
+        { { -0.5f, -0.5f, 0.0f }, { } , colour, { 0.0f, 0.0f, 0.0f } }
+    };
+
+    std::vector<std::uint32_t> indices {
+        0, 2, 1, 3, 2, 0
+    };
+
+    std::vector<mesh> meshes{ };
+    meshes.emplace_back(
+        vertices,
+        indices,
+        std::move(tex));
+
+    return std::make_shared<entity>(
+        std::move(meshes),
+        vector3{ x, y ,0.0f },
+        quaternion{ },
+        vector3{ width, height, 1.0f },
+        mat);
 }
 
 }

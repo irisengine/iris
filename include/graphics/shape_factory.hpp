@@ -132,5 +132,69 @@ std::shared_ptr<entity> sphere(
     const vector3 &colour,
     const vector3 &position,
     std::shared_ptr<material> mat);
+
+/**
+ * Create a sprite with the supplied dimensions. Will use an in build basic
+ * material.
+ *
+* @param x
+*   Screen x coordinate of centre of sprite.
+*
+* @param y
+*   Screen y coordinate of centre of sprite.
+*
+* @param width
+*   Width of sprite.
+*
+* @param height
+*   Height of sprite.
+*
+* @param colour
+*   Colour of sprite.
+*
+* @param tex
+*   Texture of sprite.
+*/
+std::shared_ptr<entity> sprite(
+    const float x,
+    const float y,
+    const float width,
+    const float height,
+    const vector3 &colour,
+    texture &&tex);
+
+/**
+ * Create a sprite with the supplied dimensions.
+ *
+* @param x
+*   Screen x coordinate of centre of sprite.
+*
+* @param y
+*   Screen y coordinate of centre of sprite.
+*
+* @param width
+*   Width of sprite.
+*
+* @param height
+*   Height of sprite.
+*
+* @param colour
+*   Colour of sprite.
+*
+* @param tex
+*   Texture of sprite.
+ *
+ * @param mat
+ *   Material to render with.
+*/
+std::shared_ptr<entity> sprite(
+    const float x,
+    const float y,
+    const float width,
+    const float height,
+    const vector3 &colour,
+    texture &&tex,
+    std::shared_ptr<material> mat);
+
 }
 
