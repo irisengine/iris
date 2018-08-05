@@ -27,6 +27,7 @@ ENDIF()
 IF(PLATFORM MATCHES "OSX")
     SET(PLATFORM_SRCS
         "${INCLUDE_ROOT}/osx/cf_ptr.hpp"
+        "${SOURCE_ROOT}/osx/font.mm"
     )
 ENDIF()
 
@@ -35,6 +36,7 @@ SET(GRAPHICS_SRCS
     ${PLATFORM_SRCS}
     "${INCLUDE_ROOT}/buffer.hpp"
     "${INCLUDE_ROOT}/buffer_type.hpp"
+    "${INCLUDE_ROOT}/font.hpp"
     "${INCLUDE_ROOT}/material.hpp"
     "${INCLUDE_ROOT}/material_factory.hpp"
     "${INCLUDE_ROOT}/mesh.hpp"
