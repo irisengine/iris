@@ -6,6 +6,7 @@
 #include "camera.hpp"
 #include "entity.hpp"
 #include "material.hpp"
+#include "sprite.hpp"
 #include "window.hpp"
 
 namespace eng
@@ -45,6 +46,14 @@ class render_system final
         void add(std::shared_ptr<entity> e);
 
         /**
+         * Add a sprite to the scene.
+         *
+         * @param s
+         *   Sprite to add.
+         */
+        void add(std::shared_ptr<sprite> s);
+
+        /**
          * Render the current scene.
          */
         void render() const;
@@ -67,9 +76,6 @@ class render_system final
 
         /** Rendering window. */
         std::shared_ptr<window> window_;
-
-        /** Global material. */
-        material material_;
 
         /** Light position. */
         vector3 light_position;
