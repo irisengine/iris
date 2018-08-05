@@ -193,5 +193,10 @@ std::any texture::native_handle() const
     return impl_->texture;
 }
 
+texture texture::blank()
+{
+    return{ { 0xFF, 0xFF, 0xFF, 0xFF }, 1u, 1u, 4u };
+}
+
 }
 

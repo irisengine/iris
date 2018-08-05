@@ -92,6 +92,14 @@ class texture final
          */
         std::any native_handle() const;
 
+        /**
+         * Return a 1x1 pixel white texture.
+         *
+         * @returns
+         *   Blank texture.
+         */
+        static texture blank();
+
     private:
 
         /** Raw image data. */
