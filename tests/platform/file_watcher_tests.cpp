@@ -1,4 +1,4 @@
-#include <experimental/filesystem>
+#include <filesystem>
 #include <fstream>
 #include <memory>
 #include <thread>
@@ -23,29 +23,29 @@ struct temp_file
         std::string filename(37, '\0');
         ::uuid_unparse(id, filename.data());
 
-        path = std::experimental::filesystem::temp_directory_path() / filename;
+        path = std::filesystem::temp_directory_path() / filename;
 
         stream = std::fstream(path, std::ios::out);
 
         EXPECT_TRUE(stream.is_open());
-        EXPECT_TRUE(std::experimental::filesystem::exists(path));
-        EXPECT_TRUE(std::experimental::filesystem::is_regular_file(path));
+        EXPECT_TRUE(std::filesystem::exists(path));
+        EXPECT_TRUE(std::filesystem::is_regular_file(path));
     }
 
     void write([[maybe_unused]] const std::string &data)
     {
         stream << data;
         stream.flush();
-        EXPECT_NE(0, std::experimental::filesystem::file_size(path));
+        EXPECT_NE(0, std::filesystem::file_size(path));
     }
 
     ~temp_file()
     {
         stream.close();
-        EXPECT_TRUE(std::experimental::filesystem::remove(path));
+        EXPECT_TRUE(std::filesystem::remove(path));
     }
 
-    std::experimental::filesystem::path path;
+    std::filesystem::path path;
 
     std::fstream stream;
 };
