@@ -32,7 +32,6 @@ class window final
         /** Default */
         ~window() = default;
         window(window&&) = default;
-        window& operator=(window&&) = default;
 
         /** Disabled */
         window(const window&) = delete;

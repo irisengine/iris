@@ -1,6 +1,6 @@
 #pragma once
 
-#include <experimental/filesystem>
+#include <filesystem>
 #include <vector>
 
 #include <CoreServices/CoreServices.h>
@@ -27,7 +27,7 @@ class file_watcher_implementation final
          *   Pointer to a collection where new events will be stored.
          */
         file_watcher_implementation(
-            const std::experimental::filesystem::path &path,
+            const std::filesystem::path &path,
             std::vector<file_event_type> * const events);
 
         /**

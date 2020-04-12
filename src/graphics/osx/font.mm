@@ -34,12 +34,6 @@ struct font::implementation final
           attributes(nullptr)
     { }
 
-    ~implementation() = default;
-    implementation(const implementation&) = default;
-    implementation& operator=(const implementation&) = default;
-    implementation(implementation&&) = default;
-    implementation& operator=(implementation&&) = default;
-
     /** Font object. */
     cf_ptr<CTFontRef> font;
 

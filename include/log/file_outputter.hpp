@@ -23,13 +23,6 @@ class file_outputter final : public outputter
          */
         explicit file_outputter(const std::string &filename);
 
-        /** Default */
-        ~file_outputter() override = default;
-        file_outputter(const file_outputter&) = default;
-        file_outputter& operator=(const file_outputter&) = default;
-        file_outputter(file_outputter&&) = default;
-        file_outputter& operator=(file_outputter&&) = default;
-
         /**
          * Output log.
          *

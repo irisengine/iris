@@ -1,6 +1,6 @@
 #pragma once
 
-#include <experimental/filesystem>
+#include <filesystem>
 #include <vector>
 
 #include "material.hpp"
@@ -35,7 +35,7 @@ class entity final
          *   Scale of entity.
          */
         entity(
-            const std::experimental::filesystem::path &path,
+            const std::filesystem::path &path,
             const vector3 &position,
             const quaternion &orientation,
             const vector3 &scale);
@@ -59,7 +59,7 @@ class entity final
          *   Material to render with.
          */
         entity(
-            const std::experimental::filesystem::path &path,
+            const std::filesystem::path &path,
             const vector3 &position,
             const quaternion &orientation,
             const vector3 &scale,

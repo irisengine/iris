@@ -1,7 +1,7 @@
 #include "utility.hpp"
 
 #include <cstdint>
-#include <experimental/filesystem>
+#include <filesystem>
 #include <tuple>
 #include <vector>
 
@@ -18,9 +18,9 @@ std::tuple<
     std::uint32_t,
     std::uint32_t,
     std::uint32_t>
-    load_image(const std::experimental::filesystem::path &path)
+    load_image(const std::filesystem::path &path)
 {
-    if(!std::experimental::filesystem::exists(path))
+    if(!std::filesystem::exists(path))
     {
         throw exception(path.string() + " does not exist");
     }

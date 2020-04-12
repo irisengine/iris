@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include <experimental/filesystem>
+#include <filesystem>
 #include <memory>
 #include <vector>
 
@@ -25,7 +25,7 @@ class file_watcher final
          * @param path
          *   Path to watch.
          */
-        file_watcher(const std::experimental::filesystem::path &path);
+        file_watcher(const std::filesystem::path &path);
 
         /**
          * Check if events are available.

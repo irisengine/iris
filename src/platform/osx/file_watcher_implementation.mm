@@ -3,7 +3,7 @@
 #import <CoreFoundation/CoreFoundation.h>
 #import <CoreServices/CoreServices.h>
 
-#include <experimental/filesystem>
+#include <filesystem>
 #include <vector>
 
 #include "file_event_type.hpp"
@@ -42,11 +42,11 @@ void callback(
 
     for (auto i = 0u; i < num_events; ++i)
     {
-        const std::experimental::filesystem::path path{ paths[i] };
+        const std::filesystem::path path{ paths[i] };
 
         // if file no longer exists then it is a DELETED event, otherwise it
         // must be a MODIFIED event
-        const auto event_type = std::experimental::filesystem::exists(path)
+        const auto event_type = std::filesystem::exists(path)
             ? eng::file_event_type::MODIFIED
             : eng::file_event_type::DELETED;
 
@@ -60,7 +60,7 @@ namespace eng
 {
 
 file_watcher_implementation::file_watcher_implementation(
-    const std::experimental::filesystem::path &path,
+    const std::filesystem::path &path,
     std::vector<file_event_type> * const events)
     : stream_(nullptr)
 {

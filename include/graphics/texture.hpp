@@ -2,7 +2,7 @@
 
 #include <any>
 #include <cstdint>
-#include <experimental/filesystem>
+#include <filesystem>
 #include <memory>
 #include <vector>
 
@@ -23,7 +23,7 @@ class texture final
          * @param path
          *   Path to image file to load.
          */
-        explicit texture(const std::experimental::filesystem::path &path);
+        explicit texture(const std::filesystem::path &path);
 
         /**
          * Creates a new texture with custom values.

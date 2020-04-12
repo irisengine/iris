@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include <cstdio>
-#include <experimental/filesystem>
+#include <filesystem>
 #include <fstream>
 #include <map>
 #include <sstream>
@@ -30,9 +30,9 @@ namespace
  * @returns
  *   The contents of the file as a std::string.
  */
-std::string read_file(const std::experimental::filesystem::path &path)
+std::string read_file(const std::filesystem::path &path)
 {
-    if(!std::experimental::filesystem::exists(path))
+    if(!std::filesystem::exists(path))
     {
         throw eng::exception(path.string() + " does not exist");
     }
@@ -80,14 +80,14 @@ std::vector<std::string> split(const std::string &input, const char delim)
  * @returns
  *   A map of material names to diffuse colour and image files.
  */
-std::map<std::string, std::tuple<eng::vector3, std::experimental::filesystem::path>> load_material(
-    const std::experimental::filesystem::path &path)
+std::map<std::string, std::tuple<eng::vector3, std::filesystem::path>> load_material(
+    const std::filesystem::path &path)
 {
     const auto material_file = read_file(path);
 
-    std::map<std::string, std::tuple<eng::vector3, std::experimental::filesystem::path>> materials{ };
+    std::map<std::string, std::tuple<eng::vector3, std::filesystem::path>> materials{ };
     eng::vector3 current_diffuse{ };
-    std::experimental::filesystem::path current_texture{ };
+    std::filesystem::path current_texture{ };
     std::string current_name{ };
 
     const auto lines = split(material_file, '\n');
@@ -146,7 +146,7 @@ std::map<std::string, std::tuple<eng::vector3, std::experimental::filesystem::pa
         {
             // process diffuse image
 
-            current_texture = std::experimental::filesystem::path(path).replace_filename(args);
+            current_texture = std::filesystem::path(path).replace_filename(args);
         }
     }
 
@@ -168,14 +168,14 @@ std::map<std::string, std::tuple<eng::vector3, std::experimental::filesystem::pa
  * @returns
  *   Collection of parsed meshes.
  */
-std::vector<eng::mesh> load_file(const std::experimental::filesystem::path &path)
+std::vector<eng::mesh> load_file(const std::filesystem::path &path)
 {
     std::vector<eng::mesh> meshes{ };
 
     const auto file_data = read_file(path);
     const auto lines = split(file_data, '\n');
 
-    std::map<std::string, std::tuple<eng::vector3, std::experimental::filesystem::path>> materials{ };
+    std::map<std::string, std::tuple<eng::vector3, std::filesystem::path>> materials{ };
     std::vector<eng::vector3> vertices{ };
     std::vector<eng::vector3> normals{ };
     std::vector<eng::vector3> texture_coords{ };
@@ -212,7 +212,7 @@ std::vector<eng::mesh> load_file(const std::experimental::filesystem::path &path
             // load material file
             const auto material_filename = args;
 
-            const auto material = std::experimental::filesystem::path(path).replace_filename(material_filename);
+            const auto material = std::filesystem::path(path).replace_filename(material_filename);
 
             materials = load_material(material);
         }
@@ -230,7 +230,7 @@ std::vector<eng::mesh> load_file(const std::experimental::filesystem::path &path
 
                 //create texture from file if it exists, else default to an all white image
                 const auto tex_path = std::get<1>(materials.at(current_material));
-                auto texture = std::experimental::filesystem::exists(tex_path)
+                auto texture = std::filesystem::exists(tex_path)
                     ? eng::texture{ tex_path }
                     : eng::texture{ { 0xFF, 0xFF, 0xFF }, 1u, 1u, 3u };
 
@@ -363,7 +363,7 @@ std::vector<eng::mesh> load_file(const std::experimental::filesystem::path &path
 
     //create texture from file if it exists, else default to an all white image
     const auto tex_path = std::get<1>(materials.at(current_material));
-    auto texture = std::experimental::filesystem::exists(tex_path)
+    auto texture = std::filesystem::exists(tex_path)
         ? eng::texture{ tex_path }
         : eng::texture{ { 0xFF, 0xFF, 0xFF }, 1u, 1u, 3u };
     meshes.emplace_back(vertex_data, indices, std::move(texture));
@@ -376,7 +376,7 @@ namespace eng
 {
 
 entity::entity(
-    const std::experimental::filesystem::path &path,
+    const std::filesystem::path &path,
     const vector3 &position,
     const quaternion &orientation,
     const vector3 &scale)
@@ -384,7 +384,7 @@ entity::entity(
 { }
 
 entity::entity(
-    const std::experimental::filesystem::path &path,
+    const std::filesystem::path &path,
     const vector3 &position,
     const quaternion &orientation,
     const vector3 &scale,

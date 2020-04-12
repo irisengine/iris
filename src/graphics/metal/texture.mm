@@ -2,7 +2,7 @@
 
 #include <any>
 #include <cstdint>
-#include <experimental/filesystem>
+#include <filesystem>
 #include <memory>
 #include <vector>
 
@@ -129,7 +129,7 @@ struct texture::implementation final
     id<MTLTexture> texture;
 };
 
-texture::texture(const std::experimental::filesystem::path &path)
+texture::texture(const std::filesystem::path &path)
     : data_(),
       width_(0u),
       height_(0u),

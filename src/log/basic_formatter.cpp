@@ -1,7 +1,7 @@
 #include "basic_formatter.hpp"
 
 #include <chrono>
-#include <experimental/filesystem>
+#include <filesystem>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -25,7 +25,7 @@ std::string format_filename(const std::string &filename)
 {
     // find last occurrence of file separator
     const auto index = filename.rfind(
-        std::experimental::filesystem::path::preferred_separator);
+        std::filesystem::path::preferred_separator);
 
     return std::string{ filename.substr(index + 1) };
 }
