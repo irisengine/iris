@@ -14,7 +14,7 @@ namespace eng
  *
  * Elements are stored in row-major order.
  */
-class matrix4 final
+class matrix4
 {
     public:
 
@@ -29,7 +29,7 @@ class matrix4 final
          * @param elements
          *   Row major elements.
          */
-        explicit matrix4(const std::array<float, 16> &elements) noexcept;
+        explicit matrix4(const std::array<float, 16> &elements);
 
         /**
          * Construct a new matrix4 which represents a rotation by the
@@ -38,7 +38,7 @@ class matrix4 final
          * @param rotation
          *   Rotation to represent.
          */
-        explicit matrix4(const quaternion &rotation) noexcept;
+        explicit matrix4(const quaternion &rotation);
 
         /**
          * Construct a new matrix4 which represents a rotation and translation
@@ -50,13 +50,7 @@ class matrix4 final
          * @param translation
          *   Translation to represent.
          */
-        matrix4(const quaternion &rotation, const vector3 &translation) noexcept;
-
-        /** Default */
-        matrix4(const matrix4&) = default;
-        matrix4& operator=(const matrix4&) = default;
-        matrix4(matrix4&&) = default;
-        matrix4& operator=(matrix4&&) = default;
+        matrix4(const quaternion &rotation, const vector3 &translation);
 
         /**
          * Static method to create a projection matrix.
@@ -77,7 +71,7 @@ class matrix4 final
             const float fov,
             const float aspect_ratio,
             const float near,
-            const float far) noexcept;
+            const float far);
 
         /**
          * Make a matrix4 that can be used as a view matrix for a camera.
@@ -97,7 +91,7 @@ class matrix4 final
         static matrix4 make_look_at(
             const vector3 &eye,
             const vector3 &look_at,
-            const vector3 &up) noexcept;
+            const vector3 &up);
 
         /**
          * Static method to create a scale matrix.
@@ -108,7 +102,7 @@ class matrix4 final
          * @returns
          *   Scale transformation matrix.
          */
-        static matrix4 make_scale(const vector3 &scale) noexcept;
+        static matrix4 make_scale(const vector3 &scale);
 
         /**
          * Static method to create translation matrix.
@@ -116,7 +110,7 @@ class matrix4 final
          * @param translate
          *   Vector to translate by.
          */
-        static matrix4 make_translate(const vector3 &translate) noexcept;
+        static matrix4 make_translate(const vector3 &translate);
 
         /**
          * Static method to create a rotation matrix about the y axis.
@@ -124,7 +118,7 @@ class matrix4 final
          * @param angle
          *   Angle to rotate by in radians.
          */
-        static matrix4 make_rotate_y(const float angle) noexcept;
+        static matrix4 make_rotate_y(const float angle);
 
         /**
          * Performs matrix multiplication.
@@ -135,7 +129,7 @@ class matrix4 final
          * @returns
          *   This matrix4 multiplied the supplied matrix4.
          */
-        matrix4& operator*=(const matrix4 &m) noexcept;
+        matrix4& operator*=(const matrix4 &m);
 
         /**
          * Performs matrix4 multiplication.
@@ -146,7 +140,7 @@ class matrix4 final
          * @returns
          *   New matrix4 which is this matrix4 multiplied the supplied matrix4.
          */
-        matrix4 operator*(const matrix4 &m) const noexcept;
+        matrix4 operator*(const matrix4 &m) const;
 
         /**
          * Multiply this matrix by a given vector3.
@@ -160,7 +154,7 @@ class matrix4 final
          * @returns
          *   This matrix multiplied by the supplied vector3.
          */
-        vector3 operator*(const vector3 &v) const noexcept;
+        vector3 operator*(const vector3 &v) const;
 
         /**
          * Get a reference to the element at the supplied index.
@@ -171,7 +165,7 @@ class matrix4 final
          * @returns
          *   Reference to element at supplied index.
          */
-        float& operator[](const size_t index) noexcept;
+        float& operator[](const size_t index);
 
         /**
          * Get a copy of the element at the supplied index.
@@ -182,7 +176,7 @@ class matrix4 final
          * @returns
          *   Copy of element at supplied index.
          */
-        float operator[](const size_t index) const noexcept;
+        float operator[](const size_t index) const;
 
         /**
          * Get a pointer to the start of the internal matrix4 data array.
@@ -190,7 +184,7 @@ class matrix4 final
          * @returns
          *   Pointer to start if matrix4 data.
          */
-        const float* data() const noexcept;
+        const float* data() const;
 
         /**
          * Get a column from the matrix and return as a vector3. This ignores
@@ -202,7 +196,7 @@ class matrix4 final
          * @returns
          *   The first three value of the supplied column.
          */
-        vector3 column(const std::size_t index) const noexcept;
+        vector3 column(const std::size_t index) const;
 
         /**
          * Writes the matrix4 to the stream, useful for debugging.
@@ -217,7 +211,7 @@ class matrix4 final
          *   A reference to the supplied stream, after the matrix4 has been
          *   written.
          */
-        friend std::ostream& operator<<( std::ostream &out, const matrix4 &m) noexcept;
+        friend std::ostream& operator<<( std::ostream &out, const matrix4 &m);
 
     private:
 

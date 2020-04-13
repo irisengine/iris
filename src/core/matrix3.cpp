@@ -12,25 +12,25 @@
 namespace eng
 {
 
-matrix3::matrix3() noexcept
+matrix3::matrix3()
     : matrix3({{
         1.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 1.0f}})
 { }
 
-matrix3::matrix3(const std::array<float, 9u> &elements) noexcept
+matrix3::matrix3(const std::array<float, 9u> &elements)
     : elements_(elements)
 { }
 
-matrix3::matrix3(const matrix4 &m) noexcept
+matrix3::matrix3(const matrix4 &m)
     : matrix3({{
         m[0u], m[1u], m[2u],
         m[4u], m[5u], m[6u],
         m[8u], m[9u], m[10u]}})
 { }
 
-matrix3& matrix3::operator*=(const matrix3 &m) noexcept
+matrix3& matrix3::operator*=(const matrix3 &m)
 {
     const auto e = elements_;
 
@@ -59,12 +59,12 @@ matrix3& matrix3::operator*=(const matrix3 &m) noexcept
     return *this;
 }
 
-matrix3 matrix3::operator*(const matrix3 &m) const noexcept
+matrix3 matrix3::operator*(const matrix3 &m) const
 {
     return matrix3{ *this } *= m;
 }
 
-vector3 matrix3::operator*(const vector3 &v) const noexcept
+vector3 matrix3::operator*(const vector3 &v) const
 {
     return {
         v.x * elements_[0u] + v.y * elements_[1u] + v.z * elements_[2u],
@@ -73,7 +73,7 @@ vector3 matrix3::operator*(const vector3 &v) const noexcept
     };
 }
 
-matrix3& matrix3::operator*=(const float s) noexcept
+matrix3& matrix3::operator*=(const float s)
 {
     for(auto &e : elements_)
     {
@@ -83,17 +83,17 @@ matrix3& matrix3::operator*=(const float s) noexcept
     return *this;
 }
 
-matrix3 matrix3::operator*(const float s) const noexcept
+matrix3 matrix3::operator*(const float s) const
 {
     return matrix3{ *this } *= s;
 }
 
-float& matrix3::operator[](const std::size_t index) noexcept
+float& matrix3::operator[](const std::size_t index)
 {
     return elements_[index];
 }
 
-matrix3& matrix3::operator+=(const matrix3 &m) noexcept
+matrix3& matrix3::operator+=(const matrix3 &m)
 {
     for(auto i = 0u; i < elements_.size(); ++i)
     {
@@ -103,22 +103,22 @@ matrix3& matrix3::operator+=(const matrix3 &m) noexcept
     return *this;
 }
 
-matrix3 matrix3::operator+(const matrix3 &m) const noexcept
+matrix3 matrix3::operator+(const matrix3 &m) const
 {
     return matrix3{ *this } += m;
 }
 
-float matrix3::operator[](const std::size_t index) const noexcept
+float matrix3::operator[](const std::size_t index) const
 {
     return elements_[index];
 }
 
-const float* matrix3::data() const noexcept
+const float* matrix3::data() const
 {
     return elements_.data();
 }
 
-matrix3& matrix3::invert() noexcept
+matrix3& matrix3::invert()
 {
     const auto determinant =
         elements_[0u] * elements_[4u] * elements_[8u] +
@@ -161,7 +161,7 @@ matrix3& matrix3::invert() noexcept
     return *this;
 }
 
-matrix3& matrix3::transpose() noexcept
+matrix3& matrix3::transpose()
 {
     *this = matrix3{ {{
         elements_[0], elements_[3], elements_[6],
@@ -172,17 +172,17 @@ matrix3& matrix3::transpose() noexcept
     return *this;
 }
 
-matrix3 matrix3::invert(const matrix3 &m) noexcept
+matrix3 matrix3::invert(const matrix3 &m)
 {
     return matrix3(m).invert();
 }
 
-matrix3 matrix3::transpose(const matrix3 &m) noexcept
+matrix3 matrix3::transpose(const matrix3 &m)
 {
     return matrix3(m).transpose();
 }
 
-matrix3 matrix3::make_orthonormal_basis(const vector3 &x) noexcept
+matrix3 matrix3::make_orthonormal_basis(const vector3 &x)
 {
     // we needed to generate a y and z axis, we take a guess at one of those
     // by using either world y or world x, which ever is furthest from our
@@ -209,7 +209,7 @@ matrix3 matrix3::make_orthonormal_basis(const vector3 &x) noexcept
     }}};
 }
 
-matrix3 matrix3::make_skew_symmetric(const vector3 &v) noexcept
+matrix3 matrix3::make_skew_symmetric(const vector3 &v)
 {
     return matrix3{{{
         0.0f, -v.z, v.y,
@@ -218,7 +218,7 @@ matrix3 matrix3::make_skew_symmetric(const vector3 &v) noexcept
     }}};
 }
 
-std::ostream& operator<<(std::ostream &out, const matrix3 &m) noexcept
+std::ostream& operator<<(std::ostream &out, const matrix3 &m)
 {
     out << m[0u] << " " << m[1u] << " " <<  m[2u] << std::endl;
     out << m[3u] << " " << m[4u] << " " <<  m[5u] << std::endl;

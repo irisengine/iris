@@ -41,7 +41,7 @@ exception::exception(const std::string &what)
     }
 }
 
-std::string exception::stack_trace() const noexcept
+std::string exception::stack_trace() const
 {
     // format all stack frames
     auto_free<char*> symbols{

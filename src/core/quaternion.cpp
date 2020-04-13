@@ -32,7 +32,7 @@ quaternion::quaternion(const vector3 &axis, const float angle)
     normalise();
 }
 
-std::ostream& operator<<(std::ostream &out, const quaternion &q) noexcept
+std::ostream& operator<<(std::ostream &out, const quaternion &q)
 {
     out << "w: " << q.w << " "
         << "x: " << q.x << " "
@@ -86,7 +86,7 @@ quaternion quaternion::operator+(const vector3 &v) const
     return quaternion{ *this } += v;
 }
 
-quaternion& quaternion::normalise() noexcept
+quaternion& quaternion::normalise()
 {
     const auto magnitude =
         std::pow(w, 2.0f) +

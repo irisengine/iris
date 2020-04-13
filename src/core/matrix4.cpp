@@ -16,11 +16,11 @@ matrix4::matrix4()
                    0.0f, 0.0f, 0.0f, 1.0f  }})
 { }
 
-matrix4::matrix4(const std::array<float, 16> &elements) noexcept
+matrix4::matrix4(const std::array<float, 16> &elements)
     : elements_(elements)
 { }
 
-matrix4::matrix4(const quaternion &q) noexcept
+matrix4::matrix4(const quaternion &q)
     : matrix4()
 {
     elements_[0] = 1.0f - 2.0f * q.y * q.y - 2.0f * q.z * q.z;
@@ -36,7 +36,7 @@ matrix4::matrix4(const quaternion &q) noexcept
     elements_[10] = 1.0f - 2.0f * q.x * q.x - 2.0f * q.y * q.y;
 }
 
-matrix4::matrix4(const quaternion &q, const vector3 &p) noexcept
+matrix4::matrix4(const quaternion &q, const vector3 &p)
     : matrix4(q)
 {
     elements_[3u] = p.x;
@@ -48,7 +48,7 @@ matrix4 matrix4::make_projection(
     const float fov,
     const float aspect_ratio,
     const float near,
-    const float far) noexcept
+    const float far)
 {
     matrix4 m;
 
@@ -67,7 +67,7 @@ matrix4 matrix4::make_projection(
 matrix4 matrix4::make_look_at(
     const vector3 &eye,
     const vector3 &look_at,
-    const vector3 &up) noexcept
+    const vector3 &up)
 {
     const auto f = vector3::normalise(look_at - eye);
     const auto up_normalised = vector3::normalise(up);
@@ -87,7 +87,7 @@ matrix4 matrix4::make_look_at(
     return m * make_translate(-eye);
 }
 
-matrix4 matrix4::make_scale(const vector3 &scale) noexcept
+matrix4 matrix4::make_scale(const vector3 &scale)
 {
     matrix4 m;
 
@@ -102,7 +102,7 @@ matrix4 matrix4::make_scale(const vector3 &scale) noexcept
     return m;
 }
 
-matrix4 matrix4::make_translate(const vector3 &translate) noexcept
+matrix4 matrix4::make_translate(const vector3 &translate)
 {
     matrix4 m;
 
@@ -117,7 +117,7 @@ matrix4 matrix4::make_translate(const vector3 &translate) noexcept
     return m;
 }
 
-matrix4 matrix4::make_rotate_y(const float angle) noexcept
+matrix4 matrix4::make_rotate_y(const float angle)
 {
     matrix4 m;
 
@@ -132,7 +132,7 @@ matrix4 matrix4::make_rotate_y(const float angle) noexcept
     return m;
 }
 
-matrix4& matrix4::operator*=(const matrix4 &m) noexcept
+matrix4& matrix4::operator*=(const matrix4 &m)
 {
     const auto e = elements_;
 
@@ -169,12 +169,12 @@ matrix4& matrix4::operator*=(const matrix4 &m) noexcept
     return *this;
 }
 
-matrix4 matrix4::operator*(const matrix4 &m) const noexcept
+matrix4 matrix4::operator*(const matrix4 &m) const
 {
     return matrix4(*this) *= m;
 }
 
-vector3 matrix4::operator*(const vector3 &v) const noexcept
+vector3 matrix4::operator*(const vector3 &v) const
 {
     return {
         v.x * elements_[0] +
@@ -194,27 +194,27 @@ vector3 matrix4::operator*(const vector3 &v) const noexcept
     };
 }
 
-float& matrix4::operator[](const size_t index) noexcept
+float& matrix4::operator[](const size_t index)
 {
     return elements_[index];
 }
 
-float matrix4::operator[](const size_t index) const noexcept
+float matrix4::operator[](const size_t index) const
 {
     return elements_[index];
 }
 
-const float* matrix4::data() const noexcept
+const float* matrix4::data() const
 {
     return elements_.data();
 }
 
-vector3 matrix4::column(const std::size_t index) const noexcept
+vector3 matrix4::column(const std::size_t index) const
 {
     return{ elements_[index], elements_[index + 4u], elements_[index + 8u] };
 }
 
-std::ostream& operator<<(std::ostream &out, const matrix4 &m) noexcept
+std::ostream& operator<<(std::ostream &out, const matrix4 &m)
 {
     out << m[0] << " " << m[1] << " " <<  m[2] << " " << m[3] << std::endl;
     out << m[4] << " " << m[5] << " " <<  m[6] << " " << m[7] << std::endl;

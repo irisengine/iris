@@ -22,13 +22,6 @@ class exception : public std::runtime_error
          */
         exception(const std::string &what);
 
-        /** Default*/
-        ~exception() override = default;
-        exception(const exception&) = default;
-        exception& operator=(const exception&) = default;
-        exception(exception&&) = default;
-        exception& operator=(exception&&) = default;
-
         /**
          * Get a formatted copy of the stack trace. Performs C++ name
          * de-mangling where possible.
@@ -37,7 +30,7 @@ class exception : public std::runtime_error
          *   Formatted stack trace, or empty string if no stack trace was
          *   available or it could not be formatted.
          */
-        std::string stack_trace() const noexcept;
+        std::string stack_trace() const;
 
     private:
 

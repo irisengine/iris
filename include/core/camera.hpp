@@ -9,7 +9,7 @@ namespace eng
 /**
  * Class representing the camera through which a scene is rendered.
  */
-class camera final
+class camera
 {
     public:
 
@@ -18,20 +18,13 @@ class camera final
          */
         camera();
 
-        /** Default */
-        ~camera() = default;
-        camera(const camera&) = default;
-        camera& operator=(const camera&) = default;
-        camera(camera&&) = default;
-        camera& operator=(camera&&) = default;
-
         /**
          * Translate the camera.
          *
          * @param t
          *   Amount to translate.
          */
-        void translate(const vector3 &t) noexcept;
+        void translate(const vector3 &t);
 
         /**
          * Set the view matrix for the camera.
@@ -47,7 +40,7 @@ class camera final
          * @returns
          *   Camera position in world space.
          */
-        vector3 position() const noexcept;
+        vector3 position() const;
 
         /**
          * Get direction camera is facing.
@@ -55,7 +48,7 @@ class camera final
          * @returns
          *   Camera direction.
          */
-        vector3 direction() const noexcept;
+        vector3 direction() const;
 
         /**
          * Get the right vector of the camera.
@@ -63,7 +56,7 @@ class camera final
          * @returns
          *   Camera right vector.
          */
-        vector3 right() const noexcept;
+        vector3 right() const;
 
         /**
          * Get the view matrix4.
@@ -71,7 +64,7 @@ class camera final
          * @returns
          *   View matrix4.
          */
-        matrix4 view() const noexcept;
+        matrix4 view() const;
 
         /**
          * Get the projection matrix4.
@@ -79,7 +72,7 @@ class camera final
          * @returns
          *   Projection matrix4.
          */
-        matrix4 projection() const noexcept;
+        matrix4 projection() const;
 
         /**
          * Set the yaw of the camera.
@@ -87,7 +80,7 @@ class camera final
          * @param yaw
          *   New camera yaw.
          */
-        void set_yaw(const float yaw) noexcept;
+        void set_yaw(const float yaw);
 
         /**
          * Adjust the camera yaw by the supplied value.
@@ -95,7 +88,7 @@ class camera final
          * @param adjust
          *   Amount to adjust yaw by.
          */
-        void adjust_yaw(const float adjust) noexcept;
+        void adjust_yaw(const float adjust);
 
         /**
          * Set the pitch of the camera.
@@ -103,7 +96,7 @@ class camera final
          * @param pitch
          *   New camera pitch.
          */
-        void set_pitch(const float pitch) noexcept;
+        void set_pitch(const float pitch);
 
         /**
          * Adjust the camera pitch by the supplied value.
@@ -111,7 +104,7 @@ class camera final
          * @param adjust
          *   Amount to adjust pitch by.
          */
-        void adjust_pitch(const float adjust) noexcept;
+        void adjust_pitch(const float adjust);
 
    private:
 

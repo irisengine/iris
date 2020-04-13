@@ -15,14 +15,14 @@ namespace eng
  *
  * Elements are in row-major order.
  */
-class matrix3 final
+class matrix3
 {
     public:
 
         /**
          * Constructs a new identity matrix.
          */
-        matrix3() noexcept;
+        matrix3();
 
         /**
          * Constructs a new matrix with the supplied (row-major) values.
@@ -30,7 +30,7 @@ class matrix3 final
          * @param elements
          *   Row major elements.
          */
-        explicit matrix3(const std::array<float, 9u> &elements) noexcept;
+        explicit matrix3(const std::array<float, 9u> &elements);
 
         /**
          * Construct a new matrix3 from a matrix4.
@@ -39,7 +39,7 @@ class matrix3 final
          * to remove the position information from a 4x4 transformation
          * matrix.
          */
-        explicit matrix3(const matrix4 &m) noexcept;
+        explicit matrix3(const matrix4 &m);
 
         /**
          * Performs matrix multiplication.
@@ -50,7 +50,7 @@ class matrix3 final
          * @returns
          *   This matrix3 multiplied the supplied matrix3.
          */
-        matrix3& operator*=(const matrix3 &m) noexcept;
+        matrix3& operator*=(const matrix3 &m);
 
         /**
          * Performs matrix3 multiplication.
@@ -61,7 +61,7 @@ class matrix3 final
          * @returns
          *   New matrix3 which is this matrix3 multiplied the supplied matrix3.
          */
-        matrix3 operator*(const matrix3 &m) const noexcept;
+        matrix3 operator*(const matrix3 &m) const;
 
         /**
          * Multiply this matrix3 by a vector3.
@@ -72,7 +72,7 @@ class matrix3 final
          *  @returns
          *    This multiplied by v.
          */
-        vector3 operator*(const vector3 &v) const noexcept;
+        vector3 operator*(const vector3 &v) const;
 
         /**
          * Multiply each element in the matrix by a scalar value.
@@ -83,7 +83,7 @@ class matrix3 final
          * @returns
          *   This matrix3 with each element multiplied by scalar value.
          */
-        matrix3& operator*=(const float s) noexcept;
+        matrix3& operator*=(const float s);
 
         /**
          * Multiply each element in the matrix by a scalar value.
@@ -95,7 +95,7 @@ class matrix3 final
          *   New matrix3 which is this matrix3 with each element multiplied by
          *   scalar value
          */
-        matrix3 operator*(const float s) const noexcept;
+        matrix3 operator*(const float s) const;
 
         /**
          * Perform matrix additions.
@@ -106,7 +106,7 @@ class matrix3 final
          * @returns
          *   This matrix3 added to the supplied matrix3.
          */
-        matrix3& operator+=(const matrix3 &m) noexcept;
+        matrix3& operator+=(const matrix3 &m);
 
         /**
          * Perform matrix additions.
@@ -117,7 +117,7 @@ class matrix3 final
          * @returns
          *   New matrix3 which is this matrix3 added to the supplied matrix3.
          */
-        matrix3 operator+(const matrix3 &m) const noexcept;
+        matrix3 operator+(const matrix3 &m) const;
 
         /**
          * Get a reference to the element at the supplied index.
@@ -128,7 +128,7 @@ class matrix3 final
          * @returns
          *   Reference to element at supplied index.
          */
-        float& operator[](const std::size_t index) noexcept;
+        float& operator[](const std::size_t index);
 
         /**
          * Get a copy of the element at the supplied index.
@@ -139,7 +139,7 @@ class matrix3 final
          * @returns
          *   Copy of element at supplied index.
          */
-        float operator[](const std::size_t index) const noexcept;
+        float operator[](const std::size_t index) const;
 
         /**
          * Get a pointer to the start of the internal matrix3 data array.
@@ -147,7 +147,7 @@ class matrix3 final
          * @returns
          *   Pointer to start if matrix3 data.
          */
-        const float* data() const noexcept;
+        const float* data() const;
 
         /**
          * Inverts this matrix.
@@ -155,7 +155,7 @@ class matrix3 final
          * @returns
          *   A reference to this matrix3.
          */
-        matrix3& invert() noexcept;
+        matrix3& invert();
 
         /**
          * Transposes this matrix.
@@ -163,7 +163,7 @@ class matrix3 final
          * @returns
          *   A reference to this matrix3.
          */
-        matrix3& transpose() noexcept;
+        matrix3& transpose();
 
         /**
          * Static method to invert a matrix.
@@ -174,7 +174,7 @@ class matrix3 final
          * @returns
          *   A copy of the supplied matrix inverted.
          */
-        static matrix3 invert(const matrix3 &m) noexcept;
+        static matrix3 invert(const matrix3 &m);
 
         /**
          * Static method to transpose a matrix.
@@ -185,7 +185,7 @@ class matrix3 final
          * @returns
          *   A copy of the supplied matrix transposed.
          */
-        static matrix3 transpose(const matrix3 &m) noexcept;
+        static matrix3 transpose(const matrix3 &m);
 
         /**
          * Make an orthonormal basis from a starting vector. This will create
@@ -198,7 +198,7 @@ class matrix3 final
          * @returns
          *   Transform matrix which will transform points to orthonormal basis.
          */
-        static matrix3 make_orthonormal_basis(const vector3 &x) noexcept;
+        static matrix3 make_orthonormal_basis(const vector3 &x);
 
         /**
          * Static method to make a skew-symmetric matrix, i.e. a matrix whose
@@ -212,7 +212,7 @@ class matrix3 final
          * @returns
          *   Skew-symmetric matrix.
          */
-        static matrix3 make_skew_symmetric(const vector3 &v) noexcept;
+        static matrix3 make_skew_symmetric(const vector3 &v);
 
         /**
          * Writes the matrix3 to the stream, useful for debugging.
@@ -227,7 +227,7 @@ class matrix3 final
          *   A reference to the supplied stream, after the matrix3 has been
          *   written.
          */
-        friend std::ostream& operator<<(std::ostream &out, const matrix3 &m) noexcept;
+        friend std::ostream& operator<<(std::ostream &out, const matrix3 &m);
 
     private:
 

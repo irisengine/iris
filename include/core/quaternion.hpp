@@ -12,7 +12,7 @@ namespace eng
  *
  * A quaternion represents a rotation (w) about a vector (x, y, z).
  */
-class quaternion final
+class quaternion
 {
     public:
 
@@ -32,13 +32,6 @@ class quaternion final
          */
         quaternion(const vector3 &axis, const float angle);
 
-        /** Default */
-        ~quaternion() = default;
-        quaternion(const quaternion &) = default;
-        quaternion& operator=(const quaternion&) = default;
-        quaternion(quaternion&&) = default;
-        quaternion& operator=(quaternion&&) = default;
-
         /**
          * Write a quaternion to a stream, useful for debugging.
          *
@@ -53,7 +46,7 @@ class quaternion final
          */
         friend std::ostream& operator<<(
             std::ostream &out,
-            const quaternion &q) noexcept;
+            const quaternion &q);
 
         /**
          * Multiply this quaternion by another, therefore applying a composition
@@ -108,7 +101,7 @@ class quaternion final
          * @returns
          *   A reference to this quaternion.
          */
-        quaternion& normalise() noexcept;
+        quaternion& normalise();
 
         /** Angle of rotation. */
         float w;

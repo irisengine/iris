@@ -9,14 +9,14 @@ namespace eng
  * Class representing a vector in 3D space. Comprises an x, y and z
  * component.
  */
-class vector3 final
+class vector3
 {
     public:
 
         /**
          * Constructs a new vector3 with all components initialised to 0.
          */
-        vector3() noexcept;
+        vector3();
 
         /**
          * Constructs a new vector3 with the supplied components.
@@ -30,14 +30,7 @@ class vector3 final
          * @param z
          *   z component.
          */
-        vector3(const float x, const float y, const float z) noexcept;
-
-        /** Default */
-        ~vector3() = default;
-        vector3(const vector3&) = default;
-        vector3& operator=(const vector3&) = default;
-        vector3(vector3&&) = default;
-        vector3& operator=(vector3&&) = default;
+        vector3(const float x, const float y, const float z);
 
         /**
          * Write a vector3 to a stream, useful for debugging.
@@ -53,7 +46,7 @@ class vector3 final
          */
         friend std::ostream& operator<<(
             std::ostream &out,
-            const vector3 &v) noexcept;
+            const vector3 &v);
 
         /**
          * Multiply each component by a scalar value.
@@ -64,7 +57,7 @@ class vector3 final
          * @return
          *   Reference to this vector3.
          */
-        vector3& operator*=(const float s) noexcept;
+        vector3& operator*=(const float s);
 
         /**
          * Create a new vector3 which is this vector3 with each component
@@ -77,7 +70,7 @@ class vector3 final
          *   Copy of this vector3 with each component multiplied by a
          *   scalar value.
          */
-        vector3 operator*(const float s) const noexcept;
+        vector3 operator*(const float s) const;
 
         /**
          * Component wise add a vector3 to this vector3.
@@ -88,7 +81,7 @@ class vector3 final
          * @return
          *   Reference to this vector3.
          */
-        vector3& operator+=(const vector3 &v) noexcept;
+        vector3& operator+=(const vector3 &v);
 
         /**
          * Create a new vector3 which is this vector3 added with a supplied
@@ -101,7 +94,7 @@ class vector3 final
          *   Copy of this vector3 with each component added to the
          *   components of the supplied vector3.
          */
-        vector3 operator+(const vector3 &v) const noexcept;
+        vector3 operator+(const vector3 &v) const;
 
         /**
          * Component wise subtract a vector3 to this vector3.
@@ -112,7 +105,7 @@ class vector3 final
          * @return
          *   Reference to this vector3.
          */
-        vector3& operator-=(const vector3 &v) noexcept;
+        vector3& operator-=(const vector3 &v);
 
         /**
          * Create a new vector3 which is this vector3 subtracted with a
@@ -125,7 +118,7 @@ class vector3 final
          *   Copy of this vector3 with each component subtracted to the
          *   components of the supplied vector3.
          */
-        vector3 operator-(const vector3 &v) const noexcept;
+        vector3 operator-(const vector3 &v) const;
 
         /**
          * Component wise multiple a vector3 to this vector3.
@@ -136,7 +129,7 @@ class vector3 final
          * @returns
          *   Reference to this vector3.
          */
-        vector3& operator*=(const vector3 &v) noexcept;
+        vector3& operator*=(const vector3 &v);
 
         /**
          * Create a new vector3 which us this vector3 component wise multiplied
@@ -149,7 +142,7 @@ class vector3 final
          *   Copy of this vector3 component wise multiplied with the supplied
          *   vector3.
          */
-        vector3 operator*(const vector3 &v) const noexcept;
+        vector3 operator*(const vector3 &v) const;
 
         /**
          * Negate operator.
@@ -157,7 +150,7 @@ class vector3 final
          * @return
          *   Return a copy of this vector3 with each component negated.
          */
-        vector3 operator-() const noexcept;
+        vector3 operator-() const;
 
         /**
          * Calculate the vector dot product.
@@ -168,7 +161,7 @@ class vector3 final
          * @returns
          *   Dot product of this vector with supplied one.
          */
-        float dot(const vector3 &v) const noexcept;
+        float dot(const vector3 &v) const;
 
         /**
          * Perform cross product of this vector3 with a supplied one.
@@ -179,7 +172,7 @@ class vector3 final
          * @return
          *   Reference to this vector3.
          */
-        vector3& cross(const vector3 &v) noexcept;
+        vector3& cross(const vector3 &v);
 
         /**
          * Normalises this vector3.
@@ -187,7 +180,7 @@ class vector3 final
          * @return
          *   Reference to this vector3.
          */
-        vector3& normalise() noexcept;
+        vector3& normalise();
 
         /**
          * Get the magnitude of this vector.
@@ -195,7 +188,7 @@ class vector3 final
          * @retunrs
          *   Vector magnitude.
          */
-        float magnitude() const noexcept;
+        float magnitude() const;
 
         /**
          * Cross two vector3 objects with each other.
@@ -209,7 +202,7 @@ class vector3 final
          * @return
          *   v1 cross v2.
          */
-        static vector3 cross(const vector3 &v1, const vector3 &v2) noexcept;
+        static vector3 cross(const vector3 &v1, const vector3 &v2);
 
         /**
          * Normalise a supplied vector3.
@@ -220,7 +213,7 @@ class vector3 final
          * @return
          *   Supplied vector3 normalised.
          */
-        static vector3 normalise(const vector3 &v) noexcept;
+        static vector3 normalise(const vector3 &v);
 
         /** x component */
         float x;
