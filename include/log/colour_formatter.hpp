@@ -12,17 +12,12 @@ namespace eng
 /**
  * Implementation of formatter which applies colour to basic formatter.
  */
-class colour_formatter final : public formatter
+class colour_formatter : public formatter
 {
     public:
 
         /** Default */
-        colour_formatter() = default;
         ~colour_formatter() override = default;
-        colour_formatter(const colour_formatter&) = default;
-        colour_formatter& operator=(const colour_formatter&) = default;
-        colour_formatter(colour_formatter&&) = default;
-        colour_formatter& operator=(colour_formatter&&) = default;
 
         /**
          * Format the supplied log details into a string.

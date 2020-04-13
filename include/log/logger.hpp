@@ -147,12 +147,9 @@ void unpack(
  * Debug should be used for the log messages you use to diagnose a bug and will
  * probably later delete.
  */
-class logger final
+class logger
 {
     public:
-
-        /** Default */
-        ~logger() = default;
 
         /** Disabled */
         logger(const logger&) = delete;

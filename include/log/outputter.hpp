@@ -15,12 +15,7 @@ class outputter
     public:
 
         /** Default */
-        outputter() = default;
         virtual ~outputter() = default;
-        outputter(const outputter&) = default;
-        outputter& operator=(const outputter&) = default;
-        outputter(outputter&&) = default;
-        outputter& operator=(outputter&&) = default;
 
         /**
          * Output log.

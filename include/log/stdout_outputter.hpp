@@ -10,17 +10,12 @@ namespace eng
 /**
  * Implementation of outputter which writes log messages to stdout.
  */
-class stdout_outputter final : public outputter
+class stdout_outputter : public outputter
 {
     public:
 
         /** Default */
-        stdout_outputter() = default;
         ~stdout_outputter() override = default;
-        stdout_outputter(const stdout_outputter&) = default;
-        stdout_outputter& operator=(const stdout_outputter&) = default;
-        stdout_outputter(stdout_outputter&&) = default;
-        stdout_outputter& operator=(stdout_outputter&&) = default;
 
         /**
          * Output log.

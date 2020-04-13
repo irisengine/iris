@@ -23,17 +23,12 @@ namespace eng
  *  Example:
  *    D 17:38:28 [camera] camera.cpp:58 | x: -4.37114e-08 y: 0 z: -1
  */
-class basic_formatter final : public formatter
+class basic_formatter : public formatter
 {
     public:
 
         /** Default */
-        basic_formatter() = default;
         ~basic_formatter() override = default;
-        basic_formatter(const basic_formatter&) = default;
-        basic_formatter& operator=(const basic_formatter&) = default;
-        basic_formatter(basic_formatter&&) = default;
-        basic_formatter& operator=(basic_formatter&&) = default;
 
         /**
          * Format the supplied log details into a string.

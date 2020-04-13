@@ -31,7 +31,7 @@ enum class log_level : std::uint32_t
  * @returns
  *   Reference to input stream.
  */
-inline std::ostream& operator<<(std::ostream &out, const log_level level) noexcept
+inline std::ostream& operator<<(std::ostream &out, const log_level level)
 {
     switch(level)
     {

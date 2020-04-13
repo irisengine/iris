@@ -11,9 +11,12 @@ namespace eng
 /**
  * Implementation of outputter which writes log messages to filet.
  */
-class file_outputter final : public outputter
+class file_outputter : public outputter
 {
     public:
+
+        /** Default */
+        ~file_outputter() override = default;
 
         /**
          * Construct a new file_outputter.

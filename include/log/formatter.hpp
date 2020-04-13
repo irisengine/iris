@@ -16,12 +16,7 @@ class formatter
     public:
 
         /** Default */
-        formatter() = default;
         virtual ~formatter() = default;
-        formatter(const formatter&) = default;
-        formatter& operator=(const formatter&) = default;
-        formatter(formatter&&) = default;
-        formatter& operator=(formatter&&) = default;
 
         /**
          * Format the supplied log details into a string.
