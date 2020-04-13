@@ -87,6 +87,8 @@ mesh::mesh(
 
 /** Default */
 mesh::~mesh() = default;
+mesh::mesh(mesh&&) = default;
+mesh& mesh::operator=(mesh&&) = default;
 
 const std::vector<std::uint32_t>& mesh::indices() const
 {

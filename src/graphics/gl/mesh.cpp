@@ -149,6 +149,9 @@ mesh::~mesh()
     }
 }
 
+mesh::mesh(mesh&&) = default;
+mesh& mesh::operator=(mesh&&) = default;
+
 const std::vector<std::uint32_t>& mesh::indices() const
 {
     return indices_;

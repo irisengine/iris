@@ -51,6 +51,8 @@ class mesh
 
         /** Declared in mm/cpp file as implementation is an incomplete file. */
         ~mesh();
+        mesh(mesh&&);
+        mesh& operator=(mesh&&);
 
         /**
          * Get const reference to mesh indices.
