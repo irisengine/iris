@@ -5,7 +5,6 @@ IF(PLATFORM MATCHES "OSX")
     SET(PLATFORM_SRCS
         "${INCLUDE_ROOT}/osx/cf_ptr.hpp"
         "${INCLUDE_ROOT}/osx/AppDelegate.h"
-        "${SOURCE_ROOT}/osx/file_watcher_implementation.mm" "${INCLUDE_ROOT}/osx/file_watcher_implementation.hpp"
         "${SOURCE_ROOT}/osx/window.mm"
     )
 ENDIF()
@@ -26,12 +25,10 @@ ENDIF()
 
 SET(PLATFORM_SRCS
     ${PLATFORM_SRCS}
-    "${INCLUDE_ROOT}/file_event_type.hpp"
     "${INCLUDE_ROOT}/keyboard_event.hpp"
     "${INCLUDE_ROOT}/mouse_event.hpp"
     "${INCLUDE_ROOT}/window.hpp"
     "${SOURCE_ROOT}/event_dispatcher.cpp" "${INCLUDE_ROOT}/event_dispatcher.hpp"
-    "${SOURCE_ROOT}/file_watcher.cpp" "${INCLUDE_ROOT}/file_watcher.hpp"
 
     PARENT_SCOPE
 )
