@@ -11,7 +11,7 @@ namespace eng
 /**
  * Class for consuming events and passing them to a supplied callback.
  */
-class event_dispatcher final
+class event_dispatcher
 {
     public:
 
@@ -22,7 +22,7 @@ class event_dispatcher final
         using mouse_callback = std::function<void(const mouse_event&)>;
 
         /**
-         * Create a enw event_dispatcher.
+         * Create a new event_dispatcher.
          *
          * @param keyboard_callback
          *   The function to call with keyboard events.
@@ -31,17 +31,8 @@ class event_dispatcher final
          *   The function to call with mouse events.
          */
         event_dispatcher(
-            const keyboard_callback &keybaord_callback,
-            const mouse_callback &mouse_callback) noexcept;
-
-        /** Default */
-        ~event_dispatcher() = default;
-
-        /** Disabled */
-        event_dispatcher(const event_dispatcher&) = delete;
-        event_dispatcher& operator=(const event_dispatcher&) = delete;
-        event_dispatcher(event_dispatcher&&) = delete;
-        event_dispatcher& operator=(event_dispatcher&&) = delete;
+            const keyboard_callback &keyboard_callback,
+            const mouse_callback &mouse_callback);
 
         /**
          * Passes a given keyboard event to the set callback.
@@ -49,7 +40,7 @@ class event_dispatcher final
          * @param event
          *   The event to dispatch.
          */
-        void dispatch(const keyboard_event &event) const noexcept;
+        void dispatch(const keyboard_event &event) const;
 
         /**
          * Passes a given mouse event to the set callback.
@@ -57,7 +48,7 @@ class event_dispatcher final
          * @param event
          *   The event to dispatch.
          */
-        void dispatch(const mouse_event &event) const noexcept;
+        void dispatch(const mouse_event &event) const;
 
     private:
 

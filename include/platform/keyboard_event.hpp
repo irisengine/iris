@@ -144,7 +144,7 @@ struct keyboard_event
      *  @param type
      *    Down or up press
      */
-    keyboard_event(const key k, const key_state state) noexcept
+    keyboard_event(const key k, const key_state state)
         : key(k),
           state(state)
     { };

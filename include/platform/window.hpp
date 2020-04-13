@@ -8,7 +8,7 @@ namespace eng
 /**
  * Class representing a native OpenGl window.
  */
-class window final
+class window
 {
     public:
 
@@ -29,10 +29,6 @@ class window final
             const float with,
             const float height);
 
-        /** Default */
-        ~window() = default;
-        window(window&&) = default;
-
         /** Disabled */
         window(const window&) = delete;
         window& operator=(const window&) = delete;
@@ -40,12 +36,12 @@ class window final
         /**
          * Perform any actions required before rendering.
          */
-        void pre_render() const noexcept;
+        void pre_render() const;
 
         /**
          * Perform any actions required after rendering.
          */
-        void post_render() const noexcept;
+        void post_render() const;
 
         /**
          * Get the width of the window.
@@ -53,7 +49,7 @@ class window final
          * @returns
          *   Window width.
          */
-        float width() const noexcept;
+        float width() const;
 
         /**
          * Get the height of the window.
@@ -61,7 +57,7 @@ class window final
          * @returns
          *   Window height.
          */
-        float height() const noexcept;
+        float height() const;
 
     private:
 

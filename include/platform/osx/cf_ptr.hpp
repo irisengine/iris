@@ -20,7 +20,6 @@ template<
     typename=typename std::enable_if_t<std::is_pointer<T>::value>>
 class cf_ptr
 {
-
     public:
 
         /**

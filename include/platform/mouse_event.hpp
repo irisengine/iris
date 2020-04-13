@@ -18,7 +18,7 @@ struct mouse_event
      * @param delta_y
      *   The amount the cursor has moved along the y-axis since the last event.
      */
-    mouse_event(const float delta_x, const float delta_y) noexcept
+    mouse_event(const float delta_x, const float delta_y)
         : delta_x(delta_x),
           delta_y(delta_y)
     { }

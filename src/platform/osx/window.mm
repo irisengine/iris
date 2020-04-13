@@ -235,7 +235,7 @@ window::window(
     LOG_ENGINE_INFO("window", "osx window created");
 }
 
-void window::pre_render() const noexcept
+void window::pre_render() const
 {
     NSEvent *event = nil;
 
@@ -272,19 +272,19 @@ void window::pre_render() const noexcept
     } while(event != nil);
 }
 
-void window::post_render() const noexcept
+void window::post_render() const
 {
 #if defined(GRAPHICS_API_OPENGL) and defined(PLATFORM_OSX)
     ::glSwapAPPLE();
 #endif
 }
 
-float window::width() const noexcept
+float window::width() const
 {
     return width_;
 }
 
-float window::height() const noexcept
+float window::height() const
 {
     return height_;
 }
