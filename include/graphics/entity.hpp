@@ -15,7 +15,7 @@ namespace eng
  * Class represents a renderable entity that can be added to a scene. An entity
  * comprises of one or more meshes that should be rendered individually.
  */
-class entity final
+class entity
 {
     public:
 
@@ -112,11 +112,6 @@ class entity final
             const vector3 &scale,
             std::shared_ptr<material> mat);
 
-        /** Default */
-        ~entity() = default;
-        entity(entity&&) = default;
-        entity& operator=(entity&&) = default;
-
         /** Disabled */
         entity(const entity&) = delete;
         entity& operator=(const entity&) = delete;
@@ -127,7 +122,7 @@ class entity final
          * @param position
          *   New position.
          */
-        void set_position(const vector3 &position) noexcept;
+        void set_position(const vector3 &position);
 
         /**
          * Set the orientation of the matrix.
@@ -135,7 +130,7 @@ class entity final
          * @param orientation
          *   New oritentation.
          */
-        void set_orientation(const quaternion &orientation) noexcept;
+        void set_orientation(const quaternion &orientation);
 
         /**
          * Get the transformation matrix of the entity.
@@ -143,7 +138,7 @@ class entity final
          * @returns
          *   Transformation matrix.
          */
-        matrix4 transform() const noexcept;
+        matrix4 transform() const;
 
         /**
          * Get a const reference to the meshes that make up the entity.
@@ -151,7 +146,7 @@ class entity final
          * @returns
          *   Const reference to meshes.
          */
-        const std::vector<mesh>& meshes() const noexcept;
+        const std::vector<mesh>& meshes() const;
 
         /**
          * Get a const reference to the entities rendering material.
@@ -167,7 +162,7 @@ class entity final
          * @returns
          *   True if should be rendered as a wireframe, false otherwise.
          */
-        bool should_render_wireframe() const noexcept;
+        bool should_render_wireframe() const;
 
         /**
          * Sets whether the object should be rendered as a wireframe.
@@ -175,7 +170,7 @@ class entity final
          * @param wrireframe
          *   True if should be rendered as a wireframe, false otherwise.
          */
-        void set_wireframe(const bool wireframe) noexcept;
+        void set_wireframe(const bool wireframe);
 
     private:
 

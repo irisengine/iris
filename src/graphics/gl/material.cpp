@@ -17,20 +17,12 @@ namespace eng
 /**
  * Struct containing implementation specific data.
  */
-struct material::implementation final
+struct material::implementation
 {
     /** Simple constructor which takes a value for each member. */
     implementation(std::uint32_t program)
         : program(program)
     { }
-
-    /** Default */
-    implementation() = default;
-    ~implementation() = default;
-    implementation(const implementation&) = default;
-    implementation& operator=(const implementation&) = default;
-    implementation(implementation&&) = default;
-    implementation& operator=(implementation&&) = default;
 
     /** Opengl handle for program. */
     std::uint32_t program;

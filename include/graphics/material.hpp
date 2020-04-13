@@ -10,7 +10,7 @@ namespace eng
 /**
  * Class encapsulating a materal for rendering an entity.
  */
-class material final
+class material
 {
     public:
 

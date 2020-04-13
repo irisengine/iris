@@ -110,20 +110,12 @@ namespace eng
 /**
  * Struct containing implementation specific data.
  */
-struct texture::implementation final
+struct texture::implementation
 {
     /** Simple constructor which takes a value for each member. */
     implementation(id<MTLTexture> texture)
         : texture(texture)
     { }
-
-    /** Default */
-    implementation() = default;
-    ~implementation() = default;
-    implementation(const implementation&) = default;
-    implementation& operator=(const implementation&) = default;
-    implementation(implementation&&) = default;
-    implementation& operator=(implementation&&) = default;
 
     /** Metal handle for texture. */
     id<MTLTexture> texture;
@@ -168,22 +160,22 @@ texture::~texture() = default;
 texture::texture(texture&&) = default;
 texture& texture::operator=(texture&&) = default;
 
-std::vector<std::uint8_t> texture::data() const noexcept
+std::vector<std::uint8_t> texture::data() const
 {
     return data_;
 }
 
-std::uint32_t texture::width() const noexcept
+std::uint32_t texture::width() const
 {
     return width_;
 }
 
-std::uint32_t texture::height() const noexcept
+std::uint32_t texture::height() const
 {
     return height_;
 }
 
-std::uint32_t texture::num_channels() const noexcept
+std::uint32_t texture::num_channels() const
 {
     return num_channels_;
 }

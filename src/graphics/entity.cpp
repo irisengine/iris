@@ -417,25 +417,25 @@ entity::entity(
     LOG_INFO("entity", "constructed at: {}", position_);
 }
 
-void entity::set_position(const vector3 &position) noexcept
+void entity::set_position(const vector3 &position)
 {
     position_ = position;
 
     model_ = matrix4::make_translate(position_) * matrix4(orientation_) * matrix4::make_scale(scale_);
 }
 
-void entity::set_orientation(const quaternion &orientation) noexcept
+void entity::set_orientation(const quaternion &orientation)
 {
     orientation_ = orientation;
     model_ = matrix4::make_translate(position_) * matrix4(orientation_) * matrix4::make_scale(scale_);
 }
 
-matrix4 entity::transform() const noexcept
+matrix4 entity::transform() const
 {
     return model_;
 }
 
-const std::vector<mesh>& entity::meshes() const noexcept
+const std::vector<mesh>& entity::meshes() const
 {
     return meshes_;
 }
@@ -445,12 +445,12 @@ const material& entity::mat() const
     return *material_;
 }
 
-bool entity::should_render_wireframe() const noexcept
+bool entity::should_render_wireframe() const
 {
     return wireframe_;
 }
 
-void entity::set_wireframe(const bool wireframe) noexcept
+void entity::set_wireframe(const bool wireframe)
 {
     wireframe_ = wireframe;
 }

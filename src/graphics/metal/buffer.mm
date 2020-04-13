@@ -48,14 +48,6 @@ struct buffer::implementation
         : handle(handle)
     { }
 
-    /** Default */
-    implementation() = default;
-    ~implementation() = default;
-    implementation(const implementation&) = default;
-    implementation& operator=(const implementation&) = default;
-    implementation(implementation&&) = default;
-    implementation& operator=(implementation&&) = default;
-
     /** Metal handle for buffer. */
     id<MTLBuffer> handle;
 };
@@ -85,7 +77,7 @@ std::any buffer::native_handle() const
     return std::any{ impl_->handle };
 }
 
-buffer_type buffer::type() const noexcept
+buffer_type buffer::type() const
 {
     return type_;
 }

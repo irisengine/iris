@@ -22,7 +22,7 @@ namespace eng
  * possible. An API specific implementation object is used internally to
  * achieve this.
  */
-class mesh final
+class mesh
 {
     public:
 
@@ -51,8 +51,6 @@ class mesh final
 
         /** Declared in mm/cpp file as implementation is an incomplete file. */
         ~mesh();
-        mesh(mesh&&);
-        mesh& operator=(mesh&&);
 
         /**
          * Get const reference to mesh indices.
@@ -60,7 +58,7 @@ class mesh final
          * @returns
          *   Mesh vertices.
          */
-        const std::vector<std::uint32_t>& indices() const noexcept;
+        const std::vector<std::uint32_t>& indices() const;
 
         /**
          * Get a reference to the vertex buffer for this mesh.
@@ -68,7 +66,7 @@ class mesh final
          * @returns
          *   Const reference to vertex buffer.
          */
-        const buffer& vertex_buffer() const noexcept;
+        const buffer& vertex_buffer() const;
 
         /**
          * Get a reference to the index buffer for this mesh.
@@ -76,7 +74,7 @@ class mesh final
          * @returns
          *   Const reference to index buffer.
          */
-        const buffer& index_buffer() const noexcept;
+        const buffer& index_buffer() const;
 
         /**
          * Get a reference to the texture for this mesh.
@@ -84,7 +82,7 @@ class mesh final
          * @returns
          *   Const reference to texture.
          */
-        const texture& tex() const noexcept;
+        const texture& tex() const;
 
         /**
          * Get a native handle for the mesh. The type of this is dependant on

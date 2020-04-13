@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string_view>
+#include <string>
 
 #if defined(PLATFORM_OSX)
 #include <OpenGL/gl3.h>
@@ -18,7 +18,7 @@ namespace eng
  * @param error_message
  *   The message to include in the exception.
  */
-void check_opengl_error(std::string_view error_message);
+void check_opengl_error(const std::string &error_message);
 
 }
 

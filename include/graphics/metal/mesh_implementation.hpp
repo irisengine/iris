@@ -14,7 +14,7 @@ namespace eng
  * This class is the metal implementation of mesh. This encapsulates all the
  * logic and data needed for metal rendering.
  */
-class mesh_implementation final
+class mesh_implementation
 {
     public:
 
@@ -31,11 +31,6 @@ class mesh_implementation final
             const std::vector<vertex_data> &vertices,
             const std::vector<std::uint32_t> &indices);
 
-        /** Default */
-        ~mesh_implementation() = default;
-        mesh_implementation(mesh_implementation&&) = default;
-        mesh_implementation& operator=(mesh_implementation&&) = default;
-
         /** Disabled */
         mesh_implementation(const mesh_implementation&) = delete;
         mesh_implementation& operator=(const mesh_implementation&) = delete;
@@ -46,7 +41,7 @@ class mesh_implementation final
          * @returns
          *   Const reference to vertex buffer.
          */
-        const buffer& vertex_buffer() const noexcept;
+        const buffer& vertex_buffer() const;
 
         /**
          * Get a reference to the index buffer for this mesh.
@@ -54,7 +49,7 @@ class mesh_implementation final
          * @returns
          *   Const reference to index buffer.
          */
-        const buffer& index_buffer() const noexcept;
+        const buffer& index_buffer() const;
 
         /**
          * Unused in metal.

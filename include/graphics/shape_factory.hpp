@@ -134,7 +134,7 @@ std::shared_ptr<entity> sphere(
     std::shared_ptr<material> mat);
 
 /**
- * Create a sprite with the supplied dimensions. Will use an in build basic
+ * Create a sprite with the supplied dimensions. Will use an in built basic
  * material.
  *
 * @param x

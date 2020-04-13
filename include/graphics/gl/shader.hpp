@@ -10,7 +10,7 @@ namespace eng
 /**
  * Class encapsulating an opengl shader.
  */
-class shader final
+class shader
 {
     public:
 
@@ -36,7 +36,7 @@ class shader final
          * @param other
          *   Object to take state from. Do not use after this call.
          */
-        shader(shader &&other) noexcept;
+        shader(shader &&other);
 
         /**
          * Move operator, steals the state from the moved-in object.
@@ -44,7 +44,7 @@ class shader final
          * @param other
          *   Object to take state from. Do not use after this call.
          */
-        shader& operator=(shader&&) noexcept;
+        shader& operator=(shader&&);
 
         /** Disabled */
         shader(const shader&) = delete;
@@ -55,7 +55,7 @@ class shader final
          *
          * @returns native opengl handle.
          */
-        std::uint32_t native_handle() const noexcept;
+        std::uint32_t native_handle() const;
 
     private:
 

@@ -24,6 +24,9 @@ IF(NOT PLATFORM)
         ELSEIF(GRAPHICS_API MATCHES "Opengl")
             SET(GRAPHICS_API "OPENGL")
             ADD_DEFINITIONS(-DGRAPHICS_API_OPENGL)
+            # opengl is technically deprecated on macos, so silence the
+            # deprecation warnings
+            ADD_DEFINITIONS(-DGL_SILENCE_DEPRECATION)
         ELSE()
             MESSAGE(FATAL_ERROR "Unsupported graphics API")
         ENDIF()

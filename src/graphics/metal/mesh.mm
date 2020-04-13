@@ -19,8 +19,9 @@ namespace eng
 /**
  * Struct containing implementation specific data.
  */
-struct mesh::implementation final
-{ };
+struct mesh::implementation
+{
+};
 
 mesh::mesh(
     const std::vector<vertex_data> &vertices,
@@ -86,25 +87,23 @@ mesh::mesh(
 
 /** Default */
 mesh::~mesh() = default;
-mesh::mesh(mesh&&) = default;
-mesh& mesh::operator=(mesh&&) = default;
 
-const std::vector<std::uint32_t>& mesh::indices() const noexcept
+const std::vector<std::uint32_t>& mesh::indices() const
 {
     return indices_;
 }
 
-const buffer& mesh::vertex_buffer() const noexcept
+const buffer& mesh::vertex_buffer() const
 {
     return *vertex_buffer_;
 }
 
-const buffer& mesh::index_buffer() const noexcept
+const buffer& mesh::index_buffer() const
 {
     return *index_buffer_;
 }
 
-const texture& mesh::tex() const noexcept
+const texture& mesh::tex() const
 {
     return texture_;
 }

@@ -68,20 +68,12 @@ namespace eng
 /**
  * Struct containing implementation specific data.
  */
-struct mesh::implementation final
+struct mesh::implementation
 {
     /** Simple constructor which takes a value for each member. */
     implementation(std::uint32_t vao)
         : vao(vao)
     { }
-
-    /** Default */
-    implementation() = default;
-    ~implementation() = default;
-    implementation(const implementation&) = default;
-    implementation& operator=(const implementation&) = default;
-    implementation(implementation&&) = default;
-    implementation& operator=(implementation&&) = default;
 
     /** Opengl handle for vao. */
     std::uint32_t vao;
@@ -157,25 +149,22 @@ mesh::~mesh()
     }
 }
 
-mesh::mesh(mesh&&) = default;
-mesh& mesh::operator=(mesh&&) = default;
-
-const std::vector<std::uint32_t>& mesh::indices() const noexcept
+const std::vector<std::uint32_t>& mesh::indices() const
 {
     return indices_;
 }
 
-const buffer& mesh::vertex_buffer() const noexcept
+const buffer& mesh::vertex_buffer() const
 {
     return *vertex_buffer_;
 }
 
-const buffer& mesh::index_buffer() const noexcept
+const buffer& mesh::index_buffer() const
 {
     return *index_buffer_;
 }
 
-const texture& mesh::tex() const noexcept
+const texture& mesh::tex() const
 {
     return texture_;
 }

@@ -15,7 +15,7 @@ namespace eng
 /**
  * Class for rendering scenes.
  */
-class render_system final
+class render_system
 {
     public:
 
@@ -64,7 +64,7 @@ class render_system final
          * @param position.
          *   New position of light in world space.
          */
-        void set_light_position(const vector3 &position) noexcept;
+        void set_light_position(const vector3 &position);
 
     private:
 

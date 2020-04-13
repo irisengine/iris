@@ -18,15 +18,8 @@ namespace eng
 /**
  * Struct contatining implementation specific data.
  */
-struct render_system::implementation final
+struct render_system::implementation
 {
-    /** Default */
-    implementation() = default;
-    ~implementation() = default;
-    implementation(const implementation&) = default;
-    implementation& operator=(const implementation&) = default;
-    implementation(implementation&&) = default;
-    implementation& operator=(implementation&&) = default;
 };
 
 
@@ -158,7 +151,7 @@ void render_system::render() const
     window_->post_render();
 }
 
-void render_system::set_light_position(const vector3 &position) noexcept
+void render_system::set_light_position(const vector3 &position)
 {
     light_position = position;
     LOG_ENGINE_INFO("render_system", "light position set: {}", light_position);

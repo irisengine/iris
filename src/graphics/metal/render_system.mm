@@ -30,7 +30,7 @@ namespace eng
 /**
  * Struct containing implementation specific data.
  */
-struct render_system::implementation final
+struct render_system::implementation
 {
     /** Simple constructor which takes a value for each member. */
     implementation(
@@ -43,13 +43,6 @@ struct render_system::implementation final
       depth_texture(depth_texture),
       depth_stencil_state(depth_stencil_state)
     { }
-
-    /** Default */
-    ~implementation() = default;
-    implementation(const implementation&) = default;
-    implementation& operator=(const implementation&) = default;
-    implementation(implementation&&) = default;
-    implementation& operator=(implementation&&) = default;
 
     /** Command queue for rendering a frame. */
     id<MTLCommandQueue> command_queue;
@@ -251,7 +244,7 @@ void render_system::render() const
     window_->post_render();
 }
 
-void render_system::set_light_position(const vector3 &position) noexcept
+void render_system::set_light_position(const vector3 &position)
 {
     light_position = position;
 

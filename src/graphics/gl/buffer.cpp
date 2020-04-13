@@ -96,14 +96,6 @@ struct buffer::implementation final
         : handle(handle)
     { }
 
-    /** Default */
-    implementation() = default;
-    ~implementation() = default;
-    implementation(const implementation&) = default;
-    implementation& operator=(const implementation&) = default;
-    implementation(implementation&&) = default;
-    implementation& operator=(implementation&&) = default;
-
     /** Opengl handle for buffer. */
     std::uint32_t handle;
 };
@@ -140,7 +132,7 @@ std::any buffer::native_handle() const
     return std::any{ impl_->handle };
 }
 
-buffer_type buffer::type() const noexcept
+buffer_type buffer::type() const
 {
     return type_;
 }

@@ -13,7 +13,7 @@ namespace eng
 /**
  * Class encapsulating a graphics api specific data buffer.
  */
-class buffer final
+class buffer
 {
     public:
 
@@ -60,7 +60,7 @@ class buffer final
          * @returns
          *   Buffer type.
          */
-        buffer_type type() const noexcept;
+        buffer_type type() const;
 
     private:
 

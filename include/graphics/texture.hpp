@@ -13,7 +13,7 @@ namespace eng
  * Class encapsulating a renderable texture. This class loads image data from
  * a file and performs all necessary graphics API setup for use.
  */
-class texture final
+class texture
 {
     public:
 
@@ -57,7 +57,7 @@ class texture final
          * @returns
          *   Raw image data.
          */
-        std::vector<std::uint8_t> data() const noexcept;
+        std::vector<std::uint8_t> data() const;
 
         /**
          * Get the width of the image.
@@ -65,7 +65,7 @@ class texture final
          * @returns
          *   Image width.
          */
-        std::uint32_t width() const noexcept;
+        std::uint32_t width() const;
 
         /**
          * Get the height of the image.
@@ -73,7 +73,7 @@ class texture final
          * @returns
          *   Image height.
          */
-        std::uint32_t height() const noexcept;
+        std::uint32_t height() const;
 
         /**
          * Get the number of channels in the image.
@@ -81,7 +81,7 @@ class texture final
          * @returns
          *   Number of channels.
          */
-        std::uint32_t num_channels() const noexcept;
+        std::uint32_t num_channels() const;
 
         /**
          * Get a native handle for the texture. The type of this is dependant

@@ -70,13 +70,13 @@ shader::~shader()
     ::glDeleteShader(shader_);
 }
 
-shader::shader(shader &&other) noexcept
+shader::shader(shader &&other)
     : shader_(0u)
 {
     std::swap(shader_, other.shader_);
 }
 
-shader& shader::operator=(shader &&other) noexcept
+shader& shader::operator=(shader &&other)
 {
     // create a new shader object to 'steal' the internal state of the supplied
     // object then swap
@@ -88,7 +88,7 @@ shader& shader::operator=(shader &&other) noexcept
     return *this;
 }
 
-std::uint32_t shader::native_handle() const noexcept
+std::uint32_t shader::native_handle() const
 {
     return shader_;
 }

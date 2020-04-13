@@ -23,7 +23,7 @@ namespace eng
 /**
  * Struct containing implementation specific data.
  */
-struct font::implementation final
+struct font::implementation
 {
     implementation()
         : font(nullptr),

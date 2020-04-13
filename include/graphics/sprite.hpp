@@ -22,13 +22,13 @@ namespace eng
  *
  *   With the centre (*) being 0, 0
  */
-class sprite final
+class sprite
 {
     public:
 
         /**
          * Construct a sprite with an existing entity. This will cause the
-         * entoty to be rendered as a sprite.
+         * entity to be rendered as a sprite.
          *
          * @param e
          *   Entity to render.
@@ -88,11 +88,6 @@ class sprite final
             const float height,
             const vector3 &colour,
             texture &&tex);
-
-        /** Default */
-        ~sprite() = default;
-        sprite(sprite&&) = default;
-        sprite& operator=(sprite&) = default;
 
         /** Disabled */
         sprite(const sprite&) = delete;

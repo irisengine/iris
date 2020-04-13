@@ -67,20 +67,12 @@ namespace eng
 /**
  * Struct containing implementation specific data.
  */
-struct material::implementation final
+struct material::implementation
 {
     /** Simple constructor which takes a value for each member. */
     implementation(id<MTLRenderPipelineState> pipeline_state)
         : pipeline_state(pipeline_state)
     { }
-
-    /** Default */
-    implementation() = default;
-    ~implementation() = default;
-    implementation(const implementation&) = default;
-    implementation& operator=(const implementation&) = default;
-    implementation(implementation&&) = default;
-    implementation& operator=(implementation&&) = default;
 
     /** Handle to metal pipeline state. */
     id<MTLRenderPipelineState> pipeline_state;
