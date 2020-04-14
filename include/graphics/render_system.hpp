@@ -4,7 +4,6 @@
 #include <vector>
 
 #include "camera.hpp"
-#include "entity.hpp"
 #include "material.hpp"
 #include "sprite.hpp"
 #include "window.hpp"
@@ -38,14 +37,6 @@ class render_system
         render_system& operator=(render_system&&);
 
         /**
-         * Add an entity to the scene.
-         *
-         * @param e
-         *   Entity to add.
-         */
-        void add(std::shared_ptr<entity> e);
-
-        /**
          * Add a sprite to the scene.
          *
          * @param s
@@ -69,7 +60,7 @@ class render_system
     private:
 
         /** Collection of entities in a scene to render. */
-        std::vector<std::shared_ptr<entity>> scene_;
+        std::vector<std::shared_ptr<sprite>> scene_;
 
         /** Camera to render scene through */
         std::shared_ptr<camera> camera_;

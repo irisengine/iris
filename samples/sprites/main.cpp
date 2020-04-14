@@ -46,8 +46,8 @@ int main()
 
     while(running)
     {
-        sprite1->renderable()->set_orientation(rot);
-        sprite2->renderable()->set_orientation(rot);
+        sprite1->set_orientation(rot);
+        sprite2->set_orientation(rot);
         rot *= delta;
         rs->render();
 

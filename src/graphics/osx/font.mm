@@ -210,7 +210,6 @@ std::shared_ptr<sprite> font::sprites(
 
     auto *window = [[NSApp windows] firstObject];
     const auto scale = [[window screen] backingScaleFactor];
-    const auto window_frame = [window frame];
 
     // ensure letters are rotated correct way and scaled for screen
     ::CGContextTranslateCTM(context.get(), 0.0f, rect.height * scale);
@@ -224,13 +223,7 @@ std::shared_ptr<sprite> font::sprites(
     texture tex{ pixel_data, width, height, 4u };
 
     // create a sprite to render the texture
-    return std::make_shared<sprite>(shape_factory::sprite(
-        x,
-        y,
-        (width / window_frame.size.width),
-        (height / window_frame.size.height),
-        colour_,
-        std::move(tex)));
+    return nullptr;
 }
 
 }

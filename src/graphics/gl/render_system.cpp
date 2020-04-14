@@ -4,7 +4,6 @@
 #include <utility>
 
 #include "buffer.hpp"
-#include "entity.hpp"
 #include "gl/opengl.hpp"
 #include "log.hpp"
 #include "material.hpp"
@@ -51,16 +50,9 @@ render_system::~render_system() = default;
 render_system::render_system(render_system&&) = default;
 render_system& render_system::operator=(render_system&&) = default;
 
-void render_system::add(std::shared_ptr<entity> e)
-{
-    scene_.emplace_back(e);
-
-    LOG_ENGINE_INFO("render_system", "adding entity");
-}
-
 void render_system::add(std::shared_ptr<sprite> s)
 {
-    add(s->renderable());
+    scene_.emplace_back(s);
 
     LOG_ENGINE_INFO("render_system", "adding sprite");
 }
@@ -111,32 +103,29 @@ void render_system::render() const
         ::glUniformMatrix4fv(model_uniform, 1, GL_FALSE, e->transform().data());
         check_opengl_error("could not set model matrix uniform data");
 
-        // render each mesh in element
-        for(const auto &m : e->meshes())
-        {
-            // bind mesh so the final draw call renders it
-            const auto vao = std::any_cast<std::uint32_t>(m.native_handle());
 
-            // bind the vao
-            ::glBindVertexArray(vao);
-            check_opengl_error("could not bind vao");
+        // bind mesh so the final draw call renders it
+        const auto vao = std::any_cast<std::uint32_t>(e->render_mesh().native_handle());
 
-            const auto tex_handle = std::any_cast<std::uint32_t>(m.tex().native_handle());
-            // use default texture unit
-            ::glActiveTexture(GL_TEXTURE0);
-            check_opengl_error("could not activiate texture");
+        // bind the vao
+        ::glBindVertexArray(vao);
+        check_opengl_error("could not bind vao");
 
-            ::glBindTexture(GL_TEXTURE_2D, tex_handle);
-            check_opengl_error("could not bind texture");
+        const auto tex_handle = std::any_cast<std::uint32_t>(e->render_mesh().tex().native_handle());
+        // use default texture unit
+        ::glActiveTexture(GL_TEXTURE0);
+        check_opengl_error("could not activiate texture");
 
-            // draw!
-            ::glDrawElements(GL_TRIANGLES, m.indices().size(), GL_UNSIGNED_INT, 0);
-            check_opengl_error("could not draw triangles");
+        ::glBindTexture(GL_TEXTURE_2D, tex_handle);
+        check_opengl_error("could not bind texture");
 
-            // unbind vao
-            ::glBindVertexArray(0u);
-            check_opengl_error("could not unbind vao");
-        }
+        // draw!
+        ::glDrawElements(GL_TRIANGLES, e->render_mesh().indices().size(), GL_UNSIGNED_INT, 0);
+        check_opengl_error("could not draw triangles");
+
+        // unbind vao
+        ::glBindVertexArray(0u);
+        check_opengl_error("could not unbind vao");
 
         if(e->should_render_wireframe())
         {

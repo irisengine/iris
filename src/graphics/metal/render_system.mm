@@ -5,7 +5,6 @@
 #import <QuartzCore/QuartzCore.h>
 
 #include "buffer.hpp"
-#include "entity.hpp"
 #include "exception.hpp"
 #include "log.hpp"
 #include "matrix4.hpp"
@@ -136,18 +135,11 @@ render_system::~render_system() = default;
 render_system::render_system(render_system&&) = default;
 render_system& render_system::operator=(render_system&&) = default;
 
-void render_system::add(std::shared_ptr<entity> e)
-{
-    scene_.emplace_back(e);
-
-    LOG_ENGINE_INFO("render_system", "adding entity");
-}
-
 void render_system::add(std::shared_ptr<sprite> s)
 {
-    scene_.emplace_back(s->renderable());
+    scene_.emplace_back(s);
 
-    LOG_ENGINE_INFO("render_system", "adding entity");
+    LOG_ENGINE_INFO("render_system", "adding sprite");
 }
 
 void render_system::render() const
@@ -197,41 +189,37 @@ void render_system::render() const
             [render_encoder setTriangleFillMode:MTLTriangleFillModeLines];
         }
 
+        // get vertex buffer handle
+        const auto &vertex_buffer_any = entity->render_mesh().vertex_buffer();
+        const auto vertex_buffer = std::any_cast<id<MTLBuffer>>(vertex_buffer_any.native_handle());
 
-        for(const auto &mesh : entity->meshes())
-        {
-            // get vertex buffer handle
-            const auto &vertex_buffer_any = mesh.vertex_buffer();
-            const auto vertex_buffer = std::any_cast<id<MTLBuffer>>(vertex_buffer_any.native_handle());
+        // get index buffer handle
+        const auto &index_buffer_any = entity->render_mesh().index_buffer();
+        const auto index_buffer = std::any_cast<id<MTLBuffer>>(index_buffer_any.native_handle());
 
-            // get index buffer handle
-            const auto &index_buffer_any = mesh.index_buffer();
-            const auto index_buffer = std::any_cast<id<MTLBuffer>>(index_buffer_any.native_handle());
+        // copy uniform data into a struct
+        const uniform uniform_data{
+            camera_->projection(),
+            camera_->view(),
+            entity->transform()
+        };
 
-            // copy uniform data into a struct
-            const uniform uniform_data{
-                camera_->projection(),
-                camera_->view(),
-                entity->transform()
-            };
+        // encode render commands
+        [render_encoder setRenderPipelineState:pipeline_state];
+        [render_encoder setVertexBuffer:vertex_buffer offset:0 atIndex:0];
+        [render_encoder setVertexBytes:static_cast<const void*>(&uniform_data) length:sizeof(uniform_data) atIndex:1];
+        [render_encoder setFragmentBytes:static_cast<const void*>(&light) length:sizeof(light) atIndex:0];
 
-            // encode render commands
-            [render_encoder setRenderPipelineState:pipeline_state];
-            [render_encoder setVertexBuffer:vertex_buffer offset:0 atIndex:0];
-            [render_encoder setVertexBytes:static_cast<const void*>(&uniform_data) length:sizeof(uniform_data) atIndex:1];
-            [render_encoder setFragmentBytes:static_cast<const void*>(&light) length:sizeof(light) atIndex:0];
+        const auto texture = std::any_cast<id<MTLTexture>>(entity->render_mesh().tex().native_handle());
+        [render_encoder setFragmentTexture:texture atIndex:0];
 
-            const auto texture = std::any_cast<id<MTLTexture>>(mesh.tex().native_handle());
-            [render_encoder setFragmentTexture:texture atIndex:0];
-
-            // draw command
-            [render_encoder
-                drawIndexedPrimitives:MTLPrimitiveTypeTriangle
-                indexCount:mesh.indices().size()
-                indexType:MTLIndexTypeUInt32
-                indexBuffer:index_buffer
-                indexBufferOffset:0];
-        }
+        // draw command
+        [render_encoder
+            drawIndexedPrimitives:MTLPrimitiveTypeTriangle
+            indexCount:entity->render_mesh().indices().size()
+            indexType:MTLIndexTypeUInt32
+            indexBuffer:index_buffer
+            indexBufferOffset:0];
     }
 
     // end frame
