@@ -1,4 +1,4 @@
-#include "gl/shader.hpp"
+#include "graphics/gl/shader.hpp"
 
 #include <cstdint>
 #include <string>
@@ -6,9 +6,9 @@
 #include <utility>
 #include <vector>
 
-#include "exception.hpp"
-#include "gl/opengl.hpp"
-#include "gl/shader_type.hpp"
+#include "core/exception.hpp"
+#include "graphics/gl/opengl.hpp"
+#include "graphics/gl/shader_type.hpp"
 
 namespace eng
 {

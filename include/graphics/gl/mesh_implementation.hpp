@@ -4,10 +4,10 @@
 #include <cstdint>
 #include <vector>
 
-#include "buffer.hpp"
-#include "gl/vertex_state.hpp"
-#include "vector3.hpp"
-#include "vertex_data.hpp"
+#include "core/vector3.hpp"
+#include "graphics/buffer.hpp"
+#include "graphics/gl/vertex_state.hpp"
+#include "graphics/vertex_data.hpp"
 
 namespace eng
 {

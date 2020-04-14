@@ -1,23 +1,11 @@
-#include "sprite.hpp"
+#include "graphics/sprite.hpp"
 
-#include <cstdint>
-#include <cstdio>
-#include <filesystem>
-#include <fstream>
-#include <map>
-#include <sstream>
-#include <string>
-#include <utility>
-#include <vector>
-
-#include "exception.hpp"
-#include "log.hpp"
-#include "material.hpp"
-#include "material_factory.hpp"
-#include "matrix4.hpp"
-#include "quaternion.hpp"
-#include "shape_factory.hpp"
-#include "vector3.hpp"
+#include "core/matrix4.hpp"
+#include "core/quaternion.hpp"
+#include "core/vector3.hpp"
+#include "graphics/material_factory.hpp"
+#include "graphics/shape_factory.hpp"
+#include "log/log.hpp"
 
 namespace eng
 {

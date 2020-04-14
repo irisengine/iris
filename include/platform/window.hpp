@@ -1,6 +1,6 @@
 #pragma once
 
-#include "event_dispatcher.hpp"
+#include "platform/event_dispatcher.hpp"
 
 namespace eng
 {

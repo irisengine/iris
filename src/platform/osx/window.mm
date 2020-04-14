@@ -1,15 +1,15 @@
-#include "window.hpp"
+#include "platform/window.hpp"
 
 #import <Appkit/Appkit.h>
 #import <Foundation/Foundation.h>
 #include <OpenGL/gl3.h>
 #include <OpenGL/gl3ext.h>
 
-#include "event_dispatcher.hpp"
-#include "exception.hpp"
-#include "keyboard_event.hpp"
-#include "log.hpp"
-#include "osx/AppDelegate.h"
+#include "core/exception.hpp"
+#include "log/log.hpp"
+#include "platform/event_dispatcher.hpp"
+#include "platform/keyboard_event.hpp"
+#include "platform/osx/AppDelegate.h"
 
 namespace
 {

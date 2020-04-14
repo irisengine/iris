@@ -1,4 +1,4 @@
-#import "osx/MetalView.h"
+#import "platform/osx/MetalView.h"
 
 @implementation MetalView
 {

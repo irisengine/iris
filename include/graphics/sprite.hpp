@@ -1,12 +1,11 @@
 #pragma once
 
-#include <filesystem>
 #include <vector>
 
-#include "material.hpp"
-#include "matrix4.hpp"
-#include "mesh.hpp"
-#include "quaternion.hpp"
+#include "core/matrix4.hpp"
+#include "core/quaternion.hpp"
+#include "graphics/material.hpp"
+#include "graphics/mesh.hpp"
 
 namespace eng
 {

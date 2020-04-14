@@ -8,9 +8,9 @@
 #include <string>
 #include <type_traits>
 
-#include "colour_formatter.hpp"
-#include "log_level.hpp"
-#include "stdout_outputter.hpp"
+#include "log/colour_formatter.hpp"
+#include "log/log_level.hpp"
+#include "log/stdout_outputter.hpp"
 
 namespace eng
 {

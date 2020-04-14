@@ -1,4 +1,4 @@
-#include "colour_formatter.hpp"
+#include "log/colour_formatter.hpp"
 
 #include <chrono>
 #include <filesystem>
@@ -7,7 +7,7 @@
 #include <sstream>
 #include <string>
 
-#include "log_level.hpp"
+#include "log/log_level.hpp"
 
 namespace eng
 {

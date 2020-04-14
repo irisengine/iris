@@ -1,9 +1,9 @@
-#include "quaternion.hpp"
+#include "core/quaternion.hpp"
 
 #include <cmath>
 #include <iostream>
 
-#include "vector3.hpp"
+#include "core/vector3.hpp"
 
 namespace eng
 {

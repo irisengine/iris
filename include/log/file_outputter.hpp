@@ -3,7 +3,7 @@
 #include <string>
 #include <fstream>
 
-#include "outputter.hpp"
+#include "log/outputter.hpp"
 
 namespace eng
 {

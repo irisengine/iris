@@ -1,8 +1,8 @@
-#include "event_dispatcher.hpp"
+#include "platform/event_dispatcher.hpp"
 
-#include "keyboard_event.hpp"
-#include "log.hpp"
-#include "mouse_event.hpp"
+#include "log/log.hpp"
+#include "platform/keyboard_event.hpp"
+#include "platform/mouse_event.hpp"
 
 namespace eng
 {

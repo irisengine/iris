@@ -2,7 +2,7 @@
 
 #include <string_view>
 
-#include "gl/shader_type.hpp"
+#include "graphics/gl/shader_type.hpp"
 
 namespace eng
 {

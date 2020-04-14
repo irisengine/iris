@@ -1,4 +1,4 @@
-#include "texture.hpp"
+#include "graphics/texture.hpp"
 
 #include <any>
 #include <cstdint>
@@ -6,10 +6,10 @@
 #include <memory>
 #include <vector>
 
-#include "exception.hpp"
-#include "gl/opengl.hpp"
-#include "log.hpp"
-#include "utility.hpp"
+#include "core/exception.hpp"
+#include "graphics/gl/opengl.hpp"
+#include "graphics/utility.hpp"
+#include "log/log.hpp"
 
 namespace
 {

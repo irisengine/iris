@@ -1,8 +1,8 @@
-#include "file_outputter.hpp"
+#include "log/file_outputter.hpp"
 
 #include <string>
 
-#include "exception.hpp"
+#include "core/exception.hpp"
 
 namespace eng
 {

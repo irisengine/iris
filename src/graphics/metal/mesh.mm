@@ -1,4 +1,4 @@
-#include "mesh.hpp"
+#include "graphics/mesh.hpp"
 
 #include <any>
 #include <cstdint>
@@ -6,12 +6,12 @@
 #include <utility>
 #include <vector>
 
-#include "buffer.hpp"
-#include "buffer_type.hpp"
-#include "matrix4.hpp"
-#include "quaternion.hpp"
-#include "vector3.hpp"
-#include "vertex_data.hpp"
+#include "core/matrix4.hpp"
+#include "core/quaternion.hpp"
+#include "core/vector3.hpp"
+#include "graphics/buffer.hpp"
+#include "graphics/buffer_type.hpp"
+#include "graphics/vertex_data.hpp"
 
 namespace eng
 {

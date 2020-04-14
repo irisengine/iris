@@ -1,4 +1,4 @@
-#import "osx/AppDelegate.h"
+#import "platform/osx/AppDelegate.h"
 
 #import <Appkit/Appkit.h>
 #import <CoreGraphics/CoreGraphics.h>
@@ -7,7 +7,7 @@
 #import <MetalKit/MetalKit.h>
 #import <QuartzCore/QuartzCore.h>
 
-#include "osx/MetalView.h"
+#include "platform/osx/MetalView.h"
 
 @implementation AppDelegate
 

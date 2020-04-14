@@ -1,10 +1,10 @@
-#include "matrix4.hpp"
+#include "core/matrix4.hpp"
 
 #include <cmath>
 #include <iostream>
 
-#include "quaternion.hpp"
-#include "vector3.hpp"
+#include "core/quaternion.hpp"
+#include "core/vector3.hpp"
 
 namespace eng
 {

@@ -1,4 +1,4 @@
-#import "osx/OpenGLView.h"
+#import "platform/osx/OpenGLView.h"
 
 @implementation OpenGLView
 {

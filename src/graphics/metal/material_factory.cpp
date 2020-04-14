@@ -1,8 +1,8 @@
-#include "material_factory.hpp"
+#include "graphics/material_factory.hpp"
 
 #include <memory>
 
-#include "material.hpp"
+#include "graphics/material.hpp"
 
 namespace
 {

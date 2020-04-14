@@ -1,4 +1,4 @@
-#include "matrix3.hpp"
+#include "core/matrix3.hpp"
 
 #include <array>
 #include <cmath>
@@ -6,8 +6,8 @@
 #include <iostream>
 #include <utility>
 
-#include "matrix4.hpp"
-#include "vector3.hpp"
+#include "core/matrix4.hpp"
+#include "core/vector3.hpp"
 
 namespace eng
 {

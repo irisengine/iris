@@ -1,4 +1,4 @@
-#include "font.hpp"
+#include "graphics/font.hpp"
 
 #include <cmath>
 #include <memory>
@@ -9,13 +9,13 @@
 #import <CoreGraphics/CoreGraphics.h>
 #import <CoreText/CoreText.h>
 
-#include "log.hpp"
-#include "exception.hpp"
-#include "material.hpp"
-#include "osx/cf_ptr.hpp"
-#include "shape_factory.hpp"
-#include "sprite.hpp"
-#include "texture.hpp"
+#include "core/exception.hpp"
+#include "graphics/material.hpp"
+#include "graphics/osx/cf_ptr.hpp"
+#include "graphics/shape_factory.hpp"
+#include "graphics/sprite.hpp"
+#include "graphics/texture.hpp"
+#include "log/log.hpp"
 
 namespace eng
 {

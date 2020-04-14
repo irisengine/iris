@@ -2,8 +2,8 @@
 
 #include <functional>
 
-#include "keyboard_event.hpp"
-#include "mouse_event.hpp"
+#include "platform/keyboard_event.hpp"
+#include "platform/mouse_event.hpp"
 
 namespace eng
 {

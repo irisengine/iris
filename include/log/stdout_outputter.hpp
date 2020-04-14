@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "outputter.hpp"
+#include "log/outputter.hpp"
 
 namespace eng
 {

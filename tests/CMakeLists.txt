@@ -24,6 +24,6 @@ IF(PLATFORM MATCHES "OSX")
 ENDIF()
 
 INCLUDE_DIRECTORIES(unit_tests SYSTEM third_party/googletest/googletest/include)
-INCLUDE_DIRECTORIES(unit_tests PUBLIC ${CMAKE_SOURCE_DIR}/include/platform)
+INCLUDE_DIRECTORIES(unit_tests PUBLIC ${CMAKE_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES(unit_tests PUBLIC ${CMAKE_SOURCE_DIR}/tests)
 

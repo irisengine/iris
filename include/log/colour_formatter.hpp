@@ -2,9 +2,9 @@
 
 #include <string>
 
-#include "basic_formatter.hpp"
-#include "formatter.hpp"
-#include "log_level.hpp"
+#include "log/basic_formatter.hpp"
+#include "log/formatter.hpp"
+#include "log/log_level.hpp"
 
 namespace eng
 {

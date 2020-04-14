@@ -1,4 +1,4 @@
-#include "material.hpp"
+#include "graphics/material.hpp"
 
 #include <any>
 #include <memory>
@@ -6,7 +6,7 @@
 
 #import <Metal/Metal.h>
 
-#include "exception.hpp"
+#include "core/exception.hpp"
 
 namespace
 {

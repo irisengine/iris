@@ -1,10 +1,10 @@
-#import "osx/AppDelegate.h"
+#import "platform/osx/AppDelegate.h"
 
 #import <Appkit/Appkit.h>
 #import <CoreGraphics/CoreGraphics.h>
 #import <Foundation/Foundation.h>
 
-#import "osx/OpenGLView.h"
+#import "platform/osx/OpenGLView.h"
 
 @implementation AppDelegate
 

@@ -1,14 +1,14 @@
-#include "buffer.hpp"
+#include "graphics/buffer.hpp"
 
 #include <any>
 #include <cstdint>
 #include <utility>
 #include <vector>
 
-#include "buffer_type.hpp"
-#include "exception.hpp"
-#include "gl/opengl.hpp"
-#include "vertex_data.hpp"
+#include "core/exception.hpp"
+#include "graphics/buffer_type.hpp"
+#include "graphics/gl/opengl.hpp"
+#include "graphics/vertex_data.hpp"
 
 namespace
 {
