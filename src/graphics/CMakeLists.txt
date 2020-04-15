@@ -1,8 +1,8 @@
-SET(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
-SET(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/graphics")
+set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
+set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/graphics")
 
-IF(GRAPHICS_API MATCHES "OPENGL")
-    SET(GRAPHICS_SRCS
+if(GRAPHICS_API MATCHES "OPENGL")
+    set(GRAPHICS_SRCS
         "${INCLUDE_ROOT}/gl/shader_type.hpp"
         "${SOURCE_ROOT}/gl/buffer.cpp"
         "${SOURCE_ROOT}/gl/material.cpp"
@@ -13,8 +13,8 @@ IF(GRAPHICS_API MATCHES "OPENGL")
         "${SOURCE_ROOT}/gl/shader.cpp" "${INCLUDE_ROOT}/gl/shader.hpp"
         "${SOURCE_ROOT}/gl/texture.cpp"
     )
-ELSEIF(GRAPHICS_API MATCHES "METAL")
-    SET(GRAPHICS_SRCS
+elseif(GRAPHICS_API MATCHES "METAL")
+    set(GRAPHICS_SRCS
         "${SOURCE_ROOT}/metal/buffer.mm"
         "${SOURCE_ROOT}/metal/material.mm"
         "${SOURCE_ROOT}/metal/material_factory.cpp"
@@ -22,16 +22,16 @@ ELSEIF(GRAPHICS_API MATCHES "METAL")
         "${SOURCE_ROOT}/metal/render_system.mm"
         "${SOURCE_ROOT}/metal/texture.mm"
     )
-ENDIF()
+endif()
 
-IF(PLATFORM MATCHES "OSX")
-    SET(PLATFORM_SRCS
+if(PLATFORM MATCHES "OSX")
+    set(PLATFORM_SRCS
         "${INCLUDE_ROOT}/osx/cf_ptr.hpp"
         "${SOURCE_ROOT}/osx/font.mm"
     )
-ENDIF()
+endif()
 
-SET(GRAPHICS_SRCS
+set(GRAPHICS_SRCS
     ${GRAPHICS_SRCS}
     ${PLATFORM_SRCS}
     "${INCLUDE_ROOT}/buffer.hpp"

@@ -1,10 +1,10 @@
-ADD_SUBDIRECTORY("core")
-ADD_SUBDIRECTORY("graphics")
-ADD_SUBDIRECTORY("log")
-ADD_SUBDIRECTORY("platform")
+add_subdirectory("core")
+add_subdirectory("graphics")
+add_subdirectory("log")
+add_subdirectory("platform")
 
-ADD_LIBRARY(iris STATIC ${CORE_SRCS} ${GRAPHICS_SRCS} ${LOG_SRCS} ${PHYSICS_SRCS} ${PLATFORM_SRCS} ${SCRIPT_SRCS})
+add_library(iris STATIC ${CORE_SRCS} ${GRAPHICS_SRCS} ${LOG_SRCS} ${PHYSICS_SRCS} ${PLATFORM_SRCS} ${SCRIPT_SRCS})
 
-TARGET_INCLUDE_DIRECTORIES(iris PUBLIC "${CMAKE_SOURCE_DIR}/include")
+target_include_directories(iris PUBLIC "${CMAKE_SOURCE_DIR}/include")
 
-TARGET_INCLUDE_DIRECTORIES(iris PRIVATE "${CMAKE_SOURCE_DIR}/third_party")
+target_include_directories(iris PRIVATE "${CMAKE_SOURCE_DIR}/third_party")
