@@ -21,13 +21,9 @@ struct render_system::implementation
 {
 };
 
-
-render_system::render_system(
-            std::shared_ptr<camera> cam,
-            std::shared_ptr<window> win)
+render_system::render_system()
     : scene_(),
-      camera_(cam),
-      window_(win),
+      camera_(),
       light_position(),
       impl_(nullptr)
 {
@@ -59,8 +55,6 @@ void render_system::add(std::shared_ptr<sprite> s)
 
 void render_system::render() const
 {
-    window_->pre_render();
-
     // clear current target
     ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -82,13 +76,13 @@ void render_system::render() const
         const auto proj_uniform = ::glGetUniformLocation(program, "projection");
         check_opengl_error("could not get projection uniform location");
 
-        ::glUniformMatrix4fv(proj_uniform, 1, GL_FALSE, camera_->projection().data());
+        ::glUniformMatrix4fv(proj_uniform, 1, GL_FALSE, camera_.projection().data());
         check_opengl_error("could not set projection matrix uniform data");
 
         const auto view_uniform = ::glGetUniformLocation(program, "view");
         check_opengl_error("could not get view uniform location");
 
-        ::glUniformMatrix4fv(view_uniform, 1, GL_FALSE, camera_->view().data());
+        ::glUniformMatrix4fv(view_uniform, 1, GL_FALSE, camera_.view().data());
         check_opengl_error("could not set view matrix uniform data");
 
         const auto light_uniform = ::glGetUniformLocation(program, "light");
@@ -136,8 +130,6 @@ void render_system::render() const
         ::glUseProgram(0u);
         check_opengl_error("could not unbind program");
     }
-
-    window_->post_render();
 }
 
 void render_system::set_light_position(const vector3 &position)

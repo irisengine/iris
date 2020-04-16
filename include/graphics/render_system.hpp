@@ -6,7 +6,6 @@
 #include "core/camera.hpp"
 #include "graphics/material.hpp"
 #include "graphics/sprite.hpp"
-#include "platform/window.hpp"
 
 namespace eng
 {
@@ -19,17 +18,9 @@ class render_system
     public:
 
         /**
-         * Create a new opengl rendering system.
-         *
-         * @param cam
-         *   Camera to render scene through.
-         *
-         * @param win
-         *   Rendering window.
+         * Create a new rendering system.
          */
-        render_system(
-            std::shared_ptr<camera> cam,
-            std::shared_ptr<window> win);
+        render_system();
 
         /** Declared in mm/cpp file as implementation is an incomplete file. */
         ~render_system();
@@ -63,10 +54,7 @@ class render_system
         std::vector<std::shared_ptr<sprite>> scene_;
 
         /** Camera to render scene through */
-        std::shared_ptr<camera> camera_;
-
-        /** Rendering window. */
-        std::shared_ptr<window> window_;
+        camera camera_;
 
         /** Light position. */
         vector3 light_position;

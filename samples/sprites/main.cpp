@@ -20,9 +20,7 @@ int main()
         [](const auto&) { },
     };
 
-    auto rs = std::make_shared<eng::render_system>(
-        std::make_shared<eng::camera>(),
-        std::make_shared<eng::window>(dispatcher, 800, 600));
+    eng::window w{ dispatcher, 800, 600 };
 
     auto sprite1 = std::make_shared<eng::sprite>(
         -0.5f,
@@ -38,8 +36,8 @@ int main()
         0.4f,
         eng::vector3{ 0.86f, 0.08f, 0.23f });
 
-    rs->add(sprite1);
-    rs->add(sprite2);
+    w.add(sprite1);
+    w.add(sprite2);
 
     eng::quaternion rot{ { 0.0f, 0.0f, 1.0f }, 0.0f };
     eng::quaternion delta{ { 0.0f, 0.0f, 1.0f }, 0.02f };
@@ -49,7 +47,7 @@ int main()
         sprite1->set_orientation(rot);
         sprite2->set_orientation(rot);
         rot *= delta;
-        rs->render();
+        w.render();
 
     }
     LOG_ERROR("window_sample", "goodbye!");

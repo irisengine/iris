@@ -1,11 +1,15 @@
 #include "platform/window.hpp"
 
+#include <memory>
+
 #import <Appkit/Appkit.h>
 #import <Foundation/Foundation.h>
 #include <OpenGL/gl3.h>
 #include <OpenGL/gl3ext.h>
 
 #include "core/exception.hpp"
+#include "graphics/render_system.hpp"
+#include "graphics/sprite.hpp"
 #include "log/log.hpp"
 #include "platform/event_dispatcher.hpp"
 #include "platform/keyboard_event.hpp"
@@ -202,6 +206,7 @@ window::window(
     const float width,
     const float height)
     : dispatcher_(dispatcher),
+      render_system_(),
       width_(width),
       height_(height)
 {
@@ -229,13 +234,14 @@ window::window(
     // activate the app
     [app finishLaunching];
 
-
     [NSCursor hide];
+
+    render_system_ = std::make_unique<render_system>();
 
     LOG_ENGINE_INFO("window", "osx window created");
 }
 
-void window::pre_render() const
+void window::render() const
 {
     NSEvent *event = nil;
 
@@ -270,13 +276,17 @@ void window::pre_render() const
         }
 
     } while(event != nil);
-}
 
-void window::post_render() const
-{
+    render_system_->render();
+
 #if defined(GRAPHICS_API_OPENGL) and defined(PLATFORM_OSX)
     ::glSwapAPPLE();
 #endif
+}
+
+void window::add(std::shared_ptr<sprite> s)
+{
+    render_system_->add(s);
 }
 
 float window::width() const

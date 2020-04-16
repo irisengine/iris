@@ -1,12 +1,16 @@
 #pragma once
 
+#include <memory>
+
+#include "graphics/render_system.hpp"
+#include "graphics/sprite.hpp"
 #include "platform/event_dispatcher.hpp"
 
 namespace eng
 {
 
 /**
- * Class representing a native OpenGl window.
+ * Class representing a native window.
  */
 class window
 {
@@ -34,14 +38,17 @@ class window
         window& operator=(const window&) = delete;
 
         /**
-         * Perform any actions required before rendering.
+         * Render the current scene.
          */
-        void pre_render() const;
+        void render() const;
 
         /**
-         * Perform any actions required after rendering.
+         * Add a sprite to the scene.
+         *
+         * @param s
+         *   Sprite to add.
          */
-        void post_render() const;
+        void add(std::shared_ptr<sprite> s);
 
         /**
          * Get the width of the window.
@@ -61,8 +68,11 @@ class window
 
     private:
 
-        /** Referecne to an input dispatcher */
+        /** Reference to an input dispatcher. */
         event_dispatcher &dispatcher_;
+
+        /** Render system for window. */
+        std::unique_ptr<render_system> render_system_;
 
         /** Window width. */
         float width_;

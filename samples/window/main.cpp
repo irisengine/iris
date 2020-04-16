@@ -19,8 +19,7 @@ int main()
 
     while(running)
     {
-        w.pre_render();
-        w.post_render();
+        w.render();
     }
     LOG_ERROR("window_sample", "goodbye!");
 

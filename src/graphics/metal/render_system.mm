@@ -56,12 +56,9 @@ struct render_system::implementation
     id<MTLDepthStencilState> depth_stencil_state;
 };
 
-render_system::render_system(
-            std::shared_ptr<camera> cam,
-            std::shared_ptr<window> win)
+render_system::render_system()
     : scene_(),
-      camera_(cam),
-      window_(win),
+      camera_(),
       light_position(),
       impl_(nullptr)
 {
@@ -144,8 +141,6 @@ void render_system::add(std::shared_ptr<sprite> s)
 
 void render_system::render() const
 {
-    window_->pre_render();
-
     const auto drawable = [impl_->layer nextDrawable];
 
     // using an autoreleasepool allows us to release the drawable object as soon
@@ -199,8 +194,8 @@ void render_system::render() const
 
         // copy uniform data into a struct
         const uniform uniform_data{
-            camera_->projection(),
-            camera_->view(),
+            camera_.projection(),
+            camera_.view(),
             entity->transform()
         };
 
@@ -228,8 +223,6 @@ void render_system::render() const
     [command_buffer commit];
 
     }
-
-    window_->post_render();
 }
 
 void render_system::set_light_position(const vector3 &position)
