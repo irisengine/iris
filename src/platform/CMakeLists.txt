@@ -29,7 +29,6 @@ set(PLATFORM_SRCS
     "${INCLUDE_ROOT}/mouse_event.hpp"
     "${INCLUDE_ROOT}/window.hpp"
     "${SOURCE_ROOT}/event.cpp" "${INCLUDE_ROOT}/event.hpp"
-    "${SOURCE_ROOT}/event_dispatcher.cpp" "${INCLUDE_ROOT}/event_dispatcher.hpp"
 
     PARENT_SCOPE
 )
