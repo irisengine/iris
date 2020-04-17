@@ -1,26 +1,19 @@
 #include <iostream>
 #include <memory>
 
-#include "log/log.hpp"
-#include "platform/event_dispatcher.hpp"
-#include "platform/window.hpp"
-#include "graphics/sprite.hpp"
 #include "core/camera.hpp"
-#include "graphics/render_system.hpp"
 #include "core/quaternion.hpp"
+#include "graphics/render_system.hpp"
+#include "graphics/sprite.hpp"
+#include "log/log.hpp"
+#include "platform/event.hpp"
+#include "platform/window.hpp"
 
 int main()
 {
-    LOG_DEBUG("window_sample", "hello world");
+    LOG_DEBUG("sprite_sample", "hello world");
 
-    bool running = true;
-
-    eng::event_dispatcher dispatcher{
-        [&running](const auto &event){ if(event.key == eng::key::Q) running = false; },
-        [](const auto&) { },
-    };
-
-    eng::window w{ dispatcher, 800, 600 };
+    eng::window w{ 800, 600 };
 
     auto sprite1 = std::make_shared<eng::sprite>(
         -0.5f,
@@ -42,15 +35,23 @@ int main()
     eng::quaternion rot{ { 0.0f, 0.0f, 1.0f }, 0.0f };
     eng::quaternion delta{ { 0.0f, 0.0f, 1.0f }, 0.02f };
 
-    while(running)
+    for(;;)
     {
+        if(auto evt = w.pump_event() ; evt)
+        {
+            if(evt->is_key(eng::key::Q))
+            {
+                break;
+            }
+        }
+
         sprite1->set_orientation(rot);
         sprite2->set_orientation(rot);
         rot *= delta;
         w.render();
 
     }
-    LOG_ERROR("window_sample", "goodbye!");
+    LOG_ERROR("sprite_sample", "goodbye!");
 
     return 0;
 }

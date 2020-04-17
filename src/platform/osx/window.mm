@@ -11,7 +11,6 @@
 #include "graphics/render_system.hpp"
 #include "graphics/sprite.hpp"
 #include "log/log.hpp"
-#include "platform/event_dispatcher.hpp"
 #include "platform/keyboard_event.hpp"
 #include "platform/osx/AppDelegate.h"
 
@@ -154,13 +153,15 @@ eng::key osx_key_to_engine_key(const std::uint16_t key_code)
 /**
  * Helper method to handle and dispatch native keyboard events.
  *
- * @param dispatcher
- *   event_dispatcher to dispatch events to.
+ * @param events
+ *   Queue of events to add to.
  *
  * @param event
  *   Native event object.
  */
-void handle_keyboard_event(eng::event_dispatcher &dispatcher, NSEvent *event)
+void handle_keyboard_event(
+    std::queue<eng::event> &events,
+    NSEvent *event)
 {
     // extract the key code from the event
     const std::uint16_t key_code = [event keyCode];
@@ -172,19 +173,22 @@ void handle_keyboard_event(eng::event_dispatcher &dispatcher, NSEvent *event)
 
     // convert key code and dispatch
     const auto key = osx_key_to_engine_key(key_code);
-    dispatcher.dispatch(eng::keyboard_event{ key, type });
+
+    events.emplace(eng::keyboard_event{ key, type });
 }
 
 /**
  * Helper method to handle and dispatch native mouse events.
  *
- * @param dispatcher
- *   event_dispatcher to dispatch events to.
+ * @param events
+ *   Queue of events to add to.
  *
  * @param event
  *   Native event object.
  */
-void handle_mouse_event(eng::event_dispatcher &dispatcher, NSEvent *event)
+void handle_mouse_event(
+    std::queue<eng::event> &events,
+    NSEvent *event)
 {
     // get mouse delta
     std::int32_t dx = 0;
@@ -192,8 +196,51 @@ void handle_mouse_event(eng::event_dispatcher &dispatcher, NSEvent *event)
     ::CGGetLastMouseDelta(&dx, &dy);
 
     // convert and dispatch
-    eng::mouse_event eng_event{ static_cast<float>(dx), static_cast<float>(dy) };
-    dispatcher.dispatch(eng_event);
+    events.emplace(
+        eng::mouse_event{ static_cast<float>(dx), static_cast<float>(dy) });
+}
+
+/**
+ * Pump all pending input events and dispatch to engine queue.
+ *
+ * @param events
+ *   Queue of events to add to.
+ */
+void pump_events(std::queue<eng::event> &events)
+{
+    NSEvent *event = nil;
+
+    do
+    {
+        // flush next event
+        event = [NSApp
+            nextEventMatchingMask:NSEventMaskAny
+            untilDate:[NSDate distantPast]
+            inMode:NSDefaultRunLoopMode
+            dequeue:YES];
+
+        if(event != nil)
+        {
+            // handle native event
+            switch([event type])
+            {
+                case NSEventTypeKeyDown: [[fallthrough]];
+                case NSEventTypeKeyUp:
+                    handle_keyboard_event(events, event);
+                    break;
+                case NSEventTypeMouseMoved:
+                    handle_mouse_event(events, event);
+                    break;
+                default:
+                    break;
+            }
+
+            // dispatch the event to other objects, this stops us swallowing
+            // all events and preventing anything else from receiving them
+            [NSApp sendEvent:event];
+        }
+
+    } while(event != nil);
 }
 
 }
@@ -202,11 +249,9 @@ namespace eng
 {
 
 window::window(
-    event_dispatcher &dispatcher,
     const float width,
     const float height)
-    : dispatcher_(dispatcher),
-      render_system_(),
+    : render_system_(),
       width_(width),
       height_(height)
 {
@@ -241,41 +286,9 @@ window::window(
     LOG_ENGINE_INFO("window", "osx window created");
 }
 
-void window::render() const
+void window::render()
 {
-    NSEvent *event = nil;
-
-    do
-    {
-        // flush next event
-        event = [NSApp
-            nextEventMatchingMask:NSEventMaskAny
-            untilDate:[NSDate distantPast]
-            inMode:NSDefaultRunLoopMode
-            dequeue:YES];
-
-        if(event != nil)
-        {
-            // handle native event
-            switch([event type])
-            {
-                case NSEventTypeKeyDown: [[fallthrough]];
-                case NSEventTypeKeyUp:
-                    handle_keyboard_event(dispatcher_, event);
-                    break;
-                case NSEventTypeMouseMoved:
-                    handle_mouse_event(dispatcher_, event);
-                    break;
-                default:
-                    break;
-            }
-
-            // dispatch the event to other objects, this stops us swallowing
-            // all events and preventing anything else from receiving them
-            [NSApp sendEvent:event];
-        }
-
-    } while(event != nil);
+    pump_events(events_);
 
     render_system_->render();
 
@@ -287,6 +300,19 @@ void window::render() const
 void window::add(std::shared_ptr<sprite> s)
 {
     render_system_->add(s);
+}
+
+std::optional<event> window::pump_event()
+{
+    std::optional<event> evt{ };
+
+    if(!events_.empty())
+    {
+        evt.emplace(events_.front());
+        events_.pop();
+    }
+
+    return evt;
 }
 
 float window::width() const

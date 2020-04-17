@@ -1,10 +1,12 @@
 #pragma once
 
 #include <memory>
+#include <optional>
+#include <queue>
 
 #include "graphics/render_system.hpp"
 #include "graphics/sprite.hpp"
-#include "platform/event_dispatcher.hpp"
+#include "platform/event.hpp"
 
 namespace eng
 {
@@ -19,9 +21,6 @@ class window
         /**
          * Create and display a new native window.
          *
-         * @param dispatcher
-         *   An object used for dispatching input event.
-         *
          * @param width
          *   Width of the window.
          *
@@ -29,7 +28,6 @@ class window
          *   Height of the window.
          */
         window(
-            event_dispatcher &dispatcher,
             const float with,
             const float height);
 
@@ -40,7 +38,7 @@ class window
         /**
          * Render the current scene.
          */
-        void render() const;
+        void render();
 
         /**
          * Add a sprite to the scene.
@@ -49,6 +47,15 @@ class window
          *   Sprite to add.
          */
         void add(std::shared_ptr<sprite> s);
+
+        /**
+         * Pump the next user input event. Result will be empty if there are no
+         * new events.
+         *
+         * @returns
+         *   Optional event.
+         */
+        std::optional<event> pump_event();
 
         /**
          * Get the width of the window.
@@ -68,11 +75,11 @@ class window
 
     private:
 
-        /** Reference to an input dispatcher. */
-        event_dispatcher &dispatcher_;
-
         /** Render system for window. */
         std::unique_ptr<render_system> render_system_;
+        
+        /** Queue of input events. */
+        std::queue<event> events_;
 
         /** Window width. */
         float width_;
