@@ -124,10 +124,10 @@ font::~font() = default;
 font::font(font&&) = default;
 font& font::operator=(font&&) = default;
 
-std::shared_ptr<sprite> font::sprites(
+std::unique_ptr<sprite> font::sprites(
     const std::string &text,
     const float x,
-    const float y)
+    const float y) const
 {
     LOG_DEBUG("font", "creating sprites for string: {}", text);
 
@@ -182,9 +182,6 @@ std::shared_ptr<sprite> font::sprites(
     const auto width = static_cast<std::uint32_t>(rect.width) * 2u;
     const auto height = static_cast<std::uint32_t>(rect.height) * 2u;
 
-    LOG_DEBUG("font", "w {} h {}", rect.width, rect.height);
-    LOG_DEBUG("font", "w {} h {}", width, height);
-
     // allocate enough space to store RGBA tuples for each pixel
     std::vector<std::uint8_t> pixel_data(width * height * 4);
 
@@ -210,6 +207,7 @@ std::shared_ptr<sprite> font::sprites(
 
     auto *window = [[NSApp windows] firstObject];
     const auto scale = [[window screen] backingScaleFactor];
+    const auto window_frame = [window frame];
 
     // ensure letters are rotated correct way and scaled for screen
     ::CGContextTranslateCTM(context.get(), 0.0f, rect.height * scale);
@@ -223,7 +221,13 @@ std::shared_ptr<sprite> font::sprites(
     texture tex{ pixel_data, width, height, 4u };
 
     // create a sprite to render the texture
-    return nullptr;
+    return std::make_unique<sprite>(
+        x,
+        y,
+        (width / window_frame.size.width),
+        (height / window_frame.size.height),
+        colour_,
+        std::move(tex));
 }
 
 }

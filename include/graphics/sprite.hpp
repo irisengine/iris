@@ -68,11 +68,11 @@ class sprite
          * @param height
          *   Height of sprite.
          *
-         * @param tex
-         *   Texture of sprite.
-         *
          * @param colour
          *   Colour of sprite.
+         *
+         * @param tex
+         *   Texture of sprite.
          */
         sprite(
             const float x,

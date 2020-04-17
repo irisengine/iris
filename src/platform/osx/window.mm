@@ -8,6 +8,7 @@
 #include <OpenGL/gl3ext.h>
 
 #include "core/exception.hpp"
+#include "graphics/font.hpp"
 #include "graphics/render_system.hpp"
 #include "graphics/sprite.hpp"
 #include "log/log.hpp"
@@ -316,6 +317,18 @@ sprite* window::create(
     texture &&tex)
 {
     return render_system_->create(x, y, width, height, colour, std::move(tex));
+}
+
+sprite* window::create(
+    const std::string &font_name,
+    const std::uint32_t size,
+    const vector3 &colour,
+    const std::string &text,
+    const float x,
+    const float y)
+{
+    const font fnt{ font_name, size, colour };
+    return render_system_->add(fnt.sprites(text, x, y));
 }
 
 std::optional<event> window::pump_event()

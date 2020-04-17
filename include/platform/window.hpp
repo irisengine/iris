@@ -103,6 +103,42 @@ class window
             texture &&tex);
 
         /**
+         * Create a sprite which renders text in the supplied font, size and
+         * colour. The lifetime of this pointer is automatically managed by the
+         * engine. *DO NOT* delete/free it.
+         *
+         * @param font_name
+         *   The name of a font to load. This is located and loaded in a
+         *   platform specific way, so the font must exist for the current
+         *   platform.
+         *
+         * @param size
+         *   The font size.
+         *
+         * @param colour
+         *   The colour of the font.
+         *
+         * @param text
+         *   Text to render.
+         *
+         * @param x
+         *   x coordinate of centre of rendered text.
+         *
+         * @param y
+         *   y coordinate of centre of rendered text.
+         *
+         *  @returns
+         *    A pointer to the newly created sprite.
+         */
+        sprite* create(
+            const std::string &font_name,
+            const std::uint32_t size,
+            const vector3 &colour,
+            const std::string &text,
+            const float x,
+            const float y);
+
+        /**
          * Pump the next user input event. Result will be empty if there are no
          * new events.
          *

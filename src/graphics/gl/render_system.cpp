@@ -125,6 +125,12 @@ void render_system::render() const
     }
 }
 
+sprite* render_system::add(std::unique_ptr<sprite> s)
+{
+    scene_.emplace_back(std::move(s));
+    return scene_.back().get();
+}
+
 void render_system::set_light_position(const vector3 &position)
 {
     light_position = position;

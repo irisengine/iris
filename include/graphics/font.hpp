@@ -56,10 +56,10 @@ class font
          * @param y
          *   y coordinate of centre of rendered text.
          */
-        std::shared_ptr<sprite> sprites(
+        std::unique_ptr<sprite> sprites(
             const std::string &text,
             const float x,
-            const float y);
+            const float y) const;
 
     private:
 

@@ -46,6 +46,17 @@ class render_system
         }
 
         /**
+         * Add a sprite to the scene.
+         *
+         * @param s
+         *   Sprite to render.
+         *
+         * @returns
+         *   Pointer to the added sprite.
+         */
+        sprite* add(std::unique_ptr<sprite> s);
+
+        /**
          * Render the current scene.
          */
         void render() const;
