@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <string>
-#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -13,7 +12,7 @@
 namespace eng
 {
 
-shader::shader(std::string_view source, shader_type type)
+shader::shader(const std::string &source, shader_type type)
     : shader_(0u)
 {
     const auto native_type = (type == shader_type::VERTEX)

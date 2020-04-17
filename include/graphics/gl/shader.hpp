@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string_view>
+#include <string>
 
 #include "graphics/gl/shader_type.hpp"
 
@@ -23,7 +23,7 @@ class shader
          * @param type
          *   The type of shader.
          */
-        shader(std::string_view source, shader_type type);
+        shader(const std::string &source, shader_type type);
 
         /**
          * Destructor, performs opengl cleanup.
