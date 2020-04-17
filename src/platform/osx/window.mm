@@ -297,9 +297,14 @@ void window::render()
 #endif
 }
 
-void window::add(std::shared_ptr<sprite> s)
+sprite* window::create(
+    const float x,
+    const float y,
+    const float width,
+    const float height,
+    const vector3 &colour)
 {
-    render_system_->add(s);
+    return render_system_->create(x, y, width, height, colour);
 }
 
 std::optional<event> window::pump_event()

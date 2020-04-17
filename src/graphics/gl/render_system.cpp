@@ -46,13 +46,6 @@ render_system::~render_system() = default;
 render_system::render_system(render_system&&) = default;
 render_system& render_system::operator=(render_system&&) = default;
 
-void render_system::add(std::shared_ptr<sprite> s)
-{
-    scene_.emplace_back(s);
-
-    LOG_ENGINE_INFO("render_system", "adding sprite");
-}
-
 void render_system::render() const
 {
     // clear current target

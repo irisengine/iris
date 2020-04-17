@@ -15,22 +15,19 @@ int main()
 
     eng::window w{ 800, 600 };
 
-    auto sprite1 = std::make_shared<eng::sprite>(
+    auto *sprite1 = w.create(
         -0.5f,
         0.0f,
         0.4f,
         0.4f,
         eng::vector3{ 0.39f, 0.58f, 0.92f });
 
-    auto sprite2 = std::make_shared<eng::sprite>(
+    auto *sprite2 = w.create(
         0.5f,
         0.0f,
         0.4f,
         0.4f,
         eng::vector3{ 0.86f, 0.08f, 0.23f });
-
-    w.add(sprite1);
-    w.add(sprite2);
 
     eng::quaternion rot{ { 0.0f, 0.0f, 1.0f }, 0.0f };
     eng::quaternion delta{ { 0.0f, 0.0f, 1.0f }, 0.02f };

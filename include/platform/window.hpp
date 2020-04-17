@@ -41,12 +41,33 @@ class window
         void render();
 
         /**
-         * Add a sprite to the scene.
+         * Create a solid colour sprite. The lifetime of this pointer is
+         * automatically managed by the engine. *DO NOT* delete/free it.
          *
-         * @param s
-         *   Sprite to add.
+         * @param x
+         *   Screen x coordinate of centre of sprite.
+         *
+         * @param y
+         *   Screen y coordinate of centre of sprite.
+         *
+         * @param width
+         *   Width of sprite.
+         *
+         * @param height
+         *   Height of sprite.
+         *
+         * @param colour
+         *   Colour of sprite.
+         *
+         *  @returns
+         *    A pointer to the newly created sprite.
          */
-        void add(std::shared_ptr<sprite> s);
+        sprite* create(
+            const float x,
+            const float y,
+            const float width,
+            const float height,
+            const vector3 &colour);
 
         /**
          * Pump the next user input event. Result will be empty if there are no

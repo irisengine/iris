@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "core/camera.hpp"
+#include "core/vector3.hpp"
 #include "graphics/material.hpp"
 #include "graphics/sprite.hpp"
 
@@ -28,12 +29,21 @@ class render_system
         render_system& operator=(render_system&&);
 
         /**
-         * Add a sprite to the scene.
+         * Create a sprite and add it to the scene. Uses perfect forwarding to
+         * pass along all arguments.
          *
-         * @param s
-         *   Sprite to add.
+         * @param args
+         *   Arguments for sprite.
+         *
+         * @returns
+         *    A pointer to the newly created sprite.
          */
-        void add(std::shared_ptr<sprite> s);
+        template<class ...Args>
+        sprite* create(Args &&...args)
+        {
+            scene_.emplace_back(std::make_unique<sprite>(std::forward<Args>(args)...));
+            return scene_.back().get();
+        }
 
         /**
          * Render the current scene.
@@ -51,7 +61,7 @@ class render_system
     private:
 
         /** Collection of entities in a scene to render. */
-        std::vector<std::shared_ptr<sprite>> scene_;
+        std::vector<std::unique_ptr<sprite>> scene_;
 
         /** Camera to render scene through */
         camera camera_;
