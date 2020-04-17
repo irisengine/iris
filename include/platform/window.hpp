@@ -70,6 +70,39 @@ class window
             const vector3 &colour);
 
         /**
+         * Create a textured sprite. The lifetime of this pointer is
+         * automatically managed by the engine. *DO NOT* delete/free it.
+         *
+         * @param x
+         *   Screen x coordinate of centre of sprite.
+         *
+         * @param y
+         *   Screen y coordinate of centre of sprite.
+         *
+         * @param width
+         *   Width of sprite.
+         *
+         * @param height
+         *   Height of sprite.
+         *
+         * @param colour
+         *   Colour of sprite.
+         *
+         * @param tex
+         *   Texture of sprite.
+         *
+         *  @returns
+         *    A pointer to the newly created sprite.
+         */
+        sprite* create(
+            const float x,
+            const float y,
+            const float width,
+            const float height,
+            const vector3 &colour,
+            texture &&tex);
+
+        /**
          * Pump the next user input event. Result will be empty if there are no
          * new events.
          *

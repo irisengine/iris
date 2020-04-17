@@ -16,7 +16,17 @@ sprite::sprite(
     const float width,
     const float height,
     const vector3 &colour)
-    : mesh_(shape_factory::make_sprite(colour, texture::blank())),
+    : sprite(x, y, width, height, colour, texture::blank())
+{ }
+
+sprite::sprite(
+    const float x,
+    const float y,
+    const float width,
+    const float height,
+    const vector3 &colour,
+    texture &&tex)
+    : mesh_(shape_factory::make_sprite(colour, std::move(tex))),
       position_(x, y, 0.0f),
       orientation_(),
       scale_(width, height, 1.0f),
@@ -24,7 +34,9 @@ sprite::sprite(
       material_(material_factory::basic_sprite()),
       wireframe_(false)
 {
-    LOG_ENGINE_INFO("entity", "constructed at: {}", position_);
+    model_ = matrix4::make_translate(position_) * matrix4(orientation_) * matrix4::make_scale(scale_);
+
+    LOG_ENGINE_INFO("entity", "constructed at: {} {}", position_, scale_);
 }
 
 void sprite::set_position(const vector3 &position)

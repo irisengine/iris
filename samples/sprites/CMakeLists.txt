@@ -6,6 +6,8 @@ add_executable(sprites ${SAMPLE_SRCS})
 target_include_directories(sprites PUBLIC "${CMAKE_SOURCE_DIR}/include")
 target_link_libraries(sprites iris)
 
+file(COPY "circle.png" DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+
 IF(PLATFORM MATCHES "OSX")
     # osx specific linking
     TARGET_LINK_LIBRARIES(sprites "-framework AppKit")

@@ -307,6 +307,17 @@ sprite* window::create(
     return render_system_->create(x, y, width, height, colour);
 }
 
+sprite* window::create(
+    const float x,
+    const float y,
+    const float width,
+    const float height,
+    const vector3 &colour,
+    texture &&tex)
+{
+    return render_system_->create(x, y, width, height, colour, std::move(tex));
+}
+
 std::optional<event> window::pump_event()
 {
     std::optional<event> evt{ };

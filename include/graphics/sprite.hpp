@@ -6,6 +6,7 @@
 #include "core/quaternion.hpp"
 #include "graphics/material.hpp"
 #include "graphics/mesh.hpp"
+#include "graphics/texture.hpp"
 
 namespace eng
 {
@@ -52,6 +53,34 @@ class sprite
             const float height,
             const vector3 &colour);
 
+        /**
+         * Create a textures sprite.
+         *
+         * @param x
+         *   Screen x coordinate of centre of sprite.
+         *
+         * @param y
+         *   Screen y coordinate of centre of sprite.
+         *
+         * @param width
+         *   Width of sprite.
+         *
+         * @param height
+         *   Height of sprite.
+         *
+         * @param tex
+         *   Texture of sprite.
+         *
+         * @param colour
+         *   Colour of sprite.
+         */
+        sprite(
+            const float x,
+            const float y,
+            const float width,
+            const float height,
+            const vector3 &colour,
+            texture &&tex);
 
         /** Disabled */
         sprite(const sprite&) = delete;
