@@ -131,7 +131,7 @@ class sprite
         matrix4 model_;
 
         /** Material to render with. */
-        std::shared_ptr<material> material_;
+        material* material_;
 
         /** Whether the object should be rendered as a wireframe. */
         bool wireframe_;
