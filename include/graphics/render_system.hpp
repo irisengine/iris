@@ -14,22 +14,22 @@ namespace eng
 /**
  * Class for rendering scenes.
  */
-class render_system
+class RenderSystem
 {
     public:
 
         /**
          * Create a new rendering system.
          */
-        render_system();
+        RenderSystem();
 
         /** Declared in mm/cpp file as implementation is an incomplete file. */
-        ~render_system();
-        render_system(render_system&&);
-        render_system& operator=(render_system&&);
+        ~RenderSystem();
+        RenderSystem(RenderSystem&&);
+        RenderSystem& operator=(RenderSystem&&);
 
         /**
-         * Create a sprite and add it to the scene. Uses perfect forwarding to
+         * Create a Sprite and add it to the scene. Uses perfect forwarding to
          * pass along all arguments.
          *
          * @param args
@@ -39,22 +39,22 @@ class render_system
          *    A pointer to the newly created sprite.
          */
         template<class ...Args>
-        sprite* create(Args &&...args)
+        Sprite* create(Args &&...args)
         {
-            scene_.emplace_back(std::make_unique<sprite>(std::forward<Args>(args)...));
+            scene_.emplace_back(std::make_unique<Sprite>(std::forward<Args>(args)...));
             return scene_.back().get();
         }
 
         /**
-         * Add a sprite to the scene.
+         * Add a Sprite to the scene.
          *
-         * @param s
+         * @param sprite
          *   Sprite to render.
          *
          * @returns
          *   Pointer to the added sprite.
          */
-        sprite* add(std::unique_ptr<sprite> s);
+        Sprite* add(std::unique_ptr<Sprite> sprite);
 
         /**
          * Render the current scene.
@@ -67,18 +67,18 @@ class render_system
          * @param position.
          *   New position of light in world space.
          */
-        void set_light_position(const vector3 &position);
+        void set_light_position(const Vector3 &position);
 
     private:
 
         /** Collection of entities in a scene to render. */
-        std::vector<std::unique_ptr<sprite>> scene_;
+        std::vector<std::unique_ptr<Sprite>> scene_;
 
         /** Camera to render scene through */
-        camera camera_;
+        Camera camera_;
 
         /** Light position. */
-        vector3 light_position;
+        Vector3 light_position;
 
         /** Pointer to implementation. */
         struct implementation;

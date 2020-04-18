@@ -9,14 +9,14 @@ namespace eng
 {
 
 /**
- * Implementation of outputter which writes log messages to filet.
+ * Implementation of Outputter which writes log messages to filet.
  */
-class file_outputter : public outputter
+class FileOutputter : public Outputter
 {
     public:
 
         /** Default */
-        ~file_outputter() override = default;
+        ~FileOutputter() override = default;
 
         /**
          * Construct a new file_outputter.
@@ -24,7 +24,7 @@ class file_outputter : public outputter
          * @param filename
          *   Name of log file to write to.
          */
-        explicit file_outputter(const std::string &filename);
+        explicit FileOutputter(const std::string &filename);
 
         /**
          * Output log.

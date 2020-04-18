@@ -8,21 +8,21 @@ namespace eng
 {
 
 /**
- * Class representing a quaternion.
+ * Class representing a Quaternion.
  *
- * A quaternion represents a rotation (w) about a vector (x, y, z).
+ * A Quaternion represents a rotation (w) about a vector (x, y, z).
  */
-class quaternion
+class Quaternion
 {
     public:
 
         /**
-         * Construct a new unit quaternion.
+         * Construct a new unit Quaternion.
          */
-        quaternion();
+        Quaternion();
 
         /**
-         * Construct a quaternion which represents a rotation about an axis.
+         * Construct a Quaternion which represents a rotation about an axis.
          *
          * @param axis
          *   The axis about which to rotate.
@@ -30,78 +30,78 @@ class quaternion
          * @param angle
          *   The rotation in radians.
          */
-        quaternion(const vector3 &axis, const float angle);
+        Quaternion(const Vector3 &axis, const float angle);
 
         /**
-         * Write a quaternion to a stream, useful for debugging.
+         * Write a Quaternion to a stream, useful for debugging.
          *
          * @param out
          *   Stream to write to.
          *
          * @param q
-         *   quaternion to write to stream.
+         *   Quaternion to write to stream.
          *
          * @returns
          *   Reference to input stream.
          */
         friend std::ostream& operator<<(
             std::ostream &out,
-            const quaternion &q);
+            const Quaternion &q);
 
         /**
-         * Multiply this quaternion by another, therefore applying a composition
+         * Multiply this Quaternion by another, therefore applying a composition
          * of both rotations.
          *
-         * @param q
+         * @param quaternion
          *   Quaternion to compose with this.
          *
          * @returns
-         *   Reference to this quaternion.
+         *   Reference to this Quaternion.
          */
-        quaternion& operator*=(const quaternion &q);
+        Quaternion& operator*=(const Quaternion &quaternion);
 
         /**
-         * Create a new quaternion which is the composition of this this
+         * Create a new Quaternion which is the composition of this this
          * rotation with another.
          *
          * @param q
          *   Quaternion to compose with this.
          *
          * @returns
-         *   Copy of this quaternion composed with the supplied one.
+         *   Copy of this Quaternion composed with the supplied one.
          */
-        quaternion operator*(const quaternion &q) const;
+        Quaternion operator*(const Quaternion &quaternion) const;
 
         /**
-         * Add a rotation specified as a vector3 to this quaternion.
+         * Add a rotation specified as a Vector3 to this Quaternion.
          *
-         * @param v
+         * @param vector
          *   Vector to add.
          *
          * @returns
-         *   Reference to this quaternion.
+         *   Reference to this Quaternion.
          */
-        quaternion& operator+=(const vector3 &v);
+        Quaternion& operator+=(const Vector3 &vector);
 
         /**
-         * Create a new quaternion that is the composition of this rotation
+         * Create a new Quaternion that is the composition of this rotation
          * and one specified as a vector3.
          *
-         * @param v
+         * @param vector
          *   Vector to add.
          *
          * @returns
-         *   Copy of this quaternion composed with the vector3 rotation.
+         *   Copy of this Quaternion composed with the Vector3 rotation.
          */
-        quaternion operator+(const vector3 &v) const;
+        Quaternion operator+(const Vector3 &vector) const;
 
         /**
-         * Normalise this quaternion.
+         * Normalise this Quaternion.
          *
          * @returns
-         *   A reference to this quaternion.
+         *   A reference to this Quaternion.
          */
-        quaternion& normalise();
+        Quaternion& normalise();
 
         /** Angle of rotation. */
         float w;

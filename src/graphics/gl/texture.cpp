@@ -47,7 +47,7 @@ std::uint32_t channels_to_format(const std::uint32_t num_channels)
 
 
 /**
- * Helper function to create an opengl texture from data.
+ * Helper function to create an opengl Texture from data.
  *
  * @param data
  *   Raw data of image.
@@ -74,7 +74,7 @@ std::uint32_t create_texture(
     const auto expected_size = width * height * num_channels;
     if(data.size() != expected_size)
     {
-        throw eng::exception("incorrect data size");
+        throw eng::Exception("incorrect data size");
     }
 
     auto texture = 0u;
@@ -82,7 +82,7 @@ std::uint32_t create_texture(
     ::glGenTextures(1, &texture);
     eng::check_opengl_error("could not generate texture");
 
-    // use default texture unit
+    // use default Texture unit
     ::glActiveTexture(GL_TEXTURE0);
     eng::check_opengl_error("could not activiate texture");
 
@@ -114,7 +114,7 @@ std::uint32_t create_texture(
         format,
         GL_UNSIGNED_BYTE,
         data.data());
-    eng::check_opengl_error("could not set texture data");
+    eng::check_opengl_error("could not set Texture data");
 
     ::glGenerateMipmap(GL_TEXTURE_2D);
     eng::check_opengl_error("could not generate mipmaps");
@@ -130,7 +130,7 @@ namespace eng
 /**
  * Struct containing implementation specific data.
  */
-struct texture::implementation
+struct Texture::implementation
 {
     /** Simple constructor which takes a value for each member. */
     implementation(std::uint32_t texture)
@@ -141,7 +141,7 @@ struct texture::implementation
     std::uint32_t texture;
 };
 
-texture::texture(const std::filesystem::path &path)
+Texture::Texture(const std::filesystem::path &path)
     : data_(),
       width_(0u),
       height_(0u),
@@ -157,7 +157,7 @@ texture::texture(const std::filesystem::path &path)
     LOG_ENGINE_INFO("texture", "loaded from file");
 }
 
-texture::texture(
+Texture::Texture(
     const std::vector<std::uint8_t> &data,
     const std::uint32_t width,
     const std::uint32_t height,
@@ -174,7 +174,7 @@ texture::texture(
     LOG_ENGINE_INFO("texture", "loaded from data");
 }
 
-texture::~texture()
+Texture::~Texture()
 {
     if(impl_)
     {
@@ -184,35 +184,35 @@ texture::~texture()
 }
 
 /** Default. */
-texture::texture(texture&&) = default;
-texture& texture::operator=(texture&&) = default;
+Texture::Texture(Texture&&) = default;
+Texture& Texture::operator=(Texture&&) = default;
 
-std::vector<std::uint8_t> texture::data() const
+std::vector<std::uint8_t> Texture::data() const
 {
     return data_;
 }
 
-std::uint32_t texture::width() const
+std::uint32_t Texture::width() const
 {
     return width_;
 }
 
-std::uint32_t texture::height() const
+std::uint32_t Texture::height() const
 {
     return height_;
 }
 
-std::uint32_t texture::num_channels() const
+std::uint32_t Texture::num_channels() const
 {
     return num_channels_;
 }
 
-std::any texture::native_handle() const
+std::any Texture::native_handle() const
 {
     return impl_->texture;
 }
 
-texture texture::blank()
+Texture Texture::blank()
 {
     return{ { 0xFF, 0xFF, 0xFF, 0xFF }, 1u, 1u, 4u };
 }

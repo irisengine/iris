@@ -12,25 +12,25 @@
 namespace eng
 {
 
-matrix3::matrix3()
-    : matrix3({{
+Matrix3::Matrix3()
+    : Matrix3({{
         1.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 1.0f}})
 { }
 
-matrix3::matrix3(const std::array<float, 9u> &elements)
+Matrix3::Matrix3(const std::array<float, 9u> &elements)
     : elements_(elements)
 { }
 
-matrix3::matrix3(const matrix4 &m)
-    : matrix3({{
+Matrix3::Matrix3(const Matrix4 &m)
+    : Matrix3({{
         m[0u], m[1u], m[2u],
         m[4u], m[5u], m[6u],
         m[8u], m[9u], m[10u]}})
 { }
 
-matrix3& matrix3::operator*=(const matrix3 &m)
+Matrix3& Matrix3::operator*=(const Matrix3 &m)
 {
     const auto e = elements_;
 
@@ -59,12 +59,12 @@ matrix3& matrix3::operator*=(const matrix3 &m)
     return *this;
 }
 
-matrix3 matrix3::operator*(const matrix3 &m) const
+Matrix3 Matrix3::operator*(const Matrix3 &m) const
 {
-    return matrix3{ *this } *= m;
+    return Matrix3{ *this } *= m;
 }
 
-vector3 matrix3::operator*(const vector3 &v) const
+Vector3 Matrix3::operator*(const Vector3 &v) const
 {
     return {
         v.x * elements_[0u] + v.y * elements_[1u] + v.z * elements_[2u],
@@ -73,7 +73,7 @@ vector3 matrix3::operator*(const vector3 &v) const
     };
 }
 
-matrix3& matrix3::operator*=(const float s)
+Matrix3& Matrix3::operator*=(const float s)
 {
     for(auto &e : elements_)
     {
@@ -83,17 +83,17 @@ matrix3& matrix3::operator*=(const float s)
     return *this;
 }
 
-matrix3 matrix3::operator*(const float s) const
+Matrix3 Matrix3::operator*(const float s) const
 {
-    return matrix3{ *this } *= s;
+    return Matrix3{ *this } *= s;
 }
 
-float& matrix3::operator[](const std::size_t index)
+float& Matrix3::operator[](const std::size_t index)
 {
     return elements_[index];
 }
 
-matrix3& matrix3::operator+=(const matrix3 &m)
+Matrix3& Matrix3::operator+=(const Matrix3 &m)
 {
     for(auto i = 0u; i < elements_.size(); ++i)
     {
@@ -103,22 +103,22 @@ matrix3& matrix3::operator+=(const matrix3 &m)
     return *this;
 }
 
-matrix3 matrix3::operator+(const matrix3 &m) const
+Matrix3 Matrix3::operator+(const Matrix3 &m) const
 {
-    return matrix3{ *this } += m;
+    return Matrix3{ *this } += m;
 }
 
-float matrix3::operator[](const std::size_t index) const
+float Matrix3::operator[](const std::size_t index) const
 {
     return elements_[index];
 }
 
-const float* matrix3::data() const
+const float* Matrix3::data() const
 {
     return elements_.data();
 }
 
-matrix3& matrix3::invert()
+Matrix3& Matrix3::invert()
 {
     const auto determinant =
         elements_[0u] * elements_[4u] * elements_[8u] +
@@ -143,7 +143,7 @@ matrix3& matrix3::invert()
                    (t[index2] * t[index3]);
         };
 
-        matrix3 inverse{ };
+        Matrix3 inverse{ };
 
         inverse[0u] =  minor_determinant(4u, 5u, 7u, 8u) / determinant;
         inverse[1u] = -minor_determinant(3u, 5u, 6u, 8u) / determinant;
@@ -161,9 +161,9 @@ matrix3& matrix3::invert()
     return *this;
 }
 
-matrix3& matrix3::transpose()
+Matrix3& Matrix3::transpose()
 {
-    *this = matrix3{ {{
+    *this = Matrix3{ {{
         elements_[0], elements_[3], elements_[6],
         elements_[1], elements_[4], elements_[7],
         elements_[2], elements_[5], elements_[8]
@@ -172,53 +172,53 @@ matrix3& matrix3::transpose()
     return *this;
 }
 
-matrix3 matrix3::invert(const matrix3 &m)
+Matrix3 Matrix3::invert(const Matrix3 &m)
 {
-    return matrix3(m).invert();
+    return Matrix3(m).invert();
 }
 
-matrix3 matrix3::transpose(const matrix3 &m)
+Matrix3 Matrix3::transpose(const Matrix3 &m)
 {
-    return matrix3(m).transpose();
+    return Matrix3(m).transpose();
 }
 
-matrix3 matrix3::make_orthonormal_basis(const vector3 &x)
+Matrix3 Matrix3::make_orthonormal_basis(const Vector3 &x)
 {
     // we needed to generate a y and z axis, we take a guess at one of those
     // by using either world y or world x, which ever is furthest from our
     // supplied x
     const auto guess = std::abs(x.x) > std::abs(x.y)
-        ? vector3(0.0f, 1.0f, 0.0f)
-        : vector3(1.0f, 0.0f, 0.0f);
+        ? Vector3(0.0f, 1.0f, 0.0f)
+        : Vector3(1.0f, 0.0f, 0.0f);
 
     // calculate z axis, which is guaranteed to be orthogonal to supplied x
-    auto z = vector3::cross(x, guess);
+    auto z = Vector3::cross(x, guess);
 
     // we now have x and z, so calculate y
-    auto y = vector3::cross(z, x);
+    auto y = Vector3::cross(z, x);
 
     // ensure normalised
     z.normalise();
     y.normalise();
 
     // create transform matrix
-    return matrix3{{{
+    return Matrix3{{{
         x.x, y.x, z.x,
         x.y, y.y, z.y,
         x.z, y.z, z.z,
     }}};
 }
 
-matrix3 matrix3::make_skew_symmetric(const vector3 &v)
+Matrix3 Matrix3::make_skew_symmetric(const Vector3 &v)
 {
-    return matrix3{{{
+    return Matrix3{{{
         0.0f, -v.z, v.y,
         v.z, 0.0f, -v.x,
         -v.y, v.x, 0.0f
     }}};
 }
 
-std::ostream& operator<<(std::ostream &out, const matrix3 &m)
+std::ostream& operator<<(std::ostream &out, const Matrix3 &m)
 {
     out << m[0u] << " " << m[1u] << " " <<  m[2u] << std::endl;
     out << m[3u] << " " << m[4u] << " " <<  m[5u] << std::endl;

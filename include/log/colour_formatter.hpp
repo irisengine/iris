@@ -10,14 +10,14 @@ namespace eng
 {
 
 /**
- * Implementation of formatter which applies colour to basic formatter.
+ * Implementation of Formatter which applies colour to basic formatter.
  */
-class colour_formatter : public formatter
+class ColourFormatter : public Formatter
 {
     public:
 
         /** Default */
-        ~colour_formatter() override = default;
+        ~ColourFormatter() override = default;
 
         /**
          * Format the supplied log details into a string.
@@ -38,7 +38,7 @@ class colour_formatter : public formatter
          *   Line of the log call in the file.
          */
         std::string format(
-            const log_level level,
+            const LogLevel level,
             const std::string &tag,
             const std::string &message,
             const std::string &filename,
@@ -46,7 +46,8 @@ class colour_formatter : public formatter
 
     private:
 
-        basic_formatter formatter_;
+        /** Use BasicFormatter for formatting. */
+        BasicFormatter formatter_;
 
 };
 

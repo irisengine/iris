@@ -22,7 +22,7 @@ namespace eng
  * possible. An API specific implementation object is used internally to
  * achieve this.
  */
-class mesh
+class Mesh
 {
     public:
 
@@ -36,7 +36,7 @@ class mesh
          *   Collection of indices representing vertex draw order.
          *
          * @param tex
-         *   The texture to render the mesh with.
+         *   The Texture to render the Mesh with.
          *
          * @param position
          *   Position in world space of mesh.
@@ -44,18 +44,18 @@ class mesh
          * @param scale
          *   Vector3 specifying amount to scale along each axis.
          */
-        mesh(
+        Mesh(
             const std::vector<vertex_data> &vertices,
             const std::vector<std::uint32_t> &indices,
-            texture &&tex);
+            Texture &&tex);
 
         /** Declared in mm/cpp file as implementation is an incomplete file. */
-        ~mesh();
-        mesh(mesh&&);
-        mesh& operator=(mesh&&);
+        ~Mesh();
+        Mesh(Mesh&&);
+        Mesh& operator=(Mesh&&);
 
         /**
-         * Get const reference to mesh indices.
+         * Get const reference to Mesh indices.
          *
          * @returns
          *   Mesh vertices.
@@ -63,28 +63,28 @@ class mesh
         const std::vector<std::uint32_t>& indices() const;
 
         /**
-         * Get a reference to the vertex buffer for this mesh.
+         * Get a reference to the vertex Buffer for this mesh.
          *
          * @returns
          *   Const reference to vertex buffer.
          */
-        const buffer& vertex_buffer() const;
+        const Buffer& vertex_buffer() const;
 
         /**
-         * Get a reference to the index buffer for this mesh.
+         * Get a reference to the index Buffer for this mesh.
          *
          * @returns
          *   Const reference to index buffer.
          */
-        const buffer& index_buffer() const;
+        const Buffer& index_buffer() const;
 
         /**
-         * Get a reference to the texture for this mesh.
+         * Get a reference to the Texture for this mesh.
          *
          * @returns
          *   Const reference to texture.
          */
-        const texture& tex() const;
+        const Texture& texture() const;
 
         /**
          * Get a native handle for the mesh. The type of this is dependant on
@@ -100,14 +100,14 @@ class mesh
         /** Mesh index data. */
         std::vector<std::uint32_t> indices_;
 
-        /** Texture to render mesh with. */
-        texture texture_;
+        /** Texture to render Mesh with. */
+        Texture texture_;
 
         /** Buffer for vertex data. */
-        std::unique_ptr<buffer> vertex_buffer_;
+        std::unique_ptr<Buffer> vertex_buffer_;
 
         /** Buffer for vertex indices. */
-        std::unique_ptr<buffer> index_buffer_;
+        std::unique_ptr<Buffer> index_buffer_;
 
         /** Graphics API specific implementation. */
         struct implementation;

@@ -15,14 +15,14 @@ namespace eng
  *
  * Elements are in row-major order.
  */
-class matrix3
+class Matrix3
 {
     public:
 
         /**
          * Constructs a new identity matrix.
          */
-        matrix3();
+        Matrix3();
 
         /**
          * Constructs a new matrix with the supplied (row-major) values.
@@ -30,41 +30,41 @@ class matrix3
          * @param elements
          *   Row major elements.
          */
-        explicit matrix3(const std::array<float, 9u> &elements);
+        explicit Matrix3(const std::array<float, 9u> &elements);
 
         /**
-         * Construct a new matrix3 from a matrix4.
+         * Construct a new Matrix3 from a matrix4.
          *
          * This takes the upper right set of values from the matrix4. Can be
          * to remove the position information from a 4x4 transformation
          * matrix.
          */
-        explicit matrix3(const matrix4 &m);
+        explicit Matrix3(const Matrix4 &m);
 
         /**
          * Performs matrix multiplication.
          *
          * @param m
-         *   The matrix3 to multiply.
+         *   The Matrix3 to multiply.
          *
          * @returns
-         *   This matrix3 multiplied the supplied matrix3.
+         *   This Matrix3 multiplied the supplied Matrix3.
          */
-        matrix3& operator*=(const matrix3 &m);
+        Matrix3& operator*=(const Matrix3 &m);
 
         /**
-         * Performs matrix3 multiplication.
+         * Performs Matrix3 multiplication.
          *
          * @param m
-         *   The matrix3 to multiply.
+         *   The Matrix3 to multiply.
          *
          * @returns
-         *   New matrix3 which is this matrix3 multiplied the supplied matrix3.
+         *   New Matrix3 which is this Matrix3 multiplied the supplied Matrix3.
          */
-        matrix3 operator*(const matrix3 &m) const;
+        Matrix3 operator*(const Matrix3 &m) const;
 
         /**
-         * Multiply this matrix3 by a vector3.
+         * Multiply this Matrix3 by a vector3.
          *
          * @params v
          *   The vector to multiply by.
@@ -72,7 +72,7 @@ class matrix3
          *  @returns
          *    This multiplied by v.
          */
-        vector3 operator*(const vector3 &v) const;
+        Vector3 operator*(const Vector3 &v) const;
 
         /**
          * Multiply each element in the matrix by a scalar value.
@@ -81,9 +81,9 @@ class matrix3
          *   Scalar value to multiply by.
          *
          * @returns
-         *   This matrix3 with each element multiplied by scalar value.
+         *   This Matrix3 with each element multiplied by scalar value.
          */
-        matrix3& operator*=(const float s);
+        Matrix3& operator*=(const float s);
 
         /**
          * Multiply each element in the matrix by a scalar value.
@@ -92,32 +92,32 @@ class matrix3
          *   Scalar value to multiply by.
          *
          * @returns
-         *   New matrix3 which is this matrix3 with each element multiplied by
+         *   New Matrix3 which is this Matrix3 with each element multiplied by
          *   scalar value
          */
-        matrix3 operator*(const float s) const;
+        Matrix3 operator*(const float s) const;
 
         /**
          * Perform matrix additions.
          *
          * @param m
-         *   matrix3 to add to this.
+         *   Matrix3 to add to this.
          *
          * @returns
-         *   This matrix3 added to the supplied matrix3.
+         *   This Matrix3 added to the supplied Matrix3.
          */
-        matrix3& operator+=(const matrix3 &m);
+        Matrix3& operator+=(const Matrix3 &m);
 
         /**
          * Perform matrix additions.
          *
          * @param m
-         *   matrix3 to add to this.
+         *   Matrix3 to add to this.
          *
          * @returns
-         *   New matrix3 which is this matrix3 added to the supplied matrix3.
+         *   New Matrix3 which is this Matrix3 added to the supplied Matrix3.
          */
-        matrix3 operator+(const matrix3 &m) const;
+        Matrix3 operator+(const Matrix3 &m) const;
 
         /**
          * Get a reference to the element at the supplied index.
@@ -142,10 +142,10 @@ class matrix3
         float operator[](const std::size_t index) const;
 
         /**
-         * Get a pointer to the start of the internal matrix3 data array.
+         * Get a pointer to the start of the internal Matrix3 data array.
          *
          * @returns
-         *   Pointer to start if matrix3 data.
+         *   Pointer to start if Matrix3 data.
          */
         const float* data() const;
 
@@ -153,17 +153,17 @@ class matrix3
          * Inverts this matrix.
          *
          * @returns
-         *   A reference to this matrix3.
+         *   A reference to this Matrix3.
          */
-        matrix3& invert();
+        Matrix3& invert();
 
         /**
          * Transposes this matrix.
          *
          * @returns
-         *   A reference to this matrix3.
+         *   A reference to this Matrix3.
          */
-        matrix3& transpose();
+        Matrix3& transpose();
 
         /**
          * Static method to invert a matrix.
@@ -174,7 +174,7 @@ class matrix3
          * @returns
          *   A copy of the supplied matrix inverted.
          */
-        static matrix3 invert(const matrix3 &m);
+        static Matrix3 invert(const Matrix3 &m);
 
         /**
          * Static method to transpose a matrix.
@@ -185,7 +185,7 @@ class matrix3
          * @returns
          *   A copy of the supplied matrix transposed.
          */
-        static matrix3 transpose(const matrix3 &m);
+        static Matrix3 transpose(const Matrix3 &m);
 
         /**
          * Make an orthonormal basis from a starting vector. This will create
@@ -198,7 +198,7 @@ class matrix3
          * @returns
          *   Transform matrix which will transform points to orthonormal basis.
          */
-        static matrix3 make_orthonormal_basis(const vector3 &x);
+        static Matrix3 make_orthonormal_basis(const Vector3 &x);
 
         /**
          * Static method to make a skew-symmetric matrix, i.e. a matrix whose
@@ -206,32 +206,32 @@ class matrix3
          * skew-symmetric matrix can be used to compute a cross product.
          *
          * @param v
-         *   vector3 from which values will be used so that a cross product
+         *   Vector3 from which values will be used so that a cross product
          *   can be calculated.
          *
          * @returns
          *   Skew-symmetric matrix.
          */
-        static matrix3 make_skew_symmetric(const vector3 &v);
+        static Matrix3 make_skew_symmetric(const Vector3 &v);
 
         /**
-         * Writes the matrix3 to the stream, useful for debugging.
+         * Writes the Matrix3 to the stream, useful for debugging.
          *
          * @param out
          *   The stream to write to.
          *
          * @param out
-         *   The matrix3 to write to the stream.
+         *   The Matrix3 to write to the stream.
          *
          * @return
-         *   A reference to the supplied stream, after the matrix3 has been
+         *   A reference to the supplied stream, after the Matrix3 has been
          *   written.
          */
-        friend std::ostream& operator<<(std::ostream &out, const matrix3 &m);
+        friend std::ostream& operator<<(std::ostream &out, const Matrix3 &m);
 
     private:
 
-        /** matrix3 data. */
+        /** Matrix3 data. */
         std::array<float, 9u> elements_;
 };
 

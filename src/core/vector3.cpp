@@ -6,19 +6,19 @@
 namespace eng
 {
 
-vector3::vector3()
+Vector3::Vector3()
     : x(0.0f),
       y(0.0f),
       z(0.0f)
 { }
 
-vector3::vector3(const float x, const float y, const float z)
+Vector3::Vector3(const float x, const float y, const float z)
     : x(x),
       y(y),
       z(z)
 { }
 
-std::ostream& operator<<(std::ostream &out, const vector3 &v)
+std::ostream& operator<<(std::ostream &out, const Vector3 &v)
 {
     out << "x: " << v.x << " "
         << "y: " << v.y << " "
@@ -27,74 +27,74 @@ std::ostream& operator<<(std::ostream &out, const vector3 &v)
     return out;
 }
 
-vector3& vector3::operator*=(const float s)
+Vector3& Vector3::operator*=(const float scale)
 {
-    x *= s;
-    y *= s;
-    z *= s;
+    x *= scale;
+    y *= scale;
+    z *= scale;
 
     return *this;
 }
 
-vector3 vector3::operator*(const float s) const
+Vector3 Vector3::operator*(const float scale) const
 {
-    return vector3(*this) *= s;
+    return Vector3(*this) *= scale;
 }
 
-vector3& vector3::operator+=(const vector3 &v)
+Vector3& Vector3::operator+=(const Vector3 &vector)
 {
-    x += v.x;
-    y += v.y;
-    z += v.z;
+    x += vector.x;
+    y += vector.y;
+    z += vector.z;
 
     return *this;
 }
 
-vector3 vector3::operator+(const vector3 &v) const
+Vector3 Vector3::operator+(const Vector3 &vector) const
 {
-    return vector3(*this) += v;
+    return Vector3(*this) += vector;
 }
 
-vector3& vector3::operator-=(const vector3 &v)
+Vector3& Vector3::operator-=(const Vector3 &vector)
 {
-    *this += -v;
+    *this += -vector;
     return *this;
 }
 
-vector3 vector3::operator-(const vector3 &v) const
+Vector3 Vector3::operator-(const Vector3 &vector) const
 {
-    return vector3(*this) -= v;
+    return Vector3(*this) -= vector;
 }
 
-vector3& vector3::operator*=(const vector3 &v)
+Vector3& Vector3::operator*=(const Vector3 &vector)
 {
-    x *= v.x;
-    y *= v.y;
-    z *= v.z;
+    x *= vector.x;
+    y *= vector.y;
+    z *= vector.z;
 
     return *this;
 }
 
-vector3 vector3::operator*(const vector3 &v) const
+Vector3 Vector3::operator*(const Vector3 &vector) const
 {
-    return vector3{ *this } *= v;
+    return Vector3{ *this } *= vector;
 }
 
-vector3 vector3::operator-() const
+Vector3 Vector3::operator-() const
 {
-    return vector3{ -x, -y, -z };
+    return Vector3{ -x, -y, -z };
 }
 
-float vector3::dot(const vector3 &v) const
+float Vector3::dot(const Vector3 &vector) const
 {
-    return x * v.x + y * v.y + z * v.z;
+    return x * vector.x + y * vector.y + z * vector.z;
 }
 
-vector3& vector3::cross(const vector3 &v)
+Vector3& Vector3::cross(const Vector3 &vector)
 {
-    const auto i = (y * v.z) - (z * v.y);
-    const auto j = (x * v.z) - (z * v.x);
-    const auto k = (x * v.y) - (y * v.x);
+    const auto i = (y * vector.z) - (z * vector.y);
+    const auto j = (x * vector.z) - (z * vector.x);
+    const auto k = (x * vector.y) - (y * vector.x);
 
     x = i;
     y = -j;
@@ -103,7 +103,7 @@ vector3& vector3::cross(const vector3 &v)
     return *this;
 }
 
-vector3& vector3::normalise()
+Vector3& Vector3::normalise()
 {
     const auto length =
         std::sqrt(std::pow(x, 2.0f) + std::pow(y, 2.0f) + std::pow(z, 2.0f));
@@ -118,19 +118,19 @@ vector3& vector3::normalise()
     return *this;
 }
 
-float vector3::magnitude() const
+float Vector3::magnitude() const
 {
     return std::sqrt(std::pow(x, 2.0f) + std::pow(y, 2.0f) + std::pow(z, 2.0f));
 }
 
-vector3 vector3::cross(const vector3 &v1, const vector3 &v2)
+Vector3 Vector3::cross(const Vector3 &v1, const Vector3 &v2)
 {
-    return vector3(v1).cross(v2);
+    return Vector3(v1).cross(v2);
 }
 
-vector3 vector3::normalise(const vector3 &v)
+Vector3 Vector3::normalise(const Vector3 &vector)
 {
-    return vector3(v).normalise();
+    return Vector3(vector).normalise();
 }
 
 }

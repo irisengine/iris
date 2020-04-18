@@ -6,12 +6,12 @@ namespace eng
 {
 
 /**
- * Enumeration of buffer types.
+ * Enumeration of Buffer types.
  */
-enum class buffer_type : std::uint32_t
+enum class BufferType : std::uint32_t
 {
     // special case for when a graphics API does not differenciate between
-    // buffer types
+    // Buffer types
     DONT_CARE,
 
     VERTEX_ATTRIBUTES,

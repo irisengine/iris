@@ -10,7 +10,7 @@ namespace eng
 /**
  * Enumeration of log levels.
  */
-enum class log_level : std::uint32_t
+enum class LogLevel : std::uint32_t
 {
     DEBUG,
     INFO,
@@ -19,7 +19,7 @@ enum class log_level : std::uint32_t
 };
 
 /**
- * Helper function to write a string representation of a log_level enum to a
+ * Helper function to write a string representation of a LogLevel enum to a
  * stream.
  *
  * @param out
@@ -31,20 +31,20 @@ enum class log_level : std::uint32_t
  * @returns
  *   Reference to input stream.
  */
-inline std::ostream& operator<<(std::ostream &out, const log_level level)
+inline std::ostream& operator<<(std::ostream &out, const LogLevel level)
 {
     switch(level)
     {
-        case log_level::DEBUG:
+        case LogLevel::DEBUG:
             out << "DEBUG";
             break;
-        case log_level::INFO:
+        case LogLevel::INFO:
             out << "INFO";
             break;
-        case log_level::WARN:
+        case LogLevel::WARN:
             out << "WARN";
             break;
-        case log_level::ERROR:
+        case LogLevel::ERROR:
             out << "ERROR";
             break;
         default:

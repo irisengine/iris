@@ -39,7 +39,7 @@ std::string format_filename(const std::string &filename)
  * @returns
  *   First character of log level.
  */
-char first_char_of_level(const eng::log_level level)
+char first_char_of_level(const eng::LogLevel level)
 {
     std::stringstream strm{ };
     strm << level;
@@ -56,8 +56,8 @@ char first_char_of_level(const eng::log_level level)
 namespace eng
 {
 
-std::string basic_formatter::format(
-    const log_level level,
+std::string BasicFormatter::format(
+    const LogLevel level,
     const std::string &tag,
     const std::string &message,
     const std::string &filename,

@@ -5,15 +5,15 @@
 namespace eng
 {
 
-/** Encapsulated whether a key was a down or up press */
-enum class key_state : std::uint32_t
+/** Encapsulated whether a Key was a down or up press */
+enum class KeyState : std::uint32_t
 {
     DOWN,
     UP
 };
 
-/** Encapsulates all key presses */
-enum class key : std::uint32_t
+/** Encapsulates all Key presses */
+enum class Key : std::uint32_t
 {
     NUM_0,
     NUM_1,
@@ -130,30 +130,30 @@ enum class key : std::uint32_t
 };
 
 /**
- * Encapsulated a keyboard event. Stores the key that was pressed
- * as well as if the key was a down or up press
+ * Encapsulated a keyboard event. Stores the Key that was pressed
+ * as well as if the Key was a down or up press
  */
-struct keyboard_event
+struct KeyboardEvent
 {
     /**
      * Constructor
      *
      * @param k
-     *   The key that was pressed
+     *   The Key that was pressed
      *
      *  @param type
      *    Down or up press
      */
-    keyboard_event(const key k, const key_state state)
-        : key(k),
+    KeyboardEvent(const Key key, const KeyState state)
+        : key(key),
           state(state)
     { };
 
     /** Key that was pressed */
-    const key key;
+    const Key key;
 
     /** Down or up press */
-    const key_state state;
+    const KeyState state;
 };
 
 }

@@ -13,38 +13,38 @@ namespace eng
 /**
  * Class encapsulating a graphics api specific data buffer.
  */
-class buffer
+class Buffer
 {
     public:
 
         /**
-         * Construct a new buffer and copy supplied float data.
+         * Construct a new Buffer and copy supplied float data.
          *
          * @param data
          *   Data to store in buffer.
          */
-        buffer(const std::vector<float> &data, const buffer_type type);
+        Buffer(const std::vector<float> &data, const BufferType type);
 
         /**
-         * Construct a new buffer and copy supplied uint32_t data.
+         * Construct a new Buffer and copy supplied uint32_t data.
          *
          * @param data
          *   Data to store in buffer.
          */
-        buffer(const std::vector<std::uint32_t> &data, const buffer_type type);
+        Buffer(const std::vector<std::uint32_t> &data, const BufferType type);
 
         /**
-         * Construct a new buffer and copy supplied vertex_data data.
+         * Construct a new Buffer and copy supplied vertex_data data.
          *
          * @param data
          *   Data to store in buffer.
          */
-        buffer(const std::vector<vertex_data> &data, const buffer_type type);
+        Buffer(const std::vector<vertex_data> &data, const BufferType type);
 
         /** Declared in mm/cpp file as implementation is an incomplete type. */
-        ~buffer();
-        buffer(buffer &&other);
-        buffer& operator=(buffer &&other);
+        ~Buffer();
+        Buffer(Buffer &&other);
+        Buffer& operator=(Buffer &&other);
 
         /**
          * Get native handle for buffer.
@@ -60,7 +60,7 @@ class buffer
          * @returns
          *   Buffer type.
          */
-        buffer_type type() const;
+        BufferType type() const;
 
     private:
 
@@ -69,7 +69,7 @@ class buffer
         std::unique_ptr<implementation> impl_;
 
         /** Buffer type. */
-        buffer_type type_;
+        BufferType type_;
 };
 
 }

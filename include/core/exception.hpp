@@ -10,7 +10,7 @@ namespace eng
 /**
  * A custom exception class that includes a stack trace.
  */
-class exception : public std::runtime_error
+class Exception : public std::runtime_error
 {
     public:
 
@@ -20,7 +20,7 @@ class exception : public std::runtime_error
          * @param what
          *   Exception message.
          */
-        exception(const std::string &what);
+        Exception(const std::string &what);
 
         /**
          * Get a formatted copy of the stack trace. Performs C++ name

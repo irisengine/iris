@@ -8,14 +8,14 @@ namespace eng
 {
 
 /**
- * Implementation of outputter which writes log messages to stdout.
+ * Implementation of Outputter which writes log messages to stdout.
  */
-class stdout_outputter : public outputter
+class StdoutFormatter : public Outputter
 {
     public:
 
         /** Default */
-        ~stdout_outputter() override = default;
+        ~StdoutFormatter() override = default;
 
         /**
          * Output log.

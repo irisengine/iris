@@ -10,69 +10,69 @@
 namespace eng
 {
 
-sprite::sprite(
+Sprite::Sprite(
     const float x,
     const float y,
     const float width,
     const float height,
-    const vector3 &colour)
-    : sprite(x, y, width, height, colour, texture::blank())
+    const Vector3 &colour)
+    : Sprite(x, y, width, height, colour, Texture::blank())
 { }
 
-sprite::sprite(
+Sprite::Sprite(
     const float x,
     const float y,
     const float width,
     const float height,
-    const vector3 &colour,
-    texture &&tex)
-    : mesh_(shape_factory::make_sprite(colour, std::move(tex))),
+    const Vector3 &colour,
+    Texture &&tex)
+    : mesh_(shape_factory::sprite(colour, std::move(tex))),
       position_(x, y, 0.0f),
       orientation_(),
       scale_(width, height, 1.0f),
       model_(),
-      material_(material_factory::basic_sprite()),
+      material_(material_factory::sprite()),
       wireframe_(false)
 {
-    model_ = matrix4::make_translate(position_) * matrix4(orientation_) * matrix4::make_scale(scale_);
+    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) * Matrix4::make_scale(scale_);
 
     LOG_ENGINE_INFO("entity", "constructed at: {} {}", position_, scale_);
 }
 
-void sprite::set_position(const vector3 &position)
+void Sprite::set_position(const Vector3 &position)
 {
     position_ = position;
 
-    model_ = matrix4::make_translate(position_) * matrix4(orientation_) * matrix4::make_scale(scale_);
+    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) * Matrix4::make_scale(scale_);
 }
 
-void sprite::set_orientation(const quaternion &orientation)
+void Sprite::set_orientation(const Quaternion &orientation)
 {
     orientation_ = orientation;
-    model_ = matrix4::make_translate(position_) * matrix4(orientation_) * matrix4::make_scale(scale_);
+    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) * Matrix4::make_scale(scale_);
 }
 
-matrix4 sprite::transform() const
+Matrix4 Sprite::transform() const
 {
     return model_;
 }
 
-const mesh& sprite::render_mesh() const
+const Mesh& Sprite::mesh() const
 {
     return mesh_;
 }
 
-const material& sprite::mat() const
+const Material& Sprite::material() const
 {
     return *material_;
 }
 
-bool sprite::should_render_wireframe() const
+bool Sprite::should_render_wireframe() const
 {
     return wireframe_;
 }
 
-void sprite::set_wireframe(const bool wireframe)
+void Sprite::set_wireframe(const bool wireframe)
 {
     wireframe_ = wireframe;
 }

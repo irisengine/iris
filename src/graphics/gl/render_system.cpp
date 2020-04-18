@@ -17,11 +17,11 @@ namespace eng
 /**
  * Struct contatining implementation specific data.
  */
-struct render_system::implementation
+struct RenderSystem::implementation
 {
 };
 
-render_system::render_system()
+RenderSystem::RenderSystem()
     : scene_(),
       camera_(),
       light_position(),
@@ -42,11 +42,11 @@ render_system::render_system()
 }
 
 /** Default */
-render_system::~render_system() = default;
-render_system::render_system(render_system&&) = default;
-render_system& render_system::operator=(render_system&&) = default;
+RenderSystem::~RenderSystem() = default;
+RenderSystem::RenderSystem(RenderSystem&&) = default;
+RenderSystem& RenderSystem::operator=(RenderSystem&&) = default;
 
-void render_system::render() const
+void RenderSystem::render() const
 {
     // clear current target
     ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -54,8 +54,8 @@ void render_system::render() const
     // render each element in scene
     for(const auto &e : scene_)
     {
-        // bind material to render with
-        const auto program = std::any_cast<std::uint32_t>(e->mat().native_handle());
+        // bind Material to render with
+        const auto program = std::any_cast<std::uint32_t>(e->material().native_handle());
         ::glUseProgram(program);
         check_opengl_error("could not bind program");
 
@@ -91,15 +91,15 @@ void render_system::render() const
         check_opengl_error("could not set model matrix uniform data");
 
 
-        // bind mesh so the final draw call renders it
-        const auto vao = std::any_cast<std::uint32_t>(e->render_mesh().native_handle());
+        // bind Mesh so the final draw call renders it
+        const auto vao = std::any_cast<std::uint32_t>(e->mesh().native_handle());
 
         // bind the vao
         ::glBindVertexArray(vao);
         check_opengl_error("could not bind vao");
 
-        const auto tex_handle = std::any_cast<std::uint32_t>(e->render_mesh().tex().native_handle());
-        // use default texture unit
+        const auto tex_handle = std::any_cast<std::uint32_t>(e->mesh().texture().native_handle());
+        // use default Texture unit
         ::glActiveTexture(GL_TEXTURE0);
         check_opengl_error("could not activiate texture");
 
@@ -107,7 +107,7 @@ void render_system::render() const
         check_opengl_error("could not bind texture");
 
         // draw!
-        ::glDrawElements(GL_TRIANGLES, e->render_mesh().indices().size(), GL_UNSIGNED_INT, 0);
+        ::glDrawElements(GL_TRIANGLES, e->mesh().indices().size(), GL_UNSIGNED_INT, 0);
         check_opengl_error("could not draw triangles");
 
         // unbind vao
@@ -125,13 +125,13 @@ void render_system::render() const
     }
 }
 
-sprite* render_system::add(std::unique_ptr<sprite> s)
+Sprite* RenderSystem::add(std::unique_ptr<Sprite> sprite)
 {
-    scene_.emplace_back(std::move(s));
+    scene_.emplace_back(std::move(sprite));
     return scene_.back().get();
 }
 
-void render_system::set_light_position(const vector3 &position)
+void RenderSystem::set_light_position(const Vector3 &position)
 {
     light_position = position;
     LOG_ENGINE_INFO("render_system", "light position set: {}", light_position);

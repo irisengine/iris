@@ -11,12 +11,12 @@ namespace eng
  * Interface for a formatter, a class which takes log message details and
  * formats them into a string.
  */
-class formatter
+class Formatter
 {
     public:
 
         /** Default */
-        virtual ~formatter() = default;
+        virtual ~Formatter() = default;
 
         /**
          * Format the supplied log details into a string.
@@ -37,7 +37,7 @@ class formatter
          *   Line of the log call in the file.
          */
         virtual std::string format(
-            const log_level level,
+            const LogLevel level,
             const std::string &tag,
             const std::string &message,
             const std::string &filename,

@@ -23,7 +23,7 @@ namespace eng
 /**
  * Struct containing implementation specific data.
  */
-struct font::implementation
+struct Font::implementation
 {
     implementation()
         : font(nullptr),
@@ -35,13 +35,13 @@ struct font::implementation
     { }
 
     /** Font object. */
-    cf_ptr<CTFontRef> font;
+    CfPtr<CTFontRef> font;
 
     /** Colour space object. */
-    cf_ptr<CGColorSpaceRef> colour_space;
+    CfPtr<CGColorSpaceRef> colour_space;
 
     /** Font colour. */
-    cf_ptr<CGColorRef> colour;
+    CfPtr<CGColorRef> colour;
 
     /** Sting attribute keys. */
     std::array<CFStringRef, 2> keys;
@@ -50,63 +50,63 @@ struct font::implementation
     std::array<CFTypeRef, 2> values;
 
     /** String attribute dictionary. */
-    cf_ptr<CFDictionaryRef> attributes;
+    CfPtr<CFDictionaryRef> attributes;
 };
 
-font::font(
+Font::Font(
     const std::string &font_name,
     const std::uint32_t size,
-    const vector3 &colour)
+    const Vector3 &colour)
     : font_name_(font_name),
       colour_(colour),
       impl_(std::make_unique<implementation>())
 {
-    // create a CoreFoundation string object from supplied font name
-    const auto font_name_cf = cf_ptr<CFStringRef>(::CFStringCreateWithCString(
+    // create a CoreFoundation string object from supplied Font name
+    const auto font_name_cf = CfPtr<CFStringRef>(::CFStringCreateWithCString(
         kCFAllocatorDefault,
         font_name_.c_str(),
         kCFStringEncodingASCII));
 
     if(!font_name_cf)
     {
-        throw exception("failed to create CF string");
+        throw Exception("failed to create CF string");
     }
 
-    // create font object
-    impl_->font = cf_ptr<CTFontRef>(::CTFontCreateWithName(
+    // create Font object
+    impl_->font = CfPtr<CTFontRef>(::CTFontCreateWithName(
         font_name_cf.get(),
         size,
         nullptr));
 
     if(!impl_->font)
     {
-        throw exception("failed to create font");
+        throw Exception("failed to create font");
     }
 
     // create a device dependant colour space
-    impl_->colour_space = cf_ptr<CGColorSpaceRef>(::CGColorSpaceCreateDeviceRGB());
+    impl_->colour_space = CfPtr<CGColorSpaceRef>(::CGColorSpaceCreateDeviceRGB());
 
     if(!impl_->colour_space)
     {
-        throw exception("failed to create colour space");
+        throw Exception("failed to create colour space");
     }
 
     // create a CoreFoundation colour object from supplied colour
     const CGFloat components[] = { colour_.x, colour_.y, colour_.z, 1.0f };
-    impl_->colour = cf_ptr<CGColorRef>(::CGColorCreate(
+    impl_->colour = CfPtr<CGColorRef>(::CGColorCreate(
         impl_->colour_space.get(),
         components));
 
     if(!impl_->colour)
     {
-        throw exception("failed to create colour");
+        throw Exception("failed to create colour");
     }
 
     impl_->keys = {{ kCTFontAttributeName, kCTForegroundColorAttributeName }};
     impl_->values = {{ impl_->font.get(), impl_->colour.get() }};
 
-    // create string attributes dictionary, containing font name and colour
-    impl_->attributes = cf_ptr<CFDictionaryRef>(::CFDictionaryCreate(
+    // create string attributes dictionary, containing Font name and colour
+    impl_->attributes = CfPtr<CFDictionaryRef>(::CFDictionaryCreate(
         kCFAllocatorDefault,
         reinterpret_cast<const void**>(impl_->keys.data()),
         reinterpret_cast<const void**>(impl_->values.data()),
@@ -116,15 +116,15 @@ font::font(
 
     if(!impl_->attributes)
     {
-        throw exception("failed to create attributes");
+        throw Exception("failed to create attributes");
     }
 }
 
-font::~font() = default;
-font::font(font&&) = default;
-font& font::operator=(font&&) = default;
+Font::~Font() = default;
+Font::Font(Font&&) = default;
+Font& Font::operator=(Font&&) = default;
 
-std::unique_ptr<sprite> font::sprites(
+std::unique_ptr<Sprite> Font::sprite(
     const std::string &text,
     const float x,
     const float y) const
@@ -132,18 +132,18 @@ std::unique_ptr<sprite> font::sprites(
     LOG_DEBUG("font", "creating sprites for string: {}", text);
 
     // create CoreFoundation string object from supplied text
-    const auto text_cf = cf_ptr<CFStringRef>(::CFStringCreateWithCString(
+    const auto text_cf = CfPtr<CFStringRef>(::CFStringCreateWithCString(
         kCFAllocatorDefault,
         text.c_str(),
         kCFStringEncodingASCII));
 
     // create a CoreFoundation attributed string object
-    const auto attr_string = cf_ptr<CFAttributedStringRef>(::CFAttributedStringCreate(
+    const auto attr_string = CfPtr<CFAttributedStringRef>(::CFAttributedStringCreate(
         kCFAllocatorDefault,
         text_cf.get(),
         impl_->attributes.get()));
 
-    const auto frame_setter = cf_ptr<CTFramesetterRef>(
+    const auto frame_setter = CfPtr<CTFramesetterRef>(
         ::CTFramesetterCreateWithAttributedString(attr_string.get()));
 
     // calculate minimal size required to render text
@@ -156,17 +156,17 @@ std::unique_ptr<sprite> font::sprites(
         &range);
 
     // create a path object to render text
-    const auto path = cf_ptr<CGPathRef>(::CGPathCreateWithRect(
+    const auto path = CfPtr<CGPathRef>(::CGPathCreateWithRect(
         CGRectMake(0, 0, std::ceil(rect.width), std::ceil(rect.height)),
         nullptr));
 
     if(!path)
     {
-        throw exception("failed to create path");
+        throw Exception("failed to create path");
     }
 
     // create a frame to render text
-    const auto frame = cf_ptr<CTFrameRef>(::CTFramesetterCreateFrame(
+    const auto frame = CfPtr<CTFrameRef>(::CTFramesetterCreateFrame(
         frame_setter.get(),
         range,
         path.get(),
@@ -174,7 +174,7 @@ std::unique_ptr<sprite> font::sprites(
 
     if(!frame)
     {
-        throw exception("failed to create frame");
+        throw Exception("failed to create frame");
     }
 
     // round suggested width and height down to integers, multiply by two for
@@ -189,7 +189,7 @@ std::unique_ptr<sprite> font::sprites(
     const auto bytes_per_row = width * 4u;
 
     // create a context for rendering text
-    const auto context = cf_ptr<CGContextRef>(::CGBitmapContextCreateWithData(
+    const auto context = CfPtr<CGContextRef>(::CGBitmapContextCreateWithData(
         pixel_data.data(),
         width,
         height,
@@ -202,12 +202,12 @@ std::unique_ptr<sprite> font::sprites(
 
     if(!context)
     {
-        throw exception("failed to create context");
+        throw Exception("failed to create context");
     }
 
-    auto *window = [[NSApp windows] firstObject];
-    const auto scale = [[window screen] backingScaleFactor];
-    const auto window_frame = [window frame];
+    auto *Window = [[NSApp windows] firstObject];
+    const auto scale = [[Window screen] backingScaleFactor];
+    const auto window_frame = [Window frame];
 
     // ensure letters are rotated correct way and scaled for screen
     ::CGContextTranslateCTM(context.get(), 0.0f, rect.height * scale);
@@ -217,11 +217,11 @@ std::unique_ptr<sprite> font::sprites(
     ::CTFrameDraw(frame.get(), context.get());
     ::CGContextFlush(context.get());
 
-    // create a texture from the rendered pixel data
-    texture tex{ pixel_data, width, height, 4u };
+    // create a Texture from the rendered pixel data
+    Texture tex{ pixel_data, width, height, 4u };
 
-    // create a sprite to render the texture
-    return std::make_unique<sprite>(
+    // create a Sprite to render the texture
+    return std::make_unique<Sprite>(
         x,
         y,
         (width / window_frame.size.width),

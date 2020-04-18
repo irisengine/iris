@@ -19,7 +19,7 @@ namespace
 {
 
 /**
- * Helper function to convert internal buffer type to a opengl type.
+ * Helper function to convert internal Buffer type to a opengl type.
  *
  * @param type
  *   Type to convert.
@@ -27,20 +27,20 @@ namespace
  * @returns
  *   Supplied type as opengl type.
  */
-std::uint32_t type_to_gl_type(const eng::buffer_type type)
+std::uint32_t type_to_gl_type(const eng::BufferType type)
 {
     auto gl_type = GL_ARRAY_BUFFER;
 
     switch(type)
     {
-        case eng::buffer_type::VERTEX_ATTRIBUTES:
+        case eng::BufferType::VERTEX_ATTRIBUTES:
             gl_type = GL_ARRAY_BUFFER;
             break;
-        case eng::buffer_type::VERTEX_INDICES:
+        case eng::BufferType::VERTEX_INDICES:
             gl_type = GL_ELEMENT_ARRAY_BUFFER;
             break;
         default:
-            throw eng::exception("unknown buffer type");
+            throw eng::Exception("unknown Buffer type");
     }
 
     return gl_type;
@@ -52,7 +52,7 @@ std::uint32_t type_to_gl_type(const eng::buffer_type type)
  * @param buffer
  *   Buffer to bind.
  */
-void bind_buffer(const eng::buffer &buffer)
+void bind_buffer(const eng::Buffer &buffer)
 {
     const auto handle = std::any_cast<std::uint32_t>(buffer.native_handle());
 
@@ -68,7 +68,7 @@ namespace eng
 /**
  * Struct containing implementation specific data.
  */
-struct mesh::implementation
+struct Mesh::implementation
 {
     /** Simple constructor which takes a value for each member. */
     implementation(std::uint32_t vao)
@@ -79,14 +79,14 @@ struct mesh::implementation
     std::uint32_t vao;
 };
 
-mesh::mesh(
+Mesh::Mesh(
     const std::vector<vertex_data> &vertices,
     const std::vector<std::uint32_t> &indices,
-    texture &&textures)
+    Texture &&textures)
     : indices_(indices),
       texture_(std::move(textures)),
-      vertex_buffer_(std::make_unique<buffer>(vertices, buffer_type::VERTEX_ATTRIBUTES)),
-      index_buffer_(std::make_unique<buffer>(indices, buffer_type::VERTEX_INDICES)),
+      vertex_buffer_(std::make_unique<Buffer>(vertices, BufferType::VERTEX_ATTRIBUTES)),
+      index_buffer_(std::make_unique<Buffer>(indices, BufferType::VERTEX_INDICES)),
       impl_(std::make_unique<implementation>(0u))
 {
     // create vao
@@ -141,7 +141,7 @@ mesh::mesh(
     check_opengl_error("could not unbind vao");
 }
 
-mesh::~mesh()
+Mesh::~Mesh()
 {
     if(impl_)
     {
@@ -149,30 +149,30 @@ mesh::~mesh()
     }
 }
 
-mesh::mesh(mesh&&) = default;
-mesh& mesh::operator=(mesh&&) = default;
+Mesh::Mesh(Mesh&&) = default;
+Mesh& Mesh::operator=(Mesh&&) = default;
 
-const std::vector<std::uint32_t>& mesh::indices() const
+const std::vector<std::uint32_t>& Mesh::indices() const
 {
     return indices_;
 }
 
-const buffer& mesh::vertex_buffer() const
+const Buffer& Mesh::vertex_buffer() const
 {
     return *vertex_buffer_;
 }
 
-const buffer& mesh::index_buffer() const
+const Buffer& Mesh::index_buffer() const
 {
     return *index_buffer_;
 }
 
-const texture& mesh::tex() const
+const Texture& Mesh::texture() const
 {
     return texture_;
 }
 
-std::any mesh::native_handle() const
+std::any Mesh::native_handle() const
 {
     return std::any{ impl_->vao };
 }

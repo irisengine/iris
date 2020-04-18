@@ -9,17 +9,17 @@ namespace eng
  * Class representing a vector in 3D space. Comprises an x, y and z
  * component.
  */
-class vector3
+class Vector3
 {
     public:
 
         /**
-         * Constructs a new vector3 with all components initialised to 0.
+         * Constructs a new Vector3 with all components initialised to 0.
          */
-        vector3();
+        Vector3();
 
         /**
-         * Constructs a new vector3 with the supplied components.
+         * Constructs a new Vector3 with the supplied components.
          *
          * @param x
          *   x component.
@@ -30,149 +30,149 @@ class vector3
          * @param z
          *   z component.
          */
-        vector3(const float x, const float y, const float z);
+        Vector3(const float x, const float y, const float z);
 
         /**
-         * Write a vector3 to a stream, useful for debugging.
+         * Write a Vector3 to a stream, useful for debugging.
          *
          * @param out
          *   Stream to write to.
          *
          * @param v
-         *   vector3 to write to stream.
+         *   Vector3 to write to stream.
          *
          * @return
          *   Reference to input stream.
          */
         friend std::ostream& operator<<(
             std::ostream &out,
-            const vector3 &v);
+            const Vector3 &v);
 
         /**
          * Multiply each component by a scalar value.
          *
-         * @param s
+         * @param scale
          *   scalar value.
          *
          * @return
          *   Reference to this vector3.
          */
-        vector3& operator*=(const float s);
+        Vector3& operator*=(const float scale);
 
         /**
-         * Create a new vector3 which is this vector3 with each component
+         * Create a new Vector3 which is this Vector3 with each component
          * multiplied by a scalar value.
          *
-         * @param s
+         * @param scale
          *   scalar value.
          *
          * @return
-         *   Copy of this vector3 with each component multiplied by a
+         *   Copy of this Vector3 with each component multiplied by a
          *   scalar value.
          */
-        vector3 operator*(const float s) const;
+        Vector3 operator*(const float scale) const;
 
         /**
-         * Component wise add a vector3 to this vector3.
+         * Component wise add a Vector3 to this vector3.
          *
-         * @param v
-         *   The vector3 to add to this.
+         * @param vector
+         *   The Vector3 to add to this.
          *
          * @return
          *   Reference to this vector3.
          */
-        vector3& operator+=(const vector3 &v);
+        Vector3& operator+=(const Vector3 &vector);
 
         /**
-         * Create a new vector3 which is this vector3 added with a supplied
+         * Create a new Vector3 which is this Vector3 added with a supplied
          * vector3.
          *
-         * @param v
-         *   vector3 to add to this.
+         * @param vector
+         *   Vector3 to add to this.
          *
          * @return
-         *   Copy of this vector3 with each component added to the
+         *   Copy of this Vector3 with each component added to the
          *   components of the supplied vector3.
          */
-        vector3 operator+(const vector3 &v) const;
+        Vector3 operator+(const Vector3 &vector) const;
 
         /**
-         * Component wise subtract a vector3 to this vector3.
+         * Component wise subtract a Vector3 to this vector3.
          *
          * @param v
-         *   The vector3 to subtract from this.
+         *   The Vector3 to subtract from this.
          *
          * @return
          *   Reference to this vector3.
          */
-        vector3& operator-=(const vector3 &v);
+        Vector3& operator-=(const Vector3 &vector);
 
         /**
-         * Create a new vector3 which is this vector3 subtracted with a
+         * Create a new Vector3 which is this Vector3 subtracted with a
          * supplied vector3.
          *
          * @param v
-         *   vector3 to subtract from this.
+         *   Vector3 to subtract from this.
          *
          * @return
-         *   Copy of this vector3 with each component subtracted to the
+         *   Copy of this Vector3 with each component subtracted to the
          *   components of the supplied vector3.
          */
-        vector3 operator-(const vector3 &v) const;
+        Vector3 operator-(const Vector3 &vector) const;
 
         /**
-         * Component wise multiple a vector3 to this vector3.
+         * Component wise multiple a Vector3 to this vector3.
          *
-         * @param v
-         *   The vector3 to multiply.
+         * @param vector
+         *   The Vector3 to multiply.
          *
          * @returns
          *   Reference to this vector3.
          */
-        vector3& operator*=(const vector3 &v);
+        Vector3& operator*=(const Vector3 &vector);
 
         /**
-         * Create a new vector3 which us this vector3 component wise multiplied
+         * Create a new Vector3 which us this Vector3 component wise multiplied
          * with a supplied vector3.
          *
-         * @param c
-         *   vector3 to multiply with this.
+         * @param vector
+         *   Vector3 to multiply with this.
          *
          * @returns
-         *   Copy of this vector3 component wise multiplied with the supplied
+         *   Copy of this Vector3 component wise multiplied with the supplied
          *   vector3.
          */
-        vector3 operator*(const vector3 &v) const;
+        Vector3 operator*(const Vector3 &vector) const;
 
         /**
          * Negate operator.
          *
          * @return
-         *   Return a copy of this vector3 with each component negated.
+         *   Return a copy of this Vector3 with each component negated.
          */
-        vector3 operator-() const;
+        Vector3 operator-() const;
 
         /**
          * Calculate the vector dot product.
          *
-         * @param v
-         *   vector3 to calculate dot product with.
+         * @param vector
+         *   Vector3 to calculate dot product with.
          *
          * @returns
          *   Dot product of this vector with supplied one.
          */
-        float dot(const vector3 &v) const;
+        float dot(const Vector3 &vector) const;
 
         /**
-         * Perform cross product of this vector3 with a supplied one.
+         * Perform cross product of this Vector3 with a supplied one.
          *
-         * @param v
-         *   vector3 to cross with.
+         * @param vector
+         *   Vector3 to cross with.
          *
          * @return
          *   Reference to this vector3.
          */
-        vector3& cross(const vector3 &v);
+        Vector3& cross(const Vector3 &vector);
 
         /**
          * Normalises this vector3.
@@ -180,7 +180,7 @@ class vector3
          * @return
          *   Reference to this vector3.
          */
-        vector3& normalise();
+        Vector3& normalise();
 
         /**
          * Get the magnitude of this vector.
@@ -191,29 +191,29 @@ class vector3
         float magnitude() const;
 
         /**
-         * Cross two vector3 objects with each other.
+         * Cross two Vector3 objects with each other.
          *
          * @param v1
-         *   First vector3 to cross.
+         *   First Vector3 to cross.
          *
          * @param v2
-         *   Second vector3 to cross.
+         *   Second Vector3 to cross.
          *
          * @return
          *   v1 cross v2.
          */
-        static vector3 cross(const vector3 &v1, const vector3 &v2);
+        static Vector3 cross(const Vector3 &v1, const Vector3 &v2);
 
         /**
          * Normalise a supplied vector3.
          *
-         * @param v
-         *   vector3 to normalise.
+         * @param vector
+         *   Vector3 to normalise.
          *
          * @return
-         *   Supplied vector3 normalised.
+         *   Supplied Vector3 normalised.
          */
-        static vector3 normalise(const vector3 &v);
+        static Vector3 normalise(const Vector3 &vector);
 
         /** x component */
         float x;

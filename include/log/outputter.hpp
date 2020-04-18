@@ -10,12 +10,12 @@ namespace eng
  * Interface for an outputter, a class which writes a log message to some
  * implementation defined medium.
  */
-class outputter
+class Outputter
 {
     public:
 
         /** Default */
-        virtual ~outputter() = default;
+        virtual ~Outputter() = default;
 
         /**
          * Output log.

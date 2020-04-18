@@ -9,19 +9,19 @@
 namespace eng
 {
 
-matrix4::matrix4()
+Matrix4::Matrix4()
     : elements_({{ 1.0f, 0.0f, 0.0f, 0.0f,
                    0.0f, 1.0f, 0.0f, 0.0f,
                    0.0f, 0.0f, 1.0f, 0.0f,
                    0.0f, 0.0f, 0.0f, 1.0f  }})
 { }
 
-matrix4::matrix4(const std::array<float, 16> &elements)
+Matrix4::Matrix4(const std::array<float, 16> &elements)
     : elements_(elements)
 { }
 
-matrix4::matrix4(const quaternion &q)
-    : matrix4()
+Matrix4::Matrix4(const Quaternion &q)
+    : Matrix4()
 {
     elements_[0] = 1.0f - 2.0f * q.y * q.y - 2.0f * q.z * q.z;
     elements_[1] = 2.0f * q.x * q.y - 2.0f * q.z * q.w;
@@ -36,21 +36,21 @@ matrix4::matrix4(const quaternion &q)
     elements_[10] = 1.0f - 2.0f * q.x * q.x - 2.0f * q.y * q.y;
 }
 
-matrix4::matrix4(const quaternion &q, const vector3 &p)
-    : matrix4(q)
+Matrix4::Matrix4(const Quaternion &q, const Vector3 &p)
+    : Matrix4(q)
 {
     elements_[3u] = p.x;
     elements_[7u] = p.y;
     elements_[11u] = p.z;
 }
 
-matrix4 matrix4::make_projection(
+Matrix4 Matrix4::make_projection(
     const float fov,
     const float aspect_ratio,
     const float near,
     const float far)
 {
-    matrix4 m;
+    Matrix4 m;
 
     const auto focal_length = 1.0f / std::tan(fov / 2.0f);
 
@@ -64,18 +64,18 @@ matrix4 matrix4::make_projection(
     return m;
 }
 
-matrix4 matrix4::make_look_at(
-    const vector3 &eye,
-    const vector3 &look_at,
-    const vector3 &up)
+Matrix4 Matrix4::make_look_at(
+    const Vector3 &eye,
+    const Vector3 &look_at,
+    const Vector3 &up)
 {
-    const auto f = vector3::normalise(look_at - eye);
-    const auto up_normalised = vector3::normalise(up);
+    const auto f = Vector3::normalise(look_at - eye);
+    const auto up_normalised = Vector3::normalise(up);
 
-    const auto s = vector3::cross(f, up_normalised).normalise();
-    const auto u = vector3::cross(s, f).normalise();
+    const auto s = Vector3::cross(f, up_normalised).normalise();
+    const auto u = Vector3::cross(s, f).normalise();
 
-    matrix4 m;
+    Matrix4 m;
 
     m.elements_ = {{
         s.x, s.y, s.z, 0.0f,
@@ -87,9 +87,9 @@ matrix4 matrix4::make_look_at(
     return m * make_translate(-eye);
 }
 
-matrix4 matrix4::make_scale(const vector3 &scale)
+Matrix4 Matrix4::make_scale(const Vector3 &scale)
 {
-    matrix4 m;
+    Matrix4 m;
 
     m.elements_ =
     {{
@@ -102,9 +102,9 @@ matrix4 matrix4::make_scale(const vector3 &scale)
     return m;
 }
 
-matrix4 matrix4::make_translate(const vector3 &translate)
+Matrix4 Matrix4::make_translate(const Vector3 &translate)
 {
-    matrix4 m;
+    Matrix4 m;
 
     m.elements_ =
     {{
@@ -117,9 +117,9 @@ matrix4 matrix4::make_translate(const vector3 &translate)
     return m;
 }
 
-matrix4 matrix4::make_rotate_y(const float angle)
+Matrix4 Matrix4::make_rotate_y(const float angle)
 {
-    matrix4 m;
+    Matrix4 m;
 
     m.elements_ =
     {{
@@ -132,18 +132,18 @@ matrix4 matrix4::make_rotate_y(const float angle)
     return m;
 }
 
-matrix4& matrix4::operator*=(const matrix4 &m)
+Matrix4& Matrix4::operator*=(const Matrix4 &matrix)
 {
     const auto e = elements_;
 
-    const auto calculate_cell = [&e, &m](
+    const auto calculate_cell = [&e, &matrix](
         size_t row_num,
         size_t col_num)
     {
-        return (e[row_num + 0u] * m[col_num +  0u]) +
-               (e[row_num + 1u] * m[col_num +  4u]) +
-               (e[row_num + 2u] * m[col_num +  8u]) +
-               (e[row_num + 3u] * m[col_num + 12u]);
+        return (e[row_num + 0u] * matrix[col_num +  0u]) +
+               (e[row_num + 1u] * matrix[col_num +  4u]) +
+               (e[row_num + 2u] * matrix[col_num +  8u]) +
+               (e[row_num + 3u] * matrix[col_num + 12u]);
     };
 
     elements_[0u] = calculate_cell(0u, 0u);
@@ -169,52 +169,52 @@ matrix4& matrix4::operator*=(const matrix4 &m)
     return *this;
 }
 
-matrix4 matrix4::operator*(const matrix4 &m) const
+Matrix4 Matrix4::operator*(const Matrix4 &matrix) const
 {
-    return matrix4(*this) *= m;
+    return Matrix4(*this) *= matrix;
 }
 
-vector3 matrix4::operator*(const vector3 &v) const
+Vector3 Matrix4::operator*(const Vector3 &vector) const
 {
     return {
-        v.x * elements_[0] +
-        v.y * elements_[1] +
-        v.z * elements_[2] +
+        vector.x * elements_[0] +
+        vector.y * elements_[1] +
+        vector.z * elements_[2] +
         elements_[3],
 
-        v.x * elements_[4] +
-        v.y * elements_[5] +
-        v.z * elements_[6] +
+        vector.x * elements_[4] +
+        vector.y * elements_[5] +
+        vector.z * elements_[6] +
         elements_[7],
 
-        v.x * elements_[8] +
-        v.y * elements_[9] +
-        v.z * elements_[10] +
+        vector.x * elements_[8] +
+        vector.y * elements_[9] +
+        vector.z * elements_[10] +
         elements_[11],
     };
 }
 
-float& matrix4::operator[](const size_t index)
+float& Matrix4::operator[](const size_t index)
 {
     return elements_[index];
 }
 
-float matrix4::operator[](const size_t index) const
+float Matrix4::operator[](const size_t index) const
 {
     return elements_[index];
 }
 
-const float* matrix4::data() const
+const float* Matrix4::data() const
 {
     return elements_.data();
 }
 
-vector3 matrix4::column(const std::size_t index) const
+Vector3 Matrix4::column(const std::size_t index) const
 {
     return{ elements_[index], elements_[index + 4u], elements_[index + 8u] };
 }
 
-std::ostream& operator<<(std::ostream &out, const matrix4 &m)
+std::ostream& operator<<(std::ostream &out, const Matrix4 &m)
 {
     out << m[0] << " " << m[1] << " " <<  m[2] << " " << m[3] << std::endl;
     out << m[4] << " " << m[5] << " " <<  m[6] << " " << m[7] << std::endl;

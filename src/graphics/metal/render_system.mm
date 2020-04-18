@@ -16,9 +16,9 @@ namespace
 
 struct uniform
 {
-    eng::matrix4 projection;
-    eng::matrix4 view;
-    eng::matrix4 model;
+    eng::Matrix4 projection;
+    eng::Matrix4 view;
+    eng::Matrix4 model;
 };
 
 }
@@ -29,7 +29,7 @@ namespace eng
 /**
  * Struct containing implementation specific data.
  */
-struct render_system::implementation
+struct RenderSystem::implementation
 {
     /** Simple constructor which takes a value for each member. */
     implementation(
@@ -56,7 +56,7 @@ struct render_system::implementation
     id<MTLDepthStencilState> depth_stencil_state;
 };
 
-render_system::render_system()
+RenderSystem::RenderSystem()
     : scene_(),
       camera_(),
       light_position(),
@@ -66,28 +66,28 @@ render_system::render_system()
     const auto *device = ::CGDirectDisplayCopyCurrentMetalDevice(::CGMainDisplayID());
     if(device == nullptr)
     {
-        throw exception("could not get metal device");
+        throw Exception("could not get metal device");
     }
 
     // create a new command queue for rendering
     const auto command_queue = [device newCommandQueue];
     if(command_queue == nullptr)
     {
-        throw exception("could not creare command queue");
+        throw Exception("could not creare command queue");
     }
 
     // get a pointer to the main window
-    auto *window = [[NSApp windows] firstObject];
-    if(window == nullptr)
+    auto *Window = [[NSApp windows] firstObject];
+    if(Window == nullptr)
     {
-        throw exception("could not get main window");
+        throw Exception("could not get main window");
     }
 
     // get a pointer to the metal layer to render to
-    auto *layer = static_cast<CAMetalLayer*>([[window contentView] layer]);
+    auto *layer = static_cast<CAMetalLayer*>([[Window contentView] layer]);
     if(layer == nullptr)
     {
-        throw exception("could not get metal later");
+        throw Exception("could not get metal later");
     }
 
     // get next layer so we can query frame size
@@ -95,7 +95,7 @@ render_system::render_system()
 
     // get frame size
     const auto size = [layer drawableSize];
-    const auto scale = [[window screen] backingScaleFactor];
+    const auto scale = [[Window screen] backingScaleFactor];
 
     // create and setup descriptor for depth texture
     auto *texture_description =
@@ -128,11 +128,11 @@ render_system::render_system()
 }
 
 /** Default */
-render_system::~render_system() = default;
-render_system::render_system(render_system&&) = default;
-render_system& render_system::operator=(render_system&&) = default;
+RenderSystem::~RenderSystem() = default;
+RenderSystem::RenderSystem(RenderSystem&&) = default;
+RenderSystem& RenderSystem::operator=(RenderSystem&&) = default;
 
-void render_system::render() const
+void RenderSystem::render() const
 {
     const auto drawable = [impl_->layer nextDrawable];
 
@@ -167,7 +167,7 @@ void render_system::render() const
     for(const auto &entity : scene_)
     {
         // get pipeline state handle
-        const auto pipeline_state = std::any_cast<id<MTLRenderPipelineState>>(entity->mat().native_handle());
+        const auto pipeline_state = std::any_cast<id<MTLRenderPipelineState>>(entity->material().native_handle());
 
         [render_encoder setTriangleFillMode:MTLTriangleFillModeFill];
 
@@ -177,12 +177,12 @@ void render_system::render() const
             [render_encoder setTriangleFillMode:MTLTriangleFillModeLines];
         }
 
-        // get vertex buffer handle
-        const auto &vertex_buffer_any = entity->render_mesh().vertex_buffer();
-        const auto vertex_buffer = std::any_cast<id<MTLBuffer>>(vertex_buffer_any.native_handle());
+        // get vertex Buffer handle
+        const auto &vertex_buffer_any = entity->mesh().vertex_buffer();
+        const auto vertex_Buffer = std::any_cast<id<MTLBuffer>>(vertex_buffer_any.native_handle());
 
-        // get index buffer handle
-        const auto &index_buffer_any = entity->render_mesh().index_buffer();
+        // get index Buffer handle
+        const auto &index_buffer_any = entity->mesh().index_buffer();
         const auto index_buffer = std::any_cast<id<MTLBuffer>>(index_buffer_any.native_handle());
 
         // copy uniform data into a struct
@@ -194,17 +194,17 @@ void render_system::render() const
 
         // encode render commands
         [render_encoder setRenderPipelineState:pipeline_state];
-        [render_encoder setVertexBuffer:vertex_buffer offset:0 atIndex:0];
+        [render_encoder setVertexBuffer:vertex_Buffer offset:0 atIndex:0];
         [render_encoder setVertexBytes:static_cast<const void*>(&uniform_data) length:sizeof(uniform_data) atIndex:1];
         [render_encoder setFragmentBytes:static_cast<const void*>(&light) length:sizeof(light) atIndex:0];
 
-        const auto texture = std::any_cast<id<MTLTexture>>(entity->render_mesh().tex().native_handle());
-        [render_encoder setFragmentTexture:texture atIndex:0];
+        const auto Texture = std::any_cast<id<MTLTexture>>(entity->mesh().texture().native_handle());
+        [render_encoder setFragmentTexture:Texture atIndex:0];
 
         // draw command
         [render_encoder
             drawIndexedPrimitives:MTLPrimitiveTypeTriangle
-            indexCount:entity->render_mesh().indices().size()
+            indexCount:entity->mesh().indices().size()
             indexType:MTLIndexTypeUInt32
             indexBuffer:index_buffer
             indexBufferOffset:0];
@@ -218,13 +218,13 @@ void render_system::render() const
     }
 }
 
-sprite* render_system::add(std::unique_ptr<sprite> s)
+Sprite* RenderSystem::add(std::unique_ptr<Sprite> sprite)
 {
-    scene_.emplace_back(std::move(s));
+    scene_.emplace_back(std::move(sprite));
     return scene_.back().get();
 }
 
-void render_system::set_light_position(const vector3 &position)
+void RenderSystem::set_light_position(const Vector3 &position)
 {
     light_position = position;
 

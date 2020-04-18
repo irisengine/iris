@@ -6,9 +6,9 @@ namespace eng
 {
 
 /**
- * Enumeration of possible event types.
+ * Enumeration of possible Event types.
  */
-enum class event_type : std::uint32_t
+enum class EventType : std::uint32_t
 {
     KEYBOARD,
     MOUSE

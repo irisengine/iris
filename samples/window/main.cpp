@@ -7,13 +7,13 @@ int main()
 {
     LOG_DEBUG("window_sample", "hello world");
 
-    eng::window w{ 800, 600 };
+    eng::Window w{ 800, 600 };
 
     for(;;)
     {
         if(auto evt = w.pump_event() ; evt)
         {
-            if(evt->is_key(eng::key::Q))
+            if(evt->is_key(eng::Key::Q))
             {
                 break;
             }

@@ -147,15 +147,15 @@ void unpack(
  * Debug should be used for the log messages you use to diagnose a bug and will
  * probably later delete.
  */
-class logger
+class Logger
 {
     public:
 
         /** Disabled */
-        logger(const logger&) = delete;
-        logger& operator=(const logger&) = delete;
-        logger(logger&&) = delete;
-        logger& operator=(logger&&) = delete;
+        Logger(const Logger&) = delete;
+        Logger& operator=(const Logger&) = delete;
+        Logger(Logger&&) = delete;
+        Logger& operator=(Logger&&) = delete;
 
         /**
          * Get single instance of class.
@@ -163,9 +163,9 @@ class logger
          * @returns
          *   Reference to single instance.
          */
-        static logger& instance()
+        static Logger& instance()
         {
-            static logger l{ };
+            static Logger l{ };
             return l;
         }
 
@@ -209,7 +209,7 @@ class logger
          * @param min_level
          *   Minimum level to process.
          */
-        void set_min_level(const log_level min_level)
+        void set_min_level(const LogLevel min_level)
         {
             min_level_ = min_level;
         }
@@ -226,35 +226,35 @@ class logger
         }
 
         /**
-         * Set the formatter class.
+         * Set the Formatter class.
          *
          * Uses perfect forwarding to construct object.
          *
          * @param args
-         *   Varaidic list of arguments for formatter constructor.
+         *   Varaidic list of arguments for Formatter constructor.
          */
         template<
             class T,
             class ...Args,
-            typename = std::enable_if_t<std::is_base_of<formatter, T>::value>>
-        void set_formatter(Args&& ...args)
+            typename = std::enable_if_t<std::is_base_of<Formatter, T>::value>>
+        void set_Formatter(Args&& ...args)
         {
             formatter_ = std::make_unique<T>(std::forward<Args>(args)...);
         }
 
         /**
-         * Set the outputter class.
+         * Set the Outputter class.
          *
          * Uses perfect forwarding to construct object.
          *
          * @param args
-         *   Varaidic list of arguments for outputter constructor.
+         *   Varaidic list of arguments for Outputter constructor.
          */
         template<
             class T,
             class ...Args,
-            typename = std::enable_if_t<std::is_base_of<outputter, T>::value>>
-        void set_outputter(Args&& ...args)
+            typename = std::enable_if_t<std::is_base_of<Outputter, T>::value>>
+        void set_Outputter(Args&& ...args)
         {
             outputter_ = std::make_unique<T>(std::forward<Args>(args)...);
         }
@@ -283,7 +283,7 @@ class logger
          *   Log message.
          */
         void log(
-            const log_level level,
+            const LogLevel level,
             const std::string &tag,
             const std::string &filename,
             const int line,
@@ -331,7 +331,7 @@ class logger
          */
         template<class ...Args>
         void log(
-            const log_level level,
+            const LogLevel level,
             const std::string &tag,
             const std::string &filename,
             const int line,
@@ -354,25 +354,25 @@ class logger
          * Construct a new logger. Private to force instantiation through
          * instance().
          */
-        logger()
-            : formatter_(std::make_unique<colour_formatter>()),
-              outputter_(std::make_unique<stdout_outputter>()),
+        Logger()
+            : formatter_(std::make_unique<ColourFormatter>()),
+              outputter_(std::make_unique<StdoutFormatter>()),
               ignore_(),
-              min_level_(log_level::DEBUG),
+              min_level_(LogLevel::DEBUG),
               log_engine_(false)
         { };
 
         /** Formatter object. */
-        std::unique_ptr<formatter> formatter_;
+        std::unique_ptr<Formatter> formatter_;
 
         /** Outputter object. */
-        std::unique_ptr<outputter> outputter_;
+        std::unique_ptr<Outputter> outputter_;
 
         /** Collection of tags to ignore. */
         std::set<std::string> ignore_;
 
         /** Minimum log level. */
-        log_level min_level_;
+        LogLevel min_level_;
 
         /** Whether to log internal engine messages. */
         bool log_engine_;

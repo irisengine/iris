@@ -14,7 +14,7 @@ namespace
 {
 
 /**
- * Helper function to convert internal buffer type to a opengl type.
+ * Helper function to convert internal Buffer type to a opengl type.
  *
  * @param type
  *   Type to convert.
@@ -22,27 +22,27 @@ namespace
  * @returns
  *   Supplied type as opengl type.
  */
-std::uint32_t type_to_gl_type(const eng::buffer_type type)
+std::uint32_t type_to_gl_type(const eng::BufferType type)
 {
     auto gl_type = GL_ARRAY_BUFFER;
 
     switch(type)
     {
-        case eng::buffer_type::VERTEX_ATTRIBUTES:
+        case eng::BufferType::VERTEX_ATTRIBUTES:
             gl_type = GL_ARRAY_BUFFER;
             break;
-        case eng::buffer_type::VERTEX_INDICES:
+        case eng::BufferType::VERTEX_INDICES:
             gl_type = GL_ELEMENT_ARRAY_BUFFER;
             break;
         default:
-            throw eng::exception("unknown buffer type");
+            throw eng::Exception("unknown Buffer type");
     }
 
     return gl_type;
 }
 
 /**
- * Helper function to create a opengl buffer from a collection of objects.
+ * Helper function to create a opengl Buffer from a collection of objects.
  *
  * @param data
  *   Data to store on buffer.
@@ -51,9 +51,9 @@ std::uint32_t type_to_gl_type(const eng::buffer_type type)
  *   Handle to opengl buffer.
  */
 template<class T>
-std::uint32_t create_buffer(
+std::uint32_t create_Buffer(
     const std::vector<T> &data,
-    const eng::buffer_type type)
+    const eng::BufferType type)
 {
     std::uint32_t handle = 0u;
 
@@ -72,7 +72,7 @@ std::uint32_t create_buffer(
         data.size() * sizeof(T),
         data.data(),
         GL_STATIC_DRAW);
-    eng::check_opengl_error("could not buffer data");
+    eng::check_opengl_error("could not Buffer data");
 
     // unbind buffer
     ::glBindBuffer(gl_type, 0u);
@@ -89,7 +89,7 @@ namespace eng
 /**
  * Struct containing implementation specific data.
  */
-struct buffer::implementation final
+struct Buffer::implementation final
 {
     /** Simple constructor which takes a value for each member. */
     implementation(std::uint32_t handle)
@@ -100,22 +100,22 @@ struct buffer::implementation final
     std::uint32_t handle;
 };
 
-buffer::buffer(const std::vector<float> &data, const buffer_type type)
-    : impl_(std::make_unique<implementation>(create_buffer(data, type))),
+Buffer::Buffer(const std::vector<float> &data, const BufferType type)
+    : impl_(std::make_unique<implementation>(create_Buffer(data, type))),
       type_(type)
 { }
 
-buffer::buffer(const std::vector<std::uint32_t> &data, const buffer_type type)
-    : impl_(std::make_unique<implementation>(create_buffer(data, type))),
+Buffer::Buffer(const std::vector<std::uint32_t> &data, const BufferType type)
+    : impl_(std::make_unique<implementation>(create_Buffer(data, type))),
       type_(type)
 { }
 
-buffer::buffer(const std::vector<vertex_data> &data, const buffer_type type)
-    : impl_(std::make_unique<implementation>(create_buffer(data, type))),
+Buffer::Buffer(const std::vector<vertex_data> &data, const BufferType type)
+    : impl_(std::make_unique<implementation>(create_Buffer(data, type))),
       type_(type)
 { }
 
-buffer::~buffer()
+Buffer::~Buffer()
 {
     if(impl_)
     {
@@ -124,15 +124,15 @@ buffer::~buffer()
 }
 
 /** Default. */
-buffer::buffer(buffer &&other) = default;
-buffer& buffer::operator=(buffer &&other) = default;
+Buffer::Buffer(Buffer &&other) = default;
+Buffer& Buffer::operator=(Buffer &&other) = default;
 
-std::any buffer::native_handle() const
+std::any Buffer::native_handle() const
 {
     return std::any{ impl_->handle };
 }
 
-buffer_type buffer::type() const
+BufferType Buffer::type() const
 {
     return type_;
 }

@@ -24,7 +24,7 @@ namespace eng
  *
  *   With the centre (*) being 0, 0
  */
-class sprite
+class Sprite
 {
     public:
 
@@ -46,12 +46,12 @@ class sprite
          * @param colour
          *   Colour of sprite.
          */
-        sprite(
+        Sprite(
             const float x,
             const float y,
             const float width,
             const float height,
-            const vector3 &colour);
+            const Vector3 &colour);
 
         /**
          * Create a textures sprite.
@@ -74,17 +74,17 @@ class sprite
          * @param tex
          *   Texture of sprite.
          */
-        sprite(
+        Sprite(
             const float x,
             const float y,
             const float width,
             const float height,
-            const vector3 &colour,
-            texture &&tex);
+            const Vector3 &colour,
+            Texture &&tex);
 
         /** Disabled */
-        sprite(const sprite&) = delete;
-        sprite& operator=(const sprite&) = delete;
+        Sprite(const Sprite&) = delete;
+        Sprite& operator=(const Sprite&) = delete;
 
         /**
          * Set the position of the sprite.
@@ -92,7 +92,7 @@ class sprite
          * @param position
          *   New position.
          */
-        void set_position(const vector3 &position);
+        void set_position(const Vector3 &position);
 
         /**
          * Set the orientation of the matrix.
@@ -100,7 +100,7 @@ class sprite
          * @param orientation
          *   New oritentation.
          */
-        void set_orientation(const quaternion &orientation);
+        void set_orientation(const Quaternion &orientation);
 
         /**
          * Get the transformation matrix of the sprite.
@@ -108,15 +108,15 @@ class sprite
          * @returns
          *   Transformation matrix.
          */
-        matrix4 transform() const;
+        Matrix4 transform() const;
 
         /**
-         * Get a const reference to the mesh that make up the sprite.
+         * Get a const reference to the Mesh that make up the sprite.
          *
          * @returns
          *   Const reference to mesh.
          */
-        const mesh& render_mesh() const;
+        const Mesh& mesh() const;
 
         /**
          * Get a const reference to the sprites rendering material.
@@ -124,7 +124,7 @@ class sprite
          * @returns
          *   Const reference to material.
          */
-        const material& mat() const;
+        const Material& material() const;
 
         /**
          * Returns whether the object should be rendered as a wireframe.
@@ -145,22 +145,22 @@ class sprite
     private:
 
         /** Collection of meshes. */
-        mesh mesh_;
+        Mesh mesh_;
 
         /** The position of the sprite. */
-        vector3 position_;
+        Vector3 position_;
 
         /** The orientation of the sprite. */
-        quaternion orientation_;
+        Quaternion orientation_;
 
         /** The scale of the sprite. */
-        vector3 scale_;
+        Vector3 scale_;
 
         /** Model transformation matrix4. */
-        matrix4 model_;
+        Matrix4 model_;
 
         /** Material to render with. */
-        material* material_;
+        Material* material_;
 
         /** Whether the object should be rendered as a wireframe. */
         bool wireframe_;

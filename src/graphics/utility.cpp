@@ -22,7 +22,7 @@ std::tuple<
 {
     if(!std::filesystem::exists(path))
     {
-        throw exception(path.string() + " does not exist");
+        throw Exception(path.string() + " does not exist");
     }
 
     int width = 0;
@@ -40,7 +40,7 @@ std::tuple<
 
     if(raw_data == nullptr)
     {
-        throw exception("failed to load image");
+        throw Exception("failed to load image");
     }
 
     // calculate the total number of bytes needed for the raw data

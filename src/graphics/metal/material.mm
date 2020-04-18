@@ -53,7 +53,7 @@ id<MTLFunction> load_function(
     {
         // an error occurred so parse error and throw
         const std::string error_message{ [[error localizedDescription] UTF8String] };
-        throw eng::exception("failed to load shader: " + error_message);
+        throw eng::Exception("failed to load shader: " + error_message);
     }
 
     return [library newFunctionWithName:string_to_nsstring(function_name)];
@@ -67,7 +67,7 @@ namespace eng
 /**
  * Struct containing implementation specific data.
  */
-struct material::implementation
+struct Material::implementation
 {
     /** Simple constructor which takes a value for each member. */
     implementation(id<MTLRenderPipelineState> pipeline_state)
@@ -78,7 +78,7 @@ struct material::implementation
     id<MTLRenderPipelineState> pipeline_state;
 };
 
-material::material(
+Material::Material(
     const std::string &vertex_shader_source,
     const std::string &fragment_shader_source)
     : impl_(nullptr)
@@ -105,11 +105,11 @@ material::material(
 }
 
 /** Default */
-material::~material() = default;
-material::material(material&&) = default;
-material& material::operator=(material&&) = default;
+Material::~Material() = default;
+Material::Material(Material&&) = default;
+Material& Material::operator=(Material&&) = default;
 
-std::any material::native_handle() const
+std::any Material::native_handle() const
 {
     return std::any{ impl_->pipeline_state };
 }

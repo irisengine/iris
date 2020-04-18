@@ -8,10 +8,10 @@ namespace eng::shape_factory
 {
 
 /**
- * Create a sprite mesh.
+ * Create a Sprite mesh.
 */
-mesh make_sprite(
-    const vector3 &colour,
-    texture &&tex);
+Mesh sprite(
+    const Vector3 &colour,
+    Texture &&tex);
 }
 

@@ -14,38 +14,38 @@ void go()
 {
     LOG_DEBUG("sprite_sample", "hello world");
 
-    eng::window w{ 800, 600 };
+    eng::Window w{ 800, 600 };
 
     auto *sprite1 = w.create(
         -0.5f,
         0.0f,
         0.4f,
         0.4f,
-        eng::vector3{ 0.39f, 0.58f, 0.92f });
+        eng::Vector3{ 0.39f, 0.58f, 0.92f });
 
     auto *sprite2 = w.create(
         0.5f,
         0.0f,
         0.4f,
         0.4f,
-        eng::vector3{ 0.86f, 0.08f, 0.23f });
+        eng::Vector3{ 0.86f, 0.08f, 0.23f });
 
     auto *sprite3 = w.create(
         0.0f,
         0.5f,
         0.4f,
         0.4f,
-        eng::vector3{ 1.0f, 1.0f, 1.0f },
-        eng::texture("./circle.png"));
+        eng::Vector3{ 1.0f, 1.0f, 1.0f },
+        eng::Texture("./circle.png"));
 
-    eng::quaternion rot{ { 0.0f, 0.0f, 1.0f }, 0.0f };
-    eng::quaternion delta{ { 0.0f, 0.0f, 1.0f }, 0.02f };
+    eng::Quaternion rot{ { 0.0f, 0.0f, 1.0f }, 0.0f };
+    eng::Quaternion delta{ { 0.0f, 0.0f, 1.0f }, 0.02f };
 
     for(;;)
     {
         if(auto evt = w.pump_event() ; evt)
         {
-            if(evt->is_key(eng::key::Q))
+            if(evt->is_key(eng::Key::Q))
             {
                 break;
             }
@@ -67,7 +67,7 @@ int main()
     {
         go();
     }
-    catch(eng::exception &e)
+    catch(eng::Exception &e)
     {
         LOG_ERROR("sprite_sample", e.what());
         LOG_ERROR("sprite_sample", e.stack_trace());

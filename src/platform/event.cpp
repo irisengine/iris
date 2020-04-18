@@ -7,73 +7,73 @@
 namespace eng
 {
 
-event::event(const keyboard_event e)
-    : type_(event_type::KEYBOARD),
-      event_(e)
+Event::Event(const KeyboardEvent event)
+    : type_(EventType::KEYBOARD),
+      event_(event)
 { }
 
-event::event(const mouse_event e)
-    : type_(event_type::MOUSE),
-      event_(e)
+Event::Event(const MouseEvent event)
+    : type_(EventType::MOUSE),
+      event_(event)
 { }
 
-event_type event::type() const
+EventType Event::type() const
 {
     return type_;
 }
 
-bool event::is_key() const
+bool Event::is_key() const
 {
-    return std::holds_alternative<keyboard_event>(event_);
+    return std::holds_alternative<KeyboardEvent>(event_);
 }
 
-bool event::is_key(enum key k) const
+bool Event::is_key(Key key) const
 {
     auto match = false;
 
-    if(auto val = std::get_if<keyboard_event>(&event_) ; val)
+    if(auto val = std::get_if<KeyboardEvent>(&event_) ; val)
     {
-        match = val->key == k;
+        match = val->key == key;
     }
 
     return match;
 }
 
-bool event::is_key(enum key k, key_state state) const
+bool Event::is_key(Key key, KeyState state) const
 {
     auto match = false;
 
-    if(auto val = std::get_if<keyboard_event>(&event_) ; val)
+    if(auto val = std::get_if<KeyboardEvent>(&event_) ; val)
     {
-        match = (val->key) == k && (val->state == state);
+        match = (val->key) == key && (val->state == state);
     }
 
     return match;
 }
 
-keyboard_event event::key() const
+KeyboardEvent Event::key() const
 {
     if(!is_key())
     {
-        throw exception("not keyboard event");
+        throw Exception("not keyboard event");
     }
 
-    return std::get<keyboard_event>(event_);
+    return std::get<KeyboardEvent>(event_);
 }
 
-bool event::is_mouse() const
+bool Event::is_mouse() const
 {
-    return std::holds_alternative<mouse_event>(event_);
+    return std::holds_alternative<MouseEvent>(event_);
 }
 
-mouse_event event::mouse() const
+MouseEvent Event::mouse() const
 {
     if(!is_mouse())
     {
-        throw exception("not mouse event");
+        throw Exception("not mouse event");
     }
 
-    return std::get<mouse_event>(event_);
+    return std::get<MouseEvent>(event_);
 }
 
 }

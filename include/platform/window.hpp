@@ -14,7 +14,7 @@ namespace eng
 /**
  * Class representing a native window.
  */
-class window
+class Window
 {
     public:
 
@@ -27,13 +27,13 @@ class window
          * @param height
          *   Height of the window.
          */
-        window(
+        Window(
             const float with,
             const float height);
 
         /** Disabled */
-        window(const window&) = delete;
-        window& operator=(const window&) = delete;
+        Window(const Window&) = delete;
+        Window& operator=(const Window&) = delete;
 
         /**
          * Render the current scene.
@@ -62,12 +62,12 @@ class window
          *  @returns
          *    A pointer to the newly created sprite.
          */
-        sprite* create(
+        Sprite* create(
             const float x,
             const float y,
             const float width,
             const float height,
-            const vector3 &colour);
+            const Vector3 &colour);
 
         /**
          * Create a textured sprite. The lifetime of this pointer is
@@ -94,26 +94,26 @@ class window
          *  @returns
          *    A pointer to the newly created sprite.
          */
-        sprite* create(
+        Sprite* create(
             const float x,
             const float y,
             const float width,
             const float height,
-            const vector3 &colour,
-            texture &&tex);
+            const Vector3 &colour,
+            Texture &&tex);
 
         /**
-         * Create a sprite which renders text in the supplied font, size and
+         * Create a Sprite which renders text in the supplied font, size and
          * colour. The lifetime of this pointer is automatically managed by the
          * engine. *DO NOT* delete/free it.
          *
          * @param font_name
-         *   The name of a font to load. This is located and loaded in a
-         *   platform specific way, so the font must exist for the current
+         *   The name of a Font to load. This is located and loaded in a
+         *   platform specific way, so the Font must exist for the current
          *   platform.
          *
          * @param size
-         *   The font size.
+         *   The Font size.
          *
          * @param colour
          *   The colour of the font.
@@ -130,10 +130,10 @@ class window
          *  @returns
          *    A pointer to the newly created sprite.
          */
-        sprite* create(
+        Sprite* create(
             const std::string &font_name,
             const std::uint32_t size,
-            const vector3 &colour,
+            const Vector3 &colour,
             const std::string &text,
             const float x,
             const float y);
@@ -145,7 +145,7 @@ class window
          * @returns
          *   Optional event.
          */
-        std::optional<event> pump_event();
+        std::optional<Event> pump_event();
 
         /**
          * Get the width of the window.
@@ -166,10 +166,10 @@ class window
     private:
 
         /** Render system for window. */
-        std::unique_ptr<render_system> render_system_;
+        std::unique_ptr<RenderSystem> render_system_;
         
         /** Queue of input events. */
-        std::queue<event> events_;
+        std::queue<Event> events_;
 
         /** Window width. */
         float width_;

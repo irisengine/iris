@@ -53,9 +53,9 @@ static const std::string fragment_source_sprite { R"(
 namespace eng::material_factory
 {
 
-material* basic_sprite()
+Material* sprite()
 {
-    static auto mat = std::make_unique<material>(vertex_source_sprite, fragment_source_sprite);
+    static auto mat = std::make_unique<Material>(vertex_source_sprite, fragment_source_sprite);
     return mat.get();
 }
 

@@ -19,23 +19,23 @@ namespace eng
 /**
  * Struct containing implementation specific data.
  */
-struct mesh::implementation
+struct Mesh::implementation
 {
 };
 
-mesh::mesh(
+Mesh::Mesh(
     const std::vector<vertex_data> &vertices,
     const std::vector<std::uint32_t> &indices,
-    texture &&textures)
+    Texture &&textures)
     : indices_(indices),
       texture_(std::move(textures)),
       vertex_buffer_(nullptr),
-      index_buffer_(std::make_unique<buffer>(indices, buffer_type::DONT_CARE)),
+      index_buffer_(std::make_unique<Buffer>(indices, BufferType::DONT_CARE)),
       impl_(nullptr)
 {
     // metal prefers four byte aligned data types, as vertex_data consists of
     // three byte components we 'extend' them by copying them into an enlarged
-    // buffer but skipping the fourth byte, this gives every object in
+    // Buffer but skipping the fourth byte, this gives every object in
     // vertex_data a fourth component with the value one
 
     // before copying
@@ -81,36 +81,36 @@ mesh::mesh(
         ++src;
     }
 
-    // create buffer with four byte aligned data
-    vertex_buffer_ = std::make_unique<buffer>(data, buffer_type::VERTEX_ATTRIBUTES);
+    // create Buffer with four byte aligned data
+    vertex_buffer_ = std::make_unique<Buffer>(data, BufferType::VERTEX_ATTRIBUTES);
 }
 
 /** Default */
-mesh::~mesh() = default;
-mesh::mesh(mesh&&) = default;
-mesh& mesh::operator=(mesh&&) = default;
+Mesh::~Mesh() = default;
+Mesh::Mesh(Mesh&&) = default;
+Mesh& Mesh::operator=(Mesh&&) = default;
 
-const std::vector<std::uint32_t>& mesh::indices() const
+const std::vector<std::uint32_t>& Mesh::indices() const
 {
     return indices_;
 }
 
-const buffer& mesh::vertex_buffer() const
+const Buffer& Mesh::vertex_buffer() const
 {
     return *vertex_buffer_;
 }
 
-const buffer& mesh::index_buffer() const
+const Buffer& Mesh::index_buffer() const
 {
     return *index_buffer_;
 }
 
-const texture& mesh::tex() const
+const Texture& Mesh::texture() const
 {
     return texture_;
 }
 
-std::any mesh::native_handle() const
+std::any Mesh::native_handle() const
 {
     return { };
 }

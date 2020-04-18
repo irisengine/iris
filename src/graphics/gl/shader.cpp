@@ -42,7 +42,7 @@ shader::shader(const std::string &source, shader_type type)
 
         if(shader_param == 0)
         {
-            throw exception("shader compilation failed: no log");
+            throw Exception("shader compilation failed: no log");
         }
         else
         {
@@ -59,7 +59,7 @@ shader::shader(const std::string &source, shader_type type)
 
             // convert to string and throw
             const std::string error(error_log.data(), log_length);
-            throw exception("shader compilation failed: " + error);
+            throw Exception("shader compilation failed: " + error);
         }
     }
 }

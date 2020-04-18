@@ -37,14 +37,14 @@ MTLPixelFormat channels_to_format(const std::uint32_t num_channels)
             format = MTLPixelFormatRGBA8Unorm;
             break;
         default:
-            throw eng::exception("incorrect number of channels");
+            throw eng::Exception("incorrect number of channels");
     }
 
     return format;
 }
 
 /**
- * Helper function to create an metal texture from data.
+ * Helper function to create an metal Texture from data.
  *
  * @param data
  *   Raw data of image.
@@ -71,12 +71,12 @@ id<MTLTexture> create_texture(
     const auto expected_size = width * height * num_channels;
     if(data.size() != expected_size)
     {
-        throw eng::exception("incorrect data size");
+        throw eng::Exception("incorrect data size");
     }
 
     const auto format = channels_to_format(num_channels);
 
-    // create metal texture descriptor
+    // create metal Texture descriptor
     auto *texture_descriptor =
         [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:format
                                                            width:width
@@ -110,7 +110,7 @@ namespace eng
 /**
  * Struct containing implementation specific data.
  */
-struct texture::implementation
+struct Texture::implementation
 {
     /** Simple constructor which takes a value for each member. */
     implementation(id<MTLTexture> texture)
@@ -121,7 +121,7 @@ struct texture::implementation
     id<MTLTexture> texture;
 };
 
-texture::texture(const std::filesystem::path &path)
+Texture::Texture(const std::filesystem::path &path)
     : data_(),
       width_(0u),
       height_(0u),
@@ -138,7 +138,7 @@ texture::texture(const std::filesystem::path &path)
 }
 
 
-texture::texture(
+Texture::Texture(
     const std::vector<std::uint8_t> &data,
     const std::uint32_t width,
     const std::uint32_t height,
@@ -156,36 +156,36 @@ texture::texture(
 }
 
 /** Default. */
-texture::~texture() = default;
-texture::texture(texture&&) = default;
-texture& texture::operator=(texture&&) = default;
+Texture::~Texture() = default;
+Texture::Texture(Texture&&) = default;
+Texture& Texture::operator=(Texture&&) = default;
 
-std::vector<std::uint8_t> texture::data() const
+std::vector<std::uint8_t> Texture::data() const
 {
     return data_;
 }
 
-std::uint32_t texture::width() const
+std::uint32_t Texture::width() const
 {
     return width_;
 }
 
-std::uint32_t texture::height() const
+std::uint32_t Texture::height() const
 {
     return height_;
 }
 
-std::uint32_t texture::num_channels() const
+std::uint32_t Texture::num_channels() const
 {
     return num_channels_;
 }
 
-std::any texture::native_handle() const
+std::any Texture::native_handle() const
 {
     return impl_->texture;
 }
 
-texture texture::blank()
+Texture Texture::blank()
 {
     return{ { 0xFF, 0xFF, 0xFF, 0xFF }, 1u, 1u, 4u };
 }

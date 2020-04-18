@@ -12,8 +12,8 @@
 namespace eng
 {
 
-std::string colour_formatter::format(
-    const log_level level,
+std::string ColourFormatter::format(
+    const LogLevel level,
     const std::string &tag,
     const std::string &message,
     const std::string &filename,
@@ -24,16 +24,16 @@ std::string colour_formatter::format(
     // apply an ANSI escape sequence to start colour output
     switch(level)
     {
-        case log_level::DEBUG:
+        case LogLevel::DEBUG:
             strm << "\x1b[35m";
             break;
-        case log_level::INFO:
+        case LogLevel::INFO:
             strm << "\x1b[34m";
             break;
-        case log_level::WARN:
+        case LogLevel::WARN:
             strm << "\x1b[33m";
             break;
-        case log_level::ERROR:
+        case LogLevel::ERROR:
             strm << "\x1b[31m";
             break;
         default: break;

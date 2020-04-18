@@ -9,22 +9,22 @@ namespace eng
 /**
  * Class representing the camera through which a scene is rendered.
  */
-class camera
+class Camera
 {
     public:
 
         /**
          * Create a new camera, positioned at the origin.
          */
-        camera();
+        Camera();
 
         /**
          * Translate the camera.
          *
-         * @param t
+         * @param translate
          *   Amount to translate.
          */
-        void translate(const vector3 &t);
+        void translate(const Vector3 &translat);
 
         /**
          * Set the view matrix for the camera.
@@ -32,7 +32,7 @@ class camera
          * @param view
          *   New view matrix.
          */
-        void set_view(const matrix4 &view);
+        void set_view(const Matrix4 &view);
 
         /**
          * Get position of camera.
@@ -40,7 +40,7 @@ class camera
          * @returns
          *   Camera position in world space.
          */
-        vector3 position() const;
+        Vector3 position() const;
 
         /**
          * Get direction camera is facing.
@@ -48,7 +48,7 @@ class camera
          * @returns
          *   Camera direction.
          */
-        vector3 direction() const;
+        Vector3 direction() const;
 
         /**
          * Get the right vector of the camera.
@@ -56,7 +56,7 @@ class camera
          * @returns
          *   Camera right vector.
          */
-        vector3 right() const;
+        Vector3 right() const;
 
         /**
          * Get the view matrix4.
@@ -64,7 +64,7 @@ class camera
          * @returns
          *   View matrix4.
          */
-        matrix4 view() const;
+        Matrix4 view() const;
 
         /**
          * Get the projection matrix4.
@@ -72,7 +72,7 @@ class camera
          * @returns
          *   Projection matrix4.
          */
-        matrix4 projection() const;
+        Matrix4 projection() const;
 
         /**
          * Set the yaw of the camera.
@@ -109,19 +109,19 @@ class camera
    private:
 
         /** Camera position in world space. */
-        vector3 position_;
+        Vector3 position_;
 
         /** Direction camera is facing. */
-        vector3 direction_;
+        Vector3 direction_;
 
         /** Camera up vector. */
-        vector3 up_;
+        Vector3 up_;
 
-        /** View matrix4 for the camera. */
-        matrix4 view_;
+        /** View Matrix4 for the camera. */
+        Matrix4 view_;
 
-        /** Projection matrix4 for the camera. */
-        matrix4 projection_;
+        /** Projection Matrix4 for the camera. */
+        Matrix4 projection_;
 
         /** Pitch of camera. */
         float pitch_;

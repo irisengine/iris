@@ -11,7 +11,7 @@ int go()
 {
     LOG_DEBUG("font_sample", "hello world");
 
-    eng::window w{ 800, 600 };
+    eng::Window w{ 800, 600 };
 
     w.create("Helvetica", 12, { 1, 1, 1 }, "hello world", 0, 0);
 
@@ -19,7 +19,7 @@ int go()
     {
         if(auto evt = w.pump_event() ; evt)
         {
-            if(evt->is_key(eng::key::Q))
+            if(evt->is_key(eng::Key::Q))
             {
                 break;
             }
@@ -39,7 +39,7 @@ int main()
     {
         go();
     }
-    catch(eng::exception &e)
+    catch(eng::Exception &e)
     {
         LOG_ERROR("font_sample", e.what());
         LOG_ERROR("font_sample", e.stack_trace());

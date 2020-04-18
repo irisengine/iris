@@ -8,9 +8,9 @@ namespace eng::material_factory
 {
 
 /**
- * Create a material for rendering a basic sprite.
+ * Create a Material for rendering a basic sprite.
  */
-material* basic_sprite();
+Material* sprite();
 
 }
 

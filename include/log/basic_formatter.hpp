@@ -9,7 +9,7 @@ namespace eng
 {
 
 /**
- * Implementation of formatter which formats log message details as:
+ * Implementation of Formatter which formats log message details as:
  *   L T [t] F:L | M
  *
  *   Where:
@@ -23,12 +23,12 @@ namespace eng
  *  Example:
  *    D 17:38:28 [camera] camera.cpp:58 | x: -4.37114e-08 y: 0 z: -1
  */
-class basic_formatter : public formatter
+class BasicFormatter : public Formatter
 {
     public:
 
         /** Default */
-        ~basic_formatter() override = default;
+        ~BasicFormatter() override = default;
 
         /**
          * Format the supplied log details into a string.
@@ -49,7 +49,7 @@ class basic_formatter : public formatter
          *   Line of the log call in the file.
          */
         std::string format(
-            const log_level level,
+            const LogLevel level,
             const std::string &tag,
             const std::string &message,
             const std::string &filename,

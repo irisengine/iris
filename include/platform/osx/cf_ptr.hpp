@@ -18,24 +18,24 @@ namespace eng
 template<
     class T,
     typename=typename std::enable_if_t<std::is_pointer<T>::value>>
-class cf_ptr
+class CfPtr
 {
     public:
 
         /**
-         * Construct a new cf_ptr with the supplied object pointer.
+         * Construct a new CfPtr with the supplied object pointer.
          *
          * @param ptr
          *   Pointer to wrap (can be nullptr).
          */
-        cf_ptr(T ptr)
+        CfPtr(T ptr)
             : ptr_(ptr)
         { }
 
         /**
          * Release the CoreFoundation object.
          */
-        ~cf_ptr()
+        ~CfPtr()
         {
             if(ptr_ != nullptr)
             {
@@ -44,8 +44,8 @@ class cf_ptr
         }
 
         /** Disabled. */
-        cf_ptr(const cf_ptr&) = delete;
-        cf_ptr& operator=(const cf_ptr&) = delete;
+        CfPtr(const CfPtr&) = delete;
+        CfPtr& operator=(const CfPtr&) = delete;
 
         /**
          * Move construct a new cf_ptr.
@@ -53,9 +53,9 @@ class cf_ptr
          * Other must not be used after this call.
          *
          * @param other
-         *   The cf_ptr to construct from.
+         *   The CfPtr to construct from.
          */
-        cf_ptr(cf_ptr &&other)
+        CfPtr(CfPtr &&other)
             : ptr_(nullptr)
         {
             swap(other);
@@ -67,28 +67,28 @@ class cf_ptr
          * Other must not be used after this call.
          *
          * @param other
-         *   The cf_ptr to assign from.
+         *   The CfPtr to assign from.
          *
          * @returns
          *   Reference to this cf_ptr, after move assignment.
          */
-        cf_ptr& operator=(cf_ptr &&other)
+        CfPtr& operator=(CfPtr &&other)
         {
-            // create a new cf_ptr object to 'steal' the internal state of the
+            // create a new CfPtr object to 'steal' the internal state of the
             // supplied object
-            cf_ptr new_ptr{ std::move(other) };
+            CfPtr new_ptr{ std::move(other) };
             swap(new_ptr);
 
             return *this;
         }
 
         /**
-         * Swap this cf_ptr with another.
+         * Swap this CfPtr with another.
          *
          * @param other
          *   Object to swap with.
          */
-        void swap(cf_ptr &other)
+        void swap(CfPtr &other)
         {
             std::swap(ptr_, other.ptr_);
         }

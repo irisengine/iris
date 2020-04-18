@@ -16,7 +16,7 @@ namespace eng
  * This class is the opengl implementation of mesh. This encapsulates all the
  * logic and data needed for opengl rendering.
  */
-class mesh_implementation
+class Mesh_implementation
 {
     public:
 
@@ -38,20 +38,20 @@ class mesh_implementation
         mesh_implementation& operator=(const mesh_implementation&) = delete;
 
         /**
-         * Get a reference to the vertex buffer for this mesh.
+         * Get a reference to the vertex Buffer for this mesh.
          *
          * @returns
          *   Const reference to vertex buffer.
          */
-        const buffer& vertex_buffer() const;
+        const Buffer& vertex_Buffer() const;
 
         /**
-         * Get a reference to the index buffer for this mesh.
+         * Get a reference to the index Buffer for this mesh.
          *
          * @returns
          *   Const reference to index buffer.
          */
-        const buffer& index_buffer() const;
+        const Buffer& index_Buffer() const;
 
         /**
          * Get a native handle for the mesh. The type of this is dependant on
@@ -67,11 +67,11 @@ class mesh_implementation
         /** The vertex array object. */
         vertex_state vao_;
 
-        /** The vertex buffer object. */
-        buffer vbo_;
+        /** The vertex Buffer object. */
+        Buffer vbo_;
 
-        /** The element buffer object. */
-        buffer ebo_;
+        /** The element Buffer object. */
+        Buffer ebo_;
 };
 
 }

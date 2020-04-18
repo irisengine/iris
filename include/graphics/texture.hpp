@@ -13,20 +13,20 @@ namespace eng
  * Class encapsulating a renderable texture. This class loads image data from
  * a file and performs all necessary graphics API setup for use.
  */
-class texture
+class Texture
 {
     public:
 
         /**
-         * Create a new texture from an image file.
+         * Create a new Texture from an image file.
          *
          * @param path
          *   Path to image file to load.
          */
-        explicit texture(const std::filesystem::path &path);
+        explicit Texture(const std::filesystem::path &path);
 
         /**
-         * Creates a new texture with custom values.
+         * Creates a new Texture with custom values.
          *
          * @param data
          *   Raw data of image.
@@ -40,16 +40,16 @@ class texture
          * @param num_channels
          *   Number of channels.
          */
-        texture(
+        Texture(
             const std::vector<std::uint8_t> &data,
             const std::uint32_t width,
             const std::uint32_t height,
             const std::uint32_t num_channels);
 
         /** Declared in mm/cpp file as implementation is an incomplete type. */
-        ~texture();
-        texture(texture&&);
-        texture& operator=(texture&&);
+        ~Texture();
+        Texture(Texture&&);
+        Texture& operator=(Texture&&);
 
         /**
          * Get the raw image data.
@@ -98,7 +98,7 @@ class texture
          * @returns
          *   Blank texture.
          */
-        static texture blank();
+        static Texture blank();
 
     private:
 

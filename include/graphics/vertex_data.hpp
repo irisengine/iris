@@ -26,10 +26,10 @@ struct vertex_data
      *   Coordinates of texture.
      */
     vertex_data(
-        const vector3 &position,
-        const vector3 &normal,
-        const vector3 &colour,
-        const vector3 &texture_coords)
+        const Vector3 &position,
+        const Vector3 &normal,
+        const Vector3 &colour,
+        const Vector3 &texture_coords)
         : position(position),
           normal(normal),
           colour(colour),
@@ -37,16 +37,16 @@ struct vertex_data
     { }
 
     /** Vertex position. */
-    vector3 position;
+    Vector3 position;
 
     /** Vertex normal. */
-    vector3 normal;
+    Vector3 normal;
 
     /** Vertex colour. */
-    vector3 colour;
+    Vector3 colour;
 
     /** Texture coordinates. */
-    vector3 texture_coords;
+    Vector3 texture_coords;
 };
 
 }

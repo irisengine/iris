@@ -10,7 +10,7 @@ namespace eng
 /**
  * Class encapsulating a materal for rendering an entity.
  */
-class material
+class Material
 {
     public:
 
@@ -23,14 +23,14 @@ class material
          * @param fragment_shader_source
          *   Shader source for fragment.
          */
-        material(
+        Material(
             const std::string &vertex_shader_source,
             const std::string &fragment_shader_source);
 
         /** Declared in mm/cpp file as implementation is an incomplete file. */
-        ~material();
-        material(material&&);
-        material& operator=(material&&);
+        ~Material();
+        Material(Material&&);
+        Material& operator=(Material&&);
 
         /**
          * Get a native handle for the material. The type of this is dependant

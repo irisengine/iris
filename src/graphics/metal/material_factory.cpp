@@ -37,8 +37,8 @@ typedef struct {
 } VertexOut;
 
 vertex VertexOut vertex_main(
-    device VertexIn *vertices [[buffer(0)]],
-    constant DefaultUniform *uniform [[buffer(1)]],
+    device VertexIn *vertices [[Buffer(0)]],
+    constant DefaultUniform *uniform [[Buffer(1)]],
     uint vid [[vertex_id]])
 {
     VertexOut out;
@@ -92,9 +92,9 @@ fragment float4 fragment_main(
 namespace eng::material_factory
 {
 
-material* basic_sprite()
+Material* sprite()
 {
-    static auto mat = std::make_unique<material>(vertex_source_sprite, fragment_source_sprite);
+    static auto mat = std::make_unique<Material>(vertex_source_sprite, fragment_source_sprite);
     return mat.get();
 }
 

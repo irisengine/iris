@@ -17,7 +17,7 @@ namespace eng
 /**
  * Struct containing implementation specific data.
  */
-struct material::implementation
+struct Material::implementation
 {
     /** Simple constructor which takes a value for each member. */
     implementation(std::uint32_t program)
@@ -29,7 +29,7 @@ struct material::implementation
 };
 
 
-material::material(
+Material::Material(
     const std::string &vertex_shader_source,
     const std::string &fragment_shader_source)
     : impl_(nullptr)
@@ -60,7 +60,7 @@ material::material(
 
         if(programparam == 0)
         {
-            throw exception("program link failed: no log");
+            throw Exception("program link failed: no log");
         }
         else
         {
@@ -76,23 +76,23 @@ material::material(
             eng::check_opengl_error("failed to get error log");
 
             const std::string error(error_log.data(), log_length);
-            throw exception("program link failed: " + error);
+            throw Exception("program link failed: " + error);
         }
     }
 
     impl_ = std::make_unique<implementation>(program);
 }
 
-material::~material()
+Material::~Material()
 {
     ::glDeleteProgram(impl_->program);
 }
 
 /** Default */
-material::material(material &&other) = default;
-material& material::operator=(material &&other) = default;
+Material::Material(Material &&other) = default;
+Material& Material::operator=(Material &&other) = default;
 
-std::any material::native_handle() const
+std::any Material::native_handle() const
 {
     return std::any { impl_->program };
 }

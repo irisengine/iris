@@ -12,10 +12,10 @@ namespace eng
 {
 
 /**
- * Class encapsulating a loaded font which can can produce a sprite containing
+ * Class encapsulating a loaded Font which can can produce a Sprite containing
  * rendered text.
  */
-class font
+class Font
 {
     public:
 
@@ -23,28 +23,28 @@ class font
          * Construct a new font.
          *
          * @param font_name
-         *   The name of a font to load. This is located and loaded in a
-         *   platform specific way, so the font must exist for the current
+         *   The name of a Font to load. This is located and loaded in a
+         *   platform specific way, so the Font must exist for the current
          *   platform.
          *
          * @param size
-         *   The font size.
+         *   The Font size.
          *
          * @param colour
          *   The colour of the font.
          */
-        font(
+        Font(
             const std::string &font_name,
             const std::uint32_t size,
-            const vector3 &colour);
+            const Vector3 &colour);
 
         /** Declared in mm/cpp file as implementation is an incomplete file. */
-        ~font();
-        font(font&&);
-        font& operator=(font&&);
+        ~Font();
+        Font(Font&&);
+        Font& operator=(Font&&);
 
         /**
-         * Create a sprite which, when rendered, will draw the
+         * Create a Sprite which, when rendered, will draw the
          * supplied text.
          *
          * @param text
@@ -56,7 +56,7 @@ class font
          * @param y
          *   y coordinate of centre of rendered text.
          */
-        std::unique_ptr<sprite> sprites(
+        std::unique_ptr<Sprite> sprite(
             const std::string &text,
             const float x,
             const float y) const;
@@ -67,7 +67,7 @@ class font
         std::string font_name_;
 
         /** Colour of text. */
-        vector3 colour_;
+        Vector3 colour_;
 
         /** Pointer to platform specific implementation details. */
         struct implementation;

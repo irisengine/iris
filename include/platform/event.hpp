@@ -13,27 +13,27 @@ namespace eng
 
 /**
  * Class encapsulating a user input event. This provides common access to
- * specific event types e.g. keyboard_event. 
+ * specific Event types e.g. keyboard_event. 
  */
-class event
+class Event
 {
     public:
 
         /**
          * Construct a new keyboard event.
          *
-         * @param e
+         * @param event
          *  Keyboard event.
          */
-        event(const keyboard_event e);
+        Event(const KeyboardEvent event);
 
         /**
          * Construct a new mouse event.
          *
-         * @param e
+         * @param event
          *  Mouse event.
          */
-        event(const mouse_event e);
+        Event(const MouseEvent event);
 
         /**
          * Get type of event.
@@ -41,41 +41,41 @@ class event
          * @returns
          *  Event type.
          */
-        event_type type() const;
+        EventType type() const;
 
         /**
-         * Check if event is a keyboard event.
+         * Check if Event is a keyboard event.
          *
          * @returns
-         *   True if event is a keyboard event, else false.
+         *   True if Event is a keyboard event, else false.
          */
         bool is_key() const;
 
         /**
-         * Check if this event is a specific key event.
+         * Check if this Event is a specific Key event.
          *
-         * @param k
+         * @param key
          *   Key to check.
          *
          * @returns
-         *   True if event is a keyboard event and matches supplied key.
+         *   True if Event is a keyboard Event and matches supplied key.
          */
-        bool is_key(key k) const;
+        bool is_key(Key key) const;
 
         /**
-         * Check if this event is a specific key event and state.
+         * Check if this Event is a specific Key Event and state.
          *
-         * @param k
+         * @param key
          *   Key to check.
          *
          * @param state
          *   State to check.
          *
          * @returns
-         *   True if event is a keyboard event and matches supplied key and
+         *   True if Event is a keyboard Event and matches supplied Key and
          *   state.
          */
-        bool is_key(key k, key_state state) const;
+        bool is_key(Key key, KeyState state) const;
 
         /**
          * Get keyboard_event, will throw if wrong type.
@@ -83,13 +83,13 @@ class event
          * @returns
          *   Keyboard event.
          */
-        keyboard_event key() const;
+        KeyboardEvent key() const;
 
         /**
-         * Check if event is a mouse event.
+         * Check if Event is a mouse event.
          *
          * @returns
-         *   True if event is a mouse event, else false.
+         *   True if Event is a mouse event, else false.
          */
         bool is_mouse() const;
 
@@ -99,15 +99,15 @@ class event
          * @returns
          *   Mouse event.
          */
-        mouse_event mouse() const;
+        MouseEvent mouse() const;
 
     private:
 
         /** Type of event. */
-        event_type type_;
+        EventType type_;
 
-        /** Variant of possible event types. */
-        std::variant<keyboard_event, mouse_event> event_;
+        /** Variant of possible Event types. */
+        std::variant<KeyboardEvent, MouseEvent> event_;
 };
 
 }

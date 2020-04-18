@@ -18,25 +18,25 @@ namespace eng
 template<
     class T,
     typename=typename std::enable_if<std::is_pointer<T>::value>::type>
-class cf_ptr
+class CfPtr
 {
 
     public:
 
         /**
-         * Construct a new cf_ptr with the supplied object pointer.
+         * Construct a new CfPtr with the supplied object pointer.
          *
          * @param ptr
          *   Pointer to wrap (can be nullptr).
          */
-        cf_ptr(T ptr)
+        CfPtr(T ptr)
             : ptr_(ptr)
         { }
 
         /**
          * Release the CoreFoundation object.
          */
-        ~cf_ptr()
+        ~CfPtr()
         {
             if(ptr_ != nullptr)
             {
@@ -45,8 +45,8 @@ class cf_ptr
         }
 
         /** Disabled. */
-        cf_ptr(const cf_ptr&) = delete;
-        cf_ptr& operator=(const cf_ptr&) = delete;
+        CfPtr(const CfPtr&) = delete;
+        CfPtr& operator=(const CfPtr&) = delete;
 
         /**
          * Move construct a new cf_ptr.
@@ -54,9 +54,9 @@ class cf_ptr
          * Other must not be used after this call.
          *
          * @param other
-         *   The cf_ptr to construct from.
+         *   The CfPtr to construct from.
          */
-        cf_ptr(cf_ptr &&other)
+        CfPtr(CfPtr &&other)
             : ptr_(other.ptr_)
         {
             other.ptr_ = nullptr;
@@ -68,9 +68,9 @@ class cf_ptr
          * Other must not be used after this call.
          *
          * @param other
-         *   The cf_ptr to assign from.
+         *   The CfPtr to assign from.
          */
-        cf_ptr& operator=(cf_ptr &&other)
+        CfPtr& operator=(CfPtr &&other)
         {
             if(*this != other)
             {
