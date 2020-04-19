@@ -1,25 +1,24 @@
-#include "render_system.hpp"
+#include "graphics/render_system.h"
 
 #import <Metal/Metal.h>
 #import <MetalKit/MetalKit.h>
 #import <QuartzCore/QuartzCore.h>
 
-#include "buffer.hpp"
-#include "entity.hpp"
-#include "exception.hpp"
-#include "log.hpp"
-#include "matrix4.hpp"
-#include "sprite.hpp"
-#include "vector3.hpp"
+#include "core/exception.h"
+#include "core/matrix4.h"
+#include "core/vector3.h"
+#include "graphics/buffer.h"
+#include "graphics/sprite.h"
+#include "log/log.h"
 
 namespace
 {
 
 struct uniform
 {
-    eng::matrix4 projection;
-    eng::matrix4 view;
-    eng::matrix4 model;
+    eng::Matrix4 projection;
+    eng::Matrix4 view;
+    eng::Matrix4 model;
 };
 
 }
@@ -30,7 +29,7 @@ namespace eng
 /**
  * Struct containing implementation specific data.
  */
-struct render_system::implementation final
+struct RenderSystem::implementation
 {
     /** Simple constructor which takes a value for each member. */
     implementation(
@@ -43,13 +42,6 @@ struct render_system::implementation final
       depth_texture(depth_texture),
       depth_stencil_state(depth_stencil_state)
     { }
-
-    /** Default */
-    ~implementation() = default;
-    implementation(const implementation&) = default;
-    implementation& operator=(const implementation&) = default;
-    implementation(implementation&&) = default;
-    implementation& operator=(implementation&&) = default;
 
     /** Command queue for rendering a frame. */
     id<MTLCommandQueue> command_queue;
@@ -64,41 +56,37 @@ struct render_system::implementation final
     id<MTLDepthStencilState> depth_stencil_state;
 };
 
-render_system::render_system(
-            std::shared_ptr<camera> cam,
-            std::shared_ptr<window> win)
+RenderSystem::RenderSystem(float width, float height)
     : scene_(),
-      camera_(cam),
-      window_(win),
-      light_position(),
+      camera_(width, height),
       impl_(nullptr)
 {
     // get metal device handle
     const auto *device = ::CGDirectDisplayCopyCurrentMetalDevice(::CGMainDisplayID());
     if(device == nullptr)
     {
-        throw exception("could not get metal device");
+        throw Exception("could not get metal device");
     }
 
     // create a new command queue for rendering
     const auto command_queue = [device newCommandQueue];
     if(command_queue == nullptr)
     {
-        throw exception("could not creare command queue");
+        throw Exception("could not creare command queue");
     }
 
     // get a pointer to the main window
-    auto *window = [[NSApp windows] firstObject];
-    if(window == nullptr)
+    auto *Window = [[NSApp windows] firstObject];
+    if(Window == nullptr)
     {
-        throw exception("could not get main window");
+        throw Exception("could not get main window");
     }
 
     // get a pointer to the metal layer to render to
-    auto *layer = static_cast<CAMetalLayer*>([[window contentView] layer]);
+    auto *layer = static_cast<CAMetalLayer*>([[Window contentView] layer]);
     if(layer == nullptr)
     {
-        throw exception("could not get metal later");
+        throw Exception("could not get metal later");
     }
 
     // get next layer so we can query frame size
@@ -106,7 +94,7 @@ render_system::render_system(
 
     // get frame size
     const auto size = [layer drawableSize];
-    const auto scale = [[window screen] backingScaleFactor];
+    const auto scale = [[Window screen] backingScaleFactor];
 
     // create and setup descriptor for depth texture
     auto *texture_description =
@@ -139,28 +127,12 @@ render_system::render_system(
 }
 
 /** Default */
-render_system::~render_system() = default;
-render_system::render_system(render_system&&) = default;
-render_system& render_system::operator=(render_system&&) = default;
+RenderSystem::~RenderSystem() = default;
+RenderSystem::RenderSystem(RenderSystem&&) = default;
+RenderSystem& RenderSystem::operator=(RenderSystem&&) = default;
 
-void render_system::add(std::shared_ptr<entity> e)
+void RenderSystem::render() const
 {
-    scene_.emplace_back(e);
-
-    LOG_ENGINE_INFO("render_system", "adding entity");
-}
-
-void render_system::add(std::shared_ptr<sprite> s)
-{
-    scene_.emplace_back(s->renderable());
-
-    LOG_ENGINE_INFO("render_system", "adding entity");
-}
-
-void render_system::render() const
-{
-    window_->pre_render();
-
     const auto drawable = [impl_->layer nextDrawable];
 
     // using an autoreleasepool allows us to release the drawable object as soon
@@ -180,8 +152,6 @@ void render_system::render() const
     [[render_pass_descriptor depthAttachment] setLoadAction:MTLLoadActionClear];
     [[render_pass_descriptor depthAttachment] setStoreAction:MTLStoreActionDontCare];
 
-    const float light[] = { light_position.x, light_position.y, light_position.z, 1.0f };
-
     const auto *command_buffer = [impl_->command_queue commandBuffer];
 
     // create and setup a render encoder
@@ -194,7 +164,7 @@ void render_system::render() const
     for(const auto &entity : scene_)
     {
         // get pipeline state handle
-        const auto pipeline_state = std::any_cast<id<MTLRenderPipelineState>>(entity->mat().native_handle());
+        const auto pipeline_state = std::any_cast<id<MTLRenderPipelineState>>(entity->material().native_handle());
 
         [render_encoder setTriangleFillMode:MTLTriangleFillModeFill];
 
@@ -204,41 +174,36 @@ void render_system::render() const
             [render_encoder setTriangleFillMode:MTLTriangleFillModeLines];
         }
 
+        // get vertex Buffer handle
+        const auto &vertex_buffer_any = entity->mesh().vertex_buffer();
+        const auto vertex_Buffer = std::any_cast<id<MTLBuffer>>(vertex_buffer_any.native_handle());
 
-        for(const auto &mesh : entity->meshes())
-        {
-            // get vertex buffer handle
-            const auto &vertex_buffer_any = mesh.vertex_buffer();
-            const auto vertex_buffer = std::any_cast<id<MTLBuffer>>(vertex_buffer_any.native_handle());
+        // get index Buffer handle
+        const auto &index_buffer_any = entity->mesh().index_buffer();
+        const auto index_buffer = std::any_cast<id<MTLBuffer>>(index_buffer_any.native_handle());
 
-            // get index buffer handle
-            const auto &index_buffer_any = mesh.index_buffer();
-            const auto index_buffer = std::any_cast<id<MTLBuffer>>(index_buffer_any.native_handle());
+        // copy uniform data into a struct
+        const uniform uniform_data{
+            camera_.projection(),
+            camera_.view(),
+            entity->transform()
+        };
 
-            // copy uniform data into a struct
-            const uniform uniform_data{
-                camera_->projection(),
-                camera_->view(),
-                entity->transform()
-            };
+        // encode render commands
+        [render_encoder setRenderPipelineState:pipeline_state];
+        [render_encoder setVertexBuffer:vertex_Buffer offset:0 atIndex:0];
+        [render_encoder setVertexBytes:static_cast<const void*>(&uniform_data) length:sizeof(uniform_data) atIndex:1];
 
-            // encode render commands
-            [render_encoder setRenderPipelineState:pipeline_state];
-            [render_encoder setVertexBuffer:vertex_buffer offset:0 atIndex:0];
-            [render_encoder setVertexBytes:static_cast<const void*>(&uniform_data) length:sizeof(uniform_data) atIndex:1];
-            [render_encoder setFragmentBytes:static_cast<const void*>(&light) length:sizeof(light) atIndex:0];
+        const auto Texture = std::any_cast<id<MTLTexture>>(entity->mesh().texture().native_handle());
+        [render_encoder setFragmentTexture:Texture atIndex:0];
 
-            const auto texture = std::any_cast<id<MTLTexture>>(mesh.tex().native_handle());
-            [render_encoder setFragmentTexture:texture atIndex:0];
-
-            // draw command
-            [render_encoder
-                drawIndexedPrimitives:MTLPrimitiveTypeTriangle
-                indexCount:mesh.indices().size()
-                indexType:MTLIndexTypeUInt32
-                indexBuffer:index_buffer
-                indexBufferOffset:0];
-        }
+        // draw command
+        [render_encoder
+            drawIndexedPrimitives:MTLPrimitiveTypeTriangle
+            indexCount:entity->mesh().indices().size()
+            indexType:MTLIndexTypeUInt32
+            indexBuffer:index_buffer
+            indexBufferOffset:0];
     }
 
     // end frame
@@ -247,15 +212,12 @@ void render_system::render() const
     [command_buffer commit];
 
     }
-
-    window_->post_render();
 }
 
-void render_system::set_light_position(const vector3 &position) noexcept
+Sprite* RenderSystem::add(std::unique_ptr<Sprite> sprite)
 {
-    light_position = position;
-
-    LOG_ENGINE_INFO("render_system", "light position set: {}", light_position);
+    scene_.emplace_back(std::move(sprite));
+    return scene_.back().get();
 }
 
 }

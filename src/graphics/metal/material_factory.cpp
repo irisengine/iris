@@ -1,112 +1,13 @@
-#include "material_factory.hpp"
+#include "graphics/material_factory.h"
 
 #include <memory>
 
-#include "material.hpp"
+#include "graphics/material.h"
 
 namespace
 {
 
 // hard coded shaders
-static const std::string vertex_source_mesh { R"(
-#include <metal_stdlib>
-#include <simd/simd.h>
-
-using namespace metal;
-
-typedef struct
-{
-    float4 position;
-    float4 normal;
-    float4 color;
-    float4 tex;
-} VertexIn;
-
-typedef struct
-{
-    float4x4 projection;
-    float4x4 view;
-    float4x4 model;
-} DefaultUniform;
-
-typedef struct
-{
-    float4 position;
-} LightUniform;
-
-typedef struct {
-    float4 position [[position]];
-    float4 normal [[normal]];
-    float4 color;
-    float4 tex;
-    float4 pos;
-} VertexOut;
-
-vertex VertexOut vertex_main(
-    device VertexIn *vertices [[buffer(0)]],
-    constant DefaultUniform *uniform [[buffer(1)]],
-    constant LightUniform *light [[buffer(2)]],
-    uint vid [[vertex_id]])
-{
-    VertexOut out;
-
-    out.position = transpose(uniform->projection) * transpose(uniform->view) * transpose(uniform->model) * vertices[vid].position;
-    out.pos = transpose(uniform->model) * vertices[vid].position;
-    out.normal = transpose(uniform->model) * vertices[vid].normal;
-    out.color = vertices[vid].color;
-    out.tex = vertices[vid].tex;
-    return out;
-}
-)" };
-
-static const std::string fragment_source_mesh { R"(
-
-#include <metal_stdlib>
-#include <simd/simd.h>
-
-using namespace metal;
-
-typedef struct {
-    float4 position [[position]];
-    float4 normal [[normal]];
-    float4 color;
-    float4 tex;
-    float4 pos;
-} VertexOut;
-
-typedef struct
-{
-    float4x4 projection;
-    float4x4 view;
-    float4x4 model;
-} DefaultUniform;
-
-typedef struct
-{
-    float4 position;
-} LightUniform;
-
-fragment float4 fragment_main(
-    VertexOut in [[stage_in]],
-    constant LightUniform *light [[buffer(0)]],
-    texture2d<float> main_texture [[texture(0)]]
-    )
-{
-    constexpr sampler s(coord::normalized, address::repeat, filter::linear);
-    float4 sampled_colour = main_texture.sample(s, in.tex.xy);
-
-    float4 amb(0.2f, 0.2f, 0.2f, 1.0f);
-    amb *= 4.0f;
-    float4 light_colour(1.0f, 1.0f, 1.0f, 1.0f);
-    float4 n = normalize(in.normal);
-    float4 light_dir = normalize(light->position - in.pos);
-    float diff = max(dot(n, light_dir), 0.0);
-    float4 diffuse = light_colour * diff;
-    float4 l = amb + diffuse;
-
-    return l * in.color * sampled_colour;
-}
-)" };
 
 static const std::string vertex_source_sprite { R"(
 #include <metal_stdlib>
@@ -136,13 +37,13 @@ typedef struct {
 } VertexOut;
 
 vertex VertexOut vertex_main(
-    device VertexIn *vertices [[buffer(0)]],
-    constant DefaultUniform *uniform [[buffer(1)]],
+    device VertexIn *vertices [[Buffer(0)]],
+    constant DefaultUniform *uniform [[Buffer(1)]],
     uint vid [[vertex_id]])
 {
     VertexOut out;
 
-    out.position = transpose(uniform->model) * vertices[vid].position;
+    out.position = transpose(uniform->projection) * transpose(uniform->view) * transpose(uniform->model) * vertices[vid].position;
     out.color = vertices[vid].color;
     out.tex = vertices[vid].tex;
     return out;
@@ -191,16 +92,10 @@ fragment float4 fragment_main(
 namespace eng::material_factory
 {
 
-std::shared_ptr<material> basic_mesh()
+Material* sprite()
 {
-    static auto mat = std::make_shared<material>(vertex_source_mesh, fragment_source_mesh);
-    return mat;
-}
-
-std::shared_ptr<material> basic_sprite()
-{
-    static auto mat = std::make_shared<material>(vertex_source_sprite, fragment_source_sprite);
-    return mat;
+    static auto mat = std::make_unique<Material>(vertex_source_sprite, fragment_source_sprite);
+    return mat.get();
 }
 
 }

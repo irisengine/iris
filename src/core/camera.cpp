@@ -1,13 +1,16 @@
-#include "camera.hpp"
+#include "core/camera.h"
 
 #include <cmath>
 
-#include "log.hpp"
-#include "matrix4.hpp"
-#include "vector3.hpp"
+#include "core/matrix4.h"
+#include "core/vector3.h"
+#include "log/log.h"
 
 namespace
 {
+
+// depth of renderable area
+static constexpr auto render_depth = 800.0f;
 
 /**
  * Helper method to create a direction vector from a pitch and yaw
@@ -21,9 +24,9 @@ namespace
  * @returns
  *   A new direction vector for the camera
  */
-eng::vector3 create_direction(const float pitch, const float yaw) noexcept
+eng::Vector3 create_direction(const float pitch, const float yaw)
 {
-    eng::vector3 direction;
+    eng::Vector3 direction;
 
     direction.x = std::cos(yaw) * std::cos(pitch);
     direction.y = std::sin(pitch);
@@ -39,79 +42,79 @@ eng::vector3 create_direction(const float pitch, const float yaw) noexcept
 namespace eng
 {
 
-camera::camera()
-    : position_(),
+Camera::Camera(float width, float height)
+    : position_(0.0f, 0.0f, 100.0f),
       direction_(0.0f, 0.0f, -1.0f),
       up_(0.0f, 1.0f, 0.0f),
       view_(),
-      projection_(matrix4::make_projection(0.785398f, 1.0f, 0.1f, 1000.0f)),
+      projection_(Matrix4::make_projection(width, height, render_depth)),
       pitch_(0.0f),
       yaw_(-3.141592654f / 2.0f)
 {
     direction_ = create_direction(pitch_, yaw_);
-    view_ = matrix4::make_look_at(position_, position_ + direction_, up_);
+    view_ = Matrix4::make_look_at(position_, position_ + direction_, up_);
 
     LOG_ENGINE_INFO("camera", "constructed");
 }
 
-void camera::translate(const vector3 &t) noexcept
+void Camera::translate(const Vector3 &translate)
 {
-    position_ += t;
-    view_ = matrix4::make_look_at(position_, position_ + direction_, up_);
+    position_ += translate;
+    view_ = Matrix4::make_look_at(position_, position_ + direction_, up_);
 }
 
-void camera::set_view(const matrix4 &view)
+void Camera::set_view(const Matrix4 &view)
 {
     view_ = view;
 }
 
-vector3 camera::position() const noexcept
+Vector3 Camera::position() const
 {
     return position_;
 }
 
-vector3 camera::direction() const noexcept
+Vector3 Camera::direction() const
 {
     return direction_;
 }
 
-vector3 camera::right() const noexcept
+Vector3 Camera::right() const
 {
-    return vector3::normalise(vector3::cross(direction_, up_));
+    return Vector3::normalise(Vector3::cross(direction_, up_));
 }
 
-matrix4 camera::view() const noexcept
+Matrix4 Camera::view() const
 {
     return view_;
 }
 
-matrix4 camera::projection() const noexcept
+Matrix4 Camera::projection() const
 {
     return projection_;
 }
 
-void camera::set_yaw(const float yaw) noexcept
+void Camera::set_yaw(const float yaw)
 {
     yaw_ = yaw;
 
     direction_ = create_direction(pitch_, yaw_);
-    view_ = matrix4::make_look_at(position_, position_ + direction_, up_);
+    view_ = Matrix4::make_look_at(position_, position_ + direction_, up_);
 }
 
-void camera::adjust_yaw(const float adjust) noexcept
+void Camera::adjust_yaw(const float adjust)
 {
     set_yaw(yaw_ + adjust);
 }
 
-void camera::set_pitch(const float pitch) noexcept
+void Camera::set_pitch(const float pitch)
 {
     pitch_ = pitch;
 
     direction_ = create_direction(pitch_, yaw_);
-    view_ = matrix4::make_look_at(position_, position_ + direction_, up_);
+    view_ = Matrix4::make_look_at(position_, position_ + direction_, up_);
 }
 
-void camera::adjust_pitch(const float adjust) noexcept
+void Camera::adjust_pitch(const float adjust)
 {
     set_pitch(pitch_ + adjust);
 }

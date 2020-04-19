@@ -1,21 +1,21 @@
-#include "quaternion.hpp"
+#include "core/quaternion.h"
 
 #include <cmath>
 #include <iostream>
 
-#include "vector3.hpp"
+#include "core/vector3.h"
 
 namespace eng
 {
 
-quaternion::quaternion()
+Quaternion::Quaternion()
     : w(1.0f),
       x(0.0f),
       y(0.0f),
       z(0.0f)
 { }
 
-quaternion::quaternion(const vector3 &axis, const float angle)
+Quaternion::Quaternion(const Vector3 &axis, const float angle)
     : w(0.0f),
       x(0.0f),
       y(0.0f),
@@ -32,7 +32,7 @@ quaternion::quaternion(const vector3 &axis, const float angle)
     normalise();
 }
 
-std::ostream& operator<<(std::ostream &out, const quaternion &q) noexcept
+std::ostream& operator<<(std::ostream &out, const Quaternion &q)
 {
     out << "w: " << q.w << " "
         << "x: " << q.x << " "
@@ -42,34 +42,34 @@ std::ostream& operator<<(std::ostream &out, const quaternion &q) noexcept
     return out;
 }
 
-quaternion& quaternion::operator*=(const quaternion &q)
+Quaternion& Quaternion::operator*=(const Quaternion &quaternion)
 {
-    const quaternion copy{ *this };
+    const Quaternion copy{ *this };
 
-    w = copy.w * q.w - copy.x * q.x -
-        copy.y * q.y - copy.z * q.z;
-    x = copy.w * q.x + copy.x * q.w +
-        copy.y * q.z - copy.z * q.y;
-    y = copy.w * q.y + copy.y * q.w +
-        copy.z * q.x - copy.x * q.z;
-    z = copy.w * q.z + copy.z * q.w +
-        copy.x * q.y - copy.y * q.x;
+    w = copy.w * quaternion.w - copy.x * quaternion.x -
+        copy.y * quaternion.y - copy.z * quaternion.z;
+    x = copy.w * quaternion.x + copy.x * quaternion.w +
+        copy.y * quaternion.z - copy.z * quaternion.y;
+    y = copy.w * quaternion.y + copy.y * quaternion.w +
+        copy.z * quaternion.x - copy.x * quaternion.z;
+    z = copy.w * quaternion.z + copy.z * quaternion.w +
+        copy.x * quaternion.y - copy.y * quaternion.x;
 
     return *this;
 }
 
-quaternion quaternion::operator*(const quaternion &q) const
+Quaternion Quaternion::operator*(const Quaternion &quaternion) const
 {
-    return quaternion{ *this } *= q;
+    return Quaternion{ *this } *= quaternion;
 }
 
-quaternion& quaternion::operator+=(const vector3 &v)
+Quaternion& Quaternion::operator+=(const Vector3 &vector)
 {
-    quaternion q{ };
+    Quaternion q{ };
     q.w = 0.0f;
-    q.x = v.x;
-    q.y = v.y;
-    q.z = v.z;
+    q.x = vector.x;
+    q.y = vector.y;
+    q.z = vector.z;
 
     q *= *this;
 
@@ -81,12 +81,12 @@ quaternion& quaternion::operator+=(const vector3 &v)
     return *this;
 }
 
-quaternion quaternion::operator+(const vector3 &v) const
+Quaternion Quaternion::operator+(const Vector3 &vector) const
 {
-    return quaternion{ *this } += v;
+    return Quaternion{ *this } += vector;
 }
 
-quaternion& quaternion::normalise() noexcept
+Quaternion& Quaternion::normalise()
 {
     const auto magnitude =
         std::pow(w, 2.0f) +

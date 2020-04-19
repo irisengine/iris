@@ -1,0 +1,9 @@
+set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
+
+set(PLATFORM_SRCS
+    "${SOURCE_ROOT}/font.mm"
+
+    PARENT_SCOPE
+)
+
+

@@ -1,4 +1,4 @@
-#include "exception.hpp"
+#include "core/exception.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -23,7 +23,7 @@ static const int max_stack_trace_size = 20u;
 template<class T>
 using auto_free = std::unique_ptr<T, decltype(&std::free)>;
 
-exception::exception(const std::string &what)
+Exception::Exception(const std::string &what)
     : std::runtime_error(what),
       frames_(max_stack_trace_size)
 {
@@ -41,7 +41,7 @@ exception::exception(const std::string &what)
     }
 }
 
-std::string exception::stack_trace() const noexcept
+std::string Exception::stack_trace() const
 {
     // format all stack frames
     auto_free<char*> symbols{

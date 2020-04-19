@@ -1,19 +1,18 @@
-#include "gl/shader.hpp"
+#include "graphics/gl/shader.h"
 
 #include <cstdint>
 #include <string>
-#include <string_view>
 #include <utility>
 #include <vector>
 
-#include "exception.hpp"
-#include "gl/opengl.hpp"
-#include "gl/shader_type.hpp"
+#include "core/exception.h"
+#include "graphics/gl/opengl.h"
+#include "graphics/gl/shader_type.h"
 
 namespace eng
 {
 
-shader::shader(std::string_view source, shader_type type)
+shader::shader(const std::string &source, shader_type type)
     : shader_(0u)
 {
     const auto native_type = (type == shader_type::VERTEX)
@@ -43,7 +42,7 @@ shader::shader(std::string_view source, shader_type type)
 
         if(shader_param == 0)
         {
-            throw exception("shader compilation failed: no log");
+            throw Exception("shader compilation failed: no log");
         }
         else
         {
@@ -60,7 +59,7 @@ shader::shader(std::string_view source, shader_type type)
 
             // convert to string and throw
             const std::string error(error_log.data(), log_length);
-            throw exception("shader compilation failed: " + error);
+            throw Exception("shader compilation failed: " + error);
         }
     }
 }
@@ -70,13 +69,13 @@ shader::~shader()
     ::glDeleteShader(shader_);
 }
 
-shader::shader(shader &&other) noexcept
+shader::shader(shader &&other)
     : shader_(0u)
 {
     std::swap(shader_, other.shader_);
 }
 
-shader& shader::operator=(shader &&other) noexcept
+shader& shader::operator=(shader &&other)
 {
     // create a new shader object to 'steal' the internal state of the supplied
     // object then swap
@@ -88,7 +87,7 @@ shader& shader::operator=(shader &&other) noexcept
     return *this;
 }
 
-std::uint32_t shader::native_handle() const noexcept
+std::uint32_t shader::native_handle() const
 {
     return shader_;
 }

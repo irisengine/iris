@@ -1,18 +1,18 @@
-#include "buffer.hpp"
+#include "graphics/buffer.h"
 
 #include <any>
 #include <vector>
 
 #import <Metal/Metal.h>
 
-#include "buffer_type.hpp"
-#include "vertex_data.hpp"
+#include "graphics/buffer_type.h"
+#include "graphics/vertex_data.h"
 
 namespace
 {
 
 /**
- * Helper function to create a metal buffer from a collection of objects.
+ * Helper function to create a metal Buffer from a collection of objects.
  *
  * @param data
  *   Data to store on buffer.
@@ -21,13 +21,13 @@ namespace
  *   Handle to metal buffer.
  */
 template<class T>
-id<MTLBuffer> create_buffer(const std::vector<T> &data)
+id<MTLBuffer> create_Buffer(const std::vector<T> &data)
 {
     // get metal device handle
     static const auto *device =
         ::CGDirectDisplayCopyCurrentMetalDevice(::CGMainDisplayID());
 
-    // create buffer with data
+    // create Buffer with data
     return [device newBufferWithBytes:static_cast<const void*>(data.data())
                                length:sizeof(T) * data.size()
                               options:MTLResourceOptionCPUCacheModeDefault];
@@ -41,51 +41,43 @@ namespace eng
 /**
  * Struct containing implementation specific data.
  */
-struct buffer::implementation
+struct Buffer::implementation
 {
     /** Simple constructor which takes a value for each member. */
     implementation(id<MTLBuffer> handle)
         : handle(handle)
     { }
 
-    /** Default */
-    implementation() = default;
-    ~implementation() = default;
-    implementation(const implementation&) = default;
-    implementation& operator=(const implementation&) = default;
-    implementation(implementation&&) = default;
-    implementation& operator=(implementation&&) = default;
-
     /** Metal handle for buffer. */
     id<MTLBuffer> handle;
 };
 
-buffer::buffer(const std::vector<float> &data, const buffer_type type)
-    : impl_(std::make_unique<implementation>(create_buffer(data))),
+Buffer::Buffer(const std::vector<float> &data, const BufferType type)
+    : impl_(std::make_unique<implementation>(create_Buffer(data))),
       type_(type)
 { }
 
-buffer::buffer(const std::vector<std::uint32_t> &data, const buffer_type type)
-    : impl_(std::make_unique<implementation>(create_buffer(data))),
+Buffer::Buffer(const std::vector<std::uint32_t> &data, const BufferType type)
+    : impl_(std::make_unique<implementation>(create_Buffer(data))),
       type_(type)
 { }
 
-buffer::buffer(const std::vector<vertex_data> &data, const buffer_type type)
-    : impl_(std::make_unique<implementation>(create_buffer(data))),
+Buffer::Buffer(const std::vector<vertex_data> &data, const BufferType type)
+    : impl_(std::make_unique<implementation>(create_Buffer(data))),
       type_(type)
 { }
 
 /** Default. */
-buffer::~buffer() = default;
-buffer::buffer(buffer &&other) = default;
-buffer& buffer::operator=(buffer &&other) = default;
+Buffer::~Buffer() = default;
+Buffer::Buffer(Buffer &&other) = default;
+Buffer& Buffer::operator=(Buffer &&other) = default;
 
-std::any buffer::native_handle() const
+std::any Buffer::native_handle() const
 {
     return std::any{ impl_->handle };
 }
 
-buffer_type buffer::type() const noexcept
+BufferType Buffer::type() const
 {
     return type_;
 }

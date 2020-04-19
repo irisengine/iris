@@ -1,14 +1,14 @@
-#include "utility.hpp"
+#include "graphics/utility.h"
 
 #include <cstdint>
-#include <experimental/filesystem>
+#include <filesystem>
 #include <tuple>
 #include <vector>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
-#include "exception.hpp"
+#include "core/exception.h"
 
 namespace eng::graphics::utility
 {
@@ -18,11 +18,11 @@ std::tuple<
     std::uint32_t,
     std::uint32_t,
     std::uint32_t>
-    load_image(const std::experimental::filesystem::path &path)
+    load_image(const std::filesystem::path &path)
 {
-    if(!std::experimental::filesystem::exists(path))
+    if(!std::filesystem::exists(path))
     {
-        throw exception(path.string() + " does not exist");
+        throw Exception(path.string() + " does not exist");
     }
 
     int width = 0;
@@ -40,7 +40,7 @@ std::tuple<
 
     if(raw_data == nullptr)
     {
-        throw exception("failed to load image");
+        throw Exception("failed to load image");
     }
 
     // calculate the total number of bytes needed for the raw data

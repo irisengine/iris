@@ -1,4 +1,4 @@
-#include "stdout_outputter.hpp"
+#include "log/stdout_outputter.h"
 
 #include <iostream>
 #include <string>
@@ -6,7 +6,7 @@
 namespace eng
 {
 
-void stdout_outputter::output(const std::string &log)
+void StdoutFormatter::output(const std::string &log)
 {
     std::cout << log << std::endl;
 }

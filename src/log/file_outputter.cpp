@@ -1,23 +1,23 @@
-#include "file_outputter.hpp"
+#include "log/file_outputter.h"
 
 #include <string>
 
-#include "exception.hpp"
+#include "core/exception.h"
 
 namespace eng
 {
 
-file_outputter::file_outputter(const std::string &filename)
+FileOutputter::FileOutputter(const std::string &filename)
     : file_(filename, std::ios::out | std::ios::app)
 {
     // better check all of these
     if(!file_.is_open() || file_.bad() || !file_.good() || file_.fail())
     {
-        throw exception("failed to open log file");
+        throw Exception("failed to open log file");
     }
 }
 
-void file_outputter::output(const std::string &log)
+void FileOutputter::output(const std::string &log)
 {
     file_ << log << std::endl;
 }

@@ -1,4 +1,4 @@
-#include "material.hpp"
+#include "graphics/material.h"
 
 #include <any>
 #include <cstdint>
@@ -6,10 +6,10 @@
 #include <string>
 #include <vector>
 
-#include "exception.hpp"
-#include "gl/opengl.hpp"
-#include "gl/shader.hpp"
-#include "gl/shader_type.hpp"
+#include "core/exception.h"
+#include "graphics/gl/opengl.h"
+#include "graphics/gl/shader.h"
+#include "graphics/gl/shader_type.h"
 
 namespace eng
 {
@@ -17,27 +17,19 @@ namespace eng
 /**
  * Struct containing implementation specific data.
  */
-struct material::implementation final
+struct Material::implementation
 {
     /** Simple constructor which takes a value for each member. */
     implementation(std::uint32_t program)
         : program(program)
     { }
 
-    /** Default */
-    implementation() = default;
-    ~implementation() = default;
-    implementation(const implementation&) = default;
-    implementation& operator=(const implementation&) = default;
-    implementation(implementation&&) = default;
-    implementation& operator=(implementation&&) = default;
-
     /** Opengl handle for program. */
     std::uint32_t program;
 };
 
 
-material::material(
+Material::Material(
     const std::string &vertex_shader_source,
     const std::string &fragment_shader_source)
     : impl_(nullptr)
@@ -68,7 +60,7 @@ material::material(
 
         if(programparam == 0)
         {
-            throw exception("program link failed: no log");
+            throw Exception("program link failed: no log");
         }
         else
         {
@@ -84,23 +76,23 @@ material::material(
             eng::check_opengl_error("failed to get error log");
 
             const std::string error(error_log.data(), log_length);
-            throw exception("program link failed: " + error);
+            throw Exception("program link failed: " + error);
         }
     }
 
     impl_ = std::make_unique<implementation>(program);
 }
 
-material::~material()
+Material::~Material()
 {
     ::glDeleteProgram(impl_->program);
 }
 
 /** Default */
-material::material(material &&other) = default;
-material& material::operator=(material &&other) = default;
+Material::Material(Material &&other) = default;
+Material& Material::operator=(Material &&other) = default;
 
-std::any material::native_handle() const
+std::any Material::native_handle() const
 {
     return std::any { impl_->program };
 }

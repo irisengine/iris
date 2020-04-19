@@ -1,40 +1,43 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.6)
+cmake_minimum_required(VERSION 3.6)
 
-PROJECT(iris)
+project(iris)
 
-SET(CMAKE_CXX_STANDARD 17)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pedantic -ggdb -fno-rtti -fobjc-arc")
-SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lc++experimental")
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pedantic -ggdb -fno-rtti -fobjc-arc")
 
 # put all artifacts in same directory
-SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 # set platform variable
-IF(NOT PLATFORM)
+if(NOT PLATFORM)
     # handle apple platform
-    IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-        SET(PLATFORM "OSX")
-        ADD_DEFINITIONS(-DPLATFORM_OSX)
+    if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        set(PLATFORM "MACOS")
+        add_definitions(-DPLATFORM_MACOS)
 
         # set graphics api, defults to metal
-        IF(GRAPHICS_API MATCHES "Metal" OR NOT GRAPHICS_API)
-            SET(GRAPHICS_API "METAL")
-            ADD_DEFINITIONS(-DGRAPHICS_API_METAL)
-        ELSEIF(GRAPHICS_API MATCHES "Opengl")
-            SET(GRAPHICS_API "OPENGL")
-            ADD_DEFINITIONS(-DGRAPHICS_API_OPENGL)
-        ELSE()
-            MESSAGE(FATAL_ERROR "Unsupported graphics API")
-        ENDIF()
-    ELSE()
-        MESSAGE(FATAL_ERROR "Unsupported platform")
-    ENDIF()
-ENDIF()
+        if(GRAPHICS_API MATCHES "METAL" OR NOT GRAPHICS_API)
+            set(GRAPHICS_API "METAL")
+            add_definitions(-DGRAPHICS_API_METAL)
+        elseif(GRAPHICS_API MATCHES "OPENGL")
+            set(GRAPHICS_API "OPENGL")
+            add_definitions(-DGRAPHICS_API_OPENGL)
+            # opengl is technically deprecated on macos, so silence the
+            # deprecation warnings
+            add_definitions(-DGL_SILENCE_DEPRECATION)
+        else()
+            message(FATAL_ERROR "Unsupported graphics API")
+        endif()
+    else()
+        message(FATAL_ERROR "Unsupported platform")
+    endif()
+endif()
 
-MESSAGE(STATUS "Building for ${PLATFORM} with ${GRAPHICS_API}")
+message(STATUS "Building for ${PLATFORM} with ${GRAPHICS_API}")
 
-ADD_SUBDIRECTORY("${CMAKE_SOURCE_DIR}/src")
-ADD_SUBDIRECTORY("${CMAKE_SOURCE_DIR}/tests")
+add_subdirectory("${CMAKE_SOURCE_DIR}/src")
+add_subdirectory("${CMAKE_SOURCE_DIR}/samples")
+add_subdirectory("${CMAKE_SOURCE_DIR}/tests")
 

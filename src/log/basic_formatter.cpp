@@ -1,13 +1,13 @@
-#include "basic_formatter.hpp"
+#include "log/basic_formatter.h"
 
 #include <chrono>
-#include <experimental/filesystem>
+#include <filesystem>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
 
-#include "log_level.hpp"
+#include "log/log_level.h"
 
 namespace
 {
@@ -25,7 +25,7 @@ std::string format_filename(const std::string &filename)
 {
     // find last occurrence of file separator
     const auto index = filename.rfind(
-        std::experimental::filesystem::path::preferred_separator);
+        std::filesystem::path::preferred_separator);
 
     return std::string{ filename.substr(index + 1) };
 }
@@ -39,7 +39,7 @@ std::string format_filename(const std::string &filename)
  * @returns
  *   First character of log level.
  */
-char first_char_of_level(const eng::log_level level)
+char first_char_of_level(const eng::LogLevel level)
 {
     std::stringstream strm{ };
     strm << level;
@@ -56,8 +56,8 @@ char first_char_of_level(const eng::log_level level)
 namespace eng
 {
 
-std::string basic_formatter::format(
-    const log_level level,
+std::string BasicFormatter::format(
+    const LogLevel level,
     const std::string &tag,
     const std::string &message,
     const std::string &filename,
