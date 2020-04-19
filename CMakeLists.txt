@@ -18,10 +18,10 @@ if(NOT PLATFORM)
         add_definitions(-DPLATFORM_MACOS)
 
         # set graphics api, defults to metal
-        if(GRAPHICS_API MATCHES "Metal" OR NOT GRAPHICS_API)
+        if(GRAPHICS_API MATCHES "METAL" OR NOT GRAPHICS_API)
             set(GRAPHICS_API "METAL")
             add_definitions(-DGRAPHICS_API_METAL)
-        elseif(GRAPHICS_API MATCHES "Opengl")
+        elseif(GRAPHICS_API MATCHES "OPENGL")
             set(GRAPHICS_API "OPENGL")
             add_definitions(-DGRAPHICS_API_OPENGL)
             # opengl is technically deprecated on macos, so silence the
