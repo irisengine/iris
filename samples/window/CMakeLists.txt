@@ -6,8 +6,8 @@ add_executable(window ${SAMPLE_SRCS})
 target_include_directories(window PUBLIC "${CMAKE_SOURCE_DIR}/include")
 target_link_libraries(window iris)
 
-if(PLATFORM MATCHES "OSX")
-    # osx specific linking
+if(PLATFORM MATCHES "MACOS")
+    # macos specific linking
     target_link_libraries(window "-framework AppKit")
     target_link_libraries(window "-framework CoreFoundation")
     if(GRAPHICS_API MATCHES "METAL")

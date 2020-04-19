@@ -2,7 +2,7 @@
 
 #include <CoreFoundation/CoreFoundation.h>
 
-#include "platform/osx/cf_ptr.h"
+#include "platform/macos/cf_ptr.h"
 
 TEST(cf_ptr_tests, get)
 {

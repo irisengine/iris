@@ -15,7 +15,7 @@
 #include "graphics/sprite.h"
 #include "graphics/texture.h"
 #include "log/log.h"
-#include "platform/osx/cf_ptr.h"
+#include "platform/macos/cf_ptr.h"
 
 namespace eng
 {

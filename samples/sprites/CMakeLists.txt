@@ -8,8 +8,8 @@ target_link_libraries(sprites iris)
 
 file(COPY "circle.png" DESTINATION "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
-if(PLATFORM MATCHES "OSX")
-    # osx specific linking
+if(PLATFORM MATCHES "MACOS")
+    # macos specific linking
     target_link_libraries(sprites "-framework AppKit")
     target_link_libraries(sprites "-framework CoreFoundation")
     if(GRAPHICS_API MATCHES "METAL")

@@ -1,15 +1,15 @@
 add_subdirectory(third_party/googletest)
 
-if(PLATFORM MATCHES "OSX")
-    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/platform/osx")
-    add_executable(unit_tests ${PLATFORM_TEST_SRCS} ${OSX_PLATFORM_TEST_SRCS})
+if(PLATFORM MATCHES "MACOS")
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/platform/macos")
+    add_executable(unit_tests ${PLATFORM_TEST_SRCS} ${MACOS_PLATFORM_TEST_SRCS})
 endif()
 
 target_link_libraries(unit_tests iris)
 target_link_libraries(unit_tests gtest_main)
 
-IF(PLATFORM MATCHES "OSX")
-    # osx specific linking
+IF(PLATFORM MATCHES "MACOS")
+    # macos specific linking
     target_link_libraries(unit_tests "-framework AppKit")
     target_link_libraries(unit_tests "-framework CoreFoundation")
     if(GRAPHICS_API MATCHES "METAL")

@@ -2,7 +2,7 @@
 
 #include <string>
 
-#if defined(PLATFORM_OSX)
+#if defined(PLATFORM_MACOS)
 #include <OpenGL/gl3.h>
 #include <OpenGL/gl3ext.h>
 #else

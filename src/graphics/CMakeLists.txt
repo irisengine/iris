@@ -7,8 +7,8 @@ elseif(GRAPHICS_API MATCHES "METAL")
     add_subdirectory("metal")
 endif()
 
-if(PLATFORM MATCHES "OSX")
-    add_subdirectory("osx")
+if(PLATFORM MATCHES "MACOS")
+    add_subdirectory("macos")
 endif()
 
 set(GRAPHICS_SRCS

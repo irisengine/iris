@@ -14,8 +14,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 if(NOT PLATFORM)
     # handle apple platform
     if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-        set(PLATFORM "OSX")
-        add_definitions(-DPLATFORM_OSX)
+        set(PLATFORM "MACOS")
+        add_definitions(-DPLATFORM_MACOS)
 
         # set graphics api, defults to metal
         if(GRAPHICS_API MATCHES "Metal" OR NOT GRAPHICS_API)

@@ -1,5 +1,5 @@
 set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
-set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/platform/osx")
+set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/platform/macos")
 
 if(GRAPHICS_API MATCHES "OPENGL")
     set(PLATFORM_SRCS

@@ -13,7 +13,7 @@
 #include "graphics/sprite.h"
 #include "log/log.h"
 #include "platform/keyboard_event.h"
-#include "platform/osx/AppDelegate.h"
+#include "platform/macos/AppDelegate.h"
 
 namespace
 {
@@ -27,7 +27,7 @@ namespace
 * @returns
 *   Enging specific Key representation.
 */
-eng::Key osx_key_to_engine_Key(const std::uint16_t key_code)
+eng::Key macos_key_to_engine_Key(const std::uint16_t key_code)
 {
     eng::Key key;
 
@@ -173,7 +173,7 @@ void handle_KeyboardEvent(
         : eng::KeyState::UP;
 
     // convert Key code and dispatch
-    const auto key = osx_key_to_engine_Key(key_code);
+    const auto key = macos_key_to_engine_Key(key_code);
 
     events.emplace(eng::KeyboardEvent{ key, type });
 }
@@ -284,7 +284,7 @@ Window::Window(
 
     render_system_ = std::make_unique<RenderSystem>();
 
-    LOG_ENGINE_INFO("window", "osx Window created");
+    LOG_ENGINE_INFO("window", "macos Window created");
 }
 
 void Window::render()
@@ -293,7 +293,7 @@ void Window::render()
 
     render_system_->render();
 
-#if defined(GRAPHICS_API_OPENGL) and defined(PLATFORM_OSX)
+#if defined(GRAPHICS_API_OPENGL) and defined(PLATFORM_MACOS)
     ::glSwapAPPLE();
 #endif
 }
