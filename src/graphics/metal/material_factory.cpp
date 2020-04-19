@@ -43,7 +43,7 @@ vertex VertexOut vertex_main(
 {
     VertexOut out;
 
-    out.position = transpose(uniform->model) * vertices[vid].position;
+    out.position = transpose(uniform->projection) * transpose(uniform->view) * transpose(uniform->model) * vertices[vid].position;
     out.color = vertices[vid].color;
     out.tex = vertices[vid].tex;
     return out;

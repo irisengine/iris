@@ -9,6 +9,9 @@
 namespace
 {
 
+// depth of renderable area
+static constexpr auto render_depth = 800.0f;
+
 /**
  * Helper method to create a direction vector from a pitch and yaw
  *
@@ -39,12 +42,12 @@ eng::Vector3 create_direction(const float pitch, const float yaw)
 namespace eng
 {
 
-Camera::Camera()
-    : position_(),
+Camera::Camera(float width, float height)
+    : position_(0.0f, 0.0f, 100.0f),
       direction_(0.0f, 0.0f, -1.0f),
       up_(0.0f, 1.0f, 0.0f),
       view_(),
-      projection_(Matrix4::make_projection(0.785398f, 1.0f, 0.1f, 1000.0f)),
+      projection_(Matrix4::make_projection(width, height, render_depth)),
       pitch_(0.0f),
       yaw_(-3.141592654f / 2.0f)
 {

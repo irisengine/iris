@@ -17,24 +17,24 @@ void go()
     eng::Window w{ 800, 600 };
 
     auto *sprite1 = w.create(
-        -0.5f,
-        0.0f,
-        0.4f,
-        0.4f,
+        0,
+        0,
+        100,
+        100,
         eng::Vector3{ 0.39f, 0.58f, 0.92f });
 
     auto *sprite2 = w.create(
-        0.5f,
         0.0f,
-        0.4f,
-        0.4f,
+        150.0f,
+        100,
+        100,
         eng::Vector3{ 0.86f, 0.08f, 0.23f });
 
     auto *sprite3 = w.create(
         0.0f,
-        0.5f,
-        0.4f,
-        0.4f,
+        -150.0f,
+        100.0f,
+        100.0f,
         eng::Vector3{ 1.0f, 1.0f, 1.0f },
         eng::Texture("./circle.png"));
 

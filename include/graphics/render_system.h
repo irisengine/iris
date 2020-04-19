@@ -20,8 +20,14 @@ class RenderSystem
 
         /**
          * Create a new rendering system.
+         *
+         * @param width
+         *   Width of window.
+         *
+         * @param height
+         *   Height of window.
          */
-        RenderSystem();
+        RenderSystem(float width, float height);
 
         /** Declared in mm/cpp file as implementation is an incomplete file. */
         ~RenderSystem();

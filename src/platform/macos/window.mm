@@ -282,7 +282,7 @@ Window::Window(
 
     [NSCursor hide];
 
-    render_system_ = std::make_unique<RenderSystem>();
+    render_system_ = std::make_unique<RenderSystem>(width, height);
 
     LOG_ENGINE_INFO("window", "macos Window created");
 }

@@ -26,7 +26,8 @@ static const std::string vertex_source_sprite { R"(
     {
         col = colour;
         texCoord = vec2(tex.x, tex.y);
-         gl_Position = transpose(model) * vec4(position, 1.0);
+        fragPos = vec3(transpose(model) * vec4(position, 1.0));
+        gl_Position = transpose(projection) * transpose(view) * vec4(fragPos, 1.0);
     }
 )" };
 

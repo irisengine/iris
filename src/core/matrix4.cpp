@@ -45,20 +45,24 @@ Matrix4::Matrix4(const Quaternion &q, const Vector3 &p)
 }
 
 Matrix4 Matrix4::make_projection(
-    const float fov,
-    const float aspect_ratio,
-    const float near,
-    const float far)
+    const float width,
+    const float height,
+    const float depth)
 {
     Matrix4 m;
-
-    const auto focal_length = 1.0f / std::tan(fov / 2.0f);
+    
+    const auto right = width;
+    const auto left = -right;
+    const auto top = height;
+    const auto bottom = -top;
+    const auto far = depth;
+    const auto near = -far;
 
     m.elements_ = {{
-        focal_length, 0.0f, 0.0f, 0.0f,
-        0.0f, focal_length, 0.0f, 0.0f,
-        0.0f, 0.0f, -(far + near) / (far - near), -(2 * far * near) / (far - near),
-        0.0f, 0.0f, -1.0f, 0.0f
+        2.0f / (right - left), 0.0f, 0.0f, -(right + left) / (right - left),
+        0.0f, 2.0f / (top - bottom), 0.0f, -(top + bottom) / (top - bottom),
+        0.0f, 0.0f, -2.0f / (far - near), -(far + near) / (far - near),
+        0.0f, 0.0f, 0.0f, 1.0f
     }};
 
     return m;

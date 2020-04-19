@@ -15,8 +15,14 @@ class Camera
 
         /**
          * Create a new camera, positioned at the origin.
+         *
+         * @param width
+         *   Width of window.
+         *
+         * @param height
+         *   Height of window.
          */
-        Camera();
+        Camera(float width, float height);
 
         /**
          * Translate the camera.

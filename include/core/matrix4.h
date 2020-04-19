@@ -53,25 +53,24 @@ class Matrix4
         Matrix4(const Quaternion &rotation, const Vector3 &translation);
 
         /**
-         * Static method to create a projection matrix.
+         * Static method to create an orthographic projection matrix.
          *
-         * @param fov
-         *   Field of view.
+         * @param width
+         *   width of window.
          *
-         * @param aspect_ration
-         *   Projection aspect ratio.
+         * @param height
+         *   height of window.
          *
-         * @param near
-         *   Near clip plane.
+         * @param depth
+         *   Depth of rendering view.
          *
-         * @far
-         *   Far clip plane.
+         * @returns
+         *   An orthographic projection matrix.
          */
         static Matrix4 make_projection(
-            const float fov,
-            const float aspect_ratio,
-            const float near,
-            const float far);
+            const float width,
+            const float height,
+            const float depth);
 
         /**
          * Make a Matrix4 that can be used as a view matrix for a camera.

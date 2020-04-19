@@ -207,7 +207,6 @@ std::unique_ptr<Sprite> Font::sprite(
 
     auto *Window = [[NSApp windows] firstObject];
     const auto scale = [[Window screen] backingScaleFactor];
-    const auto window_frame = [Window frame];
 
     // ensure letters are rotated correct way and scaled for screen
     ::CGContextTranslateCTM(context.get(), 0.0f, rect.height * scale);
@@ -224,8 +223,8 @@ std::unique_ptr<Sprite> Font::sprite(
     return std::make_unique<Sprite>(
         x,
         y,
-        (width / window_frame.size.width),
-        (height / window_frame.size.height),
+        width,
+        height,
         colour_,
         std::move(tex));
 }

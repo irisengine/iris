@@ -56,9 +56,9 @@ struct RenderSystem::implementation
     id<MTLDepthStencilState> depth_stencil_state;
 };
 
-RenderSystem::RenderSystem()
+RenderSystem::RenderSystem(float width, float height)
     : scene_(),
-      camera_(),
+      camera_(width, height),
       light_position(),
       impl_(nullptr)
 {
