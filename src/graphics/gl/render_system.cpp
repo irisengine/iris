@@ -24,7 +24,6 @@ struct RenderSystem::implementation
 RenderSystem::RenderSystem(float width, float height)
     : scene_(),
       camera_(width, height),
-      light_position(),
       impl_(nullptr)
 {
     // opengl setup
@@ -78,12 +77,6 @@ void RenderSystem::render() const
         ::glUniformMatrix4fv(view_uniform, 1, GL_FALSE, camera_.view().data());
         check_opengl_error("could not set view matrix uniform data");
 
-        const auto light_uniform = ::glGetUniformLocation(program, "light");
-        check_opengl_error("could not get light uniform location");
-
-        ::glUniform3f(light_uniform, light_position.x, light_position.y, light_position.z);
-        check_opengl_error("could not set light uniform data");
-
         const auto model_uniform = ::glGetUniformLocation(program, "model");
         check_opengl_error("could not get model uniform location");
 
@@ -129,12 +122,6 @@ Sprite* RenderSystem::add(std::unique_ptr<Sprite> sprite)
 {
     scene_.emplace_back(std::move(sprite));
     return scene_.back().get();
-}
-
-void RenderSystem::set_light_position(const Vector3 &position)
-{
-    light_position = position;
-    LOG_ENGINE_INFO("render_system", "light position set: {}", light_position);
 }
 
 }

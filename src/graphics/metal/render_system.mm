@@ -59,7 +59,6 @@ struct RenderSystem::implementation
 RenderSystem::RenderSystem(float width, float height)
     : scene_(),
       camera_(width, height),
-      light_position(),
       impl_(nullptr)
 {
     // get metal device handle
@@ -153,8 +152,6 @@ void RenderSystem::render() const
     [[render_pass_descriptor depthAttachment] setLoadAction:MTLLoadActionClear];
     [[render_pass_descriptor depthAttachment] setStoreAction:MTLStoreActionDontCare];
 
-    const float light[] = { light_position.x, light_position.y, light_position.z, 1.0f };
-
     const auto *command_buffer = [impl_->command_queue commandBuffer];
 
     // create and setup a render encoder
@@ -196,7 +193,6 @@ void RenderSystem::render() const
         [render_encoder setRenderPipelineState:pipeline_state];
         [render_encoder setVertexBuffer:vertex_Buffer offset:0 atIndex:0];
         [render_encoder setVertexBytes:static_cast<const void*>(&uniform_data) length:sizeof(uniform_data) atIndex:1];
-        [render_encoder setFragmentBytes:static_cast<const void*>(&light) length:sizeof(light) atIndex:0];
 
         const auto Texture = std::any_cast<id<MTLTexture>>(entity->mesh().texture().native_handle());
         [render_encoder setFragmentTexture:Texture atIndex:0];
@@ -222,13 +218,6 @@ Sprite* RenderSystem::add(std::unique_ptr<Sprite> sprite)
 {
     scene_.emplace_back(std::move(sprite));
     return scene_.back().get();
-}
-
-void RenderSystem::set_light_position(const Vector3 &position)
-{
-    light_position = position;
-
-    LOG_ENGINE_INFO("render_system", "light position set: {}", light_position);
 }
 
 }

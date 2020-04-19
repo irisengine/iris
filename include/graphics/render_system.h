@@ -67,14 +67,6 @@ class RenderSystem
          */
         void render() const;
 
-        /**
-         * Set the position of the one light in the scene.
-         *
-         * @param position.
-         *   New position of light in world space.
-         */
-        void set_light_position(const Vector3 &position);
-
     private:
 
         /** Collection of entities in a scene to render. */
@@ -82,9 +74,6 @@ class RenderSystem
 
         /** Camera to render scene through */
         Camera camera_;
-
-        /** Light position. */
-        Vector3 light_position;
 
         /** Pointer to implementation. */
         struct implementation;
