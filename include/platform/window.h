@@ -4,9 +4,9 @@
 #include <optional>
 #include <queue>
 
-#include "graphics/render_system.hpp"
-#include "graphics/sprite.hpp"
-#include "platform/event.hpp"
+#include "graphics/render_system.h"
+#include "graphics/sprite.h"
+#include "platform/event.h"
 
 namespace eng
 {

@@ -4,8 +4,8 @@
 #include <cstdint>
 #include <memory>
 
-#include "buffer_type.hpp"
-#include "vertex_data.hpp"
+#include "buffer_type.h"
+#include "vertex_data.h"
 
 namespace eng
 {

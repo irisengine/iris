@@ -2,22 +2,21 @@
 
 #include <string>
 
-#include "log/basic_formatter.hpp"
-#include "log/formatter.hpp"
-#include "log/log_level.hpp"
+#include "log/log_level.h"
 
 namespace eng
 {
 
 /**
- * Implementation of Formatter which applies colour to basic formatter.
+ * Interface for a formatter, a class which takes log message details and
+ * formats them into a string.
  */
-class ColourFormatter : public Formatter
+class Formatter
 {
     public:
 
         /** Default */
-        ~ColourFormatter() override = default;
+        virtual ~Formatter() = default;
 
         /**
          * Format the supplied log details into a string.
@@ -37,20 +36,13 @@ class ColourFormatter : public Formatter
          * @param line
          *   Line of the log call in the file.
          */
-        std::string format(
+        virtual std::string format(
             const LogLevel level,
             const std::string &tag,
             const std::string &message,
             const std::string &filename,
-            const int line) override;
-
-    private:
-
-        /** Use BasicFormatter for formatting. */
-        BasicFormatter formatter_;
-
+            const int line) = 0;
 };
 
 }
-
 

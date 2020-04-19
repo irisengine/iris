@@ -1,4 +1,4 @@
-#include "platform/window.hpp"
+#include "platform/window.h"
 
 #include <memory>
 
@@ -7,12 +7,12 @@
 #include <OpenGL/gl3.h>
 #include <OpenGL/gl3ext.h>
 
-#include "core/exception.hpp"
-#include "graphics/font.hpp"
-#include "graphics/render_system.hpp"
-#include "graphics/sprite.hpp"
-#include "log/log.hpp"
-#include "platform/keyboard_event.hpp"
+#include "core/exception.h"
+#include "graphics/font.h"
+#include "graphics/render_system.h"
+#include "graphics/sprite.h"
+#include "log/log.h"
+#include "platform/keyboard_event.h"
 #include "platform/osx/AppDelegate.h"
 
 namespace

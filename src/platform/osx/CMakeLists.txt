@@ -15,7 +15,7 @@ endif()
 
 set(PLATFORM_SRCS
     ${PLATFORM_SRCS}
-    "${INCLUDE_ROOT}/cf_ptr.hpp"
+    "${INCLUDE_ROOT}/cf_ptr.h"
     "${INCLUDE_ROOT}/AppDelegate.h"
     "${SOURCE_ROOT}/window.mm"
 

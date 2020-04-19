@@ -1,8 +1,8 @@
 #pragma once
 
-#include "core/vector3.hpp"
-#include "graphics/mesh.hpp"
-#include "graphics/texture.hpp"
+#include "core/vector3.h"
+#include "graphics/mesh.h"
+#include "graphics/texture.h"
 
 namespace eng::shape_factory
 {

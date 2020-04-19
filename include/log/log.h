@@ -1,7 +1,7 @@
 #pragma once
 
-#include "log/log_level.hpp"
-#include "log/logger.hpp"
+#include "log/log_level.h"
+#include "log/logger.h"
 
 // convenient macros for logging
 #define LOG_DEBUG(T, ...) eng::Logger::instance().log(eng::LogLevel::DEBUG, T, __FILE__, __LINE__, false, __VA_ARGS__)

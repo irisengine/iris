@@ -1,8 +1,8 @@
-#include "graphics/gl/opengl.hpp"
+#include "graphics/gl/opengl.h"
 
 #include <string>
 
-#include "core/exception.hpp"
+#include "core/exception.h"
 
 namespace eng
 {

@@ -5,12 +5,12 @@
 #include <memory>
 #include <vector>
 
-#include "core/matrix4.hpp"
-#include "core/quaternion.hpp"
-#include "core/vector3.hpp"
-#include "graphics/buffer.hpp"
-#include "graphics/texture.hpp"
-#include "graphics/vertex_data.hpp"
+#include "core/matrix4.h"
+#include "core/quaternion.h"
+#include "core/vector3.h"
+#include "graphics/buffer.h"
+#include "graphics/texture.h"
+#include "graphics/vertex_data.h"
 
 namespace eng
 {

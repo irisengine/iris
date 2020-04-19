@@ -1,14 +1,14 @@
 #include <iostream>
 #include <memory>
 
-#include "core/camera.hpp"
-#include "core/quaternion.hpp"
-#include "graphics/render_system.hpp"
-#include "graphics/sprite.hpp"
-#include "graphics/texture.hpp"
-#include "log/log.hpp"
-#include "platform/event.hpp"
-#include "platform/window.hpp"
+#include "core/camera.h"
+#include "core/quaternion.h"
+#include "graphics/render_system.h"
+#include "graphics/sprite.h"
+#include "graphics/texture.h"
+#include "log/log.h"
+#include "platform/event.h"
+#include "platform/window.h"
 
 void go()
 {

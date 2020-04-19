@@ -1,13 +1,13 @@
-#include "graphics/gl/shader.hpp"
+#include "graphics/gl/shader.h"
 
 #include <cstdint>
 #include <string>
 #include <utility>
 #include <vector>
 
-#include "core/exception.hpp"
-#include "graphics/gl/opengl.hpp"
-#include "graphics/gl/shader_type.hpp"
+#include "core/exception.h"
+#include "graphics/gl/opengl.h"
+#include "graphics/gl/shader_type.h"
 
 namespace eng
 {

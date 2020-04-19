@@ -1,15 +1,15 @@
-#include "graphics/render_system.hpp"
+#include "graphics/render_system.h"
 
 #import <Metal/Metal.h>
 #import <MetalKit/MetalKit.h>
 #import <QuartzCore/QuartzCore.h>
 
-#include "core/exception.hpp"
-#include "core/matrix4.hpp"
-#include "core/vector3.hpp"
-#include "graphics/buffer.hpp"
-#include "graphics/sprite.hpp"
-#include "log/log.hpp"
+#include "core/exception.h"
+#include "core/matrix4.h"
+#include "core/vector3.h"
+#include "graphics/buffer.h"
+#include "graphics/sprite.h"
+#include "log/log.h"
 
 namespace
 {

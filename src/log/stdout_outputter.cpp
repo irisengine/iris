@@ -1,4 +1,4 @@
-#include "log/stdout_outputter.hpp"
+#include "log/stdout_outputter.h"
 
 #include <iostream>
 #include <string>

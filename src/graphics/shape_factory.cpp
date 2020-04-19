@@ -1,12 +1,12 @@
-#include "graphics/shape_factory.hpp"
+#include "graphics/shape_factory.h"
 
 #include <cstdint>
 #include <vector>
 
-#include "core/vector3.hpp"
-#include "graphics/mesh.hpp"
-#include "graphics/texture.hpp"
-#include "graphics/vertex_data.hpp"
+#include "core/vector3.h"
+#include "graphics/mesh.h"
+#include "graphics/texture.h"
+#include "graphics/vertex_data.h"
 
 namespace eng::shape_factory
 {

@@ -1,4 +1,4 @@
-#include "core/exception.hpp"
+#include "core/exception.h"
 
 #include <cstdlib>
 #include <iostream>

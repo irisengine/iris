@@ -1,11 +1,11 @@
-#include "graphics/sprite.hpp"
+#include "graphics/sprite.h"
 
-#include "core/matrix4.hpp"
-#include "core/quaternion.hpp"
-#include "core/vector3.hpp"
-#include "graphics/material_factory.hpp"
-#include "graphics/shape_factory.hpp"
-#include "log/log.hpp"
+#include "core/matrix4.h"
+#include "core/quaternion.h"
+#include "core/vector3.h"
+#include "graphics/material_factory.h"
+#include "graphics/shape_factory.h"
+#include "log/log.h"
 
 namespace eng
 {

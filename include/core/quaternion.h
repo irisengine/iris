@@ -2,7 +2,7 @@
 
 #include <iosfwd>
 
-#include "vector3.hpp"
+#include "vector3.h"
 
 namespace eng
 {

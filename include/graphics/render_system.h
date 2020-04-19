@@ -3,10 +3,10 @@
 #include <memory>
 #include <vector>
 
-#include "core/camera.hpp"
-#include "core/vector3.hpp"
-#include "graphics/material.hpp"
-#include "graphics/sprite.hpp"
+#include "core/camera.h"
+#include "core/vector3.h"
+#include "graphics/material.h"
+#include "graphics/sprite.h"
 
 namespace eng
 {

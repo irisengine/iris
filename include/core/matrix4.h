@@ -3,8 +3,8 @@
 #include <array>
 #include <iostream>
 
-#include "quaternion.hpp"
-#include "vector3.hpp"
+#include "quaternion.h"
+#include "vector3.h"
 
 namespace eng
 {

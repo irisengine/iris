@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "log/log.hpp"
-#include "platform/window.hpp"
+#include "log/log.h"
+#include "platform/window.h"
 
 int main()
 {

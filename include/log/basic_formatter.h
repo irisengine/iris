@@ -2,8 +2,8 @@
 
 #include <string>
 
-#include "log/formatter.hpp"
-#include "log/log_level.hpp"
+#include "log/formatter.h"
+#include "log/log_level.h"
 
 namespace eng
 {

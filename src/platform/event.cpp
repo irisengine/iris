@@ -1,8 +1,8 @@
-#include "platform/event.hpp"
+#include "platform/event.h"
 
-#include "platform/event_type.hpp"
-#include "platform/keyboard_event.hpp"
-#include "platform/mouse_event.hpp"
+#include "platform/event_type.h"
+#include "platform/keyboard_event.h"
+#include "platform/mouse_event.h"
 
 namespace eng
 {

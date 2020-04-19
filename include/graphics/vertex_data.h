@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/vector3.hpp"
+#include "core/vector3.h"
 
 namespace eng
 {

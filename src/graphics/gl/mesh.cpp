@@ -1,4 +1,4 @@
-#include "graphics/mesh.hpp"
+#include "graphics/mesh.h"
 
 #include <any>
 #include <cstdint>
@@ -6,14 +6,14 @@
 #include <utility>
 #include <vector>
 
-#include "core/exception.hpp"
-#include "core/matrix4.hpp"
-#include "core/quaternion.hpp"
-#include "core/vector3.hpp"
-#include "graphics/buffer.hpp"
-#include "graphics/buffer_type.hpp"
-#include "graphics/gl/opengl.hpp"
-#include "graphics/vertex_data.hpp"
+#include "core/exception.h"
+#include "core/matrix4.h"
+#include "core/quaternion.h"
+#include "core/vector3.h"
+#include "graphics/buffer.h"
+#include "graphics/buffer_type.h"
+#include "graphics/gl/opengl.h"
+#include "graphics/vertex_data.h"
 
 namespace
 {

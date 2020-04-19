@@ -1,12 +1,12 @@
-#include "graphics/buffer.hpp"
+#include "graphics/buffer.h"
 
 #include <any>
 #include <vector>
 
 #import <Metal/Metal.h>
 
-#include "graphics/buffer_type.hpp"
-#include "graphics/vertex_data.hpp"
+#include "graphics/buffer_type.h"
+#include "graphics/vertex_data.h"
 
 namespace
 {

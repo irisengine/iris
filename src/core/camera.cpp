@@ -1,10 +1,10 @@
-#include "core/camera.hpp"
+#include "core/camera.h"
 
 #include <cmath>
 
-#include "core/matrix4.hpp"
-#include "core/vector3.hpp"
-#include "log/log.hpp"
+#include "core/matrix4.h"
+#include "core/vector3.h"
+#include "log/log.h"
 
 namespace
 {

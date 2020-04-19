@@ -1,11 +1,11 @@
 #include <iostream>
 #include <memory>
 
-#include "graphics/render_system.hpp"
-#include "graphics/sprite.hpp"
-#include "log/log.hpp"
-#include "platform/event.hpp"
-#include "platform/window.hpp"
+#include "graphics/render_system.h"
+#include "graphics/sprite.h"
+#include "log/log.h"
+#include "platform/event.h"
+#include "platform/window.h"
 
 int go()
 {

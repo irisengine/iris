@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
-#include "core/vector3.hpp"
-#include "graphics/sprite.hpp"
+#include "core/vector3.h"
+#include "graphics/sprite.h"
 
 namespace eng
 {

@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "material.hpp"
+#include "material.h"
 
 namespace eng::material_factory
 {

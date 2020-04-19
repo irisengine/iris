@@ -3,10 +3,10 @@
 #include <cstdint>
 #include <variant>
 
-#include "core/exception.hpp"
-#include "platform/keyboard_event.hpp"
-#include "platform/mouse_event.hpp"
-#include "platform/event_type.hpp"
+#include "core/exception.h"
+#include "platform/keyboard_event.h"
+#include "platform/mouse_event.h"
+#include "platform/event_type.h"
 
 namespace eng
 {

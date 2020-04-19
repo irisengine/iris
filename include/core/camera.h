@@ -1,7 +1,7 @@
 #pragma once
 
-#include "matrix4.hpp"
-#include "vector3.hpp"
+#include "matrix4.h"
+#include "vector3.h"
 
 namespace eng
 {

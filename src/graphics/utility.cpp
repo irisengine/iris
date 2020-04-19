@@ -1,4 +1,4 @@
-#include "graphics/utility.hpp"
+#include "graphics/utility.h"
 
 #include <cstdint>
 #include <filesystem>
@@ -8,7 +8,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
-#include "core/exception.hpp"
+#include "core/exception.h"
 
 namespace eng::graphics::utility
 {

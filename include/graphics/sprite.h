@@ -2,11 +2,11 @@
 
 #include <vector>
 
-#include "core/matrix4.hpp"
-#include "core/quaternion.hpp"
-#include "graphics/material.hpp"
-#include "graphics/mesh.hpp"
-#include "graphics/texture.hpp"
+#include "core/matrix4.h"
+#include "core/quaternion.h"
+#include "graphics/material.h"
+#include "graphics/mesh.h"
+#include "graphics/texture.h"
 
 namespace eng
 {

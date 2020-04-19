@@ -1,4 +1,4 @@
-#include "graphics/material.hpp"
+#include "graphics/material.h"
 
 #include <any>
 #include <cstdint>
@@ -6,10 +6,10 @@
 #include <string>
 #include <vector>
 
-#include "core/exception.hpp"
-#include "graphics/gl/opengl.hpp"
-#include "graphics/gl/shader.hpp"
-#include "graphics/gl/shader_type.hpp"
+#include "core/exception.h"
+#include "graphics/gl/opengl.h"
+#include "graphics/gl/shader.h"
+#include "graphics/gl/shader_type.h"
 
 namespace eng
 {

@@ -1,4 +1,4 @@
-#include "graphics/texture.hpp"
+#include "graphics/texture.h"
 
 #include <any>
 #include <cstdint>
@@ -8,9 +8,9 @@
 
 #import <Metal/Metal.h>
 
-#include "core/exception.hpp"
-#include "graphics/utility.hpp"
-#include "log/log.hpp"
+#include "core/exception.h"
+#include "graphics/utility.h"
+#include "log/log.h"
 
 namespace
 {

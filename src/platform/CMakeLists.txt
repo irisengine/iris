@@ -8,10 +8,10 @@ endif()
 
 set(PLATFORM_SRCS
     ${PLATFORM_SRCS}
-    "${INCLUDE_ROOT}/keyboard_event.hpp"
-    "${INCLUDE_ROOT}/mouse_event.hpp"
-    "${INCLUDE_ROOT}/window.hpp"
-    "${SOURCE_ROOT}/event.cpp" "${INCLUDE_ROOT}/event.hpp"
+    "${INCLUDE_ROOT}/keyboard_event.h"
+    "${INCLUDE_ROOT}/mouse_event.h"
+    "${INCLUDE_ROOT}/window.h"
+    "${SOURCE_ROOT}/event.cpp" "${INCLUDE_ROOT}/event.h"
 
     PARENT_SCOPE
 )

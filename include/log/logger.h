@@ -8,9 +8,9 @@
 #include <string>
 #include <type_traits>
 
-#include "log/colour_formatter.hpp"
-#include "log/log_level.hpp"
-#include "log/stdout_outputter.hpp"
+#include "log/colour_formatter.h"
+#include "log/log_level.h"
+#include "log/stdout_outputter.h"
 
 namespace eng
 {
@@ -204,7 +204,7 @@ class Logger
         /**
          * Set minimum log level, anything above this level is not processed.
          *
-         * See log_level.hpp for definition of log_level.
+         * See log_level.h for definition of log_level.
          *
          * @param min_level
          *   Minimum level to process.

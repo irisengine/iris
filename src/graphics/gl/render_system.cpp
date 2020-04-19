@@ -1,15 +1,15 @@
-#include "graphics/render_system.hpp"
+#include "graphics/render_system.h"
 
 #include <string>
 #include <utility>
 
-#include "core/vector3.hpp"
-#include "graphics/buffer.hpp"
-#include "graphics/gl/opengl.hpp"
-#include "graphics/material.hpp"
-#include "graphics/mesh.hpp"
-#include "graphics/sprite.hpp"
-#include "log/log.hpp"
+#include "core/vector3.h"
+#include "graphics/buffer.h"
+#include "graphics/gl/opengl.h"
+#include "graphics/material.h"
+#include "graphics/mesh.h"
+#include "graphics/sprite.h"
+#include "log/log.h"
 
 namespace eng
 {

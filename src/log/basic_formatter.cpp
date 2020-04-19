@@ -1,4 +1,4 @@
-#include "log/basic_formatter.hpp"
+#include "log/basic_formatter.h"
 
 #include <chrono>
 #include <filesystem>
@@ -7,7 +7,7 @@
 #include <sstream>
 #include <string>
 
-#include "log/log_level.hpp"
+#include "log/log_level.h"
 
 namespace
 {

@@ -14,18 +14,18 @@ endif()
 set(GRAPHICS_SRCS
     ${GRAPHICS_SRCS}
     ${PLATFORM_SRCS}
-    "${INCLUDE_ROOT}/buffer.hpp"
-    "${INCLUDE_ROOT}/buffer_type.hpp"
-    "${INCLUDE_ROOT}/font.hpp"
-    "${INCLUDE_ROOT}/material.hpp"
-    "${INCLUDE_ROOT}/material_factory.hpp"
-    "${INCLUDE_ROOT}/mesh.hpp"
-    "${INCLUDE_ROOT}/render_system.hpp"
-    "${INCLUDE_ROOT}/texture.hpp"
-    "${INCLUDE_ROOT}/vertex_data.hpp"
-    "${SOURCE_ROOT}/shape_factory.cpp" "${INCLUDE_ROOT}/shape_factory.hpp"
-    "${SOURCE_ROOT}/sprite.cpp" "${INCLUDE_ROOT}/sprite.hpp"
-    "${SOURCE_ROOT}/utility.cpp" "${INCLUDE_ROOT}/utility.hpp"
+    "${INCLUDE_ROOT}/buffer.h"
+    "${INCLUDE_ROOT}/buffer_type.h"
+    "${INCLUDE_ROOT}/font.h"
+    "${INCLUDE_ROOT}/material.h"
+    "${INCLUDE_ROOT}/material_factory.h"
+    "${INCLUDE_ROOT}/mesh.h"
+    "${INCLUDE_ROOT}/render_system.h"
+    "${INCLUDE_ROOT}/texture.h"
+    "${INCLUDE_ROOT}/vertex_data.h"
+    "${SOURCE_ROOT}/shape_factory.cpp" "${INCLUDE_ROOT}/shape_factory.h"
+    "${SOURCE_ROOT}/sprite.cpp" "${INCLUDE_ROOT}/sprite.h"
+    "${SOURCE_ROOT}/utility.cpp" "${INCLUDE_ROOT}/utility.h"
 
     PARENT_SCOPE
 )
