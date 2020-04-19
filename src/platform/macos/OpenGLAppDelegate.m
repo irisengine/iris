@@ -56,9 +56,6 @@
         // centre the window on the screen
         [window center];
 
-        // display the view
-        [window setAutodisplay:YES];
-
         // release window when it is closed
         [window setReleasedWhenClosed:YES];
 
