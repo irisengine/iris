@@ -11,11 +11,11 @@
 
 #include "core/exception.hpp"
 #include "graphics/material.hpp"
-#include "graphics/osx/cf_ptr.hpp"
 #include "graphics/shape_factory.hpp"
 #include "graphics/sprite.hpp"
 #include "graphics/texture.hpp"
 #include "log/log.hpp"
+#include "platform/osx/cf_ptr.hpp"
 
 namespace eng
 {
