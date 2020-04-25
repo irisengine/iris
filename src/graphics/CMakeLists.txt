@@ -1,13 +1,13 @@
 set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/graphics")
 
-if(GRAPHICS_API MATCHES "OPENGL")
+if(IRIS_GRAPHICS_API MATCHES "OPENGL")
     add_subdirectory("gl")
-elseif(GRAPHICS_API MATCHES "METAL")
+elseif(IRIS_GRAPHICS_API MATCHES "METAL")
     add_subdirectory("metal")
 endif()
 
-if(PLATFORM MATCHES "MACOS")
+if(IRIS_PLATFORM MATCHES "MACOS" OR IRIS_PLATFORM MATCHES "IOS")
     add_subdirectory("macos")
 endif()
 

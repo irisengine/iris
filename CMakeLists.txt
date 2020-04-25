@@ -10,32 +10,53 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-# set platform variable
-if(NOT PLATFORM)
-    # handle apple platform
+# if a platform wasn't supplied then default to current platform
+if(NOT IRIS_PLATFORM)
     if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-        set(PLATFORM "MACOS")
-        add_definitions(-DPLATFORM_MACOS)
-
-        # set graphics api, defults to metal
-        if(GRAPHICS_API MATCHES "METAL" OR NOT GRAPHICS_API)
-            set(GRAPHICS_API "METAL")
-            add_definitions(-DGRAPHICS_API_METAL)
-        elseif(GRAPHICS_API MATCHES "OPENGL")
-            set(GRAPHICS_API "OPENGL")
-            add_definitions(-DGRAPHICS_API_OPENGL)
-            # opengl is technically deprecated on macos, so silence the
-            # deprecation warnings
-            add_definitions(-DGL_SILENCE_DEPRECATION)
-        else()
-            message(FATAL_ERROR "Unsupported graphics API")
-        endif()
+        set(IRIS_PLATFORM "MACOS")
     else()
         message(FATAL_ERROR "Unsupported platform")
     endif()
 endif()
 
-message(STATUS "Building for ${PLATFORM} with ${GRAPHICS_API}")
+# handle platform specific setup including setting default graphics apis
+if(IRIS_PLATFORM MATCHES "MACOS")
+    add_definitions(-DPLATFORM_MACOS)
+    if(NOT IRIS_GRAPHICS_API)
+        set(IRIS_GRAPHICS_API "METAL")
+    endif()
+elseif(IRIS_PLATFORM MATCHES "IOS")
+    add_definitions(-DPLATFORM_IOS)
+    if(NOT IRIS_GRAPHICS_API)
+        set(IRIS_GRAPHICS_API "METAL")
+    endif()
+else()
+    message(FATAL_ERROR "Unsupported platform")
+endif()
+
+# handle graphic api setup including validating they are supported on current
+# platform
+if(IRIS_GRAPHICS_API MATCHES "METAL")
+    if(IRIS_PLATFORM MATCHES "MACOS" OR
+       IRIS_PLATFORM MATCHES "IOS")
+        add_definitions(-DIRIS_GRAPHICS_API_METAL)
+    else()
+        message(FATAL_ERROR "METAL not supported on ${IRIS_PLATFORM}")
+    endif()
+elseif(IRIS_GRAPHICS_API MATCHES "OPENGL")
+    if(IRIS_PLATFORM MATCHES "MACOS")
+        add_definitions(-DIRIS_GRAPHICS_API_OPENGL)
+        # opengl is technically deprecated on macos, so silence the
+        # deprecation warnings
+        add_definitions(-DGL_SILENCE_DEPRECATION)
+    else()
+        message(FATAL_ERROR "OPENGL not supported on ${IRIS_PLATFORM}")
+    endif()
+else()
+    message(FATAL_ERROR "Unsupported graphics API")
+endif()
+
+message(STATUS "Building for ${IRIS_PLATFORM} with ${IRIS_GRAPHICS_API}")
 
 add_subdirectory("${CMAKE_SOURCE_DIR}/src")
 add_subdirectory("${CMAKE_SOURCE_DIR}/samples")
