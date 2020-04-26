@@ -5,6 +5,7 @@ set(PLATFORM_SRCS
     ${PLATFORM_SRCS}
     "${INCLUDE_ROOT}/utility.h"
     "${SOURCE_ROOT}/../macos/macos_ios_utility.mm"
+    "${SOURCE_ROOT}/MetalView.mm" "${INCLUDE_ROOT}/MetalView.h"
     "${SOURCE_ROOT}/MetalViewController.m" "${INCLUDE_ROOT}/MetalViewController.h"
     "${SOURCE_ROOT}/resource_loader.mm"
 
