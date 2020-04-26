@@ -28,7 +28,9 @@ Exception::Exception(const std::string &what)
       frames_(max_stack_trace_size)
 {
     // get the stack trace
-    const auto frame_count = ::backtrace(frames_.data(), frames_.size());
+    const auto frame_count = ::backtrace(
+        frames_.data(),
+        static_cast<int>(frames_.size()));
     frames_.resize(frame_count);
 
     if(frame_count > 2)
@@ -45,7 +47,7 @@ std::string Exception::stack_trace() const
 {
     // format all stack frames
     auto_free<char*> symbols{
-        ::backtrace_symbols(frames_.data(), frames_.size()),
+        ::backtrace_symbols(frames_.data(), static_cast<int>(frames_.size())),
         &std::free
     };
 
