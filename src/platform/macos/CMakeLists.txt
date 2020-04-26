@@ -20,6 +20,7 @@ set(PLATFORM_SRCS
     "${INCLUDE_ROOT}/macos_ios_utility.h"
     "${INCLUDE_ROOT}/utility.h"
     "${SOURCE_ROOT}/macos_ios_utility.mm"
+    "${SOURCE_ROOT}/resource_loader.cpp"
     "${SOURCE_ROOT}/window.mm"
 
     PARENT_SCOPE

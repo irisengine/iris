@@ -12,6 +12,7 @@ set(PLATFORM_SRCS
     ${PLATFORM_SRCS}
     "${INCLUDE_ROOT}/keyboard_event.h"
     "${INCLUDE_ROOT}/mouse_event.h"
+    "${INCLUDE_ROOT}/resource_loader.h"
     "${INCLUDE_ROOT}/window.h"
     "${SOURCE_ROOT}/event.cpp" "${INCLUDE_ROOT}/event.h"
 
