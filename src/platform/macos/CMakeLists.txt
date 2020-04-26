@@ -15,8 +15,8 @@ endif()
 
 set(PLATFORM_SRCS
     ${PLATFORM_SRCS}
-    "${INCLUDE_ROOT}/cf_ptr.h"
     "${INCLUDE_ROOT}/AppDelegate.h"
+    "${INCLUDE_ROOT}/cf_ptr.h"
     "${INCLUDE_ROOT}/macos_ios_utility.h"
     "${INCLUDE_ROOT}/utility.h"
     "${SOURCE_ROOT}/macos_ios_utility.mm"
