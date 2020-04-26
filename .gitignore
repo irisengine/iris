@@ -13,4 +13,5 @@ obj/
 *.data
 tags
 tmp/
+Makefile
 
