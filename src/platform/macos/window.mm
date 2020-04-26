@@ -284,7 +284,7 @@ Window::Window(
 
     render_system_ = std::make_unique<RenderSystem>(width, height);
 
-    LOG_ENGINE_INFO("window", "macos Window created");
+    LOG_ENGINE_INFO("window", "macos window created {} {}", width_, height_);
 }
 
 void Window::render()
@@ -293,7 +293,7 @@ void Window::render()
 
     render_system_->render();
 
-#if defined(GRAPHICS_API_OPENGL) and defined(PLATFORM_MACOS)
+#if defined(IRIS_GRAPHICS_API_OPENGL) and defined(PLATFORM_MACOS)
     ::glSwapAPPLE();
 #endif
 }
