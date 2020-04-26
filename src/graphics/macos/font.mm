@@ -4,7 +4,6 @@
 #include <memory>
 #include <vector>
 
-#import <AppKit/AppKit.h>
 #import <CoreFoundation/CoreFoundation.h>
 #import <CoreGraphics/CoreGraphics.h>
 #import <CoreText/CoreText.h>
@@ -16,6 +15,7 @@
 #include "graphics/texture.h"
 #include "log/log.h"
 #include "platform/macos/cf_ptr.h"
+#include "platform/macos/macos_ios_utility.h"
 
 namespace eng
 {
@@ -205,8 +205,8 @@ std::unique_ptr<Sprite> Font::sprite(
         throw Exception("failed to create context");
     }
 
-    auto *Window = [[NSApp windows] firstObject];
-    const auto scale = [[Window screen] backingScaleFactor];
+    const auto scale = platform::utility::screen_scale();
+    LOG_ENGINE_DEBUG("font", "{}", scale);
 
     // ensure letters are rotated correct way and scaled for screen
     ::CGContextTranslateCTM(context.get(), 0.0f, rect.height * scale);

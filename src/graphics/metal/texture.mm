@@ -10,6 +10,7 @@
 
 #include "core/exception.h"
 #include "graphics/utility.h"
+#include "platform/macos/macos_ios_utility.h"
 #include "log/log.h"
 
 namespace
@@ -84,8 +85,7 @@ id<MTLTexture> create_texture(
                                                        mipmapped:YES];
 
     // get metal device handle
-    static const auto *device =
-        ::CGDirectDisplayCopyCurrentMetalDevice(::CGMainDisplayID());
+    auto *device = eng::platform::utility::metal_device();
 
     // create new texture
     auto texture = [device newTextureWithDescriptor:texture_descriptor];

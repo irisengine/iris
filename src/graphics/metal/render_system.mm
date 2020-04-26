@@ -10,6 +10,7 @@
 #include "graphics/buffer.h"
 #include "graphics/sprite.h"
 #include "log/log.h"
+#include "platform/macos/macos_ios_utility.h"
 
 namespace
 {
@@ -62,12 +63,8 @@ RenderSystem::RenderSystem(float width, float height)
       impl_(nullptr)
 {
     // get metal device handle
-    const auto *device = ::CGDirectDisplayCopyCurrentMetalDevice(::CGMainDisplayID());
-    if(device == nullptr)
-    {
-        throw Exception("could not get metal device");
-    }
-
+    const auto *device = platform::utility::metal_device();
+    
     // create a new command queue for rendering
     const auto command_queue = [device newCommandQueue];
     if(command_queue == nullptr)
