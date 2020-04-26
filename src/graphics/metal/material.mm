@@ -7,23 +7,10 @@
 #import <Metal/Metal.h>
 
 #include "core/exception.h"
+#include "platform/macos/macos_ios_utility.h"
 
 namespace
 {
-
-/**
- * Helper function to convert a std::string to a NSString.
- *
- * @param str
- *   String to convert.
- *
- * @returns
- *   Supplied string converted to NSString.
- */
-NSString* string_to_nsstring(const std::string &str)
-{
-    return [NSString stringWithUTF8String:str.c_str()];
-}
 
 /**
  * Helper function to load a metal shader and get a handle to a function.
@@ -45,7 +32,7 @@ id<MTLFunction> load_function(
     NSError *error = nullptr;
 
     // load source
-    const auto *library = [device newLibraryWithSource:string_to_nsstring(source)
+    const auto *library = [device newLibraryWithSource:eng::platform::utility::string_to_nsstring(source)
                                                options:nullptr
                                                  error:&error];
 
@@ -56,7 +43,7 @@ id<MTLFunction> load_function(
         throw eng::Exception("failed to load shader: " + error_message);
     }
 
-    return [library newFunctionWithName:string_to_nsstring(function_name)];
+    return [library newFunctionWithName:eng::platform::utility::string_to_nsstring(function_name)];
 }
 
 }
@@ -83,10 +70,8 @@ Material::Material(
     const std::string &fragment_shader_source)
     : impl_(nullptr)
 {
-    // get metal device handle
-    auto *device =
-        ::CGDirectDisplayCopyCurrentMetalDevice(::CGMainDisplayID());
-
+    auto *device = eng::platform::utility::metal_device();
+    
     // load shaders and entry functions
     const auto vertex_program = load_function(device, vertex_shader_source, "vertex_main");
     const auto fragment_program = load_function(device, fragment_shader_source, "fragment_main");
@@ -96,7 +81,7 @@ Material::Material(
     [pipeline_state_descriptor setVertexFunction:vertex_program];
     [pipeline_state_descriptor setFragmentFunction:fragment_program];
     pipeline_state_descriptor.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
-    [pipeline_state_descriptor setDepthAttachmentPixelFormat:MTLPixelFormatDepth32Float];
+    [pipeline_state_descriptor setDepthAttachmentPixelFormat:MTLPixelFormatInvalid];
 
     auto *pipeline_state =
         [device newRenderPipelineStateWithDescriptor:pipeline_state_descriptor error:nullptr];

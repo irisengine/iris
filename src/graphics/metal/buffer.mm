@@ -7,6 +7,7 @@
 
 #include "graphics/buffer_type.h"
 #include "graphics/vertex_data.h"
+#include "platform/macos/macos_ios_utility.h"
 
 namespace
 {
@@ -23,9 +24,7 @@ namespace
 template<class T>
 id<MTLBuffer> create_Buffer(const std::vector<T> &data)
 {
-    // get metal device handle
-    static const auto *device =
-        ::CGDirectDisplayCopyCurrentMetalDevice(::CGMainDisplayID());
+    auto *device = eng::platform::utility::metal_device();
 
     // create Buffer with data
     return [device newBufferWithBytes:static_cast<const void*>(data.data())

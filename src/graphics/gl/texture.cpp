@@ -10,6 +10,7 @@
 #include "graphics/gl/opengl.h"
 #include "graphics/utility.h"
 #include "log/log.h"
+#include "platform/resource_loader.h"
 
 namespace
 {
@@ -141,15 +142,16 @@ struct Texture::implementation
     std::uint32_t texture;
 };
 
-Texture::Texture(const std::filesystem::path &path)
+Texture::Texture(const std::string &resource)
     : data_(),
       width_(0u),
       height_(0u),
       num_channels_(0u),
       impl_(nullptr)
 {
+    const auto file_data = ResourceLoader::instance().load(resource);
     const auto [data, width, height, num_channels] =
-        graphics::utility::load_image(path);
+        graphics::utility::parse_image(file_data);
 
     const auto texture = create_texture(data, width, height, num_channels);
     impl_ = std::make_unique<implementation>(texture);

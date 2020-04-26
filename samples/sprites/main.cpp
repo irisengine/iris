@@ -1,16 +1,14 @@
 #include <iostream>
-#include <memory>
 
-#include "core/camera.h"
 #include "core/quaternion.h"
-#include "graphics/render_system.h"
 #include "graphics/sprite.h"
 #include "graphics/texture.h"
 #include "log/log.h"
 #include "platform/event.h"
+#include "platform/start.h"
 #include "platform/window.h"
 
-void go()
+void go(int, char**)
 {
     LOG_DEBUG("sprite_sample", "hello world");
 
@@ -36,7 +34,7 @@ void go()
         100.0f,
         100.0f,
         eng::Vector3{ 1.0f, 1.0f, 1.0f },
-        eng::Texture("./circle.png"));
+        eng::Texture("circle.png"));
 
     eng::Quaternion rot{ { 0.0f, 0.0f, 1.0f }, 0.0f };
     eng::Quaternion delta{ { 0.0f, 0.0f, 1.0f }, 0.02f };
@@ -61,11 +59,11 @@ void go()
     LOG_ERROR("sprite_sample", "goodbye!");
 }
 
-int main()
+int main(int argc, char **argv)
 {
     try
     {
-        go();
+        eng::start_debug(argc, argv, go);
     }
     catch(eng::Exception &e)
     {
