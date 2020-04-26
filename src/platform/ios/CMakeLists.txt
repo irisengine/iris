@@ -9,6 +9,7 @@ set(PLATFORM_SRCS
     "${SOURCE_ROOT}/MetalView.mm" "${INCLUDE_ROOT}/MetalView.h"
     "${SOURCE_ROOT}/MetalViewController.m" "${INCLUDE_ROOT}/MetalViewController.h"
     "${SOURCE_ROOT}/resource_loader.mm"
+    "${SOURCE_ROOT}/start.mm"
 
     PARENT_SCOPE
 )
