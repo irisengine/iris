@@ -81,7 +81,7 @@ Material::Material(
     [pipeline_state_descriptor setVertexFunction:vertex_program];
     [pipeline_state_descriptor setFragmentFunction:fragment_program];
     pipeline_state_descriptor.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
-    [pipeline_state_descriptor setDepthAttachmentPixelFormat:MTLPixelFormatDepth32Float];
+    [pipeline_state_descriptor setDepthAttachmentPixelFormat:MTLPixelFormatInvalid];
 
     auto *pipeline_state =
         [device newRenderPipelineStateWithDescriptor:pipeline_state_descriptor error:nullptr];
