@@ -53,12 +53,12 @@ elseif(IRIS_GRAPHICS_API MATCHES "OPENGL")
         message(FATAL_ERROR "OPENGL not supported on ${IRIS_PLATFORM}")
     endif()
 else()
-    message(FATAL_ERROR "Unsupported graphics API")
+    message(FATAL_ERROR "Unsupported graphics API: ${IRIS_GRAPHICS_API}")
 endif()
 
 message(STATUS "Building for ${IRIS_PLATFORM} with ${IRIS_GRAPHICS_API}")
 
 add_subdirectory("${CMAKE_SOURCE_DIR}/src")
 add_subdirectory("${CMAKE_SOURCE_DIR}/samples")
-add_subdirectory("${CMAKE_SOURCE_DIR}/tests")
+#add_subdirectory("${CMAKE_SOURCE_DIR}/tests")
 

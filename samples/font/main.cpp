@@ -6,8 +6,9 @@
 #include "log/log.h"
 #include "platform/event.h"
 #include "platform/window.h"
+#include "platform/start.h"
 
-int go()
+int go(int, char**)
 {
     LOG_DEBUG("font_sample", "hello world");
 
@@ -33,11 +34,11 @@ int go()
     return 0;
 }
 
-int main()
+int main(int argc, char **argv)
 {
     try
     {
-        go();
+        eng::start_debug(argc, argv, go);
     }
     catch(eng::Exception &e)
     {
