@@ -2,16 +2,17 @@
 
 #include <any>
 #include <cstdint>
-#include <filesystem>
 #include <memory>
+#include <string>
 #include <vector>
 
 #import <Metal/Metal.h>
 
 #include "core/exception.h"
 #include "graphics/utility.h"
-#include "platform/macos/macos_ios_utility.h"
 #include "log/log.h"
+#include "platform/macos/macos_ios_utility.h"
+#include "platform/resource_loader.h"
 
 namespace
 {
@@ -82,8 +83,8 @@ id<MTLTexture> create_texture(
         [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:format
                                                            width:width
                                                           height:height
-                                                       mipmapped:YES];
-
+                                                       mipmapped:NO];
+    
     // get metal device handle
     auto *device = eng::platform::utility::metal_device();
 
@@ -121,15 +122,16 @@ struct Texture::implementation
     id<MTLTexture> texture;
 };
 
-Texture::Texture(const std::filesystem::path &path)
+Texture::Texture(const std::string &resource)
     : data_(),
       width_(0u),
       height_(0u),
       num_channels_(0u),
       impl_(nullptr)
 {
+    const auto file_data = ResourceLoader::instance().load(resource);
     const auto [data, width, height, num_channels] =
-        graphics::utility::load_image(path);
+        graphics::utility::parse_image(file_data);
 
     const auto texture = create_texture(data, width, height, num_channels);
     impl_ = std::make_unique<implementation>(texture);

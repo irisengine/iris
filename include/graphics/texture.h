@@ -2,28 +2,28 @@
 
 #include <any>
 #include <cstdint>
-#include <filesystem>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace eng
 {
 
 /**
- * Class encapsulating a renderable texture. This class loads image data from
- * a file and performs all necessary graphics API setup for use.
+ * Class encapsulating a renderable texture. This class loads image data and
+ * performs all necessary graphics API setup for use.
  */
 class Texture
 {
     public:
 
         /**
-         * Create a new Texture from an image file.
+         * Create a new Texture from a resource.
          *
-         * @param path
-         *   Path to image file to load.
+         * @param resource
+         *   Resource to load, will be passed to ResourceLoader.
          */
-        explicit Texture(const std::filesystem::path &path);
+        explicit Texture(const std::string &resource);
 
         /**
          * Creates a new Texture with custom values.
