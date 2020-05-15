@@ -1,9 +1,6 @@
-set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
+if(IRIS_PLATFORM MATCHES "MACOS")
+    add_subdirectory("macos")
+endif()
 
-set(PLATFORM_TEST_SRCS
-    "${SOURCE_ROOT}/file_watcher_tests.cpp"
-
-    PARENT_SCOPE
-)
-
+set(PLATFORM_TEST_SRCS ${PLATFORM_TEST_SRCS} PARENT_SCOPE)
 

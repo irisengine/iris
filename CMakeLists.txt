@@ -60,5 +60,5 @@ message(STATUS "Building for ${IRIS_PLATFORM} with ${IRIS_GRAPHICS_API}")
 
 add_subdirectory("${CMAKE_SOURCE_DIR}/src")
 add_subdirectory("${CMAKE_SOURCE_DIR}/samples")
-#add_subdirectory("${CMAKE_SOURCE_DIR}/tests")
+add_subdirectory("${CMAKE_SOURCE_DIR}/tests")
 
