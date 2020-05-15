@@ -4,6 +4,8 @@ project(iris)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pedantic -ggdb -fno-rtti -fobjc-arc")
+set(ASM_OPTIONS "-x assembler-with-cpp")
+enable_language(C CXX ASM)
 
 # put all artifacts in same directory
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

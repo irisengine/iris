@@ -4,6 +4,7 @@ set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/jobs")
 if(IRIS_ARCH MATCHES "X86_64")
     set(ARCH_SRCS
         "${INCLUDE_ROOT}/arch/x86_64/context.h"
+        "${INCLUDE_ROOT}/arch/x86_64/functions.S"
     )
 endif()
 
