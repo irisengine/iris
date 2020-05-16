@@ -134,7 +134,6 @@ void unpack(
  * Singleton class for logging. Formatting and outputting are controlled via
  * settable classes, by default uses colour formatting and outputs to stdout.
  *
- * When logging a tag and level must be supplied, this allows for relatively
  * fine grained control over what is logged. The supported log levels are:
  *   DEBUG,
  *   INFO,
@@ -299,6 +298,8 @@ class Logger
                 strm << message;
 
                 const auto log = formatter_->format(level, tag, strm.str(), filename, line);
+
+                std::unique_lock lock(mutex_);
                 outputter_->output(log);
             }
         }
@@ -359,7 +360,8 @@ class Logger
               outputter_(std::make_unique<StdoutFormatter>()),
               ignore_(),
               min_level_(LogLevel::DEBUG),
-              log_engine_(false)
+              log_engine_(false),
+              mutex_()
         { };
 
         /** Formatter object. */
@@ -376,6 +378,9 @@ class Logger
 
         /** Whether to log internal engine messages. */
         bool log_engine_;
+
+        /** Lock for logging. */
+        std::mutex mutex_;
 };
 
 }
