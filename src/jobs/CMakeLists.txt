@@ -15,6 +15,7 @@ endif()
 set(JOB_SRCS
     ${ARCH_SRCS}
     ${JOBS_IMPL_SRCS}
+    "${INCLUDE_ROOT}/concurrent_queue.h"
     "${INCLUDE_ROOT}/context.h"
     "${INCLUDE_ROOT}/job.h"
     "${SOURCE_ROOT}/job_system.cpp" "${INCLUDE_ROOT}/job_system.h"
