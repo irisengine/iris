@@ -8,10 +8,16 @@ if(IRIS_ARCH MATCHES "X86_64")
     )
 endif()
 
+if(IRIS_JOBS_API MATCHES "fibers")
+    add_subdirectory("fiber")
+endif()
+
 set(JOB_SRCS
     ${ARCH_SRCS}
+    ${JOBS_IMPL_SRCS}
     "${INCLUDE_ROOT}/context.h"
     "${INCLUDE_ROOT}/job.h"
+    "${SOURCE_ROOT}/job_system.cpp" "${INCLUDE_ROOT}/job_system.h"
     "${SOURCE_ROOT}/thread.cpp" "${INCLUDE_ROOT}/thread.h"
 
     PARENT_SCOPE
