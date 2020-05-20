@@ -150,23 +150,24 @@ class Logger
 {
     public:
 
+        /**
+         * Construct a new logger. Private to force instantiation through
+         * instance().
+         */
+        Logger()
+            : formatter_(std::make_unique<ColourFormatter>()),
+              outputter_(std::make_unique<StdoutFormatter>()),
+              ignore_(),
+              min_level_(LogLevel::DEBUG),
+              log_engine_(false),
+              mutex_()
+        { };
+
         /** Disabled */
         Logger(const Logger&) = delete;
         Logger& operator=(const Logger&) = delete;
         Logger(Logger&&) = delete;
         Logger& operator=(Logger&&) = delete;
-
-        /**
-         * Get single instance of class.
-         *
-         * @returns
-         *   Reference to single instance.
-         */
-        static Logger& instance()
-        {
-            static Logger l{ };
-            return l;
-        }
 
         /**
          * Add a tag to be ignored, this prevents any log messages from the
@@ -350,19 +351,6 @@ class Logger
         }
 
     private:
-
-        /**
-         * Construct a new logger. Private to force instantiation through
-         * instance().
-         */
-        Logger()
-            : formatter_(std::make_unique<ColourFormatter>()),
-              outputter_(std::make_unique<StdoutFormatter>()),
-              ignore_(),
-              min_level_(LogLevel::DEBUG),
-              log_engine_(false),
-              mutex_()
-        { };
 
         /** Formatter object. */
         std::unique_ptr<Formatter> formatter_;
