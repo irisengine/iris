@@ -67,12 +67,12 @@ void Fiber::start()
     // a nice side effect of how we store the context is that when we restore
     // the top of the stack will actually contain the return address of the
     // following line, in effect this allows us to resume from *after* the
-    // following line, which is what we want otherwise we would call start_fiber
+    // following line, which is what we want otherwise we would call do_fiber
     // multiple times
     get_context(context_);
     do_start();
 
-    // if we get here we have restored out context
+    // if we get here we have restored our context
 }
 
 void Fiber::finish()

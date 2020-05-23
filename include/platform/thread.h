@@ -26,7 +26,7 @@ class Thread
          *   Function to run in thread.
          *
          * @param args
-         *   Arguments or function, will be perfectly forwarded.
+         *   Arguments of function, will be perfectly forwarded.
          */
         template<class Function, class... Args>
         Thread(Function &&function, Args&&... args)

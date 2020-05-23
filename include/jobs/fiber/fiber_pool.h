@@ -141,10 +141,16 @@ class FiberPool
 
     private:
 
-
+        /** Mutex for control access. */
         std::mutex m;
+        
+        /** List of fibers in pool. */
         std::list<eng::Fiber*> fibers;
+
+        /** Head of free fibers. */
         std::list<eng::Fiber*>::iterator head;
+        
+        /* Number of fibers allocated. */
         std::size_t count;
 };
 

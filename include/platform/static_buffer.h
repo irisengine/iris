@@ -23,7 +23,7 @@ class StaticBuffer
          * @param pages
          *   Number of pages to allocate.
          */
-        StaticBuffer(std::size_t pages);
+        explicit StaticBuffer(std::size_t pages);
 
         /**
          * Release all allocated memory.
@@ -39,10 +39,10 @@ class StaticBuffer
         static std::size_t page_size();
 
         /**
-         * Cast operator to start of allocated memory.
+         * Get start of allocated buffer.
          *
          * @returns
-         *   Pointer to start if buffer.
+         *   Pointer to start of buffer.
          */
         operator std::byte*() const;
 

@@ -151,8 +151,7 @@ class Logger
     public:
 
         /**
-         * Construct a new logger. Private to force instantiation through
-         * instance().
+         * Construct a new logger. 
          */
         Logger()
             : formatter_(std::make_unique<ColourFormatter>()),

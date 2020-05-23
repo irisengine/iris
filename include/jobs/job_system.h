@@ -31,7 +31,7 @@ class JobSystem
 
         /**
          * Add a collection of jobs. Once added these are executed in a
-         * fire-and-forget manner, there is no way wait on them to finish or
+         * fire-and-forget manner, there is no way to wait on them to finish or
          * to know when they have executed.
          *
          * @param jobs

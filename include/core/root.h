@@ -38,6 +38,12 @@ class Root
          */
         static JobSystem& job_system();
 
+        /**
+         * Get single instance of logger.
+         *
+         * @returns
+         *   Logger single instance.
+         */
         static Logger& logger();
 
     private:
@@ -50,6 +56,7 @@ class Root
         /** Single instance. */
         static Root instance_;
 
+        /** Logger. */
         Logger *logger_;
 
         /** Job system. */

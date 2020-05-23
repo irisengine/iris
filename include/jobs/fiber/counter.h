@@ -27,7 +27,7 @@ class Counter
         Counter& operator=(Counter&&) = delete;
 
         /**
-         * Cast counter value to int. Object must be locked.
+         * Cast counter value to int. 
          *
          * @returns
          *   Value of counter.
@@ -35,18 +35,12 @@ class Counter
         operator int();
 
         /**
-         * Prefix decrement counter. Object must be locked.
-         *
-         * @returns
-         *   Counter value after decrement.
+         * Prefix decrement counter.
          */
         void operator--();
 
         /**
-         * Postfix decrement counter. Object must be locked.
-         *
-         * @returns
-         *   Counter value before decrement.
+         * Postfix decrement counter.
          */
         void operator--(int);
 
