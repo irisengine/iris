@@ -1,6 +1,7 @@
 #include "jobs/fiber/fiber.h"
 
 #include <atomic>
+#include <cstddef>
 #include <exception>
 
 #include <sys/mman.h>
@@ -9,6 +10,7 @@
 #include "jobs/job.h"
 #include "jobs/context.h"
 #include "jobs/fiber/fiber_state.h"
+#include "platform/static_buffer.h"
 
 extern "C"
 {
@@ -29,8 +31,8 @@ Fiber::Fiber()
 }
 
 Fiber::Fiber(const Job &job)
-    : stack_(nullptr),
-      stack_origin_(nullptr),
+    : stack_buffer_(10),
+      stack_(nullptr),
       job_(job),
       context_(nullptr),
       suspended_context_(nullptr),
@@ -40,26 +42,7 @@ Fiber::Fiber(const Job &job)
       has_exception_(false),
       state_(FiberState::READY)
 {
-    // allocate a new stack
-    stack_origin_ = ::mmap(
-        0,
-        4096 * 10,
-        PROT_READ | PROT_WRITE,
-        MAP_PRIVATE | MAP_ANON,
-        -1,
-        0);
-
-    if(stack_origin_ == MAP_FAILED)
-    {
-        throw Exception("failed to mmap new stack");
-    }
-
     reset(job, nullptr);
-}
-
-Fiber::~Fiber()
-{
-    ::munmap(stack_origin_, 4096 * 10);
 }
 
 void Fiber::reset(const Job &job, Counter* counter)
@@ -71,7 +54,7 @@ void Fiber::reset(const Job &job, Counter* counter)
 
     // stack grows from high -> low memory so move our pointer down, not all the
     // way as we need some space to copy the previous stack frame
-    stack_ = static_cast<char*>(stack_origin_) + (4096 * 9);
+    stack_ = stack_buffer_ + (StaticBuffer::page_size() * 9);
 }
 
 void Fiber::start()

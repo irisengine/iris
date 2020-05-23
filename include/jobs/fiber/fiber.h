@@ -1,11 +1,12 @@
 #pragma once
 
 #include <atomic>
-#include <memory>
+#include <cstddef>
 
 #include "jobs/fiber/counter.h"
 #include "jobs/fiber/fiber_state.h"
 #include "jobs/job.h"
+#include "platform/static_buffer.h"
 
 namespace eng
 {
@@ -34,33 +35,14 @@ class Fiber
          */
         explicit Fiber(const Job &job);
 
-        /**
-         * Free all resources allocated for the Fiber.
-         */
-        ~Fiber();
+        // default
+        ~Fiber() = default;
 
-        // disable copying
+        // disable copying/moving
         Fiber(const Fiber&) = delete;
         Fiber& operator=(const Fiber&) = delete;
-
-        /**
-         * Move constructor. 
-         *
-         * @param other
-         *   Fiber to move from.
-         */
-        Fiber(Fiber &&other);
-
-        /**
-         * Move assignment.
-         *
-         * @param other
-         *   Fiber to move from.
-         *
-         * @returns
-         *   Reference to this Fiber after move.
-         */
-        Fiber& operator=(Fiber &&other);
+        Fiber(Fiber &&other) = delete;
+        Fiber& operator=(Fiber &&other) = delete;
 
         /**
          * Reset this fiber to represent a new job, with an optional counter.
@@ -152,11 +134,11 @@ class Fiber
 
         __attribute__((noinline)) int do_resume();
 
-        /** Pointer to top of stack. */
-        void *stack_;
+        /** Managed buffer for stack. */
+        StaticBuffer stack_buffer_;
 
-        /** Pointer to start of allocated stack space. */
-        void *stack_origin_;
+        /** Pointer to top of stack. */
+        std::byte *stack_;
         
         /** Job to run in Fiber. */
         Job job_;
