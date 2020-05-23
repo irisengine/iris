@@ -12,8 +12,8 @@
 #include "jobs/fiber/fiber.h"
 #include "jobs/fiber/fiber_pool.h"
 #include "jobs/job.h"
-#include "jobs/thread.h"
 #include "log/log.h"
+#include "platform/thread.h"
 
 namespace
 {

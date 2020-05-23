@@ -1,4 +1,4 @@
-#include "jobs/thread.h"
+#include "platform/thread.h"
 
 #include <atomic>
 #include <thread>

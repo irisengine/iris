@@ -19,7 +19,6 @@ set(JOB_SRCS
     "${INCLUDE_ROOT}/context.h"
     "${INCLUDE_ROOT}/job.h"
     "${INCLUDE_ROOT}/job_system.h"
-    "${SOURCE_ROOT}/thread.cpp" "${INCLUDE_ROOT}/thread.h"
 
     PARENT_SCOPE
 )
