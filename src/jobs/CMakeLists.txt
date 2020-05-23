@@ -8,8 +8,10 @@ if(IRIS_ARCH MATCHES "X86_64")
     )
 endif()
 
-if(IRIS_JOBS_API MATCHES "fibers")
+if(IRIS_JOBS_API MATCHES "FIBERS")
     add_subdirectory("fiber")
+elseif(IRIS_JOBS_API MATCHES "THREADS")
+    add_subdirectory("thread")
 endif()
 
 set(JOB_SRCS
