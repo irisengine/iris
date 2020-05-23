@@ -17,16 +17,12 @@ while (( "$#" )); do
       bundle_identifier=$2
       shift 2
       ;;
-  esac
 
-  case "$1" in
     --development_team)
       development_team=$2
       shift 2
       ;;
-  esac
 
-  case "$1" in
     -h|--help)
       show_help
       exit -1
