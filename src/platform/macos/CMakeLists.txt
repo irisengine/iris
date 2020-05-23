@@ -22,6 +22,8 @@ set(PLATFORM_SRCS
     "${SOURCE_ROOT}/macos_ios_utility.mm"
     "${SOURCE_ROOT}/resource_loader.cpp"
     "${SOURCE_ROOT}/start.cpp"
+    "${SOURCE_ROOT}/static_buffer.cpp"
+    "${SOURCE_ROOT}/thread.cpp"
     "${SOURCE_ROOT}/window.mm"
 
     PARENT_SCOPE

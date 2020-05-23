@@ -134,7 +134,6 @@ void unpack(
  * Singleton class for logging. Formatting and outputting are controlled via
  * settable classes, by default uses colour formatting and outputs to stdout.
  *
- * When logging a tag and level must be supplied, this allows for relatively
  * fine grained control over what is logged. The supported log levels are:
  *   DEBUG,
  *   INFO,
@@ -151,23 +150,23 @@ class Logger
 {
     public:
 
+        /**
+         * Construct a new logger. 
+         */
+        Logger()
+            : formatter_(std::make_unique<ColourFormatter>()),
+              outputter_(std::make_unique<StdoutFormatter>()),
+              ignore_(),
+              min_level_(LogLevel::DEBUG),
+              log_engine_(false),
+              mutex_()
+        { };
+
         /** Disabled */
         Logger(const Logger&) = delete;
         Logger& operator=(const Logger&) = delete;
         Logger(Logger&&) = delete;
         Logger& operator=(Logger&&) = delete;
-
-        /**
-         * Get single instance of class.
-         *
-         * @returns
-         *   Reference to single instance.
-         */
-        static Logger& instance()
-        {
-            static Logger l{ };
-            return l;
-        }
 
         /**
          * Add a tag to be ignored, this prevents any log messages from the
@@ -299,6 +298,8 @@ class Logger
                 strm << message;
 
                 const auto log = formatter_->format(level, tag, strm.str(), filename, line);
+
+                std::unique_lock lock(mutex_);
                 outputter_->output(log);
             }
         }
@@ -350,18 +351,6 @@ class Logger
 
     private:
 
-        /**
-         * Construct a new logger. Private to force instantiation through
-         * instance().
-         */
-        Logger()
-            : formatter_(std::make_unique<ColourFormatter>()),
-              outputter_(std::make_unique<StdoutFormatter>()),
-              ignore_(),
-              min_level_(LogLevel::DEBUG),
-              log_engine_(false)
-        { };
-
         /** Formatter object. */
         std::unique_ptr<Formatter> formatter_;
 
@@ -376,6 +365,9 @@ class Logger
 
         /** Whether to log internal engine messages. */
         bool log_engine_;
+
+        /** Lock for logging. */
+        std::mutex mutex_;
 };
 
 }
