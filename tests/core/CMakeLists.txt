@@ -1,0 +1,8 @@
+set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
+
+set(CORE_TEST_SRCS
+    "${SOURCE_ROOT}/real_tests.cpp"
+
+    PARENT_SCOPE
+)
+
