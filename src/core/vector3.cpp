@@ -1,7 +1,12 @@
 #include "core/vector3.h"
 
+#include <algorithm>
 #include <cmath>
-#include <iostream>
+#include <iomanip>
+#include <limits>
+#include <ostream>
+
+#include "core/real.h"
 
 namespace eng
 {
@@ -12,7 +17,7 @@ Vector3::Vector3()
       z(0.0f)
 { }
 
-Vector3::Vector3(const float x, const float y, const float z)
+Vector3::Vector3(real x, real y, real z)
     : x(x),
       y(y),
       z(z)
@@ -20,6 +25,7 @@ Vector3::Vector3(const float x, const float y, const float z)
 
 std::ostream& operator<<(std::ostream &out, const Vector3 &v)
 {
+    out << std::setprecision(std::numeric_limits<real>::digits10 + 1);
     out << "x: " << v.x << " "
         << "y: " << v.y << " "
         << "z: " << v.z;
@@ -27,7 +33,7 @@ std::ostream& operator<<(std::ostream &out, const Vector3 &v)
     return out;
 }
 
-Vector3& Vector3::operator*=(const float scale)
+Vector3& Vector3::operator*=(real scale)
 {
     x *= scale;
     y *= scale;
@@ -36,7 +42,7 @@ Vector3& Vector3::operator*=(const float scale)
     return *this;
 }
 
-Vector3 Vector3::operator*(const float scale) const
+Vector3 Vector3::operator*(real scale) const
 {
     return Vector3(*this) *= scale;
 }
@@ -85,7 +91,19 @@ Vector3 Vector3::operator-() const
     return Vector3{ -x, -y, -z };
 }
 
-float Vector3::dot(const Vector3 &vector) const
+bool Vector3::operator==(const Vector3 &other) const
+{
+    return (x == other.x) &&
+           (y == other.y) &&
+           (z == other.z);
+}
+
+bool Vector3::operator!=(const Vector3 &other) const
+{
+    return !(other == *this);
+}
+
+real Vector3::dot(const Vector3 &vector) const
 {
     return x * vector.x + y * vector.y + z * vector.z;
 }
@@ -118,7 +136,7 @@ Vector3& Vector3::normalise()
     return *this;
 }
 
-float Vector3::magnitude() const
+real Vector3::magnitude() const
 {
     return std::sqrt(std::pow(x, 2.0f) + std::pow(y, 2.0f) + std::pow(z, 2.0f));
 }

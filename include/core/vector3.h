@@ -1,6 +1,8 @@
 #pragma once
 
-#include <iostream>
+#include <ostream>
+
+#include "core/real.h"
 
 namespace eng
 {
@@ -30,7 +32,7 @@ class Vector3
          * @param z
          *   z component.
          */
-        Vector3(const float x, const float y, const float z);
+        Vector3(real x, real y, real z);
 
         /**
          * Write a Vector3 to a stream, useful for debugging.
@@ -57,7 +59,7 @@ class Vector3
          * @return
          *   Reference to this vector3.
          */
-        Vector3& operator*=(const float scale);
+        Vector3& operator*=(real scale);
 
         /**
          * Create a new Vector3 which is this Vector3 with each component
@@ -70,7 +72,7 @@ class Vector3
          *   Copy of this Vector3 with each component multiplied by a
          *   scalar value.
          */
-        Vector3 operator*(const float scale) const;
+        Vector3 operator*(real scale) const;
 
         /**
          * Component wise add a Vector3 to this vector3.
@@ -153,6 +155,28 @@ class Vector3
         Vector3 operator-() const;
 
         /**
+         * Equality operator.
+         *
+         * @param other
+         *   Vector3 to check for equality.
+         *
+         * @returns
+         *   True if both Vector3 objects are the same, false otherwise.
+         */
+        bool operator==(const Vector3 &other) const;
+
+        /**
+         * Inequality operator.
+         *
+         * @param other
+         *   Vector3 to check for inequality.
+         *
+         * @returns
+         *   True if both Vector3 objects are not the same, false otherwise.
+         */
+        bool operator!=(const Vector3 &other) const;
+
+        /**
          * Calculate the vector dot product.
          *
          * @param vector
@@ -161,7 +185,7 @@ class Vector3
          * @returns
          *   Dot product of this vector with supplied one.
          */
-        float dot(const Vector3 &vector) const;
+        real dot(const Vector3 &vector) const;
 
         /**
          * Perform cross product of this Vector3 with a supplied one.
@@ -188,7 +212,7 @@ class Vector3
          * @retunrs
          *   Vector magnitude.
          */
-        float magnitude() const;
+        real magnitude() const;
 
         /**
          * Cross two Vector3 objects with each other.
@@ -216,13 +240,13 @@ class Vector3
         static Vector3 normalise(const Vector3 &vector);
 
         /** x component */
-        float x;
+        real x;
 
         /** y component */
-        float y;
+        real y;
 
         /** z component */
-        float z;
+        real z;
 };
 
 }
