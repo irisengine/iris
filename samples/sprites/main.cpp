@@ -1,6 +1,5 @@
 #include <iostream>
 
-#include "core/quaternion.h"
 #include "graphics/sprite.h"
 #include "graphics/texture.h"
 #include "log/log.h"
@@ -36,8 +35,8 @@ void go(int, char**)
         eng::Vector3{ 1.0f, 1.0f, 1.0f },
         eng::Texture("circle.png"));
 
-    eng::Quaternion rot{ { 0.0f, 0.0f, 1.0f }, 0.0f };
-    eng::Quaternion delta{ { 0.0f, 0.0f, 1.0f }, 0.02f };
+    auto rot = 0.01f;
+    auto delta = 0.01f;
 
     for(;;)
     {
@@ -52,7 +51,7 @@ void go(int, char**)
         sprite1->set_orientation(rot);
         sprite2->set_orientation(rot);
         sprite3->set_orientation(rot);
-        rot *= delta;
+        rot += delta;
         w.render();
 
     }

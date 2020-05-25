@@ -3,7 +3,6 @@
 #include <cmath>
 #include <iostream>
 
-#include "core/quaternion.h"
 #include "core/vector3.h"
 
 namespace eng
@@ -19,30 +18,6 @@ Matrix4::Matrix4()
 Matrix4::Matrix4(const std::array<float, 16> &elements)
     : elements_(elements)
 { }
-
-Matrix4::Matrix4(const Quaternion &q)
-    : Matrix4()
-{
-    elements_[0] = 1.0f - 2.0f * q.y * q.y - 2.0f * q.z * q.z;
-    elements_[1] = 2.0f * q.x * q.y - 2.0f * q.z * q.w;
-    elements_[2] = 2.0f * q.x * q.z + 2.0f * q.y * q.w;
-
-    elements_[4] = 2.0f * q.x * q.y + 2.0f * q.z * q.w;
-    elements_[5] = 1.0f - 2.0f * q.x * q.x  - 2.0f * q.z * q.z;
-    elements_[6] = 2.0f * q.y * q.z - 2.0f * q.x * q.w;
-
-    elements_[8] = 2.0f * q.x * q.z - 2.0f * q.y * q.w;
-    elements_[9] = 2.0f * q.y * q.z + 2.0f * q.x * q.w;
-    elements_[10] = 1.0f - 2.0f * q.x * q.x - 2.0f * q.y * q.y;
-}
-
-Matrix4::Matrix4(const Quaternion &q, const Vector3 &p)
-    : Matrix4(q)
-{
-    elements_[3u] = p.x;
-    elements_[7u] = p.y;
-    elements_[11u] = p.z;
-}
 
 Matrix4 Matrix4::make_projection(
     const float width,
@@ -121,15 +96,15 @@ Matrix4 Matrix4::make_translate(const Vector3 &translate)
     return m;
 }
 
-Matrix4 Matrix4::make_rotate_y(const float angle)
+Matrix4 Matrix4::make_rotate_z(const float angle)
 {
     Matrix4 m;
 
     m.elements_ =
     {{
-         std::cos(angle), 0.0f, std::sin(angle), 0.f,
-         0.0f, 1.0f, 0.0f, 0.f,
-         -std::sin(angle), 0.0f, std::cos(angle), 0.f,
+         std::cos(angle), std::sin(angle), 0.0f, 0.0f,
+         -std::sin(angle), std::cos(angle), 0.0f,  0.0f,
+         0.0f, 0.0f, 1.0f, 0.0f,
          0.0f, 0.0f, 0.0f, 1.0f
     }};
 

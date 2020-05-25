@@ -3,7 +3,6 @@
 #include <array>
 #include <iostream>
 
-#include "quaternion.h"
 #include "vector3.h"
 
 namespace eng
@@ -30,27 +29,6 @@ class Matrix4
          *   Row major elements.
          */
         explicit Matrix4(const std::array<float, 16> &elements);
-
-        /**
-         * Construct a new Matrix4 which represents a rotation by the
-         * supplied quaternion.
-         *
-         * @param rotation
-         *   Rotation to represent.
-         */
-        explicit Matrix4(const Quaternion &rotation);
-
-        /**
-         * Construct a new Matrix4 which represents a rotation and translation
-         * by the supplied Quaternion and vector.
-         *
-         * @param rotation
-         *   Rotation to represent.
-         *
-         * @param translation
-         *   Translation to represent.
-         */
-        Matrix4(const Quaternion &rotation, const Vector3 &translation);
 
         /**
          * Static method to create an orthographic projection matrix.
@@ -112,12 +90,12 @@ class Matrix4
         static Matrix4 make_translate(const Vector3 &translate);
 
         /**
-         * Static method to create a rotation matrix about the y axis.
+         * Static method to create a rotation matrix about the z axis.
          *
          * @param angle
          *   Angle to rotate by in radians.
          */
-        static Matrix4 make_rotate_y(const float angle);
+        static Matrix4 make_rotate_z(const float angle);
 
         /**
          * Performs matrix multiplication.
