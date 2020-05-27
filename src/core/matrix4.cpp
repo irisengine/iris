@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iostream>
 
+#include "core/real.h"
 #include "core/vector3.h"
 
 namespace eng
@@ -15,14 +16,14 @@ Matrix4::Matrix4()
                    0.0f, 0.0f, 0.0f, 1.0f  }})
 { }
 
-Matrix4::Matrix4(const std::array<float, 16> &elements)
+Matrix4::Matrix4(const std::array<real, 16> &elements)
     : elements_(elements)
 { }
 
 Matrix4 Matrix4::make_projection(
-    const float width,
-    const float height,
-    const float depth)
+    const real width,
+    const real height,
+    const real depth)
 {
     Matrix4 m;
     
@@ -96,7 +97,7 @@ Matrix4 Matrix4::make_translate(const Vector3 &translate)
     return m;
 }
 
-Matrix4 Matrix4::make_rotate_z(const float angle)
+Matrix4 Matrix4::make_rotate_z(const real angle)
 {
     Matrix4 m;
 
@@ -116,8 +117,8 @@ Matrix4& Matrix4::operator*=(const Matrix4 &matrix)
     const auto e = elements_;
 
     const auto calculate_cell = [&e, &matrix](
-        size_t row_num,
-        size_t col_num)
+        std::size_t row_num,
+        std::size_t col_num)
     {
         return (e[row_num + 0u] * matrix[col_num +  0u]) +
                (e[row_num + 1u] * matrix[col_num +  4u]) +
@@ -173,17 +174,42 @@ Vector3 Matrix4::operator*(const Vector3 &vector) const
     };
 }
 
-float& Matrix4::operator[](const size_t index)
+real& Matrix4::operator[](const std::size_t index)
 {
     return elements_[index];
 }
 
-float Matrix4::operator[](const size_t index) const
+real Matrix4::operator[](const std::size_t index) const
 {
     return elements_[index];
 }
 
-const float* Matrix4::data() const
+bool Matrix4::operator==(const Matrix4 &other) const
+{
+    return (elements_[0] == other[0]) &&
+           (elements_[1] == other[1]) &&
+           (elements_[2] == other[2]) &&
+           (elements_[3] == other[3]) &&
+           (elements_[4] == other[4]) &&
+           (elements_[5] == other[5]) &&
+           (elements_[6] == other[6]) &&
+           (elements_[7] == other[7]) &&
+           (elements_[8] == other[8]) &&
+           (elements_[9] == other[9]) &&
+           (elements_[10] == other[10]) &&
+           (elements_[11] == other[11]) &&
+           (elements_[12] == other[12]) &&
+           (elements_[13] == other[13]) &&
+           (elements_[14] == other[14]) &&
+           (elements_[15] == other[15]);
+}
+
+bool Matrix4::operator!=(const Matrix4 &other) const
+{
+    return !(*this == other);
+}
+
+const real* Matrix4::data() const
 {
     return elements_.data();
 }
