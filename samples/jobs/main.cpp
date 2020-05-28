@@ -14,6 +14,8 @@
 #include "log/log.h"
 #include "platform/start.h"
 
+struct Sphere;
+
 // helpful globals
 std::random_device rd;
 std::mt19937 generator(rd());
@@ -194,9 +196,9 @@ void go(int, char**)
         {
             jobs.emplace_back([i, j, fov, counter, &pixels, &dist1]() {
                 
-                const auto dir_x =  (i + 0.5) -  width/2.;
-                const auto dir_y = -(j + 0.5) + height/2.;
-                const auto dir_z = -height/(2.*tan(fov/2.));
+                const auto dir_x =  (i + 0.5f) -  width / 2.0f;
+                const auto dir_y = -(j + 0.5f) + height / 2.0f;
+                const auto dir_z = -height/(2.0f *tan(fov / 2.0f));
 
                 eng::Vector3 pixel;
 
@@ -210,9 +212,9 @@ void go(int, char**)
                 pixel *= (1.0 / (float)samples);
 
                 // clamp colours
-                pixels[counter + 0u] = static_cast<std::uint8_t>((255.0f * std::max(0.0f, std::min(1.0f, pixel.x))));
-                pixels[counter + 1u] = static_cast<std::uint8_t>((255.0f * std::max(0.0f, std::min(1.0f, pixel.y))));
-                pixels[counter + 2u] = static_cast<std::uint8_t>((255.0f * std::max(0.0f, std::min(1.0f, pixel.z))));
+                pixels[counter + 0u] = static_cast<std::uint8_t>((255.0f * std::max(0.0f, std::min(1.0f, (float)pixel.x))));
+                pixels[counter + 1u] = static_cast<std::uint8_t>((255.0f * std::max(0.0f, std::min(1.0f, (float)pixel.y))));
+                pixels[counter + 2u] = static_cast<std::uint8_t>((255.0f * std::max(0.0f, std::min(1.0f, (float)pixel.z))));
             });
 
             counter += 3u;

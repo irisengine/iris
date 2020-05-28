@@ -1,10 +1,10 @@
 #pragma once
 
 #include <array>
-#include <iostream>
+#include <ostream>
 
-#include "quaternion.h"
-#include "vector3.h"
+#include "core/real.h"
+#include "core/vector3.h"
 
 namespace eng
 {
@@ -29,28 +29,7 @@ class Matrix4
          * @param elements
          *   Row major elements.
          */
-        explicit Matrix4(const std::array<float, 16> &elements);
-
-        /**
-         * Construct a new Matrix4 which represents a rotation by the
-         * supplied quaternion.
-         *
-         * @param rotation
-         *   Rotation to represent.
-         */
-        explicit Matrix4(const Quaternion &rotation);
-
-        /**
-         * Construct a new Matrix4 which represents a rotation and translation
-         * by the supplied Quaternion and vector.
-         *
-         * @param rotation
-         *   Rotation to represent.
-         *
-         * @param translation
-         *   Translation to represent.
-         */
-        Matrix4(const Quaternion &rotation, const Vector3 &translation);
+        explicit Matrix4(const std::array<real, 16> &elements);
 
         /**
          * Static method to create an orthographic projection matrix.
@@ -68,9 +47,9 @@ class Matrix4
          *   An orthographic projection matrix.
          */
         static Matrix4 make_projection(
-            const float width,
-            const float height,
-            const float depth);
+            const real width,
+            const real height,
+            const real depth);
 
         /**
          * Make a Matrix4 that can be used as a view matrix for a camera.
@@ -112,12 +91,12 @@ class Matrix4
         static Matrix4 make_translate(const Vector3 &translate);
 
         /**
-         * Static method to create a rotation matrix about the y axis.
+         * Static method to create a rotation matrix about the z axis.
          *
          * @param angle
          *   Angle to rotate by in radians.
          */
-        static Matrix4 make_rotate_y(const float angle);
+        static Matrix4 make_rotate_z(const real angle);
 
         /**
          * Performs matrix multiplication.
@@ -164,7 +143,7 @@ class Matrix4
          * @returns
          *   Reference to element at supplied index.
          */
-        float& operator[](const size_t index);
+        real& operator[](const size_t index);
 
         /**
          * Get a copy of the element at the supplied index.
@@ -175,7 +154,29 @@ class Matrix4
          * @returns
          *   Copy of element at supplied index.
          */
-        float operator[](const size_t index) const;
+        real operator[](const size_t index) const;
+
+        /**
+         * Equality operator.
+         *
+         * @param other
+         *   Matrix4 to check for equality.
+         *
+         * @returns
+         *   True if both VMatrix4 objects are the same, false otherwise.
+         */
+        bool operator==(const Matrix4 &other) const;
+
+        /**
+         * Inequality operator.
+         *
+         * @param other
+         *   Matrix4 to check for inequality.
+         *
+         * @returns
+         *   True if both Matrix4 objects are not the same, false otherwise.
+         */
+        bool operator!=(const Matrix4 &other) const;
 
         /**
          * Get a pointer to the start of the internal Matrix4 data array.
@@ -183,7 +184,7 @@ class Matrix4
          * @returns
          *   Pointer to start if Matrix4 data.
          */
-        const float* data() const;
+        const real* data() const;
 
         /**
          * Get a column from the matrix and return as a vector3. This ignores
@@ -215,7 +216,7 @@ class Matrix4
     private:
 
         /** Matrix4 data */
-        std::array<float, 16u> elements_;
+        std::array<real, 16u> elements_;
 };
 
 }

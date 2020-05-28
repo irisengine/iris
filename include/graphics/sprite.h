@@ -3,7 +3,6 @@
 #include <vector>
 
 #include "core/matrix4.h"
-#include "core/quaternion.h"
 #include "graphics/material.h"
 #include "graphics/mesh.h"
 #include "graphics/texture.h"
@@ -95,12 +94,12 @@ class Sprite
         void set_position(const Vector3 &position);
 
         /**
-         * Set the orientation of the matrix.
+         * Set the orientation of the sprite (in radians).
          *
          * @param orientation
-         *   New oritentation.
+         *   New orientation.
          */
-        void set_orientation(const Quaternion &orientation);
+        void set_orientation(float orientation);
 
         /**
          * Get the transformation matrix of the sprite.
@@ -149,9 +148,6 @@ class Sprite
 
         /** The position of the sprite. */
         Vector3 position_;
-
-        /** The orientation of the sprite. */
-        Quaternion orientation_;
 
         /** The scale of the sprite. */
         Vector3 scale_;

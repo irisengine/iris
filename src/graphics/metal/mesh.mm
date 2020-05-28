@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "core/matrix4.h"
-#include "core/quaternion.h"
 #include "core/vector3.h"
 #include "graphics/buffer.h"
 #include "graphics/buffer_type.h"

@@ -7,9 +7,10 @@
 #include <sys/mman.h>
 
 #include "core/exception.h"
-#include "jobs/job.h"
 #include "jobs/context.h"
 #include "jobs/fiber/fiber_state.h"
+#include "jobs/job.h"
+#include "log/log.h"
 #include "platform/static_buffer.h"
 
 extern "C"
