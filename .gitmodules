@@ -4,3 +4,6 @@
 [submodule "third_party/stb"]
 	path = third_party/stb
 	url = https://github.com/nothings/stb.git
+[submodule "third_party/bullet"]
+	path = third_party/bullet
+	url = https://github.com/bulletphysics/bullet3.git
