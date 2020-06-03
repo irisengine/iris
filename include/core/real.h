@@ -28,7 +28,10 @@ class real
         template<class T, typename=std::enable_if_t<std::is_arithmetic_v<T>>>
         real(T value)
             : value(value)
-        { }
+        {
+            // check there are no padding shenanigans
+            static_assert(sizeof(*this) == sizeof(type));
+        }
 
         /**
          * Cast to float.
