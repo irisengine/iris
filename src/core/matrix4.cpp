@@ -20,10 +20,7 @@ Matrix4::Matrix4(const std::array<real, 16> &elements)
     : elements_(elements)
 { }
 
-Matrix4 Matrix4::make_projection(
-    const real width,
-    const real height,
-    const real depth)
+Matrix4 Matrix4::make_orthographic_projection(real width, real height, real depth)
 {
     Matrix4 m;
     
@@ -39,6 +36,22 @@ Matrix4 Matrix4::make_projection(
         0.0f, 2.0f / (top - bottom), 0.0f, -(top + bottom) / (top - bottom),
         0.0f, 0.0f, -2.0f / (far - near), -(far + near) / (far - near),
         0.0f, 0.0f, 0.0f, 1.0f
+    }};
+
+    return m;
+}
+
+Matrix4 Matrix4::make_perspective_projection(real fov, real near, real far)
+{
+    Matrix4 m;
+
+    const auto focal_length = 1.0f / std::tan(fov / 2.0f);
+
+    m.elements_ = {{
+        focal_length, 0.0f, 0.0f, 0.0f,
+        0.0f, focal_length, 0.0f, 0.0f,
+        0.0f, 0.0f, -(far + near) / (far - near), -(2 * far * near) / (far - near),
+        0.0f, 0.0f, -1.0f, 0.0f
     }};
 
     return m;

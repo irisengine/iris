@@ -172,14 +172,27 @@ TEST(matrix4, vector_multiplication)
     ASSERT_EQ(m2, eng::Vector3(19.4f, 49.8f, 80.2f));
 }
 
-TEST(matrix4, make_projection)
+TEST(matrix4, make_orthographic_projection)
 {
-    auto m = eng::Matrix4::make_projection(100.0f, 100.0f, 100.0f);
+    auto m = eng::Matrix4::make_orthographic_projection(100.0f, 100.0f, 100.0f);
     eng::Matrix4 expected{ { { 
         0.01f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.01f, 0.0f, 0.0f,
         0.0f, 0.0f, -0.01f, 0.0f,
         0.0f, 0.0f, 0.0f, 1.0f
+    } } };
+
+    ASSERT_EQ(m, expected);
+}
+
+TEST(matrix4, make_perspective_projection)
+{
+    auto m = eng::Matrix4::make_perspective_projection(45.0f, 1.0f, 100.0f);
+    eng::Matrix4 expected{ { { 
+        1.792590976f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.792590976f, 0.0f, 0.0f,
+        0.0f, 0.0f, -1.020202041f, -2.020201921f,
+        0.0f, 0.0f, -1.0f, 0.0f
     } } };
 
     ASSERT_EQ(m, expected);

@@ -46,10 +46,24 @@ class Matrix4
          * @returns
          *   An orthographic projection matrix.
          */
-        static Matrix4 make_projection(
-            const real width,
-            const real height,
-            const real depth);
+        static Matrix4 make_orthographic_projection(real width, real height, real depth);
+
+        /**
+         * Static method to create a perspective projection matrix.
+         *
+         * @param fov
+         *   Field of view.
+         *
+         * @param near
+         *   Near clipping plane.
+         *
+         * @param far
+         *   Far clipping plane.
+         *
+         * @returns
+         *   A perspective projection matrix.
+         */
+        static Matrix4 make_perspective_projection(real fov, real near, real far);
 
         /**
          * Make a Matrix4 that can be used as a view matrix for a camera.
