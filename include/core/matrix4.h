@@ -127,14 +127,6 @@ class Matrix4
         static Matrix4 make_translate(const Vector3 &translate);
 
         /**
-         * Static method to create a rotation matrix about the z axis.
-         *
-         * @param angle
-         *   Angle to rotate by in radians.
-         */
-        static Matrix4 make_rotate_z(const real angle);
-
-        /**
          * Performs matrix multiplication.
          *
          * @param matrix
@@ -199,7 +191,7 @@ class Matrix4
          *   Matrix4 to check for equality.
          *
          * @returns
-         *   True if both VMatrix4 objects are the same, false otherwise.
+         *   True if both Matrix4 objects are the same, false otherwise.
          */
         bool operator==(const Matrix4 &other) const;
 

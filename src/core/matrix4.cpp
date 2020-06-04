@@ -135,21 +135,6 @@ Matrix4 Matrix4::make_translate(const Vector3 &translate)
     return m;
 }
 
-Matrix4 Matrix4::make_rotate_z(const real angle)
-{
-    Matrix4 m;
-
-    m.elements_ =
-    {{
-         std::cos(angle), std::sin(angle), 0.0f, 0.0f,
-         -std::sin(angle), std::cos(angle), 0.0f,  0.0f,
-         0.0f, 0.0f, 1.0f, 0.0f,
-         0.0f, 0.0f, 0.0f, 1.0f
-    }};
-
-    return m;
-}
-
 Matrix4& Matrix4::operator*=(const Matrix4 &matrix)
 {
     const auto e = elements_;

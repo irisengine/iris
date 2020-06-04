@@ -216,10 +216,10 @@ TEST(matrix4, make_orthographic_projection)
 
 TEST(matrix4, make_perspective_projection)
 {
-    auto m = eng::Matrix4::make_perspective_projection(45.0f, 1.0f, 100.0f);
+    auto m = eng::Matrix4::make_perspective_projection(0.785398f, 1.0f, 100.0f);
     eng::Matrix4 expected{ { { 
-        1.792590976f, 0.0f, 0.0f, 0.0f,
-        0.0f, 1.792590976f, 0.0f, 0.0f,
+        2.414214134f, 0.0f, 0.0f, 0.0f,
+        0.0f, 2.414214134f, 0.0f, 0.0f,
         0.0f, 0.0f, -1.020202041f, -2.020201921f,
         0.0f, 0.0f, -1.0f, 0.0f
     } } };
@@ -266,20 +266,6 @@ TEST(matrix4, make_translate)
         1.0f, 0.0f, 0.0f, 1.0f,
         0.0f, 1.0f, 0.0f, 2.0f,
         0.0f, 0.0f, 1.0f, 3.0f,
-        0.0f, 0.0f, 0.0f, 1.0f
-    } } };
-
-    ASSERT_EQ(m, expected);
-}
-
-TEST(matrix4, make_rotate_z)
-{
-    auto m = eng::Matrix4::make_rotate_z(0.5f);
-
-    eng::Matrix4 expected{ { { 
-        0.87758255f, 0.4794255495f, 0.0f, 0.0f,
-        -0.4794255495f, 0.87758255f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 1.0f
     } } };
 
