@@ -3,8 +3,9 @@
 
 #include <gtest/gtest.h>
 
-#include "core/real.h"
 #include "core/matrix4.h"
+#include "core/quaternion.h"
+#include "core/real.h"
 #include "core/vector3.h"
 
 TEST(matrix4, constructor)
@@ -54,6 +55,34 @@ TEST(matrix4, value_constructor)
     ASSERT_EQ(m[13], 14.0f);
     ASSERT_EQ(m[14], 15.0f);
     ASSERT_EQ(m[15], 16.0f);
+}
+
+TEST(matrix4, rotation_constructor)
+{
+    eng::Matrix4 m{ { 1.0f, 2.0f, 3.0f, 4.0f } };
+
+    eng::Matrix4 expected { {
+        -25.0f, -20.0f, 22.0f, 0.0f,
+        28.0f, -19.0f, 4.0f, 0.0f,
+        -10.0f, 20.0f, -9.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f,
+    } };
+
+    ASSERT_EQ(m, expected);
+}
+
+TEST(matrix4, rotation_translation_constructor)
+{
+    eng::Matrix4 m{ { 1.0f, 2.0f, 3.0f, 4.0f }, { 1.0f, 2.0f, 3.0f } };
+
+    eng::Matrix4 expected { {
+        -25.0f, -20.0f, 22.0f, 1.0f,
+        28.0f, -19.0f, 4.0f, 2.0f,
+        -10.0f, 20.0f, -9.0f, 3.0f,
+        0.0f, 0.0f, 0.0f, 1.0f,
+    } };
+
+    ASSERT_EQ(m, expected);
 }
 
 TEST(matrix4, equality)

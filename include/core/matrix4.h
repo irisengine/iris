@@ -3,6 +3,7 @@
 #include <array>
 #include <ostream>
 
+#include "core/quaternion.h"
 #include "core/real.h"
 #include "core/vector3.h"
 
@@ -30,6 +31,27 @@ class Matrix4
          *   Row major elements.
          */
         explicit Matrix4(const std::array<real, 16> &elements);
+
+        /**
+         * Construct a new Matrix4 which represents a rotation by the
+         * supplied quaternion.
+         *
+         * @param rotation
+         *   Rotation to represent.
+         */
+        explicit Matrix4(const Quaternion &rotation);
+
+        /**
+         * Construct a new Matrix4 which represents a rotation and translation
+         * by the supplied Quaternion and vector.
+         *
+         * @param rotation
+         *   Rotation to represent.
+         *
+         * @param translation
+         *   Translation to represent.
+         */
+        Matrix4(const Quaternion &rotation, const Vector3 &translation);
 
         /**
          * Static method to create an orthographic projection matrix.
