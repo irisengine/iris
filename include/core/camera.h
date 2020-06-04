@@ -1,7 +1,9 @@
 #pragma once
 
-#include "matrix4.h"
-#include "vector3.h"
+#include "core/camera_type.h"
+#include "core/matrix4.h"
+#include "core/real.h"
+#include "core/vector3.h"
 
 namespace eng
 {
@@ -16,13 +18,16 @@ class Camera
         /**
          * Create a new camera, positioned at the origin.
          *
+         * @param
+         *   Type of camera.
+         *
          * @param width
          *   Width of window.
          *
          * @param height
          *   Height of window.
          */
-        Camera(float width, float height);
+        Camera(CameraType type, real width, real height);
 
         /**
          * Translate the camera.
@@ -86,7 +91,7 @@ class Camera
          * @param yaw
          *   New camera yaw.
          */
-        void set_yaw(const float yaw);
+        void set_yaw(real yaw);
 
         /**
          * Adjust the camera yaw by the supplied value.
@@ -94,7 +99,7 @@ class Camera
          * @param adjust
          *   Amount to adjust yaw by.
          */
-        void adjust_yaw(const float adjust);
+        void adjust_yaw(real adjust);
 
         /**
          * Set the pitch of the camera.
@@ -102,7 +107,7 @@ class Camera
          * @param pitch
          *   New camera pitch.
          */
-        void set_pitch(const float pitch);
+        void set_pitch(real pitch);
 
         /**
          * Adjust the camera pitch by the supplied value.
@@ -110,7 +115,15 @@ class Camera
          * @param adjust
          *   Amount to adjust pitch by.
          */
-        void adjust_pitch(const float adjust);
+        void adjust_pitch(real adjust);
+
+        /**
+         * Get type of camera.
+         *
+         * @returns
+         *   Camera type.
+         */
+        CameraType type() const;
 
    private:
 
@@ -130,10 +143,13 @@ class Camera
         Matrix4 projection_;
 
         /** Pitch of camera. */
-        float pitch_;
+        real pitch_;
 
         /** Yaw of camera. */
-        float yaw_;
+        real yaw_;
+
+        /** Type of camera. */
+        CameraType type_;
 };
 
 }

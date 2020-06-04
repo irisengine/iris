@@ -2,7 +2,9 @@
 
 #include <cmath>
 
+#include "core/camera_type.h"
 #include "core/matrix4.h"
+#include "core/real.h"
 #include "core/vector3.h"
 #include "log/log.h"
 
@@ -21,7 +23,7 @@ namespace
  * @returns
  *   A new direction vector for the camera
  */
-eng::Vector3 create_direction(const float pitch, const float yaw)
+eng::Vector3 create_direction(eng::real pitch, eng::real yaw)
 {
     eng::Vector3 direction;
 
@@ -39,15 +41,26 @@ eng::Vector3 create_direction(const float pitch, const float yaw)
 namespace eng
 {
 
-Camera::Camera(float width, float height)
+Camera::Camera(CameraType type, real width, real height)
     : position_(0.0f, 0.0f, 100.0f),
       direction_(0.0f, 0.0f, -1.0f),
       up_(0.0f, 1.0f, 0.0f),
       view_(),
-      projection_(Matrix4::make_perspective_projection(0.785398f, 0.1f, 1000.0f)),
+      projection_(),
       pitch_(0.0f),
-      yaw_(-3.141592654f / 2.0f)
+      yaw_(-3.141592654f / 2.0f),
+      type_(type)
 {
+    switch(type_)
+    {
+        case CameraType::PERSPECTIVE:
+            projection_ = Matrix4::make_perspective_projection(0.785398f, 0.1f, 1000.0f);
+            break;
+        case CameraType::ORTHOGRAPHIC:
+            projection_ = Matrix4::make_orthographic_projection(width, height, 1000.0f);
+            break;
+    }
+
     direction_ = create_direction(pitch_, yaw_);
     view_ = Matrix4::make_look_at(position_, position_ + direction_, up_);
 
@@ -90,7 +103,7 @@ Matrix4 Camera::projection() const
     return projection_;
 }
 
-void Camera::set_yaw(const float yaw)
+void Camera::set_yaw(real yaw)
 {
     yaw_ = yaw;
 
@@ -98,12 +111,12 @@ void Camera::set_yaw(const float yaw)
     view_ = Matrix4::make_look_at(position_, position_ + direction_, up_);
 }
 
-void Camera::adjust_yaw(const float adjust)
+void Camera::adjust_yaw(real adjust)
 {
     set_yaw(yaw_ + adjust);
 }
 
-void Camera::set_pitch(const float pitch)
+void Camera::set_pitch(real pitch)
 {
     pitch_ = pitch;
 
@@ -111,9 +124,14 @@ void Camera::set_pitch(const float pitch)
     view_ = Matrix4::make_look_at(position_, position_ + direction_, up_);
 }
 
-void Camera::adjust_pitch(const float adjust)
+void Camera::adjust_pitch(real adjust)
 {
     set_pitch(pitch_ + adjust);
+}
+
+CameraType Camera::type() const
+{
+    return type_;
 }
 
 }
