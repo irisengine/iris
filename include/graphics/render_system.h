@@ -1,12 +1,15 @@
 #pragma once
 
 #include <memory>
+#include <type_traits>
 #include <vector>
 
 #include "core/camera.h"
+#include "core/camera_type.h"
 #include "core/vector3.h"
+#include "graphics/font.h"
 #include "graphics/material.h"
-#include "graphics/sprite.h"
+#include "graphics/render_entity.h"
 
 namespace eng
 {
@@ -17,6 +20,10 @@ namespace eng
 class RenderSystem
 {
     public:
+
+        // helper trait
+        template<class T>
+        using is_render_entity = std::enable_if_t<std::is_base_of_v<RenderEntity, T>>;
 
         /**
          * Create a new rendering system.
@@ -35,45 +42,88 @@ class RenderSystem
         RenderSystem& operator=(RenderSystem&&);
 
         /**
-         * Create a Sprite and add it to the scene. Uses perfect forwarding to
-         * pass along all arguments.
+         * Create a RenderEntity and add it to the scene. Uses perfect
+         * forwarding to pass along all arguments.
          *
          * @param args
-         *   Arguments for sprite.
+         *   Arguments for RenderEntity.
          *
          * @returns
-         *    A pointer to the newly created sprite.
+         *    A pointer to the newly created RenderEntity.
          */
-        template<class ...Args>
-        Sprite* create(Args &&...args)
+        template<class T, class ...Args, typename=is_render_entity<T>>
+        RenderEntity* create(Args &&...args)
         {
-            scene_.emplace_back(std::make_unique<Sprite>(std::forward<Args>(args)...));
-            return scene_.back().get();
+            auto element = std::make_unique<T>(std::forward<Args>(args)...);
+            
+            return add(std::move(element));
+        }
+
+        RenderEntity* create(
+            const std::string &font_name,
+            std::uint32_t size,
+            const Vector3 &colour,
+            const std::string &text,
+            real x,
+            real y)
+        {
+            const Font fnt{ font_name, size, colour };
+            return add(fnt.sprite(text, x, y));
         }
 
         /**
-         * Add a Sprite to the scene.
+         * Add a RenderEntity to the scene.
          *
-         * @param sprite
-         *   Sprite to render.
+         * @param entity
+         *   RenderEntity to render.
          *
          * @returns
-         *   Pointer to the added sprite.
+         *   Pointer to the added RenderEntity.
          */
-        Sprite* add(std::unique_ptr<Sprite> sprite);
+        RenderEntity* add(std::unique_ptr<RenderEntity> entity);
 
         /**
          * Render the current scene.
          */
-        void render() const;
+        void render();
+
+        /**
+         * Get the perspective camera.
+         *
+         * @returns
+         *  Perspective camera.
+         */
+        Camera& persective_camera();
+
+        /**
+         * Get the orthographic camera.
+         *
+         * @returns
+         *  Orthographic camera.
+         */
+        Camera& orthographic_camera();
+
+        /**
+         * Get the camera for the given type.
+         *
+         * @param type
+         *   Type of camera to get.
+         *
+         * @returns
+         *   Camera of requested type.
+         */
+        Camera& camera(CameraType type);
 
     private:
 
         /** Collection of entities in a scene to render. */
-        std::vector<std::unique_ptr<Sprite>> scene_;
+        std::vector<std::unique_ptr<RenderEntity>> scene_;
 
-        /** Camera to render scene through */
-        Camera camera_;
+        /** Perspective camera. */
+        Camera persective_camera_;
+
+        /** Orthographic camera. */
+        Camera orthographic_camera_;
 
         /** Pointer to implementation. */
         struct implementation;

@@ -8,9 +8,7 @@
 #include <OpenGL/gl3ext.h>
 
 #include "core/exception.h"
-#include "graphics/font.h"
-#include "graphics/render_system.h"
-#include "graphics/sprite.h"
+#include "core/real.h"
 #include "log/log.h"
 #include "platform/keyboard_event.h"
 #include "platform/macos/AppDelegate.h"
@@ -152,17 +150,12 @@ eng::Key macos_key_to_engine_Key(const std::uint16_t key_code)
 }
 
 /**
- * Helper method to handle and dispatch native keyboard events.
- *
- * @param events
- *   Queue of events to add to.
+ * Helper method to handle native keyboard events.
  *
  * @param event
  *   Native Event object.
  */
-void handle_KeyboardEvent(
-    std::queue<eng::Event> &events,
-    NSEvent *event)
+eng::KeyboardEvent handle_keyboard_event(NSEvent *event)
 {
     // extract the Key code from the event
     const std::uint16_t key_code = [event keyCode];
@@ -175,21 +168,16 @@ void handle_KeyboardEvent(
     // convert Key code and dispatch
     const auto key = macos_key_to_engine_Key(key_code);
 
-    events.emplace(eng::KeyboardEvent{ key, type });
+    return { key, type };
 }
 
 /**
- * Helper method to handle and dispatch native mouse events.
- *
- * @param events
- *   Queue of events to add to.
+ * Helper method to handle native mouse events.
  *
  * @param event
  *   Native Event object.
  */
-void handle_MouseEvent(
-    std::queue<eng::Event> &events,
-    NSEvent *event)
+eng::MouseEvent handle_mouse_event(NSEvent *event)
 {
     // get mouse delta
     std::int32_t dx = 0;
@@ -197,51 +185,7 @@ void handle_MouseEvent(
     ::CGGetLastMouseDelta(&dx, &dy);
 
     // convert and dispatch
-    events.emplace(
-        eng::MouseEvent{ static_cast<float>(dx), static_cast<float>(dy) });
-}
-
-/**
- * Pump all pending input events and dispatch to engine queue.
- *
- * @param events
- *   Queue of events to add to.
- */
-void pump_events(std::queue<eng::Event> &events)
-{
-    NSEvent *event = nil;
-
-    do
-    {
-        // flush next event
-        event = [NSApp
-            nextEventMatchingMask:NSEventMaskAny
-            untilDate:[NSDate distantPast]
-            inMode:NSDefaultRunLoopMode
-            dequeue:YES];
-
-        if(event != nil)
-        {
-            // handle native event
-            switch([event type])
-            {
-                case NSEventTypeKeyDown: [[fallthrough]];
-                case NSEventTypeKeyUp:
-                    handle_KeyboardEvent(events, event);
-                    break;
-                case NSEventTypeMouseMoved:
-                    handle_MouseEvent(events, event);
-                    break;
-                default:
-                    break;
-            }
-
-            // dispatch the Event to other objects, this stops us swallowing
-            // all events and preventing anything else from receiving them
-            [NSApp sendEvent:event];
-        }
-
-    } while(event != nil);
+    return { static_cast<eng::real>(dx), static_cast<eng::real>(dy) };
 }
 
 }
@@ -249,11 +193,8 @@ void pump_events(std::queue<eng::Event> &events)
 namespace eng
 {
 
-Window::Window(
-    const float width,
-    const float height)
-    : render_system_(),
-      width_(width),
+Window::Window(real width, real height)
+    : width_(width),
       height_(height)
 {
     // get and/or create the application singleton
@@ -282,74 +223,52 @@ Window::Window(
 
     [NSCursor hide];
 
-    render_system_ = std::make_unique<RenderSystem>(width, height);
-
     LOG_ENGINE_INFO("window", "macos window created {} {}", width_, height_);
-}
-
-void Window::render()
-{
-    pump_events(events_);
-
-    render_system_->render();
-
-#if defined(IRIS_GRAPHICS_API_OPENGL) and defined(PLATFORM_MACOS)
-    ::glSwapAPPLE();
-#endif
-}
-
-Sprite* Window::create(
-    const float x,
-    const float y,
-    const float width,
-    const float height,
-    const Vector3 &colour)
-{
-    return render_system_->create(x, y, width, height, colour);
-}
-
-Sprite* Window::create(
-    const float x,
-    const float y,
-    const float width,
-    const float height,
-    const Vector3 &colour,
-    Texture &&tex)
-{
-    return render_system_->create(x, y, width, height, colour, std::move(tex));
-}
-
-Sprite* Window::create(
-    const std::string &font_name,
-    const std::uint32_t size,
-    const Vector3 &colour,
-    const std::string &text,
-    const float x,
-    const float y)
-{
-    const Font fnt{ font_name, size, colour };
-    return render_system_->add(fnt.sprite(text, x, y));
 }
 
 std::optional<Event> Window::pump_event()
 {
     std::optional<Event> evt{ };
 
-    if(!events_.empty())
+    NSEvent *event = nil;
+
+    // flush next event
+    event = [NSApp
+        nextEventMatchingMask:NSEventMaskAny
+        untilDate:[NSDate distantPast]
+        inMode:NSDefaultRunLoopMode
+        dequeue:YES];
+
+    if(event != nil)
     {
-        evt.emplace(events_.front());
-        events_.pop();
+        // handle native event
+        switch([event type])
+        {
+            case NSEventTypeKeyDown: [[fallthrough]];
+            case NSEventTypeKeyUp:
+                evt = handle_keyboard_event(event);
+                break;
+            case NSEventTypeMouseMoved:
+                evt = handle_mouse_event(event);
+                break;
+            default:
+                break;
+        }
+
+        // dispatch the Event to other objects, this stops us swallowing
+        // all events and preventing anything else from receiving them
+        [NSApp sendEvent:event];
     }
 
     return evt;
 }
 
-float Window::width() const
+real Window::width() const
 {
     return width_;
 }
 
-float Window::height() const
+real Window::height() const
 {
     return height_;
 }
