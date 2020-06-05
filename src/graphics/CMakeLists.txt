@@ -23,6 +23,7 @@ set(GRAPHICS_SRCS
     "${INCLUDE_ROOT}/render_system.h"
     "${INCLUDE_ROOT}/texture.h"
     "${INCLUDE_ROOT}/vertex_data.h"
+    "${SOURCE_ROOT}/render_entity.cpp" "${INCLUDE_ROOT}/render_entity.h"
     "${SOURCE_ROOT}/shape_factory.cpp" "${INCLUDE_ROOT}/shape_factory.h"
     "${SOURCE_ROOT}/sprite.cpp" "${INCLUDE_ROOT}/sprite.h"
     "${SOURCE_ROOT}/utility.cpp" "${INCLUDE_ROOT}/utility.h"
