@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.6)
 project(iris)
 
 set(CMAKE_CXX_STANDARD 17)
+set(IRIS_DEFAULT_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pedantic -ggdb -fno-rtti -fobjc-arc")
 set(ASM_OPTIONS "-x assembler-with-cpp")
 enable_language(C CXX ASM)
@@ -70,7 +71,8 @@ endif()
 
 message(STATUS "Building for ${IRIS_PLATFORM} with ${IRIS_GRAPHICS_API} (${IRIS_JOBS_API})")
 
-add_subdirectory("${CMAKE_SOURCE_DIR}/src")
-add_subdirectory("${CMAKE_SOURCE_DIR}/samples")
-add_subdirectory("${CMAKE_SOURCE_DIR}/tests")
+add_subdirectory("third_party")
+add_subdirectory("src")
+add_subdirectory("samples")
+add_subdirectory("tests")
 
