@@ -45,6 +45,17 @@ void RenderEntity::set_orientation(const Quaternion &orientation)
     model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) * Matrix4::make_scale(scale_);
 }
 
+void RenderEntity::set_scale(const Vector3 &scale)
+{
+    scale_ = scale;
+    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) * Matrix4::make_scale(scale_);
+}
+
+void RenderEntity::set_mesh(Mesh mesh)
+{
+    mesh_ = std::move(mesh);
+}
+
 Matrix4 RenderEntity::transform() const
 {
     return model_;

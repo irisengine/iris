@@ -68,12 +68,28 @@ class RenderEntity
         void set_position(const Vector3 &position);
 
         /**
-         * Set the orientation of the matrix.
+         * Set the orientation of the RenderEntity.
          *
          * @param orientation
          *   New oritentation.
          */
         void set_orientation(const Quaternion &orientation);
+
+        /**
+         * Set the scale of the RenderEntity.
+         *
+         * @param scale
+         *   New scale.
+         */
+        void set_scale(const Vector3 &scale);
+
+        /**
+         * Set the mesh of the RenderEntity.
+         *
+         * @param mesh
+         *   New mesh.
+         */
+        void set_mesh(Mesh mesh);
 
         /**
          * Get the transformation matrix of the RenderEntity.
