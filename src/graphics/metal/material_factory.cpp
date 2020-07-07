@@ -25,6 +25,7 @@ typedef struct
     float4x4 projection;
     float4x4 view;
     float4x4 model;
+    float4x4 normal_matrix;
 } DefaultUniform;
 typedef struct
 {
@@ -46,7 +47,7 @@ vertex VertexOut vertex_main(
     VertexOut out;
     out.position = transpose(uniform->projection) * transpose(uniform->view) * transpose(uniform->model) * vertices[vid].position;
     out.pos = transpose(uniform->model) * vertices[vid].position;
-    out.normal = transpose(uniform->model) * vertices[vid].normal;
+    out.normal = transpose(uniform->normal_matrix) * vertices[vid].normal;
     out.color = vertices[vid].color;
     out.tex = vertices[vid].tex;
     return out;
@@ -69,6 +70,7 @@ typedef struct
     float4x4 projection;
     float4x4 view;
     float4x4 model;
+    float4x4 normal_matrix;
 } DefaultUniform;
 typedef struct
 {
@@ -83,15 +85,14 @@ fragment float4 fragment_main(
     constexpr sampler s(coord::normalized, address::repeat, filter::linear);
     float4 sampled_colour = main_texture.sample(s, in.tex.xy);
     float4 amb(0.2f, 0.2f, 0.2f, 1.0f);
-    amb *= 4.0f;
     float4 light_colour(1.0f, 1.0f, 1.0f, 1.0f);
-    float4 n = normalize(in.normal);
+    float3 n3 = normalize(in.normal.xyz);
+    float4 n = float4(n3.x, n3.y, n3.z, 1);
     float4 light_dir = normalize(light->position - in.pos);
     float diff = max(dot(n, light_dir), 0.0);
     float4 diffuse = light_colour * diff;
     float4 l = amb + diffuse;
-    return n;
-    //return l * in.color * sampled_colour;
+    return l * in.color * sampled_colour;
 }
 )" };
 
@@ -124,8 +125,8 @@ typedef struct {
 } VertexOut;
 
 vertex VertexOut vertex_main(
-    device VertexIn *vertices [[Buffer(0)]],
-    constant DefaultUniform *uniform [[Buffer(1)]],
+    device VertexIn *vertices [[buffer(0)]],
+    constant DefaultUniform *uniform [[buffer(1)]],
     uint vid [[vertex_id]])
 {
     VertexOut out;
