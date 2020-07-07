@@ -33,9 +33,15 @@ Sprite::Sprite(
         { width, height, 1.0f },
         material_factory::sprite(),
         false,
-        CameraType::ORTHOGRAPHIC)
+        CameraType::ORTHOGRAPHIC),
+      colour_(colour)
 {
     LOG_ENGINE_INFO("sprite", "constructed at: {} {}", position_, scale_);
+}
+
+void Sprite::set_texture(Texture texture)
+{
+    set_mesh(shape_factory::sprite(colour_, std::move(texture)));
 }
 
 }

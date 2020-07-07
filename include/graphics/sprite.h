@@ -73,6 +73,19 @@ class Sprite : public RenderEntity
 
         // default
         ~Sprite() override = default;
+
+        /**
+         * Set sprite texture.
+         *
+         * @param texture
+         *   New sprite texture.
+         */
+        void set_texture(Texture texture);
+
+    private:
+
+        /** Colour of sprite. */
+        Vector3 colour_;
 };
 
 }
