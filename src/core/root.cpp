@@ -1,5 +1,7 @@
 #include "core/root.h"
 
+#include <memory>
+
 #include "core/exception.h"
 #include "core/real.h"
 #include "graphics/render_system.h"
@@ -13,21 +15,11 @@ namespace eng
 Root Root::instance_;
 
 Root::Root()
-    : logger_(new Logger{ }),
-      job_system_(new JobSystem{ }),
-      window_(new Window{ 800.0f, 800.0f }),
-      render_system_(new RenderSystem{ 800.0f, 800.0f })
+    : logger_(std::make_unique<Logger>()),
+      job_system_(std::make_unique<JobSystem>()),
+      window_(std::make_unique<Window>(800.0f, 800.0f)),
+      render_system_(std::make_unique<RenderSystem>(window_->width(), window_->height()))
 { }
-
-Root::~Root()
-{
-    delete render_system_;
-    delete window_;
-    delete job_system_;
-
-    // delete logger last as other destructors may use it
-    delete logger_;
-}
 
 Root& Root::instance()
 {
