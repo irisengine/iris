@@ -66,16 +66,25 @@ Matrix4 Matrix4::make_orthographic_projection(real width, real height, real dept
     return m;
 }
 
-Matrix4 Matrix4::make_perspective_projection(real fov, real near, real far)
+Matrix4 Matrix4::make_perspective_projection(
+    real fov,
+    real width,
+    real height,
+    real near,
+    real far)
 {
     Matrix4 m;
 
-    const auto focal_length = 1.0f / std::tan(fov / 2.0f);
+    const auto aspect_ratio = width / height;
+    const auto t = std::tan(fov / 2.0f) * near;
+    const auto b = -t;
+    const auto r = t * aspect_ratio;
+    const auto l = b * aspect_ratio;
 
     m.elements_ = {{
-        focal_length, 0.0f, 0.0f, 0.0f,
-        0.0f, focal_length, 0.0f, 0.0f,
-        0.0f, 0.0f, -(far + near) / (far - near), -(2 * far * near) / (far - near),
+        (2.0f * near) / (r - l), 0.0f, (r + l) / (r - l), 0.0f,
+        0.0f, (2.0f * near) / (t - b), (t + b) / (t - b), 0.0f,
+        0.0f, 0.0f, -(far + near) / (far - near), -(2.0f * far * near) / (far - near),
         0.0f, 0.0f, -1.0f, 0.0f
     }};
 
@@ -131,6 +140,151 @@ Matrix4 Matrix4::make_translate(const Vector3 &translate)
          0.0f, 0.0f, 1.0f, translate.z,
          0.0f, 0.0f, 0.0f, 1.0f
     }};
+
+    return m;
+}
+
+Matrix4 Matrix4::invert(const Matrix4 &m)
+{
+    Matrix4 inv{ };
+
+    inv[0] = m[5]  * m[10] * m[15] -
+             m[5]  * m[11] * m[14] -
+             m[9]  * m[6]  * m[15] +
+             m[9]  * m[7]  * m[14] +
+             m[13] * m[6]  * m[11] -
+             m[13] * m[7]  * m[10];
+
+    inv[4] = -m[4]  * m[10] * m[15] +
+              m[4]  * m[11] * m[14] +
+              m[8]  * m[6]  * m[15] -
+              m[8]  * m[7]  * m[14] -
+              m[12] * m[6]  * m[11] +
+              m[12] * m[7]  * m[10];
+
+    inv[8] = m[4]  * m[9] * m[15] -
+             m[4]  * m[11] * m[13] -
+             m[8]  * m[5] * m[15] +
+             m[8]  * m[7] * m[13] +
+             m[12] * m[5] * m[11] -
+             m[12] * m[7] * m[9];
+
+    inv[12] = -m[4]  * m[9] * m[14] +
+               m[4]  * m[10] * m[13] +
+               m[8]  * m[5] * m[14] -
+               m[8]  * m[6] * m[13] -
+               m[12] * m[5] * m[10] +
+               m[12] * m[6] * m[9];
+
+    inv[1] = -m[1]  * m[10] * m[15] +
+              m[1]  * m[11] * m[14] +
+              m[9]  * m[2] * m[15] -
+              m[9]  * m[3] * m[14] -
+              m[13] * m[2] * m[11] +
+              m[13] * m[3] * m[10];
+
+    inv[5] = m[0]  * m[10] * m[15] -
+             m[0]  * m[11] * m[14] -
+             m[8]  * m[2] * m[15] +
+             m[8]  * m[3] * m[14] +
+             m[12] * m[2] * m[11] -
+             m[12] * m[3] * m[10];
+
+    inv[9] = -m[0]  * m[9] * m[15] +
+              m[0]  * m[11] * m[13] +
+              m[8]  * m[1] * m[15] -
+              m[8]  * m[3] * m[13] -
+              m[12] * m[1] * m[11] +
+              m[12] * m[3] * m[9];
+
+    inv[13] = m[0]  * m[9] * m[14] -
+              m[0]  * m[10] * m[13] -
+              m[8]  * m[1] * m[14] +
+              m[8]  * m[2] * m[13] +
+              m[12] * m[1] * m[10] -
+              m[12] * m[2] * m[9];
+
+    inv[2] = m[1]  * m[6] * m[15] -
+             m[1]  * m[7] * m[14] -
+             m[5]  * m[2] * m[15] +
+             m[5]  * m[3] * m[14] +
+             m[13] * m[2] * m[7] -
+             m[13] * m[3] * m[6];
+
+    inv[6] = -m[0]  * m[6] * m[15] +
+              m[0]  * m[7] * m[14] +
+              m[4]  * m[2] * m[15] -
+              m[4]  * m[3] * m[14] -
+              m[12] * m[2] * m[7] +
+              m[12] * m[3] * m[6];
+
+    inv[10] = m[0]  * m[5] * m[15] -
+              m[0]  * m[7] * m[13] -
+              m[4]  * m[1] * m[15] +
+              m[4]  * m[3] * m[13] +
+              m[12] * m[1] * m[7] -
+              m[12] * m[3] * m[5];
+
+    inv[14] = -m[0]  * m[5] * m[14] +
+               m[0]  * m[6] * m[13] +
+               m[4]  * m[1] * m[14] -
+               m[4]  * m[2] * m[13] -
+               m[12] * m[1] * m[6] +
+               m[12] * m[2] * m[5];
+
+    inv[3] = -m[1] * m[6] * m[11] +
+              m[1] * m[7] * m[10] +
+              m[5] * m[2] * m[11] -
+              m[5] * m[3] * m[10] -
+              m[9] * m[2] * m[7] +
+              m[9] * m[3] * m[6];
+
+    inv[7] = m[0] * m[6] * m[11] -
+             m[0] * m[7] * m[10] -
+             m[4] * m[2] * m[11] +
+             m[4] * m[3] * m[10] +
+             m[8] * m[2] * m[7] -
+             m[8] * m[3] * m[6];
+
+    inv[11] = -m[0] * m[5] * m[11] +
+               m[0] * m[7] * m[9] +
+               m[4] * m[1] * m[11] -
+               m[4] * m[3] * m[9] -
+               m[8] * m[1] * m[7] +
+               m[8] * m[3] * m[5];
+
+    inv[15] = m[0] * m[5] * m[10] -
+              m[0] * m[6] * m[9] -
+              m[4] * m[1] * m[10] +
+              m[4] * m[2] * m[9] +
+              m[8] * m[1] * m[6] -
+              m[8] * m[2] * m[5];
+
+    auto det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
+
+    if(det != 0.0f)
+    {
+        det = 1.0 / det;
+
+        for(auto i = 0; i < 16; i++)
+        {
+            inv[i] *= det;
+        }
+    }
+
+    return inv;
+}
+
+Matrix4 Matrix4::transpose(const Matrix4 &matrix)
+{
+    auto m{ matrix };
+
+    std::swap(m[1], m[4]);
+    std::swap(m[2], m[8]);
+    std::swap(m[3], m[12]);
+    std::swap(m[6], m[9]);
+    std::swap(m[7], m[13]);
+    std::swap(m[11], m[14]);
 
     return m;
 }

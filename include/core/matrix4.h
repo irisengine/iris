@@ -76,6 +76,12 @@ class Matrix4
          * @param fov
          *   Field of view.
          *
+         * @param width
+         *   Width of projection.
+         *
+         * @param height
+         *   Height of projection.
+         *
          * @param near
          *   Near clipping plane.
          *
@@ -85,7 +91,12 @@ class Matrix4
          * @returns
          *   A perspective projection matrix.
          */
-        static Matrix4 make_perspective_projection(real fov, real near, real far);
+        static Matrix4 make_perspective_projection(
+            real fov,
+            real width,
+            real height,
+            real near,
+            real far);
 
         /**
          * Make a Matrix4 that can be used as a view matrix for a camera.
@@ -125,6 +136,29 @@ class Matrix4
          *   Vector to translate by.
          */
         static Matrix4 make_translate(const Vector3 &translate);
+
+        /**
+         * Invert a matrix. This produces a matrix such that:
+         * M * invert(M) == Matrix4{ }
+         *
+         * @param m
+         *   Matrix to invert.
+         *
+         * @returns
+         *   Inverted matrix.
+         */
+        static Matrix4 invert(const Matrix4 &m);
+
+        /**
+         * Transpose a matrix.
+         *
+         * @param m
+         *   Matrix to transpose.
+         *
+         * @returns
+         *   Transposed matrix.
+         */
+        static Matrix4 transpose(const Matrix4 &m);
 
         /**
          * Performs matrix multiplication.

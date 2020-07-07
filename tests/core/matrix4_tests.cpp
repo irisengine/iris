@@ -216,11 +216,12 @@ TEST(matrix4, make_orthographic_projection)
 
 TEST(matrix4, make_perspective_projection)
 {
-    auto m = eng::Matrix4::make_perspective_projection(0.785398f, 1.0f, 100.0f);
+    auto m = eng::Matrix4::make_perspective_projection(0.785398f, 1.0f, 100.0f, 0.1f, 100.0f);
+
     eng::Matrix4 expected{ { { 
-        2.414214134f, 0.0f, 0.0f, 0.0f,
-        0.0f, 2.414214134f, 0.0f, 0.0f,
-        0.0f, 0.0f, -1.020202041f, -2.020201921f,
+        241.421402f, 0.0f, 0.0f, 0.0f,
+        0.0f, 2.414213896f, 0.0f, 0.0f,
+        0.0f, 0.0f, -1.002002001f, -0.2002002001f,
         0.0f, 0.0f, -1.0f, 0.0f
     } } };
 
@@ -270,5 +271,55 @@ TEST(matrix4, make_translate)
     } } };
 
     ASSERT_EQ(m, expected);
+}
+
+TEST(matrix4, transpose)
+{
+    eng::Matrix4 m{ { {
+        1.0f, 2.0f, 3.0f, 4.0f,
+        5.0f, 6.0f, 7.0f, 8.0f,
+        9.0f, 10.0f, 11.0f, 12.0f,
+        13.0f, 14.0f, 15.0f, 16.0f,
+    } } };
+
+    eng::Matrix4 expected{ { {
+        1.0f, 5.0f, 9.0f, 13.0f,
+        2.0f, 6.0f, 10.0f, 14.0f,
+        3.0f, 7.0f, 11.0f, 15.0f,
+        4.0f, 8.0f, 12.0f, 16.0f,
+    } } };
+
+    ASSERT_EQ(eng::Matrix4::transpose(m), expected);
+}
+
+TEST(matrix4, invert)
+{
+    eng::Matrix4 m{ { {
+        1.0f, 1.0f, 1.0f, -1.0f,
+        1.0f, 1.0f, -1.0f, 1.0f,
+        1.0f, -1.0f, 1.0f, 1.0f,
+        -1.0f, 1.0f, 1.0f, 1.0f,
+    } } };
+
+    eng::Matrix4 expected{ { {
+        0.25f, 0.25f, 0.25f, -0.25f,
+        0.25f, 0.25f, -0.25f, 0.25f,
+        0.25f, -0.25f, 0.25f, 0.25f,
+        -0.25f, 0.25f, 0.25f, 0.25f,
+    } } };
+
+    ASSERT_EQ(eng::Matrix4::invert(m), expected);
+}
+
+TEST(matrix4, invert_round_trip)
+{
+    eng::Matrix4 m{ { {
+        1.0f, 1.0f, 1.0f, -1.0f,
+        1.0f, 1.0f, -1.0f, 1.0f,
+        1.0f, -1.0f, 1.0f, 1.0f,
+        -1.0f, 1.0f, 1.0f, 1.0f,
+    } } };
+
+    ASSERT_EQ(m * eng::Matrix4::invert(m), eng::Matrix4{ });
 }
 
