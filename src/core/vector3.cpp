@@ -25,7 +25,6 @@ Vector3::Vector3(real x, real y, real z)
 
 std::ostream& operator<<(std::ostream &out, const Vector3 &v)
 {
-    out << std::setprecision(std::numeric_limits<real>::digits10 + 1);
     out << "x: " << v.x << " "
         << "y: " << v.y << " "
         << "z: " << v.z;
