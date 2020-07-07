@@ -15,7 +15,7 @@ namespace eng
  * Class encapsulating a loaded Font which can can produce a Sprite containing
  * rendered text.
  */
-class Font
+class Font : public Sprite
 {
     public:
 
@@ -30,36 +30,20 @@ class Font
          * @param size
          *   The Font size.
          *
+         * @param text
+         *   The text to render.
+         *
          * @param colour
          *   The colour of the font.
          */
         Font(
             const std::string &font_name,
             const std::uint32_t size,
+            const std::string &text,
             const Vector3 &colour);
 
         /** Declared in mm/cpp file as implementation is an incomplete file. */
         ~Font();
-        Font(Font&&);
-        Font& operator=(Font&&);
-
-        /**
-         * Create a Sprite which, when rendered, will draw the
-         * supplied text.
-         *
-         * @param text
-         *   Text to render.
-         *
-         * @param x
-         *   x coordinate of centre of rendered text.
-         *
-         * @param y
-         *   y coordinate of centre of rendered text.
-         */
-        std::unique_ptr<Sprite> sprite(
-            const std::string &text,
-            const float x,
-            const float y) const;
 
     private:
 
