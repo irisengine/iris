@@ -59,18 +59,6 @@ class RenderSystem
             return add(std::move(element));
         }
 
-        RenderEntity* create(
-            const std::string &font_name,
-            std::uint32_t size,
-            const Vector3 &colour,
-            const std::string &text,
-            real x,
-            real y)
-        {
-            const Font fnt{ font_name, size, colour };
-            return add(fnt.sprite(text, x, y));
-        }
-
         /**
          * Add a RenderEntity to the scene.
          *
