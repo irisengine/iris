@@ -19,6 +19,7 @@ layout (location = 3) in vec3 tex;
 uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
+uniform mat4 normal_matrix;
 out vec3 fragPos;
 out vec2 texCoord;
 out vec3 col;
@@ -26,7 +27,7 @@ out vec3 norm;
 void main()
 {
     col = colour;
-    norm = mat3(transpose(inverse(transpose(model)))) * normal;
+    norm = mat3(transpose(normal_matrix)) * normal;
     texCoord = vec2(tex.x, tex.y);
     fragPos = vec3(transpose(model) * vec4(position, 1.0));
     gl_Position = transpose(projection) * transpose(view) * vec4(fragPos, 1.0);

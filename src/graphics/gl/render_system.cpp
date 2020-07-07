@@ -88,6 +88,12 @@ void RenderSystem::render()
         ::glUniformMatrix4fv(model_uniform, 1, GL_FALSE, reinterpret_cast<const float*>(e->transform().data()));
         check_opengl_error("could not set model matrix uniform data");
 
+        const auto normal_uniform = ::glGetUniformLocation(program, "normal_matrix");
+        check_opengl_error("could not get normal uniform location");
+
+        ::glUniformMatrix4fv(normal_uniform, 1, GL_FALSE, reinterpret_cast<const float*>(e->normal_transform().data()));
+        check_opengl_error("could not set normal matrix uniform data");
+
         const auto light_uniform = ::glGetUniformLocation(program, "light");
         check_opengl_error("could not get light uniform location");
 
