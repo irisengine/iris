@@ -3,6 +3,7 @@
 #include "platform/event_type.h"
 #include "platform/keyboard_event.h"
 #include "platform/mouse_event.h"
+#include "platform/touch_event.h"
 
 namespace eng
 {
@@ -14,6 +15,11 @@ Event::Event(const KeyboardEvent event)
 
 Event::Event(const MouseEvent event)
     : type_(EventType::MOUSE),
+      event_(event)
+{ }
+
+Event::Event(TouchEvent event)
+    : type_(EventType::TOUCH),
       event_(event)
 { }
 
@@ -74,6 +80,21 @@ MouseEvent Event::mouse() const
     }
 
     return std::get<MouseEvent>(event_);
+}
+
+bool Event::is_touch() const
+{
+    return std::holds_alternative<TouchEvent>(event_);
+}
+
+TouchEvent Event::touch() const
+{
+    if(!is_touch())
+    {
+        throw Exception("not touch event");
+    }
+
+    return std::get<TouchEvent>(event_);
 }
 
 }
