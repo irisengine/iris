@@ -100,6 +100,14 @@ class RenderEntity
         Matrix4 transform() const;
 
         /**
+         * Get the transformation matrix for the normals of the RenderEntity.
+         *
+         * @returns
+         *   Normal transformation matrix.
+         */
+        Matrix4 normal_transform() const;
+
+        /**
          * Get a const reference to the Mesh that make up the RenderEntity.
          *
          * @returns
@@ -155,6 +163,9 @@ class RenderEntity
 
         /** Model transformation matrix4. */
         Matrix4 model_;
+
+        /** Normal transformation matrix. */
+        Matrix4 normal_;
 
         /** Material to render with. */
         Material* material_;
