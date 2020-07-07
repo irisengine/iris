@@ -4,63 +4,58 @@
 
 #import <UIKit/UIKit.h>
 
+#import "platform/ios/MetalViewController.h"
+#include "core/real.h"
 #include "graphics/font.h"
+#include "log/log.h"
 
 namespace eng
 {
 
-Window::Window(
-    const float width,
-    const float height)
-    : render_system_(),
-      width_(width),
+Window::Window(real width, real height)
+    : width_(width),
       height_(height)
 {
     const auto bounds = [[UIScreen mainScreen] bounds];
-    render_system_ = std::make_unique<RenderSystem>(bounds.size.width, bounds.size.height);
-}
-
-void Window::render()
-{
-    render_system_->render();
-}
-
-Sprite* Window::create(
-    const float x,
-    const float y,
-    const float width,
-    const float height,
-    const Vector3 &colour)
-{
-    return render_system_->create(x, y, width, height, colour);
-}
-
-Sprite* Window::create(
-    const float x,
-    const float y,
-    const float width,
-    const float height,
-    const Vector3 &colour,
-    Texture &&tex)
-{
-    return render_system_->create(x, y, width, height, colour, std::move(tex));
-}
-
-Sprite* Window::create(
-    const std::string &font_name,
-    const std::uint32_t size,
-    const Vector3 &colour,
-    const std::string &text,
-    const float x,
-    const float y)
-{
-    const Font fnt{ font_name, size, colour };
-    return render_system_->add(fnt.sprite(text, x, y));
+    width_ = bounds.size.width;
+    height_ = bounds.size.height;
 }
 
 std::optional<Event> Window::pump_event()
 {
-    return { };
+    const CFTimeInterval seconds = 0.000002;
+
+    // run the default loop, this pumps touch events which will then be picked
+    // up by our view
+    auto result = kCFRunLoopRunHandledSource;
+    do
+    {
+        result = CFRunLoopRunInMode(kCFRunLoopDefaultMode, seconds, TRUE);
+    } while(result == kCFRunLoopRunHandledSource);
+    
+    const auto *window = [[[UIApplication sharedApplication] windows] objectAtIndex:0];
+    const auto *root_view_controller = static_cast<MetalViewController*>([window rootViewController]);
+    
+    std::optional<Event> event;
+    
+    // get next event from view (if one is available)
+    if(!root_view_controller->events_.empty())
+    {
+        event = root_view_controller->events_.front();
+        root_view_controller->events_.pop();
+    }
+    
+    return event;
+}
+
+real Window::width() const
+{
+    return width_;
+}
+
+real Window::height() const
+{
+    return height_;
 }
 
 }

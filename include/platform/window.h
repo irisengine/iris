@@ -36,11 +36,6 @@ class Window
         Window& operator=(const Window&) = delete;
 
         /**
-         * Render the current scene.
-         */
-        void render();
-
-        /**
          * Pump the next user input event. Result will be empty if there are no
          * new events.
          *
