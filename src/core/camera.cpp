@@ -54,7 +54,7 @@ Camera::Camera(CameraType type, real width, real height)
     switch(type_)
     {
         case CameraType::PERSPECTIVE:
-            projection_ = Matrix4::make_perspective_projection(0.785398f, 0.1f, 1000.0f);
+            projection_ = Matrix4::make_perspective_projection(0.785398f, width, height, 0.1f, 1000.0f);
             break;
         case CameraType::ORTHOGRAPHIC:
             projection_ = Matrix4::make_orthographic_projection(width, height, 1000.0f);
