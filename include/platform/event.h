@@ -4,9 +4,10 @@
 #include <variant>
 
 #include "core/exception.h"
+#include "platform/event_type.h"
 #include "platform/keyboard_event.h"
 #include "platform/mouse_event.h"
-#include "platform/event_type.h"
+#include "platform/touch_event.h"
 
 namespace eng
 {
@@ -23,7 +24,7 @@ class Event
          * Construct a new keyboard event.
          *
          * @param event
-         *  Keyboard event.
+         *   Keyboard event.
          */
         Event(const KeyboardEvent event);
 
@@ -31,15 +32,23 @@ class Event
          * Construct a new mouse event.
          *
          * @param event
-         *  Mouse event.
+         *   Mouse event.
          */
         Event(const MouseEvent event);
+
+        /**
+         * Construct a new touch event.
+         *
+         * @param event
+         *   Touch event.
+         */
+        Event(TouchEvent event);
 
         /**
          * Get type of event.
          *
          * @returns
-         *  Event type.
+         *   Event type.
          */
         EventType type() const;
 
@@ -78,7 +87,7 @@ class Event
         bool is_key(Key key, KeyState state) const;
 
         /**
-         * Get keyboard_event, will throw if wrong type.
+         * Get keyboard event, will throw if wrong type.
          *
          * @returns
          *   Keyboard event.
@@ -94,12 +103,28 @@ class Event
         bool is_mouse() const;
 
         /**
-         * Get mouse_event, will throw if wrong type.
+         * Get mouse event, will throw if wrong type.
          *
          * @returns
          *   Mouse event.
          */
         MouseEvent mouse() const;
+
+        /**
+         * Check if Event is a touch event.
+         *
+         * @returns
+         *   True if Event is a touch event, else false.
+         */
+        bool is_touch() const;
+
+        /**
+         * Get touch event will throw if wrong type.
+         *
+         * @returns
+         *   Touch event.
+         */
+        TouchEvent touch() const;
 
     private:
 
@@ -107,7 +132,7 @@ class Event
         EventType type_;
 
         /** Variant of possible Event types. */
-        std::variant<KeyboardEvent, MouseEvent> event_;
+        std::variant<KeyboardEvent, MouseEvent, TouchEvent> event_;
 };
 
 }

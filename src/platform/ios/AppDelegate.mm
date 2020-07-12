@@ -8,8 +8,8 @@
 #import <MetalKit/MetalKit.h>
 #import <QuartzCore/QuartzCore.h>
 
+#include "core/root.h"
 #include "log/log.h"
-#include "platform/ios/MetalView.h"
 #include "platform/ios/MetalViewController.h"
 
 namespace eng
@@ -30,18 +30,16 @@ extern char **g_argv;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     LOG_ENGINE_INFO("AppDelegate", "setting up window and view");
-
+    
     // create a new window the size of the screen
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
 
-    // create metal view and view controller
+    // create metal view controller
     auto *view_controller = [[MetalViewController alloc] init];
-    auto *view = [[MetalView alloc] init];
-    [view_controller setView:view];
 
     // make window visible
-    [[self window] setRootViewController:view_controller];
     [[self window] makeKeyAndVisible];
+    [[self window] setRootViewController:view_controller];
     [[self window] setNeedsDisplay];
 
     // fire of a call so the game entry point gets called
@@ -54,9 +52,13 @@ extern char **g_argv;
     return YES;
 }
 
-- (void)callEntry {
+- (void)callEntry {    
     LOG_ENGINE_INFO("AppDelegate", "calling main");
 
+    // safe to initialise root now
+    // ignore the fact that we've been using Root via LOG up until now!
+    eng::Root::instance().init();
+    
     eng::g_entry(eng::g_argc, eng::g_argv);
 
     LOG_ENGINE_INFO("AppDelegate", "main done");

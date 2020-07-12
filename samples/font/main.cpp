@@ -1,24 +1,26 @@
 #include <iostream>
 #include <memory>
 
+#include "core/root.h"
+#include "core/vector3.h"
+#include "graphics/font.h"
 #include "graphics/render_system.h"
 #include "graphics/sprite.h"
 #include "log/log.h"
 #include "platform/event.h"
-#include "platform/window.h"
 #include "platform/start.h"
 
 int go(int, char**)
 {
     LOG_DEBUG("font_sample", "hello world");
 
-    eng::Window w{ 800, 600 };
+    auto &rs = eng::Root::instance().render_system();
 
-    w.create("Helvetica", 12, { 1, 1, 1 }, "hello world", 0, 0);
+    rs.create<eng::Font>("Helvetica", 12, "hello world", eng::Vector3{ 1.0f, 1.0f, 1.0f });
 
     for(;;)
     {
-        if(auto evt = w.pump_event() ; evt)
+        if(auto evt = eng::Root::instance().window().pump_event() ; evt)
         {
             if(evt->is_key(eng::Key::Q))
             {
@@ -26,7 +28,7 @@ int go(int, char**)
             }
         }
 
-        w.render();
+        rs.render();
     }
 
     LOG_ERROR("font_sample", "goodbye!");

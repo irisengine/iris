@@ -14,4 +14,5 @@ obj/
 tags
 tmp/
 Makefile
-
+.clangd/
+compile_commands.json

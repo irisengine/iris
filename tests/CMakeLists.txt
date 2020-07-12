@@ -17,3 +17,21 @@ include_directories(unit_tests SYSTEM third_party/googletest/googletest/include)
 include_directories(unit_tests PUBLIC ${CMAKE_SOURCE_DIR}/include)
 include_directories(unit_tests PUBLIC ${CMAKE_SOURCE_DIR}/tests)
 
+if(IRIS_PLATFORM MATCHES "MACOS")
+    # macos specific linking
+    target_link_libraries(unit_tests "-framework AppKit")
+    target_link_libraries(unit_tests "-framework CoreFoundation")
+endif()
+
+if(IRIS_GRAPHICS_API MATCHES "METAL")
+    target_link_libraries(unit_tests "-framework Metal")
+    target_link_libraries(unit_tests "-framework MetalKit")
+    target_link_libraries(unit_tests "-framework QuartzCore")
+    target_link_libraries(unit_tests "-framework CoreGraphics")
+else()
+    find_package(OpenGL REQUIRED)
+    include_directories(${OPENGL_INCLUDE_DIR})
+    target_link_libraries(unit_tests ${OPENGL_LIBRARIES})
+    target_link_libraries(unit_tests "-framework CoreGraphics")
+endif()
+

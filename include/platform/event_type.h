@@ -11,7 +11,8 @@ namespace eng
 enum class EventType : std::uint32_t
 {
     KEYBOARD,
-    MOUSE
+    MOUSE,
+    TOUCH
 };
 
 }

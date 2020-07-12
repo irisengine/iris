@@ -3,6 +3,7 @@
 #include <array>
 #include <ostream>
 
+#include "core/quaternion.h"
 #include "core/real.h"
 #include "core/vector3.h"
 
@@ -32,6 +33,27 @@ class Matrix4
         explicit Matrix4(const std::array<real, 16> &elements);
 
         /**
+         * Construct a new Matrix4 which represents a rotation by the
+         * supplied quaternion.
+         *
+         * @param rotation
+         *   Rotation to represent.
+         */
+        explicit Matrix4(const Quaternion &rotation);
+
+        /**
+         * Construct a new Matrix4 which represents a rotation and translation
+         * by the supplied Quaternion and vector.
+         *
+         * @param rotation
+         *   Rotation to represent.
+         *
+         * @param translation
+         *   Translation to represent.
+         */
+        Matrix4(const Quaternion &rotation, const Vector3 &translation);
+
+        /**
          * Static method to create an orthographic projection matrix.
          *
          * @param width
@@ -46,10 +68,35 @@ class Matrix4
          * @returns
          *   An orthographic projection matrix.
          */
-        static Matrix4 make_projection(
-            const real width,
-            const real height,
-            const real depth);
+        static Matrix4 make_orthographic_projection(real width, real height, real depth);
+
+        /**
+         * Static method to create a perspective projection matrix.
+         *
+         * @param fov
+         *   Field of view.
+         *
+         * @param width
+         *   Width of projection.
+         *
+         * @param height
+         *   Height of projection.
+         *
+         * @param near
+         *   Near clipping plane.
+         *
+         * @param far
+         *   Far clipping plane.
+         *
+         * @returns
+         *   A perspective projection matrix.
+         */
+        static Matrix4 make_perspective_projection(
+            real fov,
+            real width,
+            real height,
+            real near,
+            real far);
 
         /**
          * Make a Matrix4 that can be used as a view matrix for a camera.
@@ -91,12 +138,27 @@ class Matrix4
         static Matrix4 make_translate(const Vector3 &translate);
 
         /**
-         * Static method to create a rotation matrix about the z axis.
+         * Invert a matrix. This produces a matrix such that:
+         * M * invert(M) == Matrix4{ }
          *
-         * @param angle
-         *   Angle to rotate by in radians.
+         * @param m
+         *   Matrix to invert.
+         *
+         * @returns
+         *   Inverted matrix.
          */
-        static Matrix4 make_rotate_z(const real angle);
+        static Matrix4 invert(const Matrix4 &m);
+
+        /**
+         * Transpose a matrix.
+         *
+         * @param m
+         *   Matrix to transpose.
+         *
+         * @returns
+         *   Transposed matrix.
+         */
+        static Matrix4 transpose(const Matrix4 &m);
 
         /**
          * Performs matrix multiplication.
@@ -163,7 +225,7 @@ class Matrix4
          *   Matrix4 to check for equality.
          *
          * @returns
-         *   True if both VMatrix4 objects are the same, false otherwise.
+         *   True if both Matrix4 objects are the same, false otherwise.
          */
         bool operator==(const Matrix4 &other) const;
 

@@ -7,9 +7,6 @@
 #include <vector>
 
 #include "core/exception.h"
-#include "core/matrix4.h"
-#include "core/quaternion.h"
-#include "core/vector3.h"
 #include "graphics/buffer.h"
 #include "graphics/buffer_type.h"
 #include "graphics/gl/opengl.h"

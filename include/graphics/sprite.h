@@ -1,29 +1,19 @@
 #pragma once
 
-#include <vector>
-
-#include "core/matrix4.h"
+#include "core/real.h"
+#include "core/vector3.h"
 #include "graphics/material.h"
-#include "graphics/mesh.h"
+#include "graphics/render_entity.h"
 #include "graphics/texture.h"
 
 namespace eng
 {
 
 /**
- * This class encapsulates an entity that can only be rendered in a 2d plane
- * facing this screen. Positions are done in terms of screen units i.e.
- *
- *   -1, 1  +---------+ 1, 1
- *          |         |
- *          |         |
- *          |    *    |
- *          |         |
- *   -1, -1 +---------+ -1, -1
- *
- *   With the centre (*) being 0, 0
+ * An implementation of RenderEntity that draws a sprite (i.e. a quad) that
+ * always faces the screen and is relative to the screen coordinates.
  */
-class Sprite
+class Sprite : public RenderEntity
 {
     public:
 
@@ -46,14 +36,14 @@ class Sprite
          *   Colour of sprite.
          */
         Sprite(
-            const float x,
-            const float y,
-            const float width,
-            const float height,
+            real x,
+            real y,
+            real width,
+            real height,
             const Vector3 &colour);
 
         /**
-         * Create a textures sprite.
+         * Create a textured sprite.
          *
          * @param x
          *   Screen x coordinate of centre of sprite.
@@ -74,92 +64,28 @@ class Sprite
          *   Texture of sprite.
          */
         Sprite(
-            const float x,
-            const float y,
-            const float width,
-            const float height,
+            real x,
+            real y,
+            real width,
+            real height,
             const Vector3 &colour,
             Texture &&tex);
 
-        /** Disabled */
-        Sprite(const Sprite&) = delete;
-        Sprite& operator=(const Sprite&) = delete;
+        // default
+        ~Sprite() override = default;
 
         /**
-         * Set the position of the sprite.
+         * Set sprite texture.
          *
-         * @param position
-         *   New position.
+         * @param texture
+         *   New sprite texture.
          */
-        void set_position(const Vector3 &position);
-
-        /**
-         * Set the orientation of the sprite (in radians).
-         *
-         * @param orientation
-         *   New orientation.
-         */
-        void set_orientation(float orientation);
-
-        /**
-         * Get the transformation matrix of the sprite.
-         *
-         * @returns
-         *   Transformation matrix.
-         */
-        Matrix4 transform() const;
-
-        /**
-         * Get a const reference to the Mesh that make up the sprite.
-         *
-         * @returns
-         *   Const reference to mesh.
-         */
-        const Mesh& mesh() const;
-
-        /**
-         * Get a const reference to the sprites rendering material.
-         *
-         * @returns
-         *   Const reference to material.
-         */
-        const Material& material() const;
-
-        /**
-         * Returns whether the object should be rendered as a wireframe.
-         *
-         * @returns
-         *   True if should be rendered as a wireframe, false otherwise.
-         */
-        bool should_render_wireframe() const;
-
-        /**
-         * Sets whether the object should be rendered as a wireframe.
-         *
-         * @param wrireframe
-         *   True if should be rendered as a wireframe, false otherwise.
-         */
-        void set_wireframe(const bool wireframe);
+        void set_texture(Texture texture);
 
     private:
 
-        /** Collection of meshes. */
-        Mesh mesh_;
-
-        /** The position of the sprite. */
-        Vector3 position_;
-
-        /** The scale of the sprite. */
-        Vector3 scale_;
-
-        /** Model transformation matrix4. */
-        Matrix4 model_;
-
-        /** Material to render with. */
-        Material* material_;
-
-        /** Whether the object should be rendered as a wireframe. */
-        bool wireframe_;
+        /** Colour of sprite. */
+        Vector3 colour_;
 };
 
 }

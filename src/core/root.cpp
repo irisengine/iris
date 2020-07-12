@@ -1,7 +1,14 @@
 #include "core/root.h"
 
+#include <memory>
+
+#include "core/exception.h"
+#include "core/real.h"
+#include "graphics/render_system.h"
 #include "jobs/job_system.h"
 #include "log/logger.h"
+#include "physics/physics_system.h"
+#include "platform/window.h"
 
 namespace eng
 {
@@ -9,16 +16,17 @@ namespace eng
 Root Root::instance_;
 
 Root::Root()
-    : logger_(new Logger{ }),
-      job_system_(new JobSystem{ })
+    : logger_(std::make_unique<Logger>()),
+      job_system_(std::make_unique<JobSystem>()),
+      physics_system_(std::make_unique<PhysicsSystem>()),
+      window_(),
+      render_system_()
 { }
 
-Root::~Root()
+void Root::init()
 {
-    delete job_system_;
-
-    // delete logger last as other destructors may use it
-    delete logger_;
+    window_ = std::make_unique<Window>(800.0f, 800.0f);
+    render_system_ = std::make_unique<RenderSystem>(window_->width(), window_->height());
 }
 
 Root& Root::instance()
@@ -34,6 +42,21 @@ JobSystem& Root::job_system()
 Logger& Root::logger()
 {
     return *instance_.logger_;
+}
+
+PhysicsSystem& Root::physics_system()
+{
+    return *instance_.physics_system_;
+}
+
+RenderSystem& Root::render_system()
+{
+    return *instance_.render_system_;
+}
+
+Window& Root::window()
+{
+    return *instance_.window_;
 }
 
 }

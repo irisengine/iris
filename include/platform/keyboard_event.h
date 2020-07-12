@@ -150,10 +150,10 @@ struct KeyboardEvent
     { };
 
     /** Key that was pressed */
-    const Key key;
+    Key key;
 
     /** Down or up press */
-    const KeyState state;
+    KeyState state;
 };
 
 }

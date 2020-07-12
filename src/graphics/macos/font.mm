@@ -56,8 +56,10 @@ struct Font::implementation
 Font::Font(
     const std::string &font_name,
     const std::uint32_t size,
+    const std::string &text,
     const Vector3 &colour)
-    : font_name_(font_name),
+    : Sprite(0.0f, 0.0f, 1.0f, 1.0f, colour),
+      font_name_(font_name),
       colour_(colour),
       impl_(std::make_unique<implementation>())
 {
@@ -118,17 +120,7 @@ Font::Font(
     {
         throw Exception("failed to create attributes");
     }
-}
 
-Font::~Font() = default;
-Font::Font(Font&&) = default;
-Font& Font::operator=(Font&&) = default;
-
-std::unique_ptr<Sprite> Font::sprite(
-    const std::string &text,
-    const float x,
-    const float y) const
-{
     LOG_DEBUG("font", "creating sprites for string: {}", text);
 
     // create CoreFoundation string object from supplied text
@@ -219,15 +211,11 @@ std::unique_ptr<Sprite> Font::sprite(
     // create a Texture from the rendered pixel data
     Texture tex{ pixel_data, width, height, 4u };
 
-    // create a Sprite to render the texture
-    return std::make_unique<Sprite>(
-        x,
-        y,
-        width,
-        height,
-        colour_,
-        std::move(tex));
+    set_scale({ width, height, 1.0f });
+    set_texture(std::move(tex));
 }
+
+Font::~Font() = default;
 
 }
 

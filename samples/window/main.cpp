@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "core/root.h"
 #include "log/log.h"
 #include "platform/start.h"
 #include "platform/window.h"
@@ -8,11 +9,11 @@ void go(int, char **)
 {
     LOG_DEBUG("window_sample", "hello world");
 
-    eng::Window w{ 800, 600 };
+    auto &window = eng::Root::window();
 
     for(;;)
     {
-        if(auto evt = w.pump_event() ; evt)
+        if(auto evt = window.pump_event() ; evt)
         {
             if(evt->is_key(eng::Key::Q))
             {
@@ -20,7 +21,7 @@ void go(int, char **)
             }
         }
 
-        w.render();
+        eng::Root::render_system().render();
     }
     LOG_ERROR("window_sample", "goodbye!");
 }

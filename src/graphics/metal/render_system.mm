@@ -8,6 +8,7 @@
 #include "core/matrix4.h"
 #include "core/vector3.h"
 #include "graphics/buffer.h"
+#include "graphics/render_entity.h"
 #include "graphics/sprite.h"
 #include "log/log.h"
 #include "platform/macos/macos_ios_utility.h"
@@ -20,6 +21,7 @@ struct uniform
     eng::Matrix4 projection;
     eng::Matrix4 view;
     eng::Matrix4 model;
+    eng::Matrix4 normal_matrix;
 };
 
 }
@@ -36,10 +38,14 @@ struct RenderSystem::implementation
     implementation(
         id<MTLCommandQueue> command_queue,
         CAMetalLayer *layer,
-        MTLRenderPassDescriptor *descriptor)
+        MTLRenderPassDescriptor *descriptor,
+        id<MTLTexture> depth_texture,
+        id<MTLDepthStencilState> depth_stencil_state)
     : command_queue(command_queue),
       layer(layer),
-      descriptor(descriptor)
+      descriptor(descriptor),
+      depth_texture(depth_texture),
+      depth_stencil_state(depth_stencil_state)
     { }
 
     /** Command queue for rendering a frame. */
@@ -50,11 +56,18 @@ struct RenderSystem::implementation
     
     /** Pointer to render descriptor. */
     MTLRenderPassDescriptor *descriptor;
+
+    /** Texture for depth buffer. */
+    id<MTLTexture> depth_texture;
+
+    /** Metal state for depth buffer. */
+    id<MTLDepthStencilState> depth_stencil_state;
 };
 
 RenderSystem::RenderSystem(float width, float height)
     : scene_(),
-      camera_(width, height),
+      persective_camera_(CameraType::PERSPECTIVE, width, height),
+      orthographic_camera_(CameraType::ORTHOGRAPHIC, width, height),
       impl_(nullptr)
 {
     // get metal device handle
@@ -67,17 +80,45 @@ RenderSystem::RenderSystem(float width, float height)
         throw Exception("could not creare command queue");
     }
 
+    const auto scale = platform::utility::screen_scale();
+
+    // create and setup descriptor for depth texture
+    auto *texture_description =
+        [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float
+                                                           width:width * scale
+                                                          height:height * scale
+                                                       mipmapped:NO];
+    [texture_description setResourceOptions:MTLResourceStorageModePrivate];
+    [texture_description setUsage:MTLTextureUsageRenderTarget];
+
+    // create depth texture
+    auto *depth_texture = [device newTextureWithDescriptor:texture_description];
+
+    // create descriptor for depth checking
+    auto *depth_stencil_descriptor = [MTLDepthStencilDescriptor new];
+    [depth_stencil_descriptor setDepthCompareFunction:MTLCompareFunctionLess];
+    [depth_stencil_descriptor setDepthWriteEnabled:YES];
+
+    // create depth state
+    auto *depth_stencil_state = [device newDepthStencilStateWithDescriptor:depth_stencil_descriptor];
+
     // create and setup a render pass descriptor
     auto *render_pass_descriptor = [MTLRenderPassDescriptor renderPassDescriptor];
     [[[render_pass_descriptor colorAttachments] objectAtIndexedSubscript:0] setLoadAction:MTLLoadActionClear];
-    [[[render_pass_descriptor colorAttachments] objectAtIndexedSubscript:0] setClearColor:MTLClearColorMake(0, 0, 0, 1)];
+    [[[render_pass_descriptor colorAttachments] objectAtIndexedSubscript:0] setClearColor:MTLClearColorMake(0.2, 0.2, 0.2, 1)];
     [[[render_pass_descriptor colorAttachments] objectAtIndexedSubscript:0] setStoreAction:MTLStoreActionStore];
+    [[render_pass_descriptor depthAttachment] setTexture:depth_texture];
+    [[render_pass_descriptor depthAttachment] setClearDepth:1.0f];
+    [[render_pass_descriptor depthAttachment] setLoadAction:MTLLoadActionClear];
+    [[render_pass_descriptor depthAttachment] setStoreAction:MTLStoreActionDontCare];
     
     // create implementation struct
     impl_ = std::make_unique<implementation>(
         command_queue,
         platform::utility::metal_layer(),
-        render_pass_descriptor);
+        render_pass_descriptor,
+        depth_texture,
+        depth_stencil_state);
 }
 
 /** Default */
@@ -85,7 +126,7 @@ RenderSystem::~RenderSystem() = default;
 RenderSystem::RenderSystem(RenderSystem&&) = default;
 RenderSystem& RenderSystem::operator=(RenderSystem&&) = default;
 
-void RenderSystem::render() const
+void RenderSystem::render()
 {
     // using an autoreleasepool allows us to release the drawable object as soon
     // as we are done with it and prevents Core Animation from running out of
@@ -99,6 +140,9 @@ void RenderSystem::render() const
         const auto *command_buffer = [impl_->command_queue commandBuffer];
 
         const auto render_encoder = [command_buffer renderCommandEncoderWithDescriptor:impl_->descriptor];
+        [render_encoder setDepthStencilState:impl_->depth_stencil_state];
+        [render_encoder setFrontFacingWinding:MTLWindingCounterClockwise];
+        [render_encoder setCullMode:MTLCullModeBack];
 
         // render scene
         for(const auto &entity : scene_)
@@ -122,17 +166,23 @@ void RenderSystem::render() const
             const auto &index_buffer_any = entity->mesh().index_buffer();
             const auto index_buffer = std::any_cast<id<MTLBuffer>>(index_buffer_any.native_handle());
 
+            auto &cam = camera(entity->camera_type());
+
             // copy uniform data into a struct
             const uniform uniform_data{
-                camera_.projection(),
-                camera_.view(),
-                entity->transform()
+                cam.projection(),
+                cam.view(),
+                entity->transform(),
+                entity->normal_transform(),
             };
+
+            static float light[] = { 100.0f, 100.0f, 100.0f, 1.0f };
 
             // encode render commands
             [render_encoder setRenderPipelineState:pipeline_state];
             [render_encoder setVertexBuffer:vertex_Buffer offset:0 atIndex:0];
             [render_encoder setVertexBytes:static_cast<const void*>(&uniform_data) length:sizeof(uniform_data) atIndex:1];
+            [render_encoder setFragmentBytes:static_cast<const void*>(&light) length:sizeof(light) atIndex:0];
 
             const auto texture = std::any_cast<id<MTLTexture>>(entity->mesh().texture().native_handle());
             [render_encoder setFragmentTexture:texture atIndex:0];
@@ -153,10 +203,29 @@ void RenderSystem::render() const
     }
 }
 
-Sprite* RenderSystem::add(std::unique_ptr<Sprite> sprite)
+RenderEntity* RenderSystem::add(std::unique_ptr<RenderEntity> entity)
 {
-    scene_.emplace_back(std::move(sprite));
+    scene_.emplace_back(std::move(entity));
     return scene_.back().get();
+}
+
+Camera& RenderSystem::persective_camera()
+{
+    return persective_camera_;
+}
+
+Camera& RenderSystem::orthographic_camera()
+{
+    return orthographic_camera_;
+}
+
+Camera& RenderSystem::camera(CameraType type)
+{
+    switch(type)
+    {
+        case CameraType::PERSPECTIVE: return persective_camera(); break;
+        case CameraType::ORTHOGRAPHIC: return orthographic_camera(); break;
+    }
 }
 
 }
