@@ -26,6 +26,13 @@ class Root
         ~Root() = default;
 
         /**
+         * Initialises the Root object. Some platforms require deferred
+         * initialisation. This *should not* be called directly, the engine
+         * will call it when it safe to do so.
+         */
+        void init();
+
+        /**
          * Get the single instance of root.
          *
          * @returns

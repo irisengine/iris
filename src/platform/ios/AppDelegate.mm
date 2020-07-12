@@ -55,6 +55,10 @@ extern char **g_argv;
 - (void)callEntry {    
     LOG_ENGINE_INFO("AppDelegate", "calling main");
 
+    // safe to initialise root now
+    // ignore the fact that we've been using Root via LOG up until now!
+    eng::Root::instance().init();
+    
     eng::g_entry(eng::g_argc, eng::g_argv);
 
     LOG_ENGINE_INFO("AppDelegate", "main done");

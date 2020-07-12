@@ -13,6 +13,9 @@ namespace eng
 
 void start(int argc, char **argv, std::function<void(int, char**)> entry)
 {
+    // safe to initialise root now
+    Root::instance().init();
+
     LOG_ENGINE_INFO("start", "engine start");
 
     entry(argc, argv);
@@ -20,6 +23,9 @@ void start(int argc, char **argv, std::function<void(int, char**)> entry)
 
 void start_debug(int argc, char **argv, std::function<void(int, char**)> entry)
 {
+    // safe to initialise root now
+    Root::instance().init();
+
     // enable engine logging
     Root::logger().set_log_engine(true);
 

@@ -19,9 +19,15 @@ Root::Root()
     : logger_(std::make_unique<Logger>()),
       job_system_(std::make_unique<JobSystem>()),
       physics_system_(std::make_unique<PhysicsSystem>()),
-      window_(std::make_unique<Window>(800.0f, 800.0f)),
-      render_system_(std::make_unique<RenderSystem>(window_->width(), window_->height()))
+      window_(),
+      render_system_()
 { }
+
+void Root::init()
+{
+    window_ = std::make_unique<Window>(800.0f, 800.0f);
+    render_system_ = std::make_unique<RenderSystem>(window_->width(), window_->height());
+}
 
 Root& Root::instance()
 {
