@@ -6,6 +6,7 @@
 #include "graphics/render_system.h"
 #include "jobs/job_system.h"
 #include "log/logger.h"
+#include "physics/physics_system.h"
 #include "platform/window.h"
 
 namespace eng
@@ -49,6 +50,14 @@ class Root
         static Logger& logger();
 
         /**
+         * Get single instance of physics system.
+         *
+         * @returns
+         *   Render system single instance.
+         */
+        static PhysicsSystem& physics_system();
+
+        /**
          * Get single instance of render system.
          *
          * @returns
@@ -84,6 +93,9 @@ class Root
 
         /** Job system. */
         std::unique_ptr<JobSystem> job_system_;
+
+        /** Physics system. */
+        std::unique_ptr<PhysicsSystem> physics_system_;
 
         /** Render window. */
         std::unique_ptr<Window> window_;
