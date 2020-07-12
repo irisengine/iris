@@ -5,6 +5,7 @@ add_subdirectory("bullet")
 
 set(PHYSICS_SRCS
     ${PHYSICS_SRCS}
+    "${INCLUDE_ROOT}/basic_character_controller.h"
     "${INCLUDE_ROOT}/box_rigid_body.h"
     "${INCLUDE_ROOT}/capsule_rigid_body.h"
     "${INCLUDE_ROOT}/character_controller.h"
