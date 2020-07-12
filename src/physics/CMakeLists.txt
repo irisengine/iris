@@ -6,6 +6,7 @@ add_subdirectory("bullet")
 set(PHYSICS_SRCS
     ${PHYSICS_SRCS}
     "${INCLUDE_ROOT}/box_rigid_body.h"
+    "${INCLUDE_ROOT}/capsule_rigid_body.h"
     "${INCLUDE_ROOT}/rigid_body.h"
 
     PARENT_SCOPE

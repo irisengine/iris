@@ -3,6 +3,7 @@ set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/physics/bullet")
 
 set(PHYSICS_SRCS
     "${SOURCE_ROOT}/box_rigid_body.cpp"
+    "${SOURCE_ROOT}/capsule_rigid_body.cpp"
 
     PARENT_SCOPE
 )
