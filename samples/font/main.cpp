@@ -2,6 +2,8 @@
 #include <memory>
 
 #include "core/root.h"
+#include "core/vector3.h"
+#include "graphics/font.h"
 #include "graphics/render_system.h"
 #include "graphics/sprite.h"
 #include "log/log.h"
@@ -14,7 +16,7 @@ int go(int, char**)
 
     auto &rs = eng::Root::instance().render_system();
 
-    rs.create("Helvetica", 12, { 1, 1, 1 }, "hello world", 0, 0);
+    rs.create<eng::Font>("Helvetica", 12, "hello world", eng::Vector3{ 1.0f, 1.0f, 1.0f });
 
     for(;;)
     {
