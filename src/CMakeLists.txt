@@ -2,6 +2,7 @@ add_subdirectory("core")
 add_subdirectory("graphics")
 add_subdirectory("jobs")
 add_subdirectory("log")
+add_subdirectory("networking")
 add_subdirectory("physics")
 add_subdirectory("platform")
 
@@ -10,6 +11,7 @@ add_library(iris STATIC
     ${GRAPHICS_SRCS}
     ${JOB_SRCS}
     ${LOG_SRCS}
+    ${NETWORKING_SRCS}
     ${PHYSICS_SRCS}
     ${PLATFORM_SRCS}
 )
