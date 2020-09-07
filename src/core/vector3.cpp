@@ -140,6 +140,12 @@ real Vector3::magnitude() const
     return std::sqrt(std::pow(x, 2.0f) + std::pow(y, 2.0f) + std::pow(z, 2.0f));
 }
 
+void Vector3::lerp(const Vector3 &other, real amount)
+{
+    *this *= (1.0f - amount);
+    *this += (other * amount);
+}
+
 Vector3 Vector3::cross(const Vector3 &v1, const Vector3 &v2)
 {
     return Vector3(v1).cross(v2);
