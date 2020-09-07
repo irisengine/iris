@@ -6,6 +6,7 @@ add_subdirectory("posix")
 set(NETWORKING_SRCS
     ${NETWORKING_SRCS}
 
+    "${INCLUDE_ROOT}/socket.h"
 
     PARENT_SCOPE
 )
