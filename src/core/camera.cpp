@@ -124,6 +124,12 @@ void Camera::set_pitch(real pitch)
     view_ = Matrix4::make_look_at(position_, position_ + direction_, up_);
 }
 
+void Camera::set_position(const Vector3 &position)
+{
+    position_ = position;
+    view_ = Matrix4::make_look_at(position_, position_ + direction_, up_);
+}
+
 void Camera::adjust_pitch(real adjust)
 {
     set_pitch(pitch_ + adjust);

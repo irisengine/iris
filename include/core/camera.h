@@ -118,6 +118,14 @@ class Camera
         void adjust_pitch(real adjust);
 
         /**
+         * Set world position of camera.
+         * 
+         * @param position
+         *   New position.
+         */
+        void set_position(const Vector3 &position);
+
+        /**
          * Get type of camera.
          *
          * @returns
