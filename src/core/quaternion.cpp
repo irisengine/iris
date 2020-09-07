@@ -94,6 +94,85 @@ Quaternion Quaternion::operator+(const Vector3 &vector) const
     return Quaternion{ *this } += vector;
 }
 
+Quaternion Quaternion::operator*(real scale) const
+{
+    return Quaternion{ *this } *= scale;
+}
+
+Quaternion& Quaternion::operator*=(real scale)
+{
+    x *= scale;
+    y *= scale;
+    z *= scale;
+    w *= scale;
+
+    return *this;
+}
+
+Quaternion Quaternion::operator-(const Quaternion &other) const
+{
+    return Quaternion{ *this } -= other;
+}
+
+Quaternion& Quaternion::operator-=(const Quaternion &other)
+{
+    return *this += -other;
+}
+
+Quaternion Quaternion::operator+(const Quaternion &other) const
+{
+    return Quaternion{ *this } += other;
+}
+
+Quaternion& Quaternion::operator+=(const Quaternion &other)
+{
+    x += other.x;
+    y += other.y;
+    z += other.z;
+    w += other.w;
+
+    return *this;
+}
+
+Quaternion Quaternion::operator-() const
+{
+    return { -x, -y, -z, -w };
+}
+
+real Quaternion::dot(const Quaternion &other) const
+{
+    return x * other.x + y * other.y + z * other.z + w * other.w;
+}
+
+void Quaternion::slerp(Quaternion target, real amount)
+{
+    auto dot = this->dot(target);
+    if(dot < 0.0f)
+    {
+        target = -target;
+        dot = -dot;
+    }
+
+    static const auto threshold = 0.9995f;
+    if (dot > threshold)
+    {
+        *this = *this + ((target - *this) * amount);
+        normalise();
+    }
+    else
+    {
+        const auto theta_0 = std::acos(dot);
+        const auto theta = theta_0 * amount;
+        const auto sin_theta = std::sin(theta);
+        const auto sin_theta_0 = std::sin(theta_0);
+
+        const auto s0 = std::cos(theta) - dot * sin_theta / sin_theta_0;
+        const auto s1 = sin_theta / sin_theta_0;
+
+        *this = (*this * s0) + (target * s1);
+    }
+}
+
 bool Quaternion::operator==(const Quaternion &other) const
 {
     return (w == other.w) &&

@@ -114,6 +114,104 @@ class Quaternion
         Quaternion operator+(const Vector3 &vector) const;
 
         /**
+         * Create a new Quaternion that is this value scaled.
+         * 
+         * @param scale
+         *   Amount to scale by.
+         * 
+         * @returns
+         *   Scaled quaternion.
+         */
+        Quaternion operator*(real scale) const;
+
+        /**
+         * Scale quaternion.
+         * 
+         * @param scale
+         *   Amount to scale by.
+         * 
+         * @returns
+         *   Reference to this Quaternion.
+         */
+        Quaternion& operator*=(real scale);
+
+        /**
+         * Create a new Quaternion that is this Quaternion subtracted with a 
+         * supplied Quaternion.
+         * 
+         * @param other
+         *   Quaternion to subtract from this.
+         * 
+         * @returns
+         *   Copy of this Quaternion after subtraction.
+         */
+        Quaternion operator-(const Quaternion &other) const;
+
+        /**
+         * Subtract a Quaternion from this.
+         * 
+         * @param other
+         *   Quaternion to subtract from this.
+         * 
+         * @returns
+         *   Reference to this Quaternion.
+         */
+        Quaternion& operator-=(const Quaternion &other);
+
+        /**
+         * Create a new Quaternion that is this Quaternion added with a 
+         * supplied Quaternion.
+         * 
+         * @param other
+         *   Quaternion to add to this.
+         * 
+         * @returns
+         *   Copy of this Quaternion after addition.
+         */
+        Quaternion operator+(const Quaternion &other) const;
+
+        /**
+         * Add a Quaternion from this.
+         * 
+         * @param other
+         *   Quaternion to subtract from this.
+         * 
+         * @returns
+         *   Reference to this Quaternion.
+         */
+        Quaternion& operator+=(const Quaternion &other);
+
+        /**
+         * Negate operator.
+         * 
+         * @returns
+         *   Copy of this Quaternion with each component negated.
+         */
+        Quaternion operator-() const;
+
+        /**
+         * Calculate the Quaternion dot product.
+         * 
+         * @param other
+         *   Quaternion to calculate dot product with.
+         * 
+         * @returns
+         *   Dot product of this Quaternion with the supplied one.
+         */
+        real dot(const Quaternion &other) const;
+
+        /**
+         * Perform spherical linear interpolation toward target Quaternion.
+         * 
+         * @param target
+         *   Quaternion to interpolate towards.
+         * 
+         * @param amount
+         *   Amount to interpolate, must be in range [0.0, 1.0].
+         */
+        void slerp(Quaternion target, real amount);
+
+        /**
          * Equality operator.
          *
          * @param other
