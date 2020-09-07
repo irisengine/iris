@@ -19,6 +19,7 @@ class ConcurrentQueue
         // member types
         using container_type = Container;
         using size_type = typename Container::size_type;
+        using value_type = typename Container::value_type;
         using reference = typename Container::reference;
 
         /**
@@ -59,7 +60,7 @@ class ConcurrentQueue
         }
 
         /**
-         * Tries to pop the end element off the queue.
+         * Tries to pop the next element off the queue.
          *
          * @param element
          *   Reference to store popped element.
@@ -83,6 +84,25 @@ class ConcurrentQueue
             }
 
             return dequeued;
+        }
+
+        /**
+         * Pops the next element off the queue. Blocks until it can perform
+         * operation.
+         * 
+         * @returns
+         *   Popped element.
+         */
+        value_type dequeue()
+        {
+            std::unique_lock lock(mutex_);
+
+            value_type value(std::move(container_.front()));
+            container_.pop_front();
+
+            empty_ = container_.empty();
+
+            return value;
         }
 
     private:
