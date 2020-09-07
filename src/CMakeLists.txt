@@ -22,3 +22,4 @@ target_include_directories(iris SYSTEM PRIVATE "${CMAKE_SOURCE_DIR}/third_party"
 target_include_directories(iris SYSTEM PRIVATE "${CMAKE_SOURCE_DIR}/third_party/bullet/src")
 
 target_link_libraries(iris LinearMath BulletDynamics BulletCollision)
+target_compile_options(iris PRIVATE -Wall -Werror -pedantic -glldb -fno-rtti -fobjc-arc)
