@@ -8,6 +8,7 @@ set(NETWORKING_SRCS
 
     "${INCLUDE_ROOT}/accepting_socket.h"
     "${INCLUDE_ROOT}/socket.h"
+    "${INCLUDE_ROOT}/udp_socket.h"
 
     PARENT_SCOPE
 )
