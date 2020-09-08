@@ -7,6 +7,8 @@ set(NETWORKING_SRCS
     ${NETWORKING_SRCS}
 
     "${INCLUDE_ROOT}/accepting_socket.h"
+    "${INCLUDE_ROOT}/data_buffer_serialiser.h"
+    "${INCLUDE_ROOT}/data_buffer_deserialiser.h"
     "${INCLUDE_ROOT}/socket.h"
     "${INCLUDE_ROOT}/udp_accepting_socket.h"
     "${INCLUDE_ROOT}/udp_socket.h"

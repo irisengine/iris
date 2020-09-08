@@ -3,11 +3,13 @@ add_subdirectory(third_party/googletest)
 add_subdirectory("core")
 add_subdirectory("jobs")
 add_subdirectory("platform")
+add_subdirectory("networking")
 
 add_executable(unit_tests
     ${CORE_TEST_SRCS}
     ${JOBS_TEST_SRCS}
     ${PLATFORM_TEST_SRCS}
+    ${NETWORKING_TEST_SRCS}
 )
 
 target_link_libraries(unit_tests iris)
