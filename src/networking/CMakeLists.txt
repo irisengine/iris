@@ -14,6 +14,10 @@ set(NETWORKING_SRCS
     "${INCLUDE_ROOT}/socket.h"
     "${INCLUDE_ROOT}/udp_accepting_socket.h"
     "${INCLUDE_ROOT}/udp_socket.h"
+    "${SOURCE_ROOT}/channel/channel.cpp" "${INCLUDE_ROOT}/channel/channel.h"
+    "${SOURCE_ROOT}/channel/reliable_ordered_channel.cpp" "${INCLUDE_ROOT}/channel/reliable_ordered_channel.h"
+    "${SOURCE_ROOT}/channel/unreliable_sequenced_channel.cpp" "${INCLUDE_ROOT}/channel/unreliable_sequenced_channel.h"
+    "${SOURCE_ROOT}/channel/unreliable_unordered_channel.cpp" "${INCLUDE_ROOT}/channel/unreliable_unordered_channel.h"
     "${SOURCE_ROOT}/packet.cpp" "${INCLUDE_ROOT}/packet.h"
 
     PARENT_SCOPE
