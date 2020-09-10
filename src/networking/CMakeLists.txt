@@ -7,7 +7,7 @@ set(NETWORKING_SRCS
     ${NETWORKING_SRCS}
 
     "${INCLUDE_ROOT}/accepting_socket.h"
-    "${INCLUDE_ROOT}/channel_type.h"
+    "${INCLUDE_ROOT}/channel/channel_type.h"
     "${INCLUDE_ROOT}/data_buffer_deserialiser.h"
     "${INCLUDE_ROOT}/data_buffer_serialiser.h"
     "${INCLUDE_ROOT}/packet_type.h"

@@ -6,7 +6,7 @@
 #include <ostream>
 
 #include "core/data_buffer.h"
-#include "networking/channel_type.h"
+#include "networking/channel/channel_type.h"
 #include "networking/packet_type.h"
 
 namespace eng
