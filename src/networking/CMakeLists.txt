@@ -21,6 +21,7 @@ set(NETWORKING_SRCS
     "${SOURCE_ROOT}/channel/unreliable_sequenced_channel.cpp" "${INCLUDE_ROOT}/channel/unreliable_sequenced_channel.h"
     "${SOURCE_ROOT}/channel/unreliable_unordered_channel.cpp" "${INCLUDE_ROOT}/channel/unreliable_unordered_channel.h"
     "${SOURCE_ROOT}/packet.cpp" "${INCLUDE_ROOT}/packet.h"
+    "${SOURCE_ROOT}/server_connection_handler.cpp" "${INCLUDE_ROOT}/server_connection_handler.h"
 
     PARENT_SCOPE
 )
