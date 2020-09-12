@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "core/real.h"
+#include "core/quaternion.h"
 #include "core/vector3.h"
 #include "physics/character_controller.h"
 
@@ -44,6 +45,49 @@ class BasicCharacterController : public CharacterController
          *   World coordinates of character.
          */
         Vector3 position() const override;
+
+        /**
+         * Get linear velocity.
+         * 
+         * @returns
+         *   Linear velocity.
+         */
+        Vector3 linear_velocity() const override;
+
+        /**
+         * Get angular velocity.
+         * 
+         * @returns
+         *   Angular velocity.
+         */
+        Vector3 angular_velocity() const override;
+
+        /**
+         * Set linear velocity.
+         * 
+         * @param linear_velocity
+         *   New linear velocity.
+         */
+        void set_linear_velocity(const Vector3 &linear_velocity) override;
+
+        /**
+         * Set angular velocity.
+         * 
+         * @param angular_velocity
+         *   New angular velocity.
+         */
+        void set_angular_velocity(const Vector3 &angular_velocity) override;
+
+        /**
+         * Reposition character.
+         * 
+         * @param position
+         *   New position.
+         * 
+         * @param orientation
+         *   New orientation.
+         */
+        void reposition(const Vector3 &position, const Quaternion &orientation) override;
 
         /**
          * Make the character jump.

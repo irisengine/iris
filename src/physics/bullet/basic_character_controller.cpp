@@ -55,6 +55,31 @@ Vector3 BasicCharacterController::position() const
     return impl_->body->position();
 }
 
+Vector3 BasicCharacterController::linear_velocity() const
+{
+    return impl_->body->linear_velocity();
+}
+
+Vector3 BasicCharacterController::angular_velocity() const
+{
+    return impl_->body->angular_velocity();
+}
+
+void BasicCharacterController::set_linear_velocity(const Vector3 &linear_velocity)
+{
+    impl_->body->set_linear_velocity(linear_velocity);
+}
+
+void BasicCharacterController::set_angular_velocity(const Vector3 &angular_velocity)
+{
+    impl_->body->set_angular_velocity(angular_velocity);
+}
+
+void BasicCharacterController::reposition(const Vector3 &position, const Quaternion &orientation)
+{
+    impl_->body->reposition(position, orientation);
+}
+
 void BasicCharacterController::jump()
 {
     // if we are on the ground then jump by applying an upwards impulse
@@ -90,4 +115,3 @@ std::any BasicCharacterController::native_handle() const
 }
 
 }
-

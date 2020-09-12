@@ -4,7 +4,6 @@ project(iris)
 
 set(CMAKE_CXX_STANDARD 17)
 set(IRIS_DEFAULT_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -pedantic -ggdb -fno-rtti -fobjc-arc")
 set(ASM_OPTIONS "-x assembler-with-cpp")
 enable_language(C CXX ASM)
 

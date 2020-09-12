@@ -37,6 +37,49 @@ class RigidBody
         virtual Quaternion orientation() const = 0;
 
         /**
+         * Get linear velocity.
+         * 
+         * @returns
+         *   Linear velocity.
+         */
+        virtual Vector3 linear_velocity() const = 0;
+
+        /**
+         * Get angular velocity.
+         * 
+         * @returns
+         *   Angular velocity.
+         */
+        virtual Vector3 angular_velocity() const = 0;
+
+        /**
+         * Set linear velocity.
+         * 
+         * @param linear_velocity
+         *   New linear velocity.
+         */
+        virtual void set_linear_velocity(const Vector3 &linear_velocity) = 0;
+        
+        /**
+         * Set angular velocity.
+         * 
+         * @param angular_velocity
+         *   New angular velocity.
+         */
+        virtual void set_angular_velocity(const Vector3 &angular_velocity) = 0;
+
+        /**
+         * Reposition rigid body.
+         * 
+         * @param position
+         *   New position.
+         * 
+         * @param orientation
+         *   New orientation.
+         */
+        virtual void reposition(const Vector3 &position, const Quaternion &orientation) = 0;
+
+        /**
          * Get native handle for physics engine implementation of rigid body.
          *
          * @returns

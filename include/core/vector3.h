@@ -209,10 +209,21 @@ class Vector3
         /**
          * Get the magnitude of this vector.
          *
-         * @retunrs
+         * @return
          *   Vector magnitude.
          */
         real magnitude() const;
+
+        /**
+         * Linear interpolate between this and another vector.
+         * 
+         * @param other
+         *   Vector3 to interpolate to.
+         * 
+         * @param amount
+         *   Interpolation amount, must be in range [0.0, 1.0].
+         */
+        void lerp(const Vector3 &other, real amount);
 
         /**
          * Cross two Vector3 objects with each other.

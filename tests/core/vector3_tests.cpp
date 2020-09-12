@@ -158,3 +158,12 @@ TEST(vector3, magnitude)
     ASSERT_FLOAT_EQ(v.magnitude(), 3.7416574954986572265625f);
 }
 
+TEST(vector3, lerp)
+{
+    eng::Vector3 vec(0.0f, 0.0f, 0.f);
+    eng::Vector3 end(1.0f, 1.0f, 1.0f);
+
+    vec.lerp(end, 0.5f);
+
+    ASSERT_EQ(vec, eng::Vector3(0.5f, 0.5f, 0.5f));
+}

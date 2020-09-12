@@ -13,6 +13,17 @@
 namespace eng
 {
 
+// forward declare opaque type of storing physics state
+// this will be defined in the PhysicsSystem implementation
+struct PhysicsState;
+
+// must also forward declare a deleter for PhysicsState, otherwise we will be
+// returning a unique_ptr of incomplete type
+struct PhysicsStateDeleter
+{
+    void operator()(PhysicsState *state);
+};
+
 /**
  * Class for handling physics simulations.
  */
@@ -120,6 +131,29 @@ class PhysicsSystem
             const Vector3 &origin,
             const Vector3 &direction) const;
 
+        /**
+         * Save the current state of the simulation.
+         * 
+         * Note that depending on the implementation this may be a "best guess"
+         * state save. Restoring isn't guaranteed to produce identical results
+         * although it should be close enough.
+         * 
+         * @returns
+         *   Saved state.
+         */
+        std::unique_ptr<PhysicsState, PhysicsStateDeleter> save();
+
+        /**
+         * Load saved state. This will restore the simulation to that of the
+         * supplied state.
+         * 
+         * See save() comments for details of limitations.
+         * 
+         * @param state
+         *   State to restore from.
+         */
+        void load(const PhysicsState *state);
+
     private:
 
         /** Physics API implementation. */
@@ -128,4 +162,3 @@ class PhysicsSystem
 };
 
 }
-

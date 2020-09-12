@@ -16,3 +16,4 @@ tmp/
 Makefile
 .clangd/
 compile_commands.json
+.vscode/

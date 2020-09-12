@@ -1,12 +1,66 @@
 #include "physics/physics_system.h"
 
+#include <chrono>
+#include <map>
 #include <memory>
+#include <optional>
 #include <vector>
 
+#include <BulletDynamics/Dynamics/btRigidBody.h>
+#include <LinearMath/btMotionState.h>
+#include <LinearMath/btQuaternion.h>
+#include <LinearMath/btTransform.h>
+#include <LinearMath/btVector3.h>
 #include <btBulletDynamicsCommon.h>
+
+#include "core/quaternion.h"
+#include "core/vector3.h"
+#include "physics/character_controller.h"
+#include "physics/rigid_body.h"
 
 namespace eng
 {
+
+/**
+ * Saved information about a rigid body. Used in PhysicsState.
+ */
+struct RigidBodyState
+{
+    RigidBodyState(
+        const ::btTransform &transform,
+        const ::btVector3 &linear_velocity,
+        const ::btVector3 &angular_velocity)
+        : transform(transform),
+          linear_velocity(linear_velocity),
+          angular_velocity(angular_velocity)
+    { }
+
+    ::btTransform transform;
+    ::btVector3 linear_velocity;
+    ::btVector3 angular_velocity;
+};
+
+/**
+ * Struct for saving the state of the physics simulation. It simply stores
+ * RigidBodyState for all rigid bodies. Note that collision information is
+ * *not* saved.
+ */
+struct PhysicsState
+{
+    std::map<::btRigidBody*, RigidBodyState> bodies;
+};
+
+
+/**
+ * Custom delete for PhysicsState. Simply deletes allocated memory.
+ */
+void PhysicsStateDeleter::operator()(PhysicsState *state)
+{
+    if(state != nullptr)
+    {
+        delete state;
+    }
+}
 
 struct PhysicsSystem::implementation
 {
@@ -90,5 +144,49 @@ std::optional<Vector3> PhysicsSystem::ray_cast(
     return hit;
 }
 
+std::unique_ptr<PhysicsState, PhysicsStateDeleter> PhysicsSystem::save()
+{
+    std::unique_ptr<PhysicsState, PhysicsStateDeleter> state(new PhysicsState);
+
+    // save data for all rigid bodies
+    for(const auto &body : impl_->bodies)
+    {
+        auto *bullet_body = std::any_cast<::btRigidBody*>(body->native_handle());
+
+        state->bodies.try_emplace(
+            bullet_body,
+            bullet_body->getWorldTransform(),
+            bullet_body->getLinearVelocity(),
+            bullet_body->getAngularVelocity());
+    }
+
+    // save data for all character controllers
+    for(const auto &character : impl_->character_controllers)
+    {
+        auto *bullet_body = std::any_cast<::btRigidBody*>(character->native_handle());
+
+        state->bodies.try_emplace(
+            bullet_body,
+            bullet_body->getWorldTransform(),
+            bullet_body->getLinearVelocity(),
+            bullet_body->getAngularVelocity());
+    }
+
+    return state;
 }
 
+void PhysicsSystem::load(const PhysicsState *state)
+{
+    // restore state for each rigid body
+    for(const auto &[bullet_body, body_state] : state->bodies)
+    {
+        bullet_body->clearForces();
+
+        bullet_body->setWorldTransform(body_state.transform);
+        bullet_body->setCenterOfMassTransform(body_state.transform);
+        bullet_body->setLinearVelocity(body_state.linear_velocity);
+        bullet_body->setAngularVelocity(body_state.angular_velocity);
+    }
+}
+
+}

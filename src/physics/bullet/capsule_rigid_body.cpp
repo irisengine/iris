@@ -1,5 +1,7 @@
 #include "physics/capsule_rigid_body.h"
 
+#include <LinearMath/btTransform.h>
+#include <LinearMath/btVector3.h>
 #include <memory>
 
 #include <BulletCollision/CollisionShapes/btCapsuleShape.h>
@@ -65,11 +67,45 @@ Quaternion CapsuleRigidBody::orientation() const
     return { Vector3{ axis.x(), axis.y(), axis.z() }, orientation.getAngle() };
 }
 
+Vector3 CapsuleRigidBody::linear_velocity() const
+{
+    const auto velocity = impl_->body->getLinearVelocity();
+
+    return { velocity.x(), velocity.y(), velocity.z() };
+}
+
+Vector3 CapsuleRigidBody::angular_velocity() const
+{
+    const auto velocity = impl_->body->getAngularVelocity();
+
+    return { velocity.x(), velocity.y(), velocity.z() };
+}
+
+void CapsuleRigidBody::set_linear_velocity(const Vector3 &linear_velocity)
+{
+    ::btVector3 velocity{ linear_velocity.x, linear_velocity.y, linear_velocity. z };
+    impl_->body->setLinearVelocity(velocity);
+}
+
+void CapsuleRigidBody::set_angular_velocity(const Vector3 &angular_velocity)
+{
+    ::btVector3 velocity{ angular_velocity.x, angular_velocity.y, angular_velocity. z };
+    impl_->body->setAngularVelocity(velocity);
+}
+
+void CapsuleRigidBody::reposition(const Vector3 &position, const Quaternion &orientation)
+{
+    ::btTransform transform;
+    transform.setOrigin(::btVector3(position.x, position.y, position.z));
+    transform.setRotation(::btQuaternion(orientation.x, orientation.y, orientation.z, orientation.w));
+
+    impl_->body->setWorldTransform(transform);
+    impl_->motion_state->setWorldTransform(transform);
+}
+
 std::any CapsuleRigidBody::native_handle() const
 {
     return impl_->body.get();
 }
 
 }
-
-
