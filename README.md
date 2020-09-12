@@ -11,6 +11,8 @@ abstraction over native and third-party libraries.
 |[Graphics](./src/graphics)|Rendering entities|
 |[Jobs](./src/jobs)|Task parallelism|
 |[Log](./src/log)|Logging framework|
+|[Networking](./src/netriking)|Networking primitives|
+|[Physics](./src/netriking)|Physic engine|
 |[Platform](./src/platform)|Platform specific classes (e.g. windowing)|
 
 ## Building
