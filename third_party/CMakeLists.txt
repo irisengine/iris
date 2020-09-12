@@ -6,3 +6,5 @@ set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
 set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
 add_subdirectory("bullet")
 
+add_subdirectory("assimp")
+
