@@ -9,7 +9,7 @@
 #include "core/data_buffer.h"
 #include "networking/socket.h"
 
-namespace eng
+namespace iris
 {
 
 /**
@@ -66,7 +66,7 @@ class ClientConnection : public Socket
          * @returns
          *   DataBuffer of bytes if read succeeded, otherwise empty optional.
          */
-        std::optional<eng::DataBuffer> try_read(std::size_t) override;
+        std::optional<iris::DataBuffer> try_read(std::size_t) override;
 
         /**
          * Block and read up to count bytes. May return less.
@@ -80,7 +80,7 @@ class ClientConnection : public Socket
          * @returns
          *   DataBuffer of bytes read.
          */
-        eng::DataBuffer read(std::size_t) override;
+        iris::DataBuffer read(std::size_t) override;
 
         /**
          * Write DataBuffer to socket.
@@ -88,7 +88,7 @@ class ClientConnection : public Socket
          * @param buffer
          *   Bytes to write.
          */
-        void write(const eng::DataBuffer &buffer) override;
+        void write(const iris::DataBuffer &buffer) override;
 
         /**
          * Write bytes to socket.

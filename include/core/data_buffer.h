@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <vector>
 
-namespace eng
+namespace iris
 {
 
 using DataBuffer = std::vector<std::byte>;

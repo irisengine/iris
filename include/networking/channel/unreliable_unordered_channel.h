@@ -2,7 +2,7 @@
 
 #include "networking/channel/channel.h"
 
-namespace eng
+namespace iris
 {
 
 /**

@@ -9,19 +9,19 @@ void go(int, char **)
 {
     LOG_DEBUG("window_sample", "hello world");
 
-    auto &window = eng::Root::window();
+    auto &window = iris::Root::window();
 
     for(;;)
     {
         if(auto evt = window.pump_event() ; evt)
         {
-            if(evt->is_key(eng::Key::Q))
+            if(evt->is_key(iris::Key::Q))
             {
                 break;
             }
         }
 
-        eng::Root::render_system().render();
+        iris::Root::render_system().render();
     }
     LOG_ERROR("window_sample", "goodbye!");
 }
@@ -30,9 +30,9 @@ int main(int argc, char **argv)
 {
     try
     {
-        eng::start(argc, argv, go);
+        iris::start(argc, argv, go);
     }
-    catch(eng::Exception &e)
+    catch(iris::Exception &e)
     {
         LOG_ERROR("window_sample", e.what());
         LOG_ERROR("window_sample", e.stack_trace());

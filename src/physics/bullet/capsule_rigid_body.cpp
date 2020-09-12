@@ -8,7 +8,7 @@
 #include <btBulletCollisionCommon.h>
 #include <btBulletDynamicsCommon.h>
 
-namespace eng
+namespace iris
 {
 
 struct CapsuleRigidBody::implementation

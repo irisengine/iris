@@ -44,16 +44,16 @@ namespace
  */
 void handle_hello(
     std::size_t id,
-    eng::Channel *channel,
-    eng::Socket *socket)
+    iris::Channel *channel,
+    iris::Socket *socket)
 {
     // we will send the client their id
-    eng::DataBufferSerialiser serialiser{ };
+    iris::DataBufferSerialiser serialiser{ };
     serialiser.push<std::uint32_t>(id);
 
     // create and enqueue response packets
-    eng::Packet connected{ eng::PacketType::CONNECTED, eng::ChannelType::RELIABLE_ORDERED, serialiser.data() };
-    eng::Packet sync_start{ eng::PacketType::SYNC_START, eng::ChannelType::RELIABLE_ORDERED, { } };
+    iris::Packet connected{ iris::PacketType::CONNECTED, iris::ChannelType::RELIABLE_ORDERED, serialiser.data() };
+    iris::Packet sync_start{ iris::PacketType::SYNC_START, iris::ChannelType::RELIABLE_ORDERED, { } };
     channel->enqueue_send(std::move(connected));
     channel->enqueue_send(std::move(sync_start));
 
@@ -77,20 +77,20 @@ void handle_hello(
  *   The received SYNC_RESPONSE packet.
  */
 void handle_sync_response(
-    eng::Channel *channel,
-    eng::Socket *socket,
-    const eng::Packet &packet)
+    iris::Channel *channel,
+    iris::Socket *socket,
+    const iris::Packet &packet)
 {
     // get the client time and our time
-    eng::DataBufferDeserialiser deserialiser{ packet.body_buffer() };
+    iris::DataBufferDeserialiser deserialiser{ packet.body_buffer() };
     const auto client_time_raw = deserialiser.pop<std::uint32_t>();
     const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
 
     // send the client back their time and out time
-    eng::DataBufferSerialiser serialiser{ };
+    iris::DataBufferSerialiser serialiser{ };
     serialiser.push(client_time_raw);
     serialiser.push<std::uint32_t>(now.count());
-    eng::Packet sync_finish{ eng::PacketType::SYNC_FINISH, eng::ChannelType::RELIABLE_ORDERED, serialiser.data() };
+    iris::Packet sync_finish{ iris::PacketType::SYNC_FINISH, iris::ChannelType::RELIABLE_ORDERED, serialiser.data() };
     channel->enqueue_send(std::move(sync_finish));
 
     // send all packets
@@ -102,7 +102,7 @@ void handle_sync_response(
 
 }
 
-namespace eng
+namespace iris
 {
 
 /**
@@ -173,7 +173,7 @@ void ServerConnectionHandler::update()
         if(raw_packet)
         {
             // convert data into a Packet
-            eng::Packet packet{ };
+            iris::Packet packet{ };
             std::memcpy(packet.data(), raw_packet->data(), raw_packet->size());
             packet.resize(raw_packet->size());
 

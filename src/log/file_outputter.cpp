@@ -4,7 +4,7 @@
 
 #include "core/exception.h"
 
-namespace eng
+namespace iris
 {
 
 FileOutputter::FileOutputter(const std::string &filename)

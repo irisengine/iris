@@ -9,7 +9,7 @@
 #include "log/emoji_formatter.h"
 #include "log/log.h"
 
-namespace eng
+namespace iris
 {
 
 // globals so we can call back into game

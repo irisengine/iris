@@ -8,7 +8,7 @@
 #include "jobs/job.h"
 #include "platform/static_buffer.h"
 
-namespace eng
+namespace iris
 {
 
 // forward declaration, will be arch specific

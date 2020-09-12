@@ -9,7 +9,7 @@
 @interface MetalViewController : UIViewController {
 
 @public
-std::queue<eng::Event> events_;
+std::queue<iris::Event> events_;
 
 }
 

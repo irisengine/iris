@@ -6,7 +6,7 @@
 #include "jobs/fiber/fiber.h"
 #include "log/log.h"
 
-namespace eng
+namespace iris
 {
 
 /**
@@ -41,7 +41,7 @@ class FiberPool
         {
             for(int i = 0; i < PoolBlockSize; ++i)
             {
-                fibers.emplace_back(new eng::Fiber{ });
+                fibers.emplace_back(new iris::Fiber{ });
             }
 
             count = PoolBlockSize;
@@ -79,7 +79,7 @@ class FiberPool
          * @returns
          *   Pointer to a fiber.
          */
-        eng::Fiber* next()
+        iris::Fiber* next()
         {
             std::unique_lock lock(m);
 
@@ -92,7 +92,7 @@ class FiberPool
             {
                 for(int i = 0; i < PoolBlockSize; ++i)
                 {
-                    fibers.emplace_back(new eng::Fiber{ });
+                    fibers.emplace_back(new iris::Fiber{ });
                 }
 
                 count += PoolBlockSize;
@@ -110,7 +110,7 @@ class FiberPool
          * @param fiber
          *   Fiber to release.
          */
-        void release(eng::Fiber *fiber)
+        void release(iris::Fiber *fiber)
         {
             fiber->finish();
 
@@ -145,10 +145,10 @@ class FiberPool
         std::mutex m;
         
         /** List of fibers in pool. */
-        std::list<eng::Fiber*> fibers;
+        std::list<iris::Fiber*> fibers;
 
         /** Head of free fibers. */
-        std::list<eng::Fiber*>::iterator head;
+        std::list<iris::Fiber*>::iterator head;
         
         /* Number of fibers allocated. */
         std::size_t count;

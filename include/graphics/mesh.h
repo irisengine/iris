@@ -11,7 +11,7 @@
 #include "graphics/texture.h"
 #include "graphics/vertex_data.h"
 
-namespace eng
+namespace iris
 {
 
 /**

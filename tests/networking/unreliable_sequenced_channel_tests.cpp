@@ -10,9 +10,9 @@
 TEST(unreliable_sequenced_channel, in_queue_single)
 {
     const auto in_packets = create_packets({
-        { 0u, eng::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
     });
-    eng::UnreliableSequencedChannel channel{ };
+    iris::UnreliableSequencedChannel channel{ };
 
     for(const auto &packet : in_packets)
     {
@@ -26,11 +26,11 @@ TEST(unreliable_sequenced_channel, in_queue_single)
 TEST(unreliable_sequenced_channel, in_queue_multi)
 {
     const auto in_packets = create_packets({
-        { 0u, eng::PacketType::DATA },
-        { 1u, eng::PacketType::DATA },
-        { 2u, eng::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 1u, iris::PacketType::DATA },
+        { 2u, iris::PacketType::DATA },
     });
-    eng::UnreliableSequencedChannel channel{ };
+    iris::UnreliableSequencedChannel channel{ };
 
     for(const auto &packet : in_packets)
     {
@@ -44,16 +44,16 @@ TEST(unreliable_sequenced_channel, in_queue_multi)
 TEST(unreliable_sequenced_channel, in_queue_multi_incrementing_seq)
 {
     const auto in_packets = create_packets({
-        { 0u, eng::PacketType::DATA },
-        { 0u, eng::PacketType::DATA },
-        { 0u, eng::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
     });
     const auto expected = create_packets({
-        { 0u, eng::PacketType::DATA },
-        { 1u, eng::PacketType::DATA },
-        { 2u, eng::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 1u, iris::PacketType::DATA },
+        { 2u, iris::PacketType::DATA },
     });
-    eng::UnreliableSequencedChannel channel{ };
+    iris::UnreliableSequencedChannel channel{ };
 
     for(const auto &packet : in_packets)
     {
@@ -68,12 +68,12 @@ TEST(unreliable_sequenced_channel, in_queue_multi_incrementing_seq)
 TEST(unreliable_sequenced_channel, in_queue_multi_early_yield)
 {
     const auto in_packets = create_packets({
-        { 0u, eng::PacketType::DATA },
-        { 1u, eng::PacketType::DATA },
-        { 2u, eng::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 1u, iris::PacketType::DATA },
+        { 2u, iris::PacketType::DATA },
     });
-    eng::UnreliableSequencedChannel channel{ };
-    std::vector<std::vector<eng::Packet>> yielded_packets{ };
+    iris::UnreliableSequencedChannel channel{ };
+    std::vector<std::vector<iris::Packet>> yielded_packets{ };
 
     channel.enqueue_send(in_packets[0u]);
     channel.enqueue_send(in_packets[1u]);
@@ -85,19 +85,19 @@ TEST(unreliable_sequenced_channel, in_queue_multi_early_yield)
 
     ASSERT_EQ(yielded_packets.size(), 4u);
     ASSERT_EQ(yielded_packets[0u].size(), 2u);
-    ASSERT_EQ(yielded_packets[0u], std::vector<eng::Packet>(std::cbegin(in_packets), std::cbegin(in_packets) + 2u));
+    ASSERT_EQ(yielded_packets[0u], std::vector<iris::Packet>(std::cbegin(in_packets), std::cbegin(in_packets) + 2u));
     ASSERT_TRUE(yielded_packets[1u].empty());
     ASSERT_EQ(yielded_packets[2u].size(), 1u);
-    ASSERT_EQ(yielded_packets[2u], std::vector<eng::Packet>(std::cbegin(in_packets) + 2u, std::cend(in_packets)));
+    ASSERT_EQ(yielded_packets[2u], std::vector<iris::Packet>(std::cbegin(in_packets) + 2u, std::cend(in_packets)));
     ASSERT_TRUE(yielded_packets[3u].empty());
 }
 
 TEST(unreliable_sequenced_channel, out_queue_single)
 {
     const auto out_packets = create_packets({
-        { 0u, eng::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
     });
-    eng::UnreliableSequencedChannel channel{ };
+    iris::UnreliableSequencedChannel channel{ };
 
     for(const auto &packet : out_packets)
     {
@@ -111,11 +111,11 @@ TEST(unreliable_sequenced_channel, out_queue_single)
 TEST(unreliable_sequenced_channel, out_queue_multi)
 {
     const auto out_packets = create_packets({
-        { 0u, eng::PacketType::DATA },
-        { 1u, eng::PacketType::DATA },
-        { 2u, eng::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 1u, iris::PacketType::DATA },
+        { 2u, iris::PacketType::DATA },
     });
-    eng::UnreliableSequencedChannel channel{ };
+    iris::UnreliableSequencedChannel channel{ };
 
     for(const auto &packet : out_packets)
     {
@@ -129,22 +129,22 @@ TEST(unreliable_sequenced_channel, out_queue_multi)
 TEST(unreliable_sequenced_channel, out_queue_duplicates)
 {
     const auto out_packets = create_packets({
-        { 0u, eng::PacketType::DATA },
-        { 0u, eng::PacketType::DATA },
-        { 1u, eng::PacketType::DATA },
-        { 1u, eng::PacketType::DATA },
-        { 1u, eng::PacketType::DATA },
-        { 2u, eng::PacketType::DATA },
-        { 2u, eng::PacketType::DATA },
-        { 2u, eng::PacketType::DATA },
-        { 2u, eng::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 1u, iris::PacketType::DATA },
+        { 1u, iris::PacketType::DATA },
+        { 1u, iris::PacketType::DATA },
+        { 2u, iris::PacketType::DATA },
+        { 2u, iris::PacketType::DATA },
+        { 2u, iris::PacketType::DATA },
+        { 2u, iris::PacketType::DATA },
     });
     const auto expected = create_packets({
-        { 0u, eng::PacketType::DATA },
-        { 1u, eng::PacketType::DATA },
-        { 2u, eng::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 1u, iris::PacketType::DATA },
+        { 2u, iris::PacketType::DATA },
     });
-    eng::UnreliableSequencedChannel channel{ };
+    iris::UnreliableSequencedChannel channel{ };
 
     for(const auto &packet : out_packets)
     {
@@ -158,20 +158,20 @@ TEST(unreliable_sequenced_channel, out_queue_duplicates)
 TEST(unreliable_sequenced_channel, out_queue_unordered)
 {
     const auto out_packets = create_packets({
-        { 1u, eng::PacketType::DATA },
-        { 0u, eng::PacketType::DATA },
-        { 4u, eng::PacketType::DATA },
-        { 3u, eng::PacketType::DATA },
-        { 5u, eng::PacketType::DATA },
-        { 7u, eng::PacketType::DATA },
+        { 1u, iris::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 4u, iris::PacketType::DATA },
+        { 3u, iris::PacketType::DATA },
+        { 5u, iris::PacketType::DATA },
+        { 7u, iris::PacketType::DATA },
     });
     const auto expected = create_packets({
-        { 1u, eng::PacketType::DATA },
-        { 4u, eng::PacketType::DATA },
-        { 5u, eng::PacketType::DATA },
-        { 7u, eng::PacketType::DATA },
+        { 1u, iris::PacketType::DATA },
+        { 4u, iris::PacketType::DATA },
+        { 5u, iris::PacketType::DATA },
+        { 7u, iris::PacketType::DATA },
     });
-    eng::UnreliableSequencedChannel channel{ };
+    iris::UnreliableSequencedChannel channel{ };
 
     for(const auto &packet : out_packets)
     {
@@ -185,29 +185,29 @@ TEST(unreliable_sequenced_channel, out_queue_unordered)
 TEST(unreliable_sequenced_channel, out_queue_unordered_and_duplicates)
 {
     const auto out_packets = create_packets({
-        { 1u, eng::PacketType::DATA },
-        { 0u, eng::PacketType::DATA },
-        { 0u, eng::PacketType::DATA },
-        { 0u, eng::PacketType::DATA },
-        { 4u, eng::PacketType::DATA },
-        { 0u, eng::PacketType::DATA },
-        { 1u, eng::PacketType::DATA },
-        { 3u, eng::PacketType::DATA },
-        { 0u, eng::PacketType::DATA },
-        { 5u, eng::PacketType::DATA },
-        { 4u, eng::PacketType::DATA },
-        { 5u, eng::PacketType::DATA },
-        { 5u, eng::PacketType::DATA },
-        { 7u, eng::PacketType::DATA },
-        { 5u, eng::PacketType::DATA },
+        { 1u, iris::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 4u, iris::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 1u, iris::PacketType::DATA },
+        { 3u, iris::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 5u, iris::PacketType::DATA },
+        { 4u, iris::PacketType::DATA },
+        { 5u, iris::PacketType::DATA },
+        { 5u, iris::PacketType::DATA },
+        { 7u, iris::PacketType::DATA },
+        { 5u, iris::PacketType::DATA },
     });
     const auto expected = create_packets({
-        { 1u, eng::PacketType::DATA },
-        { 4u, eng::PacketType::DATA },
-        { 5u, eng::PacketType::DATA },
-        { 7u, eng::PacketType::DATA },
+        { 1u, iris::PacketType::DATA },
+        { 4u, iris::PacketType::DATA },
+        { 5u, iris::PacketType::DATA },
+        { 7u, iris::PacketType::DATA },
     });
-    eng::UnreliableSequencedChannel channel{ };
+    iris::UnreliableSequencedChannel channel{ };
 
     for(const auto &packet : out_packets)
     {
@@ -221,32 +221,32 @@ TEST(unreliable_sequenced_channel, out_queue_unordered_and_duplicates)
 TEST(unreliable_sequenced_channel, out_queue_unordered_and_duplicates_early_yield)
 {
     const auto out_packets = create_packets({
-        { 1u, eng::PacketType::DATA },
-        { 0u, eng::PacketType::DATA },
-        { 0u, eng::PacketType::DATA },
-        { 0u, eng::PacketType::DATA },
-        { 4u, eng::PacketType::DATA },
-        { 0u, eng::PacketType::DATA },
-        { 1u, eng::PacketType::DATA },
-        { 3u, eng::PacketType::DATA },
-        { 0u, eng::PacketType::DATA },
-        { 5u, eng::PacketType::DATA },
-        { 4u, eng::PacketType::DATA },
-        { 5u, eng::PacketType::DATA },
-        { 5u, eng::PacketType::DATA },
-        { 7u, eng::PacketType::DATA },
-        { 5u, eng::PacketType::DATA },
+        { 1u, iris::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 4u, iris::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 1u, iris::PacketType::DATA },
+        { 3u, iris::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 5u, iris::PacketType::DATA },
+        { 4u, iris::PacketType::DATA },
+        { 5u, iris::PacketType::DATA },
+        { 5u, iris::PacketType::DATA },
+        { 7u, iris::PacketType::DATA },
+        { 5u, iris::PacketType::DATA },
     });
     const auto expected1 = create_packets({
-        { 1u, eng::PacketType::DATA },
-        { 4u, eng::PacketType::DATA },
+        { 1u, iris::PacketType::DATA },
+        { 4u, iris::PacketType::DATA },
     });
     const auto expected2 = create_packets({
-        { 5u, eng::PacketType::DATA },
-        { 7u, eng::PacketType::DATA },
+        { 5u, iris::PacketType::DATA },
+        { 7u, iris::PacketType::DATA },
     });
-    eng::UnreliableSequencedChannel channel{ };
-    std::vector<std::vector<eng::Packet>> yielded_packets{ };
+    iris::UnreliableSequencedChannel channel{ };
+    std::vector<std::vector<iris::Packet>> yielded_packets{ };
 
     channel.enqueue_receive(out_packets[0u]);
     channel.enqueue_receive(out_packets[1u]);

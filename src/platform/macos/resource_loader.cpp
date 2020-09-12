@@ -3,7 +3,7 @@
 #include <fstream>
 #include <sstream>
 
-namespace eng
+namespace iris
 {
 
 ResourceLoader::ResourceLoader()

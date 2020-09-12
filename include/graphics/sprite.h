@@ -6,7 +6,7 @@
 #include "graphics/render_entity.h"
 #include "graphics/texture.h"
 
-namespace eng
+namespace iris
 {
 
 /**

@@ -10,9 +10,9 @@
 TEST(reliable_ordered_channel, unacked_packet_is_resent)
 {
     const auto in_packets = create_packets({
-        { 0u, eng::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
     });
-    eng::ReliableOrderedChannel channel{ };
+    iris::ReliableOrderedChannel channel{ };
 
     for(const auto &packet : in_packets)
     {
@@ -27,16 +27,16 @@ TEST(reliable_ordered_channel, unacked_packet_is_resent)
 TEST(reliable_ordered_channel, packet_sequence_set)
 {
     const auto in_packets = create_packets({
-        { 0u, eng::PacketType::DATA },
-        { 0u, eng::PacketType::DATA },
-        { 0u, eng::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
     });
     const auto expected = create_packets({
-        { 0u, eng::PacketType::DATA },
-        { 1u, eng::PacketType::DATA },
-        { 2u, eng::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 1u, iris::PacketType::DATA },
+        { 2u, iris::PacketType::DATA },
     });
-    eng::ReliableOrderedChannel channel{ };
+    iris::ReliableOrderedChannel channel{ };
 
     for(const auto &packet : in_packets)
     {
@@ -50,12 +50,12 @@ TEST(reliable_ordered_channel, packet_sequence_set)
 TEST(reliable_ordered_channel, single_ack_single_packet)
 {
     const auto in_packets = create_packets({
-        { 0u, eng::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
     });
     const auto out_packets = create_packets({
-        { 0u, eng::PacketType::ACK },
+        { 0u, iris::PacketType::ACK },
     });
-    eng::ReliableOrderedChannel channel{ };
+    iris::ReliableOrderedChannel channel{ };
 
     for(const auto &packet : in_packets)
     {
@@ -74,18 +74,18 @@ TEST(reliable_ordered_channel, single_ack_single_packet)
 TEST(reliable_ordered_channel, single_ack_multi_packet)
 {
     const auto in_packets = create_packets({
-        { 0u, eng::PacketType::DATA },
-        { 0u, eng::PacketType::DATA },
-        { 0u, eng::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
     });
     const auto out_packets = create_packets({
-        { 1u, eng::PacketType::ACK },
+        { 1u, iris::PacketType::ACK },
     });
     const auto expected = create_packets({
-        { 0u, eng::PacketType::DATA },
-        { 2u, eng::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 2u, iris::PacketType::DATA },
     });
-    eng::ReliableOrderedChannel channel{ };
+    iris::ReliableOrderedChannel channel{ };
 
     for(const auto &packet : in_packets)
     {
@@ -104,14 +104,14 @@ TEST(reliable_ordered_channel, single_ack_multi_packet)
 TEST(reliable_ordered_channel, multi_ack_single_packet)
 {
     const auto in_packets = create_packets({
-        { 0u, eng::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
     });
     const auto out_packets = create_packets({
-        { 1u, eng::PacketType::ACK },
-        { 2u, eng::PacketType::ACK },
-        { 3u, eng::PacketType::ACK },
+        { 1u, iris::PacketType::ACK },
+        { 2u, iris::PacketType::ACK },
+        { 3u, iris::PacketType::ACK },
     });
-    eng::ReliableOrderedChannel channel{ };
+    iris::ReliableOrderedChannel channel{ };
 
     for(const auto &packet : in_packets)
     {
@@ -130,24 +130,24 @@ TEST(reliable_ordered_channel, multi_ack_single_packet)
 TEST(reliable_ordered_channel, multi_ack_multi_packet)
 {
     const auto in_packets = create_packets({
-        { 0u, eng::PacketType::DATA },
-        { 0u, eng::PacketType::DATA },
-        { 0u, eng::PacketType::DATA },
-        { 0u, eng::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
     });
     const auto out_packets = create_packets({
-        { 4u, eng::PacketType::ACK },
-        { 4u, eng::PacketType::ACK },
-        { 4u, eng::PacketType::ACK },
-        { 1u, eng::PacketType::ACK },
-        { 2u, eng::PacketType::ACK },
-        { 1u, eng::PacketType::ACK },
-        { 3u, eng::PacketType::ACK },
-        { 3u, eng::PacketType::ACK },
-        { 1u, eng::PacketType::ACK },
-        { 0u, eng::PacketType::ACK },
+        { 4u, iris::PacketType::ACK },
+        { 4u, iris::PacketType::ACK },
+        { 4u, iris::PacketType::ACK },
+        { 1u, iris::PacketType::ACK },
+        { 2u, iris::PacketType::ACK },
+        { 1u, iris::PacketType::ACK },
+        { 3u, iris::PacketType::ACK },
+        { 3u, iris::PacketType::ACK },
+        { 1u, iris::PacketType::ACK },
+        { 0u, iris::PacketType::ACK },
     });
-    eng::ReliableOrderedChannel channel{ };
+    iris::ReliableOrderedChannel channel{ };
 
     for(const auto &packet : in_packets)
     {
@@ -166,12 +166,12 @@ TEST(reliable_ordered_channel, multi_ack_multi_packet)
 TEST(reliable_ordered_channel, single_out_acked)
 {
     const auto in_packets = create_packets({
-        { 0u, eng::PacketType::ACK },
+        { 0u, iris::PacketType::ACK },
     });
     const auto out_packets = create_packets({
-        { 0u, eng::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
     });
-    eng::ReliableOrderedChannel channel{ };
+    iris::ReliableOrderedChannel channel{ };
 
     for(const auto &packet : out_packets)
     {
@@ -185,16 +185,16 @@ TEST(reliable_ordered_channel, single_out_acked)
 TEST(reliable_ordered_channel, multi_out_acked)
 {
     const auto in_packets = create_packets({
-        { 0u, eng::PacketType::ACK },
-        { 1u, eng::PacketType::ACK },
-        { 2u, eng::PacketType::ACK },
+        { 0u, iris::PacketType::ACK },
+        { 1u, iris::PacketType::ACK },
+        { 2u, iris::PacketType::ACK },
     });
     const auto out_packets = create_packets({
-        { 0u, eng::PacketType::DATA },
-        { 1u, eng::PacketType::DATA },
-        { 2u, eng::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 1u, iris::PacketType::DATA },
+        { 2u, iris::PacketType::DATA },
     });
-    eng::ReliableOrderedChannel channel{ };
+    iris::ReliableOrderedChannel channel{ };
 
     for(const auto &packet : out_packets)
     {
@@ -208,24 +208,24 @@ TEST(reliable_ordered_channel, multi_out_acked)
 TEST(reliable_ordered_channel, multi_out_acked_unordered)
 {
     const auto in_packets = create_packets({
-        { 2u, eng::PacketType::ACK },
-        { 0u, eng::PacketType::ACK },
-        { 1u, eng::PacketType::ACK },
-        { 3u, eng::PacketType::ACK },
+        { 2u, iris::PacketType::ACK },
+        { 0u, iris::PacketType::ACK },
+        { 1u, iris::PacketType::ACK },
+        { 3u, iris::PacketType::ACK },
     });
     const auto out_packets = create_packets({
-        { 2u, eng::PacketType::DATA },
-        { 0u, eng::PacketType::DATA },
-        { 1u, eng::PacketType::DATA },
-        { 3u, eng::PacketType::DATA },
+        { 2u, iris::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 1u, iris::PacketType::DATA },
+        { 3u, iris::PacketType::DATA },
     });
     const auto expected = create_packets({
-        { 0u, eng::PacketType::DATA },
-        { 1u, eng::PacketType::DATA },
-        { 2u, eng::PacketType::DATA },
-        { 3u, eng::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 1u, iris::PacketType::DATA },
+        { 2u, iris::PacketType::DATA },
+        { 3u, iris::PacketType::DATA },
     });
-    eng::ReliableOrderedChannel channel{ };
+    iris::ReliableOrderedChannel channel{ };
 
     for(const auto &packet : out_packets)
     {
@@ -239,26 +239,26 @@ TEST(reliable_ordered_channel, multi_out_acked_unordered)
 TEST(reliable_ordered_channel, multi_out_acked_early_yield)
 {
     const auto in_packets = create_packets({
-        { 3u, eng::PacketType::ACK },
-        { 1u, eng::PacketType::ACK },
-        { 0u, eng::PacketType::ACK },
-        { 2u, eng::PacketType::ACK },
+        { 3u, iris::PacketType::ACK },
+        { 1u, iris::PacketType::ACK },
+        { 0u, iris::PacketType::ACK },
+        { 2u, iris::PacketType::ACK },
     });
     const auto out_packets = create_packets({
-        { 3u, eng::PacketType::DATA },
-        { 1u, eng::PacketType::DATA },
-        { 0u, eng::PacketType::DATA },
-        { 2u, eng::PacketType::DATA },
+        { 3u, iris::PacketType::DATA },
+        { 1u, iris::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 2u, iris::PacketType::DATA },
     });
     const auto expected1 = create_packets({
-        { 0u, eng::PacketType::DATA },
-        { 1u, eng::PacketType::DATA },
+        { 0u, iris::PacketType::DATA },
+        { 1u, iris::PacketType::DATA },
     });
     const auto expected2 = create_packets({
-        { 2u, eng::PacketType::DATA },
-        { 3u, eng::PacketType::DATA },
+        { 2u, iris::PacketType::DATA },
+        { 3u, iris::PacketType::DATA },
     });
-    eng::ReliableOrderedChannel channel{ };
+    iris::ReliableOrderedChannel channel{ };
 
     channel.enqueue_receive(out_packets[0u]);
     channel.enqueue_receive(out_packets[1u]);

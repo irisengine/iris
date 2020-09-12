@@ -22,20 +22,20 @@ namespace
  * @returns
  *   Supplied type as opengl type.
  */
-std::uint32_t type_to_gl_type(const eng::BufferType type)
+std::uint32_t type_to_gl_type(const iris::BufferType type)
 {
     auto gl_type = GL_ARRAY_BUFFER;
 
     switch(type)
     {
-        case eng::BufferType::VERTEX_ATTRIBUTES:
+        case iris::BufferType::VERTEX_ATTRIBUTES:
             gl_type = GL_ARRAY_BUFFER;
             break;
-        case eng::BufferType::VERTEX_INDICES:
+        case iris::BufferType::VERTEX_INDICES:
             gl_type = GL_ELEMENT_ARRAY_BUFFER;
             break;
         default:
-            throw eng::Exception("unknown Buffer type");
+            throw iris::Exception("unknown Buffer type");
     }
 
     return gl_type;
@@ -53,18 +53,18 @@ std::uint32_t type_to_gl_type(const eng::BufferType type)
 template<class T>
 std::uint32_t create_Buffer(
     const std::vector<T> &data,
-    const eng::BufferType type)
+    const iris::BufferType type)
 {
     std::uint32_t handle = 0u;
 
     ::glGenBuffers(1, &handle);
-    eng::check_opengl_error("could not generate opengl buffer");
+    iris::check_opengl_error("could not generate opengl buffer");
 
     const auto gl_type = type_to_gl_type(type);
 
     // bind so we can copy data
     ::glBindBuffer(gl_type, handle);
-    eng::check_opengl_error("could not bind buffer");
+    iris::check_opengl_error("could not bind buffer");
 
     // copy data to buffer
     ::glBufferData(
@@ -72,18 +72,18 @@ std::uint32_t create_Buffer(
         data.size() * sizeof(T),
         data.data(),
         GL_STATIC_DRAW);
-    eng::check_opengl_error("could not Buffer data");
+    iris::check_opengl_error("could not Buffer data");
 
     // unbind buffer
     ::glBindBuffer(gl_type, 0u);
-    eng::check_opengl_error("could not unbind buffer");
+    iris::check_opengl_error("could not unbind buffer");
 
     return handle;
 }
 
 }
 
-namespace eng
+namespace iris
 {
 
 /**

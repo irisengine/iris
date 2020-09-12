@@ -10,7 +10,7 @@
 #include "physics/physics_system.h"
 #include "platform/window.h"
 
-namespace eng
+namespace iris
 {
 
 Root Root::instance_;

@@ -12,7 +12,7 @@
 #include "log/log_level.h"
 #include "log/stdout_outputter.h"
 
-namespace eng
+namespace iris
 {
 
 namespace detail

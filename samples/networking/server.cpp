@@ -38,26 +38,26 @@
 
 using namespace std::chrono_literals;
 
-eng::CharacterController *character_controller = nullptr;
+iris::CharacterController *character_controller = nullptr;
 std::size_t player_id = std::numeric_limits<std::size_t>::max();
 
 void go(int, char **)
 {
-    eng::Root::logger().set_log_engine(true);
+    iris::Root::logger().set_log_engine(true);
 
     LOG_DEBUG("server_sample", "hello world");
 
     std::deque<ClientInput> inputs;
     auto tick = 0u;
 
-    auto socket = std::make_unique<eng::SimulatedAcceptingSocket>(
+    auto socket = std::make_unique<iris::SimulatedAcceptingSocket>(
         "2",
         "1",
         0ms,
         0ms,
         0.0f);
 
-    eng::ServerConnectionHandler connection_handler(
+    iris::ServerConnectionHandler connection_handler(
         std::move(socket),
         [](std::size_t id)
         {
@@ -66,11 +66,11 @@ void go(int, char **)
             // just support a single player
             player_id = id;
         },
-        [&inputs, &tick](std::size_t id, const eng::DataBuffer &data, eng::ChannelType type)
+        [&inputs, &tick](std::size_t id, const iris::DataBuffer &data, iris::ChannelType type)
         {
-            if(type == eng::ChannelType::RELIABLE_ORDERED)
+            if(type == iris::ChannelType::RELIABLE_ORDERED)
             {
-                eng::DataBufferDeserialiser deserialiser(data);
+                iris::DataBufferDeserialiser deserialiser(data);
                 ClientInput input{ deserialiser };
 
                 if(input.tick >= tick)
@@ -86,10 +86,10 @@ void go(int, char **)
             }
     });
 
-    eng::PhysicsSystem ps{ };
-    character_controller = ps.create_character_controller<eng::BasicCharacterController>();
-    ps.create_rigid_body<eng::BoxRigidBody>(eng::Vector3{ 0.0f, -50.0f, 0.0f }, eng::Vector3{ 500.0f, 50.0f, 500.0f }, true);
-    auto *box = ps.create_rigid_body<eng::BoxRigidBody>(eng::Vector3{ 0.0f, 1.0f, 0.0f }, eng::Vector3{ 0.5f, 0.5f, 0.5f }, false);
+    iris::PhysicsSystem ps{ };
+    character_controller = ps.create_character_controller<iris::BasicCharacterController>();
+    ps.create_rigid_body<iris::BoxRigidBody>(iris::Vector3{ 0.0f, -50.0f, 0.0f }, iris::Vector3{ 500.0f, 50.0f, 500.0f }, true);
+    auto *box = ps.create_rigid_body<iris::BoxRigidBody>(iris::Vector3{ 0.0f, 1.0f, 0.0f }, iris::Vector3{ 0.5f, 0.5f, 0.5f }, false);
 
     // block and wait for client to connect
     while(player_id == std::numeric_limits<std::size_t>::max())
@@ -102,7 +102,7 @@ void go(int, char **)
 
     ps.step(33ms);
 
-    eng::Looper looper{
+    iris::Looper looper{
         0ms,
         33ms,
         [&](std::chrono::microseconds clock, std::chrono::microseconds time_step)
@@ -116,7 +116,7 @@ void go(int, char **)
                 // the physics simulation
                 if(input.tick == tick)
                 {
-                    eng::Vector3 walk_direction{ input.side, 0.0f, input.forward };
+                    iris::Vector3 walk_direction{ input.side, 0.0f, input.forward };
                     walk_direction.normalise();
 
                     character_controller->set_walk_direction(walk_direction);
@@ -144,7 +144,7 @@ void go(int, char **)
             if(clock > step + 100ms)
             {
                 // serialise world state
-                eng::DataBufferSerialiser serialiser;
+                iris::DataBufferSerialiser serialiser;
                 serialiser.push(character_controller->position());
                 serialiser.push(character_controller->linear_velocity());
                 serialiser.push(character_controller->angular_velocity());
@@ -152,7 +152,7 @@ void go(int, char **)
                 serialiser.push(box->position());
                 serialiser.push(box->orientation());
 
-                connection_handler.send(player_id, serialiser.data(), eng::ChannelType::RELIABLE_ORDERED);
+                connection_handler.send(player_id, serialiser.data(), iris::ChannelType::RELIABLE_ORDERED);
 
                 step = clock;
             }
@@ -169,7 +169,7 @@ int main(int argc, char **argv)
     {
         go(argc, argv);
     }
-    catch(eng::Exception &e)
+    catch(iris::Exception &e)
     {
         LOG_ERROR("server", e.what());
         LOG_ERROR("server", e.stack_trace());

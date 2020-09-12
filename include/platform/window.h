@@ -10,7 +10,7 @@
 #include "graphics/sprite.h"
 #include "platform/event.h"
 
-namespace eng
+namespace iris
 {
 
 /**

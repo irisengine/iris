@@ -4,7 +4,7 @@
 
 #import <MetalKit/MetalKit.h>
 
-namespace eng::platform::utility
+namespace iris::platform::utility
 {
 
 /**

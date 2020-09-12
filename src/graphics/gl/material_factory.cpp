@@ -100,7 +100,7 @@ static const std::string fragment_source_sprite { R"(
 
 }
 
-namespace eng::material_factory
+namespace iris::material_factory
 {
 
 Material* sprite()

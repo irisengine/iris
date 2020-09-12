@@ -9,7 +9,7 @@
 #include "graphics/gl/opengl.h"
 #include "graphics/gl/shader_type.h"
 
-namespace eng
+namespace iris
 {
 
 shader::shader(const std::string &source, shader_type type)
@@ -25,20 +25,20 @@ shader::shader(const std::string &source, shader_type type)
     const auto shader_c_str = source.data();
 
     ::glShaderSource(shader_, 1, &shader_c_str, nullptr);
-    eng::check_opengl_error("could not set shader source");
+    iris::check_opengl_error("could not set shader source");
 
     ::glCompileShader(shader_);
 
     std::int32_t shader_param = 0;
 
     ::glGetShaderiv(shader_, GL_COMPILE_STATUS, &shader_param);
-    eng::check_opengl_error("could not get shader parameter");
+    iris::check_opengl_error("could not get shader parameter");
 
     // if shader failed to compile then get the opengl error
     if(shader_param != GL_TRUE)
     {
         ::glGetShaderiv(shader_, GL_INFO_LOG_LENGTH, &shader_param);
-        eng::check_opengl_error("could not get shader log length");
+        iris::check_opengl_error("could not get shader log length");
 
         if(shader_param == 0)
         {
@@ -55,7 +55,7 @@ shader::shader(const std::string &source, shader_type type)
                 static_cast<std::int32_t>(error_log.size()),
                 &log_length,
                 error_log.data());
-            eng::check_opengl_error("failed to get error log");
+            iris::check_opengl_error("failed to get error log");
 
             // convert to string and throw
             const std::string error(error_log.data(), log_length);

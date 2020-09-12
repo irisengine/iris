@@ -5,7 +5,7 @@
 #include "graphics/mesh.h"
 #include "graphics/render_entity.h"
 
-namespace eng
+namespace iris
 {
 Model::Model(const Vector3 &position, const Vector3 &scale, Mesh mesh)
     : RenderEntity(

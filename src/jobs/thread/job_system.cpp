@@ -7,7 +7,7 @@
 #include "jobs/job.h"
 #include "log/log.h"
 
-namespace eng
+namespace iris
 {
 
 struct JobSystem::implementation

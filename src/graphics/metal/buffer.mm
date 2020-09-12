@@ -24,7 +24,7 @@ namespace
 template<class T>
 id<MTLBuffer> create_Buffer(const std::vector<T> &data)
 {
-    auto *device = eng::platform::utility::metal_device();
+    auto *device = iris::platform::utility::metal_device();
 
     // create Buffer with data
     return [device newBufferWithBytes:static_cast<const void*>(data.data())
@@ -34,7 +34,7 @@ id<MTLBuffer> create_Buffer(const std::vector<T> &data)
 
 }
 
-namespace eng
+namespace iris
 {
 
 /**

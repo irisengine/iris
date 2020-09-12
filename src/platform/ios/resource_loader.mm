@@ -8,7 +8,7 @@
 #include "core/exception.h"
 #include "platform/macos/macos_ios_utility.h"
 
-namespace eng
+namespace iris
 {
 
 ResourceLoader::ResourceLoader()

@@ -11,7 +11,7 @@
 #include "graphics/material.h"
 #include "graphics/render_entity.h"
 
-namespace eng
+namespace iris
 {
 
 /**

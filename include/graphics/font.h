@@ -8,7 +8,7 @@
 #include "core/vector3.h"
 #include "graphics/sprite.h"
 
-namespace eng
+namespace iris
 {
 
 /**

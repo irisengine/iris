@@ -1,7 +1,7 @@
 #include "networking/channel/unreliable_sequenced_channel.h"
 #include <vector>
 
-namespace eng
+namespace iris
 {
 
 UnreliableSequencedChannel::UnreliableSequencedChannel()

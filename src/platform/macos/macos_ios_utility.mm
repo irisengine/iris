@@ -3,7 +3,7 @@
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
 
-namespace eng::platform::utility
+namespace iris::platform::utility
 {
 
 // common utilities

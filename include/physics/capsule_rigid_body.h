@@ -5,7 +5,7 @@
 
 #include "physics/rigid_body.h"
 
-namespace eng
+namespace iris
 {
 
 /**

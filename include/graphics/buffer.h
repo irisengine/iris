@@ -7,7 +7,7 @@
 #include "buffer_type.h"
 #include "vertex_data.h"
 
-namespace eng
+namespace iris
 {
 
 /**

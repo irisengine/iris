@@ -21,9 +21,9 @@ namespace
  * @returns
  *   Normal transformation matrix.
  */
-eng::Matrix4 create_normal_transform(const eng::Matrix4 &model)
+iris::Matrix4 create_normal_transform(const iris::Matrix4 &model)
 {
-    auto normal = eng::Matrix4::transpose(eng::Matrix4::invert(model));
+    auto normal = iris::Matrix4::transpose(iris::Matrix4::invert(model));
     
     // remove the translation components
     normal[3] = 0.0f;
@@ -35,7 +35,7 @@ eng::Matrix4 create_normal_transform(const eng::Matrix4 &model)
 
 }
 
-namespace eng
+namespace iris
 {
 
 RenderEntity::RenderEntity(

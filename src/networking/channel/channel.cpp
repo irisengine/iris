@@ -1,6 +1,6 @@
 #include "networking/channel/channel.h"
 
-namespace eng
+namespace iris
 {
 
 std::vector<Packet> Channel::yield_send_queue()

@@ -4,7 +4,7 @@
 
 #include "material.h"
 
-namespace eng::material_factory
+namespace iris::material_factory
 {
 
 /**

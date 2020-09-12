@@ -19,13 +19,13 @@ MetalView* get_view()
     const auto *window = [[[UIApplication sharedApplication] windows] objectAtIndex:0];
     if(window == nullptr)
     {
-        throw eng::Exception("unable to get main window");
+        throw iris::Exception("unable to get main window");
     }
 
     auto *view = static_cast<MetalView*>([[window rootViewController] view]);
     if(view == nullptr)
     {
-        throw eng::Exception("unable to get metal view");
+        throw iris::Exception("unable to get metal view");
     }
 
     return view;
@@ -33,7 +33,7 @@ MetalView* get_view()
 
 }
 
-namespace eng::platform::utility
+namespace iris::platform::utility
 {
 
 id<MTLDevice> metal_device()

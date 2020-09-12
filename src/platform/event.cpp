@@ -5,7 +5,7 @@
 #include "platform/mouse_event.h"
 #include "platform/touch_event.h"
 
-namespace eng
+namespace iris
 {
 
 Event::Event(const KeyboardEvent event)

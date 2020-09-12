@@ -10,7 +10,7 @@
 #include "networking/channel/channel_type.h"
 #include "networking/packet_type.h"
 
-namespace eng
+namespace iris
 {
 
 Packet::Packet()

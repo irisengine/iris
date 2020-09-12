@@ -18,7 +18,7 @@
 #include "networking/posix/client_connection.h"
 #include "networking/socket.h"
 
-namespace eng
+namespace iris
 {
 
 struct UdpAcceptingSocket::implementation
@@ -63,7 +63,7 @@ UdpAcceptingSocket::UdpAcceptingSocket(const std::string &address, std::uint32_t
         reinterpret_cast<const char*>(&reuse),
         sizeof(reuse)) < 0)
     {
-        throw eng::Exception("setsockopt failed");
+        throw iris::Exception("setsockopt failed");
     }
 
     // bind socket so we can accept connections

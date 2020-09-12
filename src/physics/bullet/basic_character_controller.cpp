@@ -8,7 +8,7 @@
 #include "physics/capsule_rigid_body.h"
 #include "physics/physics_system.h"
 
-namespace eng
+namespace iris
 {
 
 struct BasicCharacterController::implementation

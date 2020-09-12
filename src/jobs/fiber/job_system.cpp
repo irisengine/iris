@@ -66,12 +66,12 @@ struct Stats
  */
 void job_thread(
     int id,
-    eng::ConcurrentQueue<std::tuple<eng::Fiber*, eng::Counter*>> &fibers,
+    iris::ConcurrentQueue<std::tuple<iris::Fiber*, iris::Counter*>> &fibers,
     std::mutex &signal_mutex,
     std::condition_variable &signal_condition,
     std::atomic<bool> &running,
     Stats *stats,
-    eng::DefaultFiberPool &fiber_pool)
+    iris::DefaultFiberPool &fiber_pool)
 {
     LOG_ENGINE_INFO("job_system", "starting thread: {}", id);
 
@@ -79,7 +79,7 @@ void job_thread(
 
     while(running)
     {
-        eng::Fiber *f = nullptr;
+        iris::Fiber *f = nullptr;
 
         const auto wait_start = std::chrono::high_resolution_clock::now();
 
@@ -99,7 +99,7 @@ void job_thread(
             break;
         }
 
-        std::tuple<eng::Fiber*, eng::Counter*> element;
+        std::tuple<iris::Fiber*, iris::Counter*> element;
 
         // try and get next fiber from queue
         // this may not be the thread that started the fiber!
@@ -112,7 +112,7 @@ void job_thread(
             // other fibers to complete
             if(counter != nullptr)
             {
-                if(f->state() == eng::FiberState::RESUMABLE)
+                if(f->state() == iris::FiberState::RESUMABLE)
                 {
                     // if a fiber is resumable then we need to check if its
                     // counter has finished, if it hasn't then put it back on
@@ -123,7 +123,7 @@ void job_thread(
                         f = nullptr;
                     }
                 }
-                else if(f->state() == eng::FiberState::PAUSING)
+                else if(f->state() == iris::FiberState::PAUSING)
                 {
                     // a fiber is not instantly read to be resumed after it has
                     // been suspended (it has a certain amount of internal
@@ -148,7 +148,7 @@ void job_thread(
 
         if(f != nullptr)
         {
-            if(f->state() == eng::FiberState::RESUMABLE)
+            if(f->state() == iris::FiberState::RESUMABLE)
             {
                 // a paused fiber should be resumed
                 f->resume();
@@ -165,7 +165,7 @@ void job_thread(
 
                 // if after the fiber has run we are not paused then safe
                 // to release
-                if(f->state() == eng::FiberState::READY)
+                if(f->state() == iris::FiberState::READY)
                 {
                     fiber_pool.release(f);
 
@@ -195,7 +195,7 @@ void job_thread(
 void calculate_stats(
     std::ostream &stream,
     const std::vector<Stats> &stats,
-    eng::DefaultFiberPool &fiber_pool)
+    iris::DefaultFiberPool &fiber_pool)
 {
     auto total_jobs_started = 0u;
     auto total_jobs_ended = 0u;
@@ -233,7 +233,7 @@ void calculate_stats(
 
 }
 
-namespace eng
+namespace iris
 {
 
 struct JobSystem::implementation

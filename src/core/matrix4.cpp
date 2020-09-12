@@ -7,7 +7,7 @@
 #include "core/real.h"
 #include "core/vector3.h"
 
-namespace eng
+namespace iris
 {
 
 Matrix4::Matrix4()

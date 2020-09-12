@@ -25,7 +25,7 @@ struct ClientInput
      * @param deserialiser
      *   Deserialiser object.
      */
-    ClientInput(eng::DataBufferDeserialiser &deserialiser)
+    ClientInput(iris::DataBufferDeserialiser &deserialiser)
         : forward(deserialiser.pop<float>()),
           side(deserialiser.pop<float>()),
           tick(deserialiser.pop<std::uint32_t>())
@@ -37,7 +37,7 @@ struct ClientInput
      * @param serialiser.
      *   Serialiser object.
      */
-    void serialise(eng::DataBufferSerialiser &serialiser) const
+    void serialise(iris::DataBufferSerialiser &serialiser) const
     {
         serialiser.push(forward);
         serialiser.push(side);

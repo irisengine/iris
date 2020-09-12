@@ -8,7 +8,7 @@
 #include "core/vector3.h"
 #include "physics/character_controller.h"
 
-namespace eng
+namespace iris
 {
 
 /**

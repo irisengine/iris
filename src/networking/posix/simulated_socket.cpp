@@ -50,7 +50,7 @@ void flush_queue(int queue)
         {
             if(errno != ENOMSG)
             {
-                throw eng::Exception("read failed");
+                throw iris::Exception("read failed");
             }
 
             // we can stop when a non-blocking read reports there are no
@@ -64,7 +64,7 @@ void flush_queue(int queue)
 
 }
 
-namespace eng
+namespace iris
 {
 
 struct SimulatedSocket::implementation

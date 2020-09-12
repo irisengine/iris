@@ -9,7 +9,7 @@
 #include "graphics/mesh.h"
 #include "graphics/texture.h"
 
-namespace eng
+namespace iris
 {
 
 /**

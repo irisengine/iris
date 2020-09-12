@@ -11,7 +11,7 @@
 #include "networking/channel/channel.h"
 #include "networking/channel/channel_type.h"
 
-namespace eng
+namespace iris
 {
 
 /**

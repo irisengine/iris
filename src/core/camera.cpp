@@ -23,9 +23,9 @@ namespace
  * @returns
  *   A new direction vector for the camera
  */
-eng::Vector3 create_direction(eng::real pitch, eng::real yaw)
+iris::Vector3 create_direction(iris::real pitch, iris::real yaw)
 {
-    eng::Vector3 direction;
+    iris::Vector3 direction;
 
     direction.x = std::cos(yaw) * std::cos(pitch);
     direction.y = std::sin(pitch);
@@ -38,7 +38,7 @@ eng::Vector3 create_direction(eng::real pitch, eng::real yaw)
 
 }
 
-namespace eng
+namespace iris
 {
 
 Camera::Camera(CameraType type, real width, real height)

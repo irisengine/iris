@@ -14,33 +14,33 @@ void go(int, char **)
 {
     LOG_DEBUG("cube_sample", "hello world");
 
-    std::map<eng::Key, eng::KeyState> key_map {
-        { eng::Key::W, eng::KeyState::UP },
-        { eng::Key::A, eng::KeyState::UP },
-        { eng::Key::S, eng::KeyState::UP },
-        { eng::Key::D, eng::KeyState::UP },
-        { eng::Key::Q, eng::KeyState::UP },
-        { eng::Key::E, eng::KeyState::UP },
+    std::map<iris::Key, iris::KeyState> key_map {
+        { iris::Key::W, iris::KeyState::UP },
+        { iris::Key::A, iris::KeyState::UP },
+        { iris::Key::S, iris::KeyState::UP },
+        { iris::Key::D, iris::KeyState::UP },
+        { iris::Key::Q, iris::KeyState::UP },
+        { iris::Key::E, iris::KeyState::UP },
     };
 
-    auto &rs = eng::Root::instance().render_system();
+    auto &rs = iris::Root::instance().render_system();
     auto &camera = rs.persective_camera();
 
-    rs.create<eng::Model>(
-        eng::Vector3{ -20.0f, 0.0f, 0.0f },
-        eng::Vector3{ 10.0f, 10.0f, 10.0f },
-        eng::shape_factory::cube({ 1.0f, 0.0f, 0.0f }));
+    rs.create<iris::Model>(
+        iris::Vector3{ -20.0f, 0.0f, 0.0f },
+        iris::Vector3{ 10.0f, 10.0f, 10.0f },
+        iris::shape_factory::cube({ 1.0f, 0.0f, 0.0f }));
 
-    rs.create<eng::Model>(
-        eng::Vector3{ 20.0f, 0.0f, 0.0f },
-        eng::Vector3{ 10.0f, 10.0f, 10.0f },
-        eng::shape_factory::cube({ 1.0f, 0.0f, 0.0f }));
+    rs.create<iris::Model>(
+        iris::Vector3{ 20.0f, 0.0f, 0.0f },
+        iris::Vector3{ 10.0f, 10.0f, 10.0f },
+        iris::shape_factory::cube({ 1.0f, 0.0f, 0.0f }));
 
     for(;;)
     {
-        if(auto evt = eng::Root::instance().window().pump_event() ; evt)
+        if(auto evt = iris::Root::instance().window().pump_event() ; evt)
         {
-            if(evt->is_key(eng::Key::ESCAPE))
+            if(evt->is_key(iris::Key::ESCAPE))
             {
                 break;
             }
@@ -60,34 +60,34 @@ void go(int, char **)
         }
 
         static auto speed = 2.0f;
-        eng::Vector3 velocity;
+        iris::Vector3 velocity;
 
-        if(key_map[eng::Key::W] == eng::KeyState::DOWN)
+        if(key_map[iris::Key::W] == iris::KeyState::DOWN)
         {
             velocity += camera.direction() * speed;
         }
 
-        if(key_map[eng::Key::S] == eng::KeyState::DOWN)
+        if(key_map[iris::Key::S] == iris::KeyState::DOWN)
         {
             velocity -= camera.direction() * speed;
         }
 
-        if(key_map[eng::Key::A] == eng::KeyState::DOWN)
+        if(key_map[iris::Key::A] == iris::KeyState::DOWN)
         {
             velocity -= camera.right() * speed;
         }
 
-        if(key_map[eng::Key::D] == eng::KeyState::DOWN)
+        if(key_map[iris::Key::D] == iris::KeyState::DOWN)
         {
             velocity += camera.right() * speed;
         }
 
-        if(key_map[eng::Key::Q] == eng::KeyState::DOWN)
+        if(key_map[iris::Key::Q] == iris::KeyState::DOWN)
         {
             velocity += camera.right().cross(camera.direction()) * speed;
         }
 
-        if(key_map[eng::Key::E] == eng::KeyState::DOWN)
+        if(key_map[iris::Key::E] == iris::KeyState::DOWN)
         {
             velocity -= camera.right().cross(camera.direction()) * speed;
         }
@@ -103,9 +103,9 @@ int main(int argc, char **argv)
 {
     try
     {
-        eng::start_debug(argc, argv, go);
+        iris::start_debug(argc, argv, go);
     }
-    catch(eng::Exception &e)
+    catch(iris::Exception &e)
     {
         LOG_ERROR("cube_sample", e.what());
         LOG_ERROR("cube_sample", e.stack_trace());

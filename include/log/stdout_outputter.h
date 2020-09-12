@@ -4,7 +4,7 @@
 
 #include "log/outputter.h"
 
-namespace eng
+namespace iris
 {
 
 /**

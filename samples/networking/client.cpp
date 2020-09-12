@@ -63,9 +63,9 @@ using namespace std::chrono_literals;
  */
 bool handle_input(
     std::deque<ClientInput> &inputs,
-    eng::Camera &camera,
+    iris::Camera &camera,
     std::uint32_t tick,
-    eng::ClientConnectionHandler &client)
+    iris::ClientConnectionHandler &client)
 {
     auto quit = false;
 
@@ -78,13 +78,13 @@ bool handle_input(
     // consume all inputs
     for(;;)
     {
-        auto evt = eng::Root::instance().window().pump_event();
+        auto evt = iris::Root::instance().window().pump_event();
         if(!evt)
         {
             break;
         }
 
-        if(evt->is_key(eng::Key::ESCAPE))
+        if(evt->is_key(iris::Key::ESCAPE))
         {
             quit = true;
         }
@@ -95,17 +95,17 @@ bool handle_input(
             // convert input keys to client input
             switch(keyboard.key)
             {
-                case eng::Key::W:
-                    input.forward = keyboard.state == eng::KeyState::DOWN ? -1.0f : 0.0f;
+                case iris::Key::W:
+                    input.forward = keyboard.state == iris::KeyState::DOWN ? -1.0f : 0.0f;
                     break;
-                case eng::Key::S:
-                    input.forward = keyboard.state == eng::KeyState::DOWN ? 1.0f : 0.0f;
+                case iris::Key::S:
+                    input.forward = keyboard.state == iris::KeyState::DOWN ? 1.0f : 0.0f;
                     break;
-                case eng::Key::A:
-                    input.side = keyboard.state == eng::KeyState::DOWN ? -1.0f : 0.0f;
+                case iris::Key::A:
+                    input.side = keyboard.state == iris::KeyState::DOWN ? -1.0f : 0.0f;
                     break;
-                case eng::Key::D:
-                    input.side = keyboard.state == eng::KeyState::DOWN ? 1.0f : 0.0f;
+                case iris::Key::D:
+                    input.side = keyboard.state == iris::KeyState::DOWN ? 1.0f : 0.0f;
                     break;
                 default:
                     break;
@@ -130,9 +130,9 @@ bool handle_input(
     {
         input.tick = tick;
 
-        eng::DataBufferSerialiser serialiser;
+        iris::DataBufferSerialiser serialiser;
         input.serialise(serialiser);
-        client.send(serialiser.data(), eng::ChannelType::RELIABLE_ORDERED);
+        client.send(serialiser.data(), iris::ChannelType::RELIABLE_ORDERED);
 
         inputs.emplace_back(input);
     }
@@ -158,20 +158,20 @@ bool handle_input(
  * @returns
  *   Tuple of various server data.
  */
-std::tuple<std::uint32_t, eng::Vector3, eng::Vector3, eng::Vector3> process_server_update(
-    const eng::DataBuffer &server_data,
-    std::deque<std::tuple<std::chrono::steady_clock::time_point, eng::Vector3, eng::Quaternion>> &snapshots,
-    std::vector<std::tuple<std::uint32_t, eng::Vector3, std::unique_ptr<eng::PhysicsState, eng::PhysicsStateDeleter>>> &history,
+std::tuple<std::uint32_t, iris::Vector3, iris::Vector3, iris::Vector3> process_server_update(
+    const iris::DataBuffer &server_data,
+    std::deque<std::tuple<std::chrono::steady_clock::time_point, iris::Vector3, iris::Quaternion>> &snapshots,
+    std::vector<std::tuple<std::uint32_t, iris::Vector3, std::unique_ptr<iris::PhysicsState, iris::PhysicsStateDeleter>>> &history,
     std::deque<ClientInput> &inputs)
 {
     // deserialise server update
-    eng::DataBufferDeserialiser deserialiser(server_data);
-    const auto position = deserialiser.pop<eng::Vector3>();
-    const auto linear_velocity = deserialiser.pop<eng::Vector3>();
-    const auto angular_velocity = deserialiser.pop<eng::Vector3>();
+    iris::DataBufferDeserialiser deserialiser(server_data);
+    const auto position = deserialiser.pop<iris::Vector3>();
+    const auto linear_velocity = deserialiser.pop<iris::Vector3>();
+    const auto angular_velocity = deserialiser.pop<iris::Vector3>();
     const auto last_acked = deserialiser.pop<std::uint32_t>();
-    const auto box_pos = deserialiser.pop<eng::Vector3>();
-    auto box_rot = deserialiser.pop<eng::Quaternion>();
+    const auto box_pos = deserialiser.pop<iris::Vector3>();
+    auto box_rot = deserialiser.pop<iris::Quaternion>();
     box_rot.normalise();
 
     // store server update of box, put the time in the future so we can easily
@@ -243,14 +243,14 @@ std::tuple<std::uint32_t, eng::Vector3, eng::Vector3, eng::Vector3> process_serv
  */
 void client_prediciton(
     std::uint32_t last_acked,
-    std::vector<std::tuple<std::uint32_t, eng::Vector3, std::unique_ptr<eng::PhysicsState, eng::PhysicsStateDeleter>>> &history,
-    const eng::Vector3 &server_position,
-    const eng::Vector3 &linear_velocity,
-    const eng::Vector3 &angular_velocity,
-    eng::CharacterController *character_controller,
+    std::vector<std::tuple<std::uint32_t, iris::Vector3, std::unique_ptr<iris::PhysicsState, iris::PhysicsStateDeleter>>> &history,
+    const iris::Vector3 &server_position,
+    const iris::Vector3 &linear_velocity,
+    const iris::Vector3 &angular_velocity,
+    iris::CharacterController *character_controller,
     std::deque<ClientInput> &inputs)
 {
-    auto &ps = eng::Root::physics_system();
+    auto &ps = iris::Root::physics_system();
 
     const auto &[tck_num, pos, state] = history.front();
 
@@ -271,7 +271,7 @@ void client_prediciton(
             ps.load(state.get());
 
             // update the player with the server supplied data
-            character_controller->reposition(server_position, eng::Quaternion{ 0.0f, 1.0f, 0.0f, 0.0f });
+            character_controller->reposition(server_position, iris::Quaternion{ 0.0f, 1.0f, 0.0f, 0.0f });
             character_controller->set_linear_velocity(linear_velocity);
             character_controller->set_angular_velocity(angular_velocity);
 
@@ -288,7 +288,7 @@ void client_prediciton(
                 {
                     if(input.tick == current_tick)
                     {
-                        eng::Vector3 walk_direction{ input.side, 0.0f, input.forward };
+                        iris::Vector3 walk_direction{ input.side, 0.0f, input.forward };
                         walk_direction.normalise();
                         character_controller->set_walk_direction(walk_direction);
                     }
@@ -319,8 +319,8 @@ void client_prediciton(
  *   Pointer to RenderEntity for box.
  */
 void entity_interpolation(
-    std::deque<std::tuple<std::chrono::steady_clock::time_point, eng::Vector3, eng::Quaternion>> &snapshots,
-    eng::RenderEntity *box)
+    std::deque<std::tuple<std::chrono::steady_clock::time_point, iris::Vector3, iris::Quaternion>> &snapshots,
+    iris::RenderEntity *box)
 {
     const auto now = std::chrono::steady_clock::now();
 
@@ -362,36 +362,36 @@ void go(int, char **)
 {
     LOG_DEBUG("client", "hello world");
 
-    auto socket = std::make_unique<eng::SimulatedSocket>(
+    auto socket = std::make_unique<iris::SimulatedSocket>(
         "1",
         "2",
         std::chrono::milliseconds(0u),
         std::chrono::milliseconds(0u),
         0.0f);
 
-    eng::ClientConnectionHandler client{ std::move(socket) };
+    iris::ClientConnectionHandler client{ std::move(socket) };
 
-    auto &rs = eng::Root::render_system();
+    auto &rs = iris::Root::render_system();
     auto &camera = rs.persective_camera();
 
-    rs.create<eng::Model>(
-        eng::Vector3{ 0.0f, -50.0f, 0.0f },
-        eng::Vector3{ 500.0f, 50.0f, 500.0f },
-        eng::shape_factory::cube({ 1.0f, 1.0f, 1.0f }));
+    rs.create<iris::Model>(
+        iris::Vector3{ 0.0f, -50.0f, 0.0f },
+        iris::Vector3{ 500.0f, 50.0f, 500.0f },
+        iris::shape_factory::cube({ 1.0f, 1.0f, 1.0f }));
 
-    auto *box = rs.create<eng::Model>(
-        eng::Vector3{ 0.0f, 1.0f, 0.0f },
-        eng::Vector3{ 0.5f, 0.5f, 0.5f },
-        eng::shape_factory::cube({ 1.0f, 0.0f, 0.0f }));
+    auto *box = rs.create<iris::Model>(
+        iris::Vector3{ 0.0f, 1.0f, 0.0f },
+        iris::Vector3{ 0.5f, 0.5f, 0.5f },
+        iris::shape_factory::cube({ 1.0f, 0.0f, 0.0f }));
 
-    std::deque<std::tuple<std::chrono::steady_clock::time_point, eng::Vector3, eng::Quaternion>> snapshots;
+    std::deque<std::tuple<std::chrono::steady_clock::time_point, iris::Vector3, iris::Quaternion>> snapshots;
     std::deque<ClientInput> inputs;
 
-    auto &ps = eng::Root::physics_system();
-    auto *character_controller = ps.create_character_controller<eng::BasicCharacterController>();
-    ps.create_rigid_body<eng::BoxRigidBody>(eng::Vector3{ 0.0f, -50.0f, 0.0f }, eng::Vector3{ 500.0f, 50.0f, 500.0f }, true);
+    auto &ps = iris::Root::physics_system();
+    auto *character_controller = ps.create_character_controller<iris::BasicCharacterController>();
+    ps.create_rigid_body<iris::BoxRigidBody>(iris::Vector3{ 0.0f, -50.0f, 0.0f }, iris::Vector3{ 500.0f, 50.0f, 500.0f }, true);
 
-    std::vector<std::tuple<std::uint32_t, eng::Vector3, std::unique_ptr<eng::PhysicsState, eng::PhysicsStateDeleter>>> history;
+    std::vector<std::tuple<std::uint32_t, iris::Vector3, std::unique_ptr<iris::PhysicsState, iris::PhysicsStateDeleter>>> history;
     std::uint32_t tick = 0u;
 
     ClientInput input;
@@ -418,7 +418,7 @@ void go(int, char **)
 
     tick = ticks_behind;
 
-    eng::Looper looper(
+    iris::Looper looper(
         33ms * ticks_behind,
         33ms,
         [&](std::chrono::microseconds, std::chrono::microseconds)
@@ -438,7 +438,7 @@ void go(int, char **)
                     // only process inputs for this tick
                     if(input.tick == tick)
                     {
-                        eng::Vector3 walk_direction{ input.side, 0.0f, input.forward };
+                        iris::Vector3 walk_direction{ input.side, 0.0f, input.forward };
                         walk_direction.normalise();
 
                         character_controller->set_walk_direction(walk_direction);
@@ -467,7 +467,7 @@ void go(int, char **)
             // process all pending messages from the server
             for(;;)
             {
-                const auto server_data = client.try_read(eng::ChannelType::RELIABLE_ORDERED);
+                const auto server_data = client.try_read(iris::ChannelType::RELIABLE_ORDERED);
                 if(!server_data)
                 {
                     break;
@@ -516,9 +516,9 @@ int main(int argc, char **argv)
 {
     try
     {
-        eng::start_debug(argc, argv, go);
+        iris::start_debug(argc, argv, go);
     }
-    catch(eng::Exception &e)
+    catch(iris::Exception &e)
     {
         LOG_ERROR("client", e.what());
         LOG_ERROR("client", e.stack_trace());

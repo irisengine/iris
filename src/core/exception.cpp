@@ -12,7 +12,7 @@
 #include <cxxabi.h>
 #include <execinfo.h>
 
-namespace eng
+namespace iris
 {
 
 // set upper limit on size of stack trace

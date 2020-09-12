@@ -9,7 +9,7 @@
 #include "core/data_buffer.h"
 #include "networking/socket.h"
 
-namespace eng
+namespace iris
 {
 
 /**

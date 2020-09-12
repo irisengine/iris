@@ -9,7 +9,7 @@
 
 #include "core/exception.h"
 
-namespace eng::platform::utility
+namespace iris::platform::utility
 {
 
 id<MTLDevice> metal_device()

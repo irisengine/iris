@@ -19,7 +19,7 @@
 #include "networking/posix/auto_socket.h"
 #include "networking/socket.h"
 
-namespace eng
+namespace iris
 {
 
 struct UdpSocket::implementation
@@ -63,7 +63,7 @@ UdpSocket::UdpSocket(const std::string &address, std::uint16_t port)
         reinterpret_cast<const char*>(&reuse),
         sizeof(reuse)) < 0)
     {
-        throw eng::Exception("setsockopt failed");
+        throw iris::Exception("setsockopt failed");
     }
 
     LOG_ENGINE_INFO("udp_socket", "connected!");
@@ -91,7 +91,7 @@ std::optional<DataBuffer> UdpSocket::try_read(std::size_t count)
         // read failed but not because there was no data
         if(errno != EAGAIN || errno != EWOULDBLOCK)
         {
-            throw eng::Exception("read failed");
+            throw iris::Exception("read failed");
         }
 
         // no data, so reset optional

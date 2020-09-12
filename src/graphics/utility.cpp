@@ -10,7 +10,7 @@
 
 #include "core/exception.h"
 
-namespace eng::graphics::utility
+namespace iris::graphics::utility
 {
 
 std::tuple<

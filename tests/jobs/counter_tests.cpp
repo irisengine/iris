@@ -8,14 +8,14 @@
 
 TEST(counter, constructor)
 {
-    eng::Counter ctr(3);
+    iris::Counter ctr(3);
 
     ASSERT_EQ(static_cast<int>(ctr), 3);
 }
 
 TEST(counter, prefix_decrement)
 {
-    eng::Counter ctr(3);
+    iris::Counter ctr(3);
     --ctr;
 
     ASSERT_EQ(static_cast<int>(ctr), 2);
@@ -23,7 +23,7 @@ TEST(counter, prefix_decrement)
 
 TEST(counter, postfix_decrement)
 {
-    eng::Counter ctr(3);
+    iris::Counter ctr(3);
     ctr--;
 
     ASSERT_EQ(static_cast<int>(ctr), 2);
@@ -32,7 +32,7 @@ TEST(counter, postfix_decrement)
 TEST(counter, thread_safe)
 {
     static constexpr auto value = 10000;
-    eng::Counter ctr(value);
+    iris::Counter ctr(value);
 
     auto dec_thread = [&ctr](){
         for(auto i = 0; i < value / 4; ++i)

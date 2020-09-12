@@ -6,7 +6,7 @@
 
 #include "networking/accepting_socket.h"
 
-namespace eng
+namespace iris
 {
 
 // forward declaration

@@ -16,16 +16,16 @@
 #include "platform/window.h"
 
 void handle_left_touch(
-    eng::Vector3 &walk_direction,
-    const eng::Vector3 &touch_origin,
-    const eng::Vector3 &touch_pos,
-    const eng::Camera &camera)
+    iris::Vector3 &walk_direction,
+    const iris::Vector3 &touch_origin,
+    const iris::Vector3 &touch_pos,
+    const iris::Camera &camera)
 {
     const auto touch_direction = touch_pos - touch_origin;
     
     if(touch_direction.magnitude() > 40.0f)
     {
-        const auto forward_angle = std::acos(eng::Vector3::normalise(touch_direction).dot({ 0.0f, 1.0f, 0.0f }));
+        const auto forward_angle = std::acos(iris::Vector3::normalise(touch_direction).dot({ 0.0f, 1.0f, 0.0f }));
         if(std::abs(forward_angle) < 0.3f)
         {
             walk_direction -= camera.direction();
@@ -35,7 +35,7 @@ void handle_left_touch(
             walk_direction += camera.direction();
         }
         
-        const auto strafe_angle = std::acos(eng::Vector3::normalise(touch_direction).dot({ 1.0f, 0.0f, 0.0f }));
+        const auto strafe_angle = std::acos(iris::Vector3::normalise(touch_direction).dot({ 1.0f, 0.0f, 0.0f }));
         if(std::abs(strafe_angle) < 0.3f)
         {
             walk_direction += camera.right();
@@ -55,28 +55,28 @@ void go(int, char **)
 {
     LOG_DEBUG("physics_sample", "hello world");
 
-    std::map<eng::Key, eng::KeyState> key_map {
-        { eng::Key::W, eng::KeyState::UP },
-        { eng::Key::A, eng::KeyState::UP },
-        { eng::Key::S, eng::KeyState::UP },
-        { eng::Key::D, eng::KeyState::UP },
-        { eng::Key::Q, eng::KeyState::UP },
-        { eng::Key::E, eng::KeyState::UP },
-        { eng::Key::SPACE, eng::KeyState::UP },
+    std::map<iris::Key, iris::KeyState> key_map {
+        { iris::Key::W, iris::KeyState::UP },
+        { iris::Key::A, iris::KeyState::UP },
+        { iris::Key::S, iris::KeyState::UP },
+        { iris::Key::D, iris::KeyState::UP },
+        { iris::Key::Q, iris::KeyState::UP },
+        { iris::Key::E, iris::KeyState::UP },
+        { iris::Key::SPACE, iris::KeyState::UP },
     };
 
-    auto &rs = eng::Root::render_system();
-    auto &ps = eng::Root::physics_system();
+    auto &rs = iris::Root::render_system();
+    auto &ps = iris::Root::physics_system();
     auto &camera = rs.persective_camera();
 
-    std::vector<std::tuple<eng::RenderEntity*, eng::RigidBody*>> boxes;
+    std::vector<std::tuple<iris::RenderEntity*, iris::RigidBody*>> boxes;
 
-    rs.create<eng::Model>(
-        eng::Vector3{ 0.0f, -50.0f, 0.0f },
-        eng::Vector3{ 500.0f, 50.0f, 500.0f },
-        eng::shape_factory::cube({ 1.0f, 1.0f, 1.0f }));
+    rs.create<iris::Model>(
+        iris::Vector3{ 0.0f, -50.0f, 0.0f },
+        iris::Vector3{ 500.0f, 50.0f, 500.0f },
+        iris::shape_factory::cube({ 1.0f, 1.0f, 1.0f }));
 
-    ps.create_rigid_body<eng::BoxRigidBody>(eng::Vector3{ 0.0f, -50.0f, 0.0f }, eng::Vector3{ 500.0f, 50.0f, 500.0f }, true);
+    ps.create_rigid_body<iris::BoxRigidBody>(iris::Vector3{ 0.0f, -50.0f, 0.0f }, iris::Vector3{ 500.0f, 50.0f, 500.0f }, true);
 
     auto width = 21u;
     auto height = 10u;
@@ -85,35 +85,35 @@ void go(int, char **)
     {
         for(auto x = 0u; x < width; ++x)
         {
-            const eng::Vector3 pos{ x, y, 0.0f };
-            static const eng::Vector3 half_size{ 0.5f, 0.5f, 0.5f };
+            const iris::Vector3 pos{ x, y, 0.0f };
+            static const iris::Vector3 half_size{ 0.5f, 0.5f, 0.5f };
             auto colour = ((y * height) + x + (y % 2)) % 2 == 0
-                ? eng::Vector3{ 1.0f, 0.0f, 0.0f }
-                : eng::Vector3{ 0.0f, 0.0f, 1.0f };
+                ? iris::Vector3{ 1.0f, 0.0f, 0.0f }
+                : iris::Vector3{ 0.0f, 0.0f, 1.0f };
 
             boxes.emplace_back(
-                rs.create<eng::Model>(pos, half_size, eng::shape_factory::cube(colour)),
-                ps.create_rigid_body<eng::BoxRigidBody>(pos, half_size, false));
+                rs.create<iris::Model>(pos, half_size, iris::shape_factory::cube(colour)),
+                ps.create_rigid_body<iris::BoxRigidBody>(pos, half_size, false));
         }
     }
 
-    auto *character_controller = ps.create_character_controller<eng::BasicCharacterController>();
+    auto *character_controller = ps.create_character_controller<iris::BasicCharacterController>();
 
     auto frame_start = std::chrono::high_resolution_clock::now();
 
-    eng::Vector3 left_touch_origin;
+    iris::Vector3 left_touch_origin;
     std::uintptr_t left_touch_id = 0u;
-    eng::Vector3 right_touch_origin;
+    iris::Vector3 right_touch_origin;
     std::uintptr_t right_touch_id = 0u;
-    eng::Vector3 walk_direction{ };
-    eng::real delta_x = 0.0f;
-    eng::real delta_y = 0.0f;
+    iris::Vector3 walk_direction{ };
+    iris::real delta_x = 0.0f;
+    iris::real delta_y = 0.0f;
     
     for(;;)
     {
-        if(auto evt = eng::Root::instance().window().pump_event() ; evt)
+        if(auto evt = iris::Root::instance().window().pump_event() ; evt)
         {
-            if(evt->is_key(eng::Key::ESCAPE))
+            if(evt->is_key(iris::Key::ESCAPE))
             {
                 break;
             }
@@ -135,8 +135,8 @@ void go(int, char **)
                 const auto touch = evt->touch();
                 switch(touch.type)
                 {
-                    case eng::TouchType::BEGIN:
-                        if(touch.x < eng::Root::window().width() / 2.0f)
+                    case iris::TouchType::BEGIN:
+                        if(touch.x < iris::Root::window().width() / 2.0f)
                         {
                             left_touch_origin = { touch.x, touch.y, 0.0f };
                             left_touch_id = touch.id;
@@ -147,9 +147,9 @@ void go(int, char **)
                             right_touch_id = touch.id;
                         }
                         break;
-                    case eng::TouchType::MOVE:
+                    case iris::TouchType::MOVE:
                     {
-                        const eng::Vector3 touch_pos{ touch.x, touch.y, 0.0f };
+                        const iris::Vector3 touch_pos{ touch.x, touch.y, 0.0f };
                         
                         if(touch.id == left_touch_id)
                         {
@@ -170,34 +170,34 @@ void go(int, char **)
                         
                         break;
                     }
-                    case eng::TouchType::END:
+                    case iris::TouchType::END:
                         walk_direction = { };
                         break;
                 }
             }
         }
 
-        if(key_map[eng::Key::W] == eng::KeyState::DOWN)
+        if(key_map[iris::Key::W] == iris::KeyState::DOWN)
         {
             walk_direction += camera.direction();
         }
 
-        if(key_map[eng::Key::S] == eng::KeyState::DOWN)
+        if(key_map[iris::Key::S] == iris::KeyState::DOWN)
         {
             walk_direction -= camera.direction();
         }
 
-        if(key_map[eng::Key::A] == eng::KeyState::DOWN)
+        if(key_map[iris::Key::A] == iris::KeyState::DOWN)
         {
             walk_direction -= camera.right();
         }
 
-        if(key_map[eng::Key::D] == eng::KeyState::DOWN)
+        if(key_map[iris::Key::D] == iris::KeyState::DOWN)
         {
             walk_direction += camera.right();
         }
 
-        if(key_map[eng::Key::SPACE] == eng::KeyState::DOWN)
+        if(key_map[iris::Key::SPACE] == iris::KeyState::DOWN)
         {
             character_controller->jump();
         }
@@ -214,7 +214,7 @@ void go(int, char **)
 
         const auto cam_pos = character_controller->position();
 
-        camera.translate(cam_pos - camera.position() + eng::Vector3{ 0.0f, 0.5f, 0.0f });
+        camera.translate(cam_pos - camera.position() + iris::Vector3{ 0.0f, 0.5f, 0.0f });
     
         for(const auto &[g, p] : boxes)
         {
@@ -235,9 +235,9 @@ int main(int argc, char **argv)
 {
     try
     {
-        eng::start_debug(argc, argv, go);
+        iris::start_debug(argc, argv, go);
     }
-    catch(eng::Exception &e)
+    catch(iris::Exception &e)
     {
         LOG_ERROR("physics_sample", e.what());
         LOG_ERROR("physics_sample", e.stack_trace());

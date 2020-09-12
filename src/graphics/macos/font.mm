@@ -17,7 +17,7 @@
 #include "platform/macos/cf_ptr.h"
 #include "platform/macos/macos_ios_utility.h"
 
-namespace eng
+namespace iris
 {
 
 /**

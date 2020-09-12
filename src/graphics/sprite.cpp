@@ -7,7 +7,7 @@
 #include "graphics/texture.h"
 #include "log/log.h"
 
-namespace eng
+namespace iris
 {
 
 Sprite::Sprite(

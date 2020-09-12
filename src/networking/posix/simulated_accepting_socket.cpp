@@ -16,7 +16,7 @@
 #include "jobs/concurrent_queue.h"
 #include "networking/simulated_socket.h"
 
-namespace eng
+namespace iris
 {
 
 SimulatedAcceptingSocket::SimulatedAcceptingSocket(

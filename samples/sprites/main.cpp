@@ -13,38 +13,38 @@ void go(int, char**)
 {
     LOG_DEBUG("sprite_sample", "hello world");
 
-    auto &rs = eng::Root::instance().render_system();
+    auto &rs = iris::Root::instance().render_system();
 
-    auto *sprite1 = rs.create<eng::Sprite>(
+    auto *sprite1 = rs.create<iris::Sprite>(
         0,
         0,
         100,
         100,
-        eng::Vector3{ 0.39f, 0.58f, 0.92f });
+        iris::Vector3{ 0.39f, 0.58f, 0.92f });
 
-    auto *sprite2 = rs.create<eng::Sprite>(
+    auto *sprite2 = rs.create<iris::Sprite>(
         0.0f,
         150.0f,
         100,
         100,
-        eng::Vector3{ 0.86f, 0.08f, 0.23f });
+        iris::Vector3{ 0.86f, 0.08f, 0.23f });
 
-    auto *sprite3 = rs.create<eng::Sprite>(
+    auto *sprite3 = rs.create<iris::Sprite>(
         0.0f,
         -150.0f,
         100.0f,
         100.0f,
-        eng::Vector3{ 1.0f, 1.0f, 1.0f },
-        eng::Texture("circle.png"));
+        iris::Vector3{ 1.0f, 1.0f, 1.0f },
+        iris::Texture("circle.png"));
 
-    eng::Quaternion rot{ { 0.0f, 0.0f, 1.0f }, 0.0f };
-    eng::Quaternion delta{ { 0.0f, 0.0f, 1.0f }, 0.02f };
+    iris::Quaternion rot{ { 0.0f, 0.0f, 1.0f }, 0.0f };
+    iris::Quaternion delta{ { 0.0f, 0.0f, 1.0f }, 0.02f };
 
     for(;;)
     {
-        if(auto evt = eng::Root::instance().window().pump_event() ; evt)
+        if(auto evt = iris::Root::instance().window().pump_event() ; evt)
         {
-            if(evt->is_key(eng::Key::Q))
+            if(evt->is_key(iris::Key::Q))
             {
                 break;
             }
@@ -65,9 +65,9 @@ int main(int argc, char **argv)
 {
     try
     {
-        eng::start_debug(argc, argv, go);
+        iris::start_debug(argc, argv, go);
     }
-    catch(eng::Exception &e)
+    catch(iris::Exception &e)
     {
         LOG_ERROR("sprite_sample", e.what());
         LOG_ERROR("sprite_sample", e.stack_trace());

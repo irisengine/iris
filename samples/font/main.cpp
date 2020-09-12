@@ -14,15 +14,15 @@ int go(int, char**)
 {
     LOG_DEBUG("font_sample", "hello world");
 
-    auto &rs = eng::Root::instance().render_system();
+    auto &rs = iris::Root::instance().render_system();
 
-    rs.create<eng::Font>("Helvetica", 12, "hello world", eng::Vector3{ 1.0f, 1.0f, 1.0f });
+    rs.create<iris::Font>("Helvetica", 12, "hello world", iris::Vector3{ 1.0f, 1.0f, 1.0f });
 
     for(;;)
     {
-        if(auto evt = eng::Root::instance().window().pump_event() ; evt)
+        if(auto evt = iris::Root::instance().window().pump_event() ; evt)
         {
-            if(evt->is_key(eng::Key::Q))
+            if(evt->is_key(iris::Key::Q))
             {
                 break;
             }
@@ -40,9 +40,9 @@ int main(int argc, char **argv)
 {
     try
     {
-        eng::start_debug(argc, argv, go);
+        iris::start_debug(argc, argv, go);
     }
-    catch(eng::Exception &e)
+    catch(iris::Exception &e)
     {
         LOG_ERROR("font_sample", e.what());
         LOG_ERROR("font_sample", e.stack_trace());

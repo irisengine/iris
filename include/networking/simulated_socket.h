@@ -8,7 +8,7 @@
 #include "core/real.h"
 #include "networking/socket.h"
 
-namespace eng
+namespace iris
 {
 
 /**

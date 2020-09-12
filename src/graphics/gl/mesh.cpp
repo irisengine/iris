@@ -24,20 +24,20 @@ namespace
  * @returns
  *   Supplied type as opengl type.
  */
-std::uint32_t type_to_gl_type(const eng::BufferType type)
+std::uint32_t type_to_gl_type(const iris::BufferType type)
 {
     auto gl_type = GL_ARRAY_BUFFER;
 
     switch(type)
     {
-        case eng::BufferType::VERTEX_ATTRIBUTES:
+        case iris::BufferType::VERTEX_ATTRIBUTES:
             gl_type = GL_ARRAY_BUFFER;
             break;
-        case eng::BufferType::VERTEX_INDICES:
+        case iris::BufferType::VERTEX_INDICES:
             gl_type = GL_ELEMENT_ARRAY_BUFFER;
             break;
         default:
-            throw eng::Exception("unknown Buffer type");
+            throw iris::Exception("unknown Buffer type");
     }
 
     return gl_type;
@@ -49,17 +49,17 @@ std::uint32_t type_to_gl_type(const eng::BufferType type)
  * @param buffer
  *   Buffer to bind.
  */
-void bind_buffer(const eng::Buffer &buffer)
+void bind_buffer(const iris::Buffer &buffer)
 {
     const auto handle = std::any_cast<std::uint32_t>(buffer.native_handle());
 
     ::glBindBuffer(type_to_gl_type(buffer.type()), handle);
-    eng::check_opengl_error("could not bind buffer");
+    iris::check_opengl_error("could not bind buffer");
 }
 
 }
 
-namespace eng
+namespace iris
 {
 
 /**

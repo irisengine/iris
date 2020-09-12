@@ -177,7 +177,7 @@ fragment float4 fragment_main(
 
 }
 
-namespace eng::material_factory
+namespace iris::material_factory
 {
 
 Material* sprite()

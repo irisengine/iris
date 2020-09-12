@@ -11,7 +11,7 @@
 #include "networking/channel/channel.h"
 #include "jobs/concurrent_queue.h"
 
-namespace eng
+namespace iris
 {
 
 /**

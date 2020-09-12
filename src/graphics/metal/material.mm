@@ -32,7 +32,7 @@ id<MTLFunction> load_function(
     NSError *error = nullptr;
 
     // load source
-    const auto *library = [device newLibraryWithSource:eng::platform::utility::string_to_nsstring(source)
+    const auto *library = [device newLibraryWithSource:iris::platform::utility::string_to_nsstring(source)
                                                options:nullptr
                                                  error:&error];
 
@@ -40,15 +40,15 @@ id<MTLFunction> load_function(
     {
         // an error occurred so parse error and throw
         const std::string error_message{ [[error localizedDescription] UTF8String] };
-        throw eng::Exception("failed to load shader: " + error_message);
+        throw iris::Exception("failed to load shader: " + error_message);
     }
 
-    return [library newFunctionWithName:eng::platform::utility::string_to_nsstring(function_name)];
+    return [library newFunctionWithName:iris::platform::utility::string_to_nsstring(function_name)];
 }
 
 }
 
-namespace eng
+namespace iris
 {
 
 /**
@@ -70,7 +70,7 @@ Material::Material(
     const std::string &fragment_shader_source)
     : impl_(nullptr)
 {
-    auto *device = eng::platform::utility::metal_device();
+    auto *device = iris::platform::utility::metal_device();
     
     // load shaders and entry functions
     const auto vertex_program = load_function(device, vertex_shader_source, "vertex_main");

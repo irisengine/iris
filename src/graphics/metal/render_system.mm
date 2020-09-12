@@ -18,15 +18,15 @@ namespace
 
 struct uniform
 {
-    eng::Matrix4 projection;
-    eng::Matrix4 view;
-    eng::Matrix4 model;
-    eng::Matrix4 normal_matrix;
+    iris::Matrix4 projection;
+    iris::Matrix4 view;
+    iris::Matrix4 model;
+    iris::Matrix4 normal_matrix;
 };
 
 }
 
-namespace eng
+namespace iris
 {
 
 /**

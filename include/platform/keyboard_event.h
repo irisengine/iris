@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace eng
+namespace iris
 {
 
 /** Encapsulated whether a Key was a down or up press */

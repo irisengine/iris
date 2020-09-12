@@ -4,7 +4,7 @@
 #include "graphics/mesh.h"
 #include "graphics/texture.h"
 
-namespace eng::shape_factory
+namespace iris::shape_factory
 {
 
 /**

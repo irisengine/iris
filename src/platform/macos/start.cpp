@@ -8,7 +8,7 @@
 #include "log/log.h"
 #include "log/logger.h"
 
-namespace eng
+namespace iris
 {
 
 void start(int argc, char **argv, std::function<void(int, char**)> entry)

@@ -9,7 +9,7 @@
 #include "core/vector3.h"
 #include "core/quaternion.h"
 
-namespace eng
+namespace iris
 {
 
 /**

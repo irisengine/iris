@@ -4,7 +4,7 @@
 
 #include "graphics/gl/shader_type.h"
 
-namespace eng
+namespace iris
 {
 
 /**

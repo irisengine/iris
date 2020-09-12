@@ -17,13 +17,13 @@ extern "C"
 {
 
 // these will be defined with arch specific assembler
-extern void get_context(eng::Context*);
-extern void set_context(eng::Context*);
+extern void get_context(iris::Context*);
+extern void set_context(iris::Context*);
 extern void change_stack(void *stack);
 
 }
 
-namespace eng
+namespace iris
 {
 
 Fiber::Fiber()

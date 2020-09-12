@@ -7,7 +7,7 @@
 #include <btBulletDynamicsCommon.h>
 #include <btBulletCollisionCommon.h>
 
-namespace eng
+namespace iris
 {
 
 struct BoxRigidBody::implementation

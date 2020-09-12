@@ -75,32 +75,32 @@ std::uint32_t create_texture(
     const auto expected_size = width * height * num_channels;
     if(data.size() != expected_size)
     {
-        throw eng::Exception("incorrect data size");
+        throw iris::Exception("incorrect data size");
     }
 
     auto texture = 0u;
 
     ::glGenTextures(1, &texture);
-    eng::check_opengl_error("could not generate texture");
+    iris::check_opengl_error("could not generate texture");
 
     // use default Texture unit
     ::glActiveTexture(GL_TEXTURE0);
-    eng::check_opengl_error("could not activiate texture");
+    iris::check_opengl_error("could not activiate texture");
 
     ::glBindTexture(GL_TEXTURE_2D, texture);
-    eng::check_opengl_error("could not bind texture");
+    iris::check_opengl_error("could not bind texture");
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    eng::check_opengl_error("could not set wrap s parameter");
+    iris::check_opengl_error("could not set wrap s parameter");
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    eng::check_opengl_error("could not set wrap t parameter");
+    iris::check_opengl_error("could not set wrap t parameter");
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    eng::check_opengl_error("could not set min filter parameter");
+    iris::check_opengl_error("could not set min filter parameter");
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    eng::check_opengl_error("could not set max filter parameter");
+    iris::check_opengl_error("could not set max filter parameter");
 
     const auto format = channels_to_format(num_channels);
 
@@ -115,17 +115,17 @@ std::uint32_t create_texture(
         format,
         GL_UNSIGNED_BYTE,
         data.data());
-    eng::check_opengl_error("could not set Texture data");
+    iris::check_opengl_error("could not set Texture data");
 
     ::glGenerateMipmap(GL_TEXTURE_2D);
-    eng::check_opengl_error("could not generate mipmaps");
+    iris::check_opengl_error("could not generate mipmaps");
 
     return texture;
 }
 
 }
 
-namespace eng
+namespace iris
 {
 
 /**

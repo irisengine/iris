@@ -9,7 +9,7 @@
 
 #include "log/log_level.h"
 
-namespace eng
+namespace iris
 {
 
 std::string ColourFormatter::format(

@@ -4,7 +4,7 @@
 #include "graphics/mesh.h"
 #include "graphics/render_entity.h"
 
-namespace eng
+namespace iris
 {
 
 /**

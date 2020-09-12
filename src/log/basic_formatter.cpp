@@ -39,7 +39,7 @@ std::string format_filename(const std::string &filename)
  * @returns
  *   First character of log level.
  */
-char first_char_of_level(const eng::LogLevel level)
+char first_char_of_level(const iris::LogLevel level)
 {
     std::stringstream strm{ };
     strm << level;
@@ -53,7 +53,7 @@ char first_char_of_level(const eng::LogLevel level)
 
 }
 
-namespace eng
+namespace iris
 {
 
 std::string BasicFormatter::format(

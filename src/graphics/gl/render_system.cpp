@@ -13,7 +13,7 @@
 #include "graphics/render_entity.h"
 #include "log/log.h"
 
-namespace eng
+namespace iris
 {
 
 /**
@@ -97,7 +97,7 @@ void RenderSystem::render()
         const auto light_uniform = ::glGetUniformLocation(program, "light");
         check_opengl_error("could not get light uniform location");
 
-        static auto light = eng::Vector3(100.0f, 100.0f, 100.0f);
+        static auto light = iris::Vector3(100.0f, 100.0f, 100.0f);
         ::glUniform3f(light_uniform, light.x, light.y, light.z);
         check_opengl_error("could not set light uniform data");
 

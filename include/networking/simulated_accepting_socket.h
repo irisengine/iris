@@ -7,7 +7,7 @@
 #include "networking/accepting_socket.h"
 #include "networking/simulated_socket.h"
 
-namespace eng
+namespace iris
 {
 
 /**

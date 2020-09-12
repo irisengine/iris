@@ -8,7 +8,7 @@
 
 #include "core/exception.h"
 
-namespace eng
+namespace iris
 {
 
 Thread::Thread()

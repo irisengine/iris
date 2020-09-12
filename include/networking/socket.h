@@ -5,7 +5,7 @@
 
 #include "core/data_buffer.h"
 
-namespace eng
+namespace iris
 {
 
 /**

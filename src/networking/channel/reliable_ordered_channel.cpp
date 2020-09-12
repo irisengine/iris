@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <vector>
 
-namespace eng
+namespace iris
 {
 
 ReliableOrderedChannel::ReliableOrderedChannel()

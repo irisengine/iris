@@ -4,7 +4,7 @@
 
 #include <CoreFoundation/CoreFoundation.h>
 
-namespace eng
+namespace iris
 {
 
 /**

@@ -7,7 +7,7 @@
 #include "core/vector3.h"
 #include "physics/rigid_body.h"
 
-namespace eng
+namespace iris
 {
 
 /**

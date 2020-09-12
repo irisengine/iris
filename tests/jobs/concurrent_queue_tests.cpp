@@ -8,13 +8,13 @@
 
 TEST(concurrent_queue, constructor)
 {
-    eng::ConcurrentQueue<int> q;
+    iris::ConcurrentQueue<int> q;
     ASSERT_TRUE(q.empty());
 }
 
 TEST(concurrent_queue, enqueue)
 {
-    eng::ConcurrentQueue<int> q;
+    iris::ConcurrentQueue<int> q;
     q.enqueue(1);
 
     ASSERT_FALSE(q.empty());
@@ -22,7 +22,7 @@ TEST(concurrent_queue, enqueue)
 
 TEST(concurrent_queue, try_dequeue)
 {
-    eng::ConcurrentQueue<int> q;
+    iris::ConcurrentQueue<int> q;
     q.enqueue(1);
     int value = 0;
 
@@ -34,7 +34,7 @@ TEST(concurrent_queue, try_dequeue)
 TEST(concurrent_queue, enqueue_thread_safe)
 {
     static constexpr auto value_count = 10000;
-    eng::ConcurrentQueue<int> q;
+    iris::ConcurrentQueue<int> q;
     std::vector<int> values(value_count);
     std::iota(std::begin(values), std::end(values), 0);
 

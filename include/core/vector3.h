@@ -4,7 +4,7 @@
 
 #include "core/real.h"
 
-namespace eng
+namespace iris
 {
 
 /**

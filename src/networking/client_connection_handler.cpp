@@ -46,12 +46,12 @@ namespace
  * @param channel
  *   Channel to perform handshake on.
  */
-std::uint32_t handshake(eng::Socket *socket, eng::Channel *channel)
+std::uint32_t handshake(iris::Socket *socket, iris::Channel *channel)
 {
     auto id = std::numeric_limits<std::uint32_t>::max();
 
     // create and enqueue a HELLO packet
-    static const auto hello = eng::Packet(eng::PacketType::HELLO, eng::ChannelType::RELIABLE_ORDERED, {});
+    static const auto hello = iris::Packet(iris::PacketType::HELLO, iris::ChannelType::RELIABLE_ORDERED, {});
     channel->enqueue_send(hello);
 
     // send all packets
@@ -64,8 +64,8 @@ std::uint32_t handshake(eng::Socket *socket, eng::Channel *channel)
     for(;;)
     {
         // read a packet
-        const auto raw_packet = socket->read(sizeof(eng::Packet));
-        eng::Packet packet{ };
+        const auto raw_packet = socket->read(sizeof(iris::Packet));
+        iris::Packet packet{ };
         std::memcpy(packet.data(), raw_packet.data(), raw_packet.size());
         packet.resize(raw_packet.size());
 
@@ -80,15 +80,15 @@ std::uint32_t handshake(eng::Socket *socket, eng::Channel *channel)
         const auto connected = std::find_if(
             std::cbegin(responses),
             std::cend(responses),
-            [](const eng::Packet &p)
+            [](const iris::Packet &p)
             {
-                return p.type() == eng::PacketType::CONNECTED;
+                return p.type() == iris::PacketType::CONNECTED;
             });
 
         // if we got it then get the id from the server and stop looping
         if(connected != std::cend(responses))
         {
-            eng::DataBufferDeserialiser deserialiser{ connected->body_buffer() };
+            iris::DataBufferDeserialiser deserialiser{ connected->body_buffer() };
             id = deserialiser.pop<std::uint32_t>();
             break;
         }
@@ -96,7 +96,7 @@ std::uint32_t handshake(eng::Socket *socket, eng::Channel *channel)
 
     if(id == std::numeric_limits<std::uint32_t>::max())
     {
-        throw eng::Exception("connection timeout");
+        throw iris::Exception("connection timeout");
     }
 
     LOG_ENGINE_INFO("client_connection_handler", "i am: {}", id);
@@ -113,17 +113,17 @@ std::uint32_t handshake(eng::Socket *socket, eng::Channel *channel)
  * @param socket
  *   Socket for the connection.
  */
-void handle_sync_start(eng::Channel *channel, eng::Socket *socket)
+void handle_sync_start(iris::Channel *channel, iris::Socket *socket)
 {
     // serialise our time
     const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
-    eng::DataBufferSerialiser serialiser{ };
+    iris::DataBufferSerialiser serialiser{ };
     serialiser.push<std::uint32_t>(now.count());
 
     // create and enqueue SYNC_RESPONSE
-    eng::Packet response{
-        eng::PacketType::SYNC_RESPONSE,
-        eng::ChannelType::RELIABLE_ORDERED,
+    iris::Packet response{
+        iris::PacketType::SYNC_RESPONSE,
+        iris::ChannelType::RELIABLE_ORDERED,
         serialiser.data()};
     channel->enqueue_send(std::move(response));
 
@@ -143,10 +143,10 @@ void handle_sync_start(eng::Channel *channel, eng::Socket *socket)
  * @returns
  *   Estimate of lag between client and server.
  */
-std::chrono::milliseconds handle_sync_finish(const eng::Packet &packet)
+std::chrono::milliseconds handle_sync_finish(const iris::Packet &packet)
 {
     // deserialise times sent from server
-    eng::DataBufferDeserialiser deserialiser{ packet.body_buffer() };
+    iris::DataBufferDeserialiser deserialiser{ packet.body_buffer() };
     const auto [client_time_raw, server_time_raw] = deserialiser.pop_tuple<std::uint32_t, std::uint32_t>();
     const std::chrono::milliseconds client_time(client_time_raw);
     const std::chrono::milliseconds server_time(server_time_raw);
@@ -161,7 +161,7 @@ std::chrono::milliseconds handle_sync_finish(const eng::Packet &packet)
 
 }
 
-namespace eng
+namespace iris
 {
 
 ClientConnectionHandler::ClientConnectionHandler(std::unique_ptr<Socket> socket)
@@ -188,13 +188,13 @@ ClientConnectionHandler::ClientConnectionHandler(std::unique_ptr<Socket> socket)
     // a background job
     // this will handle any protocol packets and stick data into queues, which
     // can then be retrieved by calls to try_read
-    eng::Root::job_system().add_jobs({
+    iris::Root::job_system().add_jobs({
         [this]() {
             for(;;)
             {
                 // block and read the next Packet
                 const auto raw_packet = socket_->read(sizeof(Packet));
-                eng::Packet packet{ };
+                iris::Packet packet{ };
                 std::memcpy(packet.data(), raw_packet.data(), raw_packet.size());
                 packet.resize(raw_packet.size());
 

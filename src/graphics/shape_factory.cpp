@@ -8,7 +8,7 @@
 #include "graphics/texture.h"
 #include "graphics/vertex_data.h"
 
-namespace eng::shape_factory
+namespace iris::shape_factory
 {
 
 Mesh sprite(const Vector3 &colour, Texture &&texture)

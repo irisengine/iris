@@ -12,7 +12,7 @@
 #include "log/log.h"
 #include "platform/ios/MetalViewController.h"
 
-namespace eng
+namespace iris
 {
 
 // globals for calling back into game
@@ -57,9 +57,9 @@ extern char **g_argv;
 
     // safe to initialise root now
     // ignore the fact that we've been using Root via LOG up until now!
-    eng::Root::instance().init();
+    iris::Root::instance().init();
     
-    eng::g_entry(eng::g_argc, eng::g_argv);
+    iris::g_entry(iris::g_argc, iris::g_argv);
 
     LOG_ENGINE_INFO("AppDelegate", "main done");
 }

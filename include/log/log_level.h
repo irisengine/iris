@@ -4,7 +4,7 @@
 #include <iostream>
 #include <iosfwd>
 
-namespace eng
+namespace iris
 {
 
 /**
