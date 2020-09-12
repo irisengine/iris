@@ -1,7 +1,7 @@
 #include "platform/start.h"
 
-#include <iostream>
 #include <functional>
+#include <iostream>
 
 #include "core/root.h"
 #include "jobs/job_system.h"
@@ -11,7 +11,7 @@
 namespace iris
 {
 
-void start(int argc, char **argv, std::function<void(int, char**)> entry)
+void start(int argc, char **argv, std::function<void(int, char **)> entry)
 {
     // safe to initialise root now
     Root::instance().init();
@@ -21,7 +21,7 @@ void start(int argc, char **argv, std::function<void(int, char**)> entry)
     entry(argc, argv);
 }
 
-void start_debug(int argc, char **argv, std::function<void(int, char**)> entry)
+void start_debug(int argc, char **argv, std::function<void(int, char **)> entry)
 {
     // safe to initialise root now
     Root::instance().init();
@@ -37,4 +37,3 @@ void start_debug(int argc, char **argv, std::function<void(int, char**)> entry)
 }
 
 }
-

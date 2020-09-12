@@ -11,11 +11,11 @@ void go(int, char **)
 
     auto &window = iris::Root::window();
 
-    for(;;)
+    for (;;)
     {
-        if(auto evt = window.pump_event() ; evt)
+        if (auto evt = window.pump_event(); evt)
         {
-            if(evt->is_key(iris::Key::Q))
+            if (evt->is_key(iris::Key::Q))
             {
                 break;
             }
@@ -32,16 +32,15 @@ int main(int argc, char **argv)
     {
         iris::start(argc, argv, go);
     }
-    catch(iris::Exception &e)
+    catch (iris::Exception &e)
     {
         LOG_ERROR("window_sample", e.what());
         LOG_ERROR("window_sample", e.stack_trace());
     }
-    catch(...)
+    catch (...)
     {
         LOG_ERROR("window_sample", "unknown exception");
     }
 
     return 0;
 }
-

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <string>
 #include <fstream>
+#include <string>
 
 #include "log/outputter.h"
 
@@ -13,32 +13,29 @@ namespace iris
  */
 class FileOutputter : public Outputter
 {
-    public:
+  public:
+    /** Default */
+    ~FileOutputter() override = default;
 
-        /** Default */
-        ~FileOutputter() override = default;
+    /**
+     * Construct a new file_outputter.
+     *
+     * @param filename
+     *   Name of log file to write to.
+     */
+    explicit FileOutputter(const std::string &filename);
 
-        /**
-         * Construct a new file_outputter.
-         *
-         * @param filename
-         *   Name of log file to write to.
-         */
-        explicit FileOutputter(const std::string &filename);
+    /**
+     * Output log.
+     *
+     * @param log
+     *   Log message to output.
+     */
+    void output(const std::string &log) override;
 
-        /**
-         * Output log.
-         *
-         * @param log
-         *   Log message to output.
-         */
-        void output(const std::string &log) override;
-
-    private:
-
-        /** File stream to write to. */
-        std::ofstream file_;
+  private:
+    /** File stream to write to. */
+    std::ofstream file_;
 };
 
 }
-

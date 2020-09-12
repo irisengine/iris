@@ -23,4 +23,3 @@ enum class FiberState : std::uint8_t
 };
 
 }
-

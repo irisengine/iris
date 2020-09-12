@@ -19,12 +19,12 @@ std::string EmojiFormatter::format(
     const std::string &filename,
     const int line)
 {
-    std::stringstream strm{ };
+    std::stringstream strm{};
 
     // apply an emoji to start of output
     // depending on your text editor the emojis below may not display, but they
     // are there!
-    switch(level)
+    switch (level)
     {
         case LogLevel::DEBUG:
             strm << "🔵 ";
@@ -38,7 +38,8 @@ std::string EmojiFormatter::format(
         case LogLevel::ERROR:
             strm << "❌ ";
             break;
-        default: break;
+        default:
+            break;
     }
 
     // write message
@@ -48,6 +49,3 @@ std::string EmojiFormatter::format(
 }
 
 }
-
-
-

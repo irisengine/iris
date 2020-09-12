@@ -51,29 +51,26 @@ void go(int, char **)
     auto tick = 0u;
 
     auto socket = std::make_unique<iris::SimulatedAcceptingSocket>(
-        "2",
-        "1",
-        0ms,
-        0ms,
-        0.0f);
+        "2", "1", 0ms, 0ms, 0.0f);
 
     iris::ServerConnectionHandler connection_handler(
         std::move(socket),
-        [](std::size_t id)
-        {
+        [](std::size_t id) {
             LOG_DEBUG("server", "new connection {}", id);
 
             // just support a single player
             player_id = id;
         },
-        [&inputs, &tick](std::size_t id, const iris::DataBuffer &data, iris::ChannelType type)
-        {
-            if(type == iris::ChannelType::RELIABLE_ORDERED)
+        [&inputs, &tick](
+            std::size_t id,
+            const iris::DataBuffer &data,
+            iris::ChannelType type) {
+            if (type == iris::ChannelType::RELIABLE_ORDERED)
             {
                 iris::DataBufferDeserialiser deserialiser(data);
-                ClientInput input{ deserialiser };
+                ClientInput input{deserialiser};
 
-                if(input.tick >= tick)
+                if (input.tick >= tick)
                 {
                     // if input is for now or the future (which it should be as
                     // the client runs ahead) then store it
@@ -84,15 +81,22 @@ void go(int, char **)
                     LOG_WARN("server", "stale input: {} {}", tick, input.tick);
                 }
             }
-    });
+        });
 
-    iris::PhysicsSystem ps{ };
-    character_controller = ps.create_character_controller<iris::BasicCharacterController>();
-    ps.create_rigid_body<iris::BoxRigidBody>(iris::Vector3{ 0.0f, -50.0f, 0.0f }, iris::Vector3{ 500.0f, 50.0f, 500.0f }, true);
-    auto *box = ps.create_rigid_body<iris::BoxRigidBody>(iris::Vector3{ 0.0f, 1.0f, 0.0f }, iris::Vector3{ 0.5f, 0.5f, 0.5f }, false);
+    iris::PhysicsSystem ps{};
+    character_controller =
+        ps.create_character_controller<iris::BasicCharacterController>();
+    ps.create_rigid_body<iris::BoxRigidBody>(
+        iris::Vector3{0.0f, -50.0f, 0.0f},
+        iris::Vector3{500.0f, 50.0f, 500.0f},
+        true);
+    auto *box = ps.create_rigid_body<iris::BoxRigidBody>(
+        iris::Vector3{0.0f, 1.0f, 0.0f},
+        iris::Vector3{0.5f, 0.5f, 0.5f},
+        false);
 
     // block and wait for client to connect
-    while(player_id == std::numeric_limits<std::size_t>::max())
+    while (player_id == std::numeric_limits<std::size_t>::max())
     {
         connection_handler.update();
         std::this_thread::sleep_for(100ms);
@@ -105,23 +109,24 @@ void go(int, char **)
     iris::Looper looper{
         0ms,
         33ms,
-        [&](std::chrono::microseconds clock, std::chrono::microseconds time_step)
-        {
+        [&](std::chrono::microseconds clock,
+            std::chrono::microseconds time_step) {
             // fixed timestep function
             // this runs the physics and processes player input
 
-            for(const auto &input : inputs)
+            for (const auto &input : inputs)
             {
                 // if stored input is for our current tick then apply it to
                 // the physics simulation
-                if(input.tick == tick)
+                if (input.tick == tick)
                 {
-                    iris::Vector3 walk_direction{ input.side, 0.0f, input.forward };
+                    iris::Vector3 walk_direction{
+                        input.side, 0.0f, input.forward};
                     walk_direction.normalise();
 
                     character_controller->set_walk_direction(walk_direction);
                 }
-                if(input.tick > tick)
+                if (input.tick > tick)
                 {
                     break;
                 }
@@ -132,8 +137,8 @@ void go(int, char **)
 
             return true;
         },
-        [&](std::chrono::microseconds clock, std::chrono::microseconds time_step)
-        {
+        [&](std::chrono::microseconds clock,
+            std::chrono::microseconds time_step) {
             // variable timestep function
             // sends snapshots of the world to the client
 
@@ -141,7 +146,7 @@ void go(int, char **)
 
             // whilst this is a variable time function we only want to send out
             // updates every 100ms
-            if(clock > step + 100ms)
+            if (clock > step + 100ms)
             {
                 // serialise world state
                 iris::DataBufferSerialiser serialiser;
@@ -152,7 +157,10 @@ void go(int, char **)
                 serialiser.push(box->position());
                 serialiser.push(box->orientation());
 
-                connection_handler.send(player_id, serialiser.data(), iris::ChannelType::RELIABLE_ORDERED);
+                connection_handler.send(
+                    player_id,
+                    serialiser.data(),
+                    iris::ChannelType::RELIABLE_ORDERED);
 
                 step = clock;
             }
@@ -169,18 +177,15 @@ int main(int argc, char **argv)
     {
         go(argc, argv);
     }
-    catch(iris::Exception &e)
+    catch (iris::Exception &e)
     {
         LOG_ERROR("server", e.what());
         LOG_ERROR("server", e.stack_trace());
     }
-    catch(...)
+    catch (...)
     {
         LOG_ERROR("server", "unknown exception");
     }
 
     return 0;
 }
-
-
-

@@ -26,7 +26,7 @@ std::uint32_t type_to_gl_type(const iris::BufferType type)
 {
     auto gl_type = GL_ARRAY_BUFFER;
 
-    switch(type)
+    switch (type)
     {
         case iris::BufferType::VERTEX_ATTRIBUTES:
             gl_type = GL_ARRAY_BUFFER;
@@ -50,7 +50,7 @@ std::uint32_t type_to_gl_type(const iris::BufferType type)
  * @returns
  *   Handle to opengl buffer.
  */
-template<class T>
+template <class T>
 std::uint32_t create_Buffer(
     const std::vector<T> &data,
     const iris::BufferType type)
@@ -68,10 +68,7 @@ std::uint32_t create_Buffer(
 
     // copy data to buffer
     ::glBufferData(
-        gl_type,
-        data.size() * sizeof(T),
-        data.data(),
-        GL_STATIC_DRAW);
+        gl_type, data.size() * sizeof(T), data.data(), GL_STATIC_DRAW);
     iris::check_opengl_error("could not Buffer data");
 
     // unbind buffer
@@ -94,30 +91,34 @@ struct Buffer::implementation final
     /** Simple constructor which takes a value for each member. */
     implementation(std::uint32_t handle)
         : handle(handle)
-    { }
+    {
+    }
 
     /** Opengl handle for buffer. */
     std::uint32_t handle;
 };
 
 Buffer::Buffer(const std::vector<float> &data, const BufferType type)
-    : impl_(std::make_unique<implementation>(create_Buffer(data, type))),
-      type_(type)
-{ }
+    : impl_(std::make_unique<implementation>(create_Buffer(data, type)))
+    , type_(type)
+{
+}
 
 Buffer::Buffer(const std::vector<std::uint32_t> &data, const BufferType type)
-    : impl_(std::make_unique<implementation>(create_Buffer(data, type))),
-      type_(type)
-{ }
+    : impl_(std::make_unique<implementation>(create_Buffer(data, type)))
+    , type_(type)
+{
+}
 
 Buffer::Buffer(const std::vector<vertex_data> &data, const BufferType type)
-    : impl_(std::make_unique<implementation>(create_Buffer(data, type))),
-      type_(type)
-{ }
+    : impl_(std::make_unique<implementation>(create_Buffer(data, type)))
+    , type_(type)
+{
+}
 
 Buffer::~Buffer()
 {
-    if(impl_)
+    if (impl_)
     {
         ::glDeleteBuffers(1, std::addressof(impl_->handle));
     }
@@ -125,11 +126,11 @@ Buffer::~Buffer()
 
 /** Default. */
 Buffer::Buffer(Buffer &&other) = default;
-Buffer& Buffer::operator=(Buffer &&other) = default;
+Buffer &Buffer::operator=(Buffer &&other) = default;
 
 std::any Buffer::native_handle() const
 {
-    return std::any{ impl_->handle };
+    return std::any{impl_->handle};
 }
 
 BufferType Buffer::type() const
@@ -138,4 +139,3 @@ BufferType Buffer::type() const
 }
 
 }
-

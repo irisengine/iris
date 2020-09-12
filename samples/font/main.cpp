@@ -10,19 +10,20 @@
 #include "platform/event.h"
 #include "platform/start.h"
 
-int go(int, char**)
+int go(int, char **)
 {
     LOG_DEBUG("font_sample", "hello world");
 
     auto &rs = iris::Root::instance().render_system();
 
-    rs.create<iris::Font>("Helvetica", 12, "hello world", iris::Vector3{ 1.0f, 1.0f, 1.0f });
+    rs.create<iris::Font>(
+        "Helvetica", 12, "hello world", iris::Vector3{1.0f, 1.0f, 1.0f});
 
-    for(;;)
+    for (;;)
     {
-        if(auto evt = iris::Root::instance().window().pump_event() ; evt)
+        if (auto evt = iris::Root::instance().window().pump_event(); evt)
         {
-            if(evt->is_key(iris::Key::Q))
+            if (evt->is_key(iris::Key::Q))
             {
                 break;
             }
@@ -42,14 +43,13 @@ int main(int argc, char **argv)
     {
         iris::start_debug(argc, argv, go);
     }
-    catch(iris::Exception &e)
+    catch (iris::Exception &e)
     {
         LOG_ERROR("font_sample", e.what());
         LOG_ERROR("font_sample", e.stack_trace());
     }
-    catch(...)
+    catch (...)
     {
         LOG_ERROR("font_sample", "unknown exception");
     }
 }
-

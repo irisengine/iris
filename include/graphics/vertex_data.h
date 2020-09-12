@@ -30,11 +30,12 @@ struct vertex_data
         const Vector3 &normal,
         const Vector3 &colour,
         const Vector3 &texture_coords)
-        : position(position),
-          normal(normal),
-          colour(colour),
-          texture_coords(texture_coords)
-    { }
+        : position(position)
+        , normal(normal)
+        , colour(colour)
+        , texture_coords(texture_coords)
+    {
+    }
 
     /** Vertex position. */
     Vector3 position;
@@ -50,4 +51,3 @@ struct vertex_data
 };
 
 }
-

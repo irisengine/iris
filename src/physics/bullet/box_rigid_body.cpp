@@ -4,8 +4,8 @@
 
 #include <BulletCollision/CollisionShapes/btBoxShape.h>
 #include <LinearMath/btDefaultMotionState.h>
-#include <btBulletDynamicsCommon.h>
 #include <btBulletCollisionCommon.h>
+#include <btBulletDynamicsCommon.h>
 
 namespace iris
 {
@@ -35,13 +35,11 @@ BoxRigidBody::BoxRigidBody(
     ::btTransform start_transform;
     start_transform.setIdentity();
     start_transform.setOrigin(::btVector3(position.x, position.y, position.z));
-    impl_->motion_state = std::make_unique<::btDefaultMotionState>(start_transform);
+    impl_->motion_state =
+        std::make_unique<::btDefaultMotionState>(start_transform);
 
     ::btRigidBody::btRigidBodyConstructionInfo rbInfo(
-        mass,
-        impl_->motion_state.get(),
-        impl_->shape.get(),
-        localInertia);
+        mass, impl_->motion_state.get(), impl_->shape.get(), localInertia);
 
     impl_->body = std::make_unique<::btRigidBody>(rbInfo);
 
@@ -52,10 +50,13 @@ BoxRigidBody::~BoxRigidBody() = default;
 
 Vector3 BoxRigidBody::position() const
 {
-	::btTransform transform;
+    ::btTransform transform;
     impl_->body->getMotionState()->getWorldTransform(transform);
 
-    return{ transform.getOrigin().x(), transform.getOrigin().y(), transform.getOrigin().z() };
+    return {
+        transform.getOrigin().x(),
+        transform.getOrigin().y(),
+        transform.getOrigin().z()};
 }
 
 Quaternion BoxRigidBody::orientation() const
@@ -63,40 +64,45 @@ Quaternion BoxRigidBody::orientation() const
     const auto orientation = impl_->body->getOrientation();
     const auto axis = orientation.getAxis();
 
-    return { Vector3{ axis.x(), axis.y(), axis.z() }, orientation.getAngle() };
+    return {Vector3{axis.x(), axis.y(), axis.z()}, orientation.getAngle()};
 }
 
 Vector3 BoxRigidBody::linear_velocity() const
 {
     const auto velocity = impl_->body->getLinearVelocity();
 
-    return { velocity.x(), velocity.y(), velocity.z() };
+    return {velocity.x(), velocity.y(), velocity.z()};
 }
 
 Vector3 BoxRigidBody::angular_velocity() const
 {
     const auto velocity = impl_->body->getAngularVelocity();
 
-    return { velocity.x(), velocity.y(), velocity.z() };
+    return {velocity.x(), velocity.y(), velocity.z()};
 }
 
 void BoxRigidBody::set_linear_velocity(const Vector3 &linear_velocity)
 {
-    ::btVector3 velocity{ linear_velocity.x, linear_velocity.y, linear_velocity. z };
+    ::btVector3 velocity{
+        linear_velocity.x, linear_velocity.y, linear_velocity.z};
     impl_->body->setLinearVelocity(velocity);
 }
 
 void BoxRigidBody::set_angular_velocity(const Vector3 &angular_velocity)
 {
-    ::btVector3 velocity{ angular_velocity.x, angular_velocity.y, angular_velocity. z };
+    ::btVector3 velocity{
+        angular_velocity.x, angular_velocity.y, angular_velocity.z};
     impl_->body->setAngularVelocity(velocity);
 }
 
-void BoxRigidBody::reposition(const Vector3 &position, const Quaternion &orientation)
+void BoxRigidBody::reposition(
+    const Vector3 &position,
+    const Quaternion &orientation)
 {
     ::btTransform transform;
     transform.setOrigin(::btVector3(position.x, position.y, position.z));
-    transform.setRotation(::btQuaternion(orientation.x, orientation.y, orientation.z, orientation.w));
+    transform.setRotation(::btQuaternion(
+        orientation.x, orientation.y, orientation.z, orientation.w));
 
     impl_->body->setWorldTransform(transform);
     impl_->motion_state->setWorldTransform(transform);

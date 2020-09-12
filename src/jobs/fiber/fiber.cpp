@@ -16,37 +16,36 @@
 extern "C"
 {
 
-// these will be defined with arch specific assembler
-extern void get_context(iris::Context*);
-extern void set_context(iris::Context*);
-extern void change_stack(void *stack);
-
+    // these will be defined with arch specific assembler
+    extern void get_context(iris::Context *);
+    extern void set_context(iris::Context *);
+    extern void change_stack(void *stack);
 }
 
 namespace iris
 {
 
 Fiber::Fiber()
-    : Fiber(Job{ })
+    : Fiber(Job{})
 {
 }
 
 Fiber::Fiber(const Job &job)
-    : stack_buffer_(10),
-      stack_(nullptr),
-      job_(job),
-      context_(nullptr),
-      suspended_context_(nullptr),
-      counter_(nullptr),
-      parent_fiber_(nullptr),
-      exception_(nullptr),
-      has_exception_(false),
-      state_(FiberState::READY)
+    : stack_buffer_(10)
+    , stack_(nullptr)
+    , job_(job)
+    , context_(nullptr)
+    , suspended_context_(nullptr)
+    , counter_(nullptr)
+    , parent_fiber_(nullptr)
+    , exception_(nullptr)
+    , has_exception_(false)
+    , state_(FiberState::READY)
 {
     reset(job, nullptr);
 }
 
-void Fiber::reset(const Job &job, Counter* counter)
+void Fiber::reset(const Job &job, Counter *counter)
 {
     job_ = job;
     state_ = FiberState::READY;
@@ -63,7 +62,7 @@ void Fiber::start()
     *this_fiber() = this;
 
     context_ = new Context;
-    
+
     // no code between these lines!
     // a nice side effect of how we store the context is that when we restore
     // the top of the stack will actually contain the return address of the
@@ -79,7 +78,7 @@ void Fiber::start()
 void Fiber::finish()
 {
     // decrement counter
-    if(counter_ != nullptr)
+    if (counter_ != nullptr)
     {
         (*counter_)--;
     }
@@ -92,14 +91,14 @@ void Fiber::suspend()
 
     // preserve where we are and restore from the original context, this allows
     // us to resume later
-    // like start() restoring suspended_context_ will continue from the following
-    // line
+    // like start() restoring suspended_context_ will continue from the
+    // following line
     get_context(suspended_context_);
     do_suspend();
 
     // if we get here then we have been resumed, so rethrow any stored
     // exception
-    if(exception_)
+    if (exception_)
     {
         std::rethrow_exception(exception_);
     }
@@ -113,15 +112,15 @@ void Fiber::resume()
     do_resume();
 }
 
-Fiber** Fiber::this_fiber()
+Fiber **Fiber::this_fiber()
 {
-    // this allows us to get a pointer to the fiber being executed in the current
-    // thread
+    // this allows us to get a pointer to the fiber being executed in the
+    // current thread
     thread_local Fiber *current_fiber;
     return &current_fiber;
 }
 
-Counter* Fiber::counter()
+Counter *Fiber::counter()
 {
     return counter_;
 }
@@ -149,21 +148,22 @@ void Fiber::do_start()
         change_stack(stack_);
         job_();
     }
-    catch(...)
+    catch (...)
     {
         // catch all exceptions
         // if we have a parent i.e. someone is waiting on us then pass it the
         // exception
         // note we only do this if the parent isn't already storing an exception
         // it's a first-come first-served system
-        if((parent_fiber_ != nullptr) && (!parent_fiber_->has_exception_))
+        if ((parent_fiber_ != nullptr) && (!parent_fiber_->has_exception_))
         {
             parent_fiber_->exception_ = std::current_exception();
             parent_fiber_->has_exception_ = true;
         }
         else
         {
-            LOG_ENGINE_ERROR("fiber", "another waiting fiber has already thrown");
+            LOG_ENGINE_ERROR(
+                "fiber", "another waiting fiber has already thrown");
         }
     }
 
@@ -199,4 +199,3 @@ int Fiber::do_resume()
 }
 
 }
-

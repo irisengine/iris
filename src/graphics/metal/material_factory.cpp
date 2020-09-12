@@ -9,7 +9,7 @@ namespace
 
 // hard coded shaders
 
-static const std::string vertex_source_mesh { R"(
+static const std::string vertex_source_mesh{R"(
 #include <metal_stdlib>
 #include <simd/simd.h>
 using namespace metal;
@@ -52,9 +52,9 @@ vertex VertexOut vertex_main(
     out.tex = vertices[vid].tex;
     return out;
 }
-)" };
+)"};
 
-static const std::string fragment_source_mesh { R"(
+static const std::string fragment_source_mesh{R"(
 #include <metal_stdlib>
 #include <simd/simd.h>
 using namespace metal;
@@ -94,10 +94,9 @@ fragment float4 fragment_main(
     float4 l = amb + diffuse;
     return l * in.color * sampled_colour;
 }
-)" };
+)"};
 
-
-static const std::string vertex_source_sprite { R"(
+static const std::string vertex_source_sprite{R"(
 #include <metal_stdlib>
 #include <simd/simd.h>
 
@@ -136,9 +135,9 @@ vertex VertexOut vertex_main(
     out.tex = vertices[vid].tex;
     return out;
 }
-)" };
+)"};
 
-static const std::string fragment_source_sprite { R"(
+static const std::string fragment_source_sprite{R"(
 
 #include <metal_stdlib>
 #include <simd/simd.h>
@@ -173,24 +172,25 @@ fragment float4 fragment_main(
 
     return in.color * sampled_colour;
 }
-)" };
+)"};
 
 }
 
 namespace iris::material_factory
 {
 
-Material* sprite()
+Material *sprite()
 {
-    static auto mat = std::make_unique<Material>(vertex_source_sprite, fragment_source_sprite);
+    static auto mat = std::make_unique<Material>(
+        vertex_source_sprite, fragment_source_sprite);
     return mat.get();
 }
 
-Material* mesh()
+Material *mesh()
 {
-    static auto mat = std::make_unique<Material>(vertex_source_mesh, fragment_source_mesh);
+    static auto mat =
+        std::make_unique<Material>(vertex_source_mesh, fragment_source_mesh);
     return mat.get();
 }
 
 }
-

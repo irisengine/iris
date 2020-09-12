@@ -9,19 +9,22 @@ namespace iris
 {
 
 Event::Event(const KeyboardEvent event)
-    : type_(EventType::KEYBOARD),
-      event_(event)
-{ }
+    : type_(EventType::KEYBOARD)
+    , event_(event)
+{
+}
 
 Event::Event(const MouseEvent event)
-    : type_(EventType::MOUSE),
-      event_(event)
-{ }
+    : type_(EventType::MOUSE)
+    , event_(event)
+{
+}
 
 Event::Event(TouchEvent event)
-    : type_(EventType::TOUCH),
-      event_(event)
-{ }
+    : type_(EventType::TOUCH)
+    , event_(event)
+{
+}
 
 EventType Event::type() const
 {
@@ -37,7 +40,7 @@ bool Event::is_key(Key key) const
 {
     auto match = false;
 
-    if(auto val = std::get_if<KeyboardEvent>(&event_) ; val)
+    if (auto val = std::get_if<KeyboardEvent>(&event_); val)
     {
         match = val->key == key;
     }
@@ -49,7 +52,7 @@ bool Event::is_key(Key key, KeyState state) const
 {
     auto match = false;
 
-    if(auto val = std::get_if<KeyboardEvent>(&event_) ; val)
+    if (auto val = std::get_if<KeyboardEvent>(&event_); val)
     {
         match = (val->key) == key && (val->state == state);
     }
@@ -59,7 +62,7 @@ bool Event::is_key(Key key, KeyState state) const
 
 KeyboardEvent Event::key() const
 {
-    if(!is_key())
+    if (!is_key())
     {
         throw Exception("not keyboard event");
     }
@@ -74,7 +77,7 @@ bool Event::is_mouse() const
 
 MouseEvent Event::mouse() const
 {
-    if(!is_mouse())
+    if (!is_mouse())
     {
         throw Exception("not mouse event");
     }
@@ -89,7 +92,7 @@ bool Event::is_touch() const
 
 TouchEvent Event::touch() const
 {
-    if(!is_touch())
+    if (!is_touch())
     {
         throw Exception("not touch event");
     }
@@ -98,4 +101,3 @@ TouchEvent Event::touch() const
 }
 
 }
-

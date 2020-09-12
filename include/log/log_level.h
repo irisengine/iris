@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstdint>
-#include <iostream>
 #include <iosfwd>
+#include <iostream>
 
 namespace iris
 {
@@ -31,9 +31,9 @@ enum class LogLevel : std::uint32_t
  * @returns
  *   Reference to input stream.
  */
-inline std::ostream& operator<<(std::ostream &out, const LogLevel level)
+inline std::ostream &operator<<(std::ostream &out, const LogLevel level)
 {
-    switch(level)
+    switch (level)
     {
         case LogLevel::DEBUG:
             out << "DEBUG";
@@ -56,4 +56,3 @@ inline std::ostream& operator<<(std::ostream &out, const LogLevel level)
 }
 
 }
-

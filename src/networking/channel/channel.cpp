@@ -18,4 +18,3 @@ std::vector<Packet> Channel::yield_receive_queue()
 }
 
 }
-

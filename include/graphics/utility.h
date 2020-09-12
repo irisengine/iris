@@ -22,7 +22,7 @@ std::tuple<
     std::uint32_t,
     std::uint32_t,
     std::uint32_t>
-    load_image(const std::filesystem::path &path);
+load_image(const std::filesystem::path &path);
 
 /**
  * Load an image from a data buffer.
@@ -38,7 +38,6 @@ std::tuple<
     std::uint32_t,
     std::uint32_t,
     std::uint32_t>
-    parse_image(const std::vector<std::uint8_t> &data);
+parse_image(const std::vector<std::uint8_t> &data);
 
 }
-

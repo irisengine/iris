@@ -3,8 +3,9 @@
 /**
  * Delegate for our app which will handle window creation
  */
-@interface AppDelegate : NSObject<NSApplicationDelegate>
-{ }
+@interface AppDelegate : NSObject <NSApplicationDelegate>
+{
+}
 
 /**
  * Initialise a new AppDelegate with an OpenGl window of the specified
@@ -16,10 +17,9 @@
 - (id)initWithRect:(NSRect)rect;
 
 /** Width of OpenGl window. */
-@property (assign) CGFloat width;
+@property(assign) CGFloat width;
 
 /** Height of OpenGl window. */
-@property (assign) CGFloat height;
+@property(assign) CGFloat height;
 
 @end
-

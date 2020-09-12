@@ -15,78 +15,70 @@ namespace iris
  */
 class Sprite : public RenderEntity
 {
-    public:
+  public:
+    /**
+     * Create a solid colour sprite.
+     *
+     * @param x
+     *   Screen x coordinate of centre of sprite.
+     *
+     * @param y
+     *   Screen y coordinate of centre of sprite.
+     *
+     * @param width
+     *   Width of sprite.
+     *
+     * @param height
+     *   Height of sprite.
+     *
+     * @param colour
+     *   Colour of sprite.
+     */
+    Sprite(real x, real y, real width, real height, const Vector3 &colour);
 
-        /**
-         * Create a solid colour sprite.
-         *
-         * @param x
-         *   Screen x coordinate of centre of sprite.
-         *
-         * @param y
-         *   Screen y coordinate of centre of sprite.
-         *
-         * @param width
-         *   Width of sprite.
-         *
-         * @param height
-         *   Height of sprite.
-         *
-         * @param colour
-         *   Colour of sprite.
-         */
-        Sprite(
-            real x,
-            real y,
-            real width,
-            real height,
-            const Vector3 &colour);
+    /**
+     * Create a textured sprite.
+     *
+     * @param x
+     *   Screen x coordinate of centre of sprite.
+     *
+     * @param y
+     *   Screen y coordinate of centre of sprite.
+     *
+     * @param width
+     *   Width of sprite.
+     *
+     * @param height
+     *   Height of sprite.
+     *
+     * @param colour
+     *   Colour of sprite.
+     *
+     * @param tex
+     *   Texture of sprite.
+     */
+    Sprite(
+        real x,
+        real y,
+        real width,
+        real height,
+        const Vector3 &colour,
+        Texture &&tex);
 
-        /**
-         * Create a textured sprite.
-         *
-         * @param x
-         *   Screen x coordinate of centre of sprite.
-         *
-         * @param y
-         *   Screen y coordinate of centre of sprite.
-         *
-         * @param width
-         *   Width of sprite.
-         *
-         * @param height
-         *   Height of sprite.
-         *
-         * @param colour
-         *   Colour of sprite.
-         *
-         * @param tex
-         *   Texture of sprite.
-         */
-        Sprite(
-            real x,
-            real y,
-            real width,
-            real height,
-            const Vector3 &colour,
-            Texture &&tex);
+    // default
+    ~Sprite() override = default;
 
-        // default
-        ~Sprite() override = default;
+    /**
+     * Set sprite texture.
+     *
+     * @param texture
+     *   New sprite texture.
+     */
+    void set_texture(Texture texture);
 
-        /**
-         * Set sprite texture.
-         *
-         * @param texture
-         *   New sprite texture.
-         */
-        void set_texture(Texture texture);
-
-    private:
-
-        /** Colour of sprite. */
-        Vector3 colour_;
+  private:
+    /** Colour of sprite. */
+    Vector3 colour_;
 };
 
 }
-

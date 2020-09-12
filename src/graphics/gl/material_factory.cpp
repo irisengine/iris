@@ -9,7 +9,7 @@ namespace
 
 // hard coded shaders
 
-static const std::string vertex_source_mesh { R"(
+static const std::string vertex_source_mesh{R"(
 #version 330 core
 precision mediump float;
 layout (location = 0) in vec3 position;
@@ -32,9 +32,9 @@ void main()
     fragPos = vec3(transpose(model) * vec4(position, 1.0));
     gl_Position = transpose(projection) * transpose(view) * vec4(fragPos, 1.0);
 }
-)" };
+)"};
 
-static const std::string fragment_source_mesh { R"(
+static const std::string fragment_source_mesh{R"(
 #version 330 core
 precision mediump float;
 in vec2 texCoord;
@@ -57,8 +57,7 @@ void main()
 }
 )"};
 
-
-static const std::string vertex_source_sprite { R"(
+static const std::string vertex_source_sprite{R"(
     #version 330 core
     precision mediump float;
     layout (location = 0) in vec3 position;
@@ -78,9 +77,9 @@ static const std::string vertex_source_sprite { R"(
         fragPos = vec3(transpose(model) * vec4(position, 1.0));
         gl_Position = transpose(projection) * transpose(view) * vec4(fragPos, 1.0);
     }
-)" };
+)"};
 
-static const std::string fragment_source_sprite { R"(
+static const std::string fragment_source_sprite{R"(
     #version 330 core
     precision mediump float;
     in vec2 texCoord;
@@ -103,17 +102,18 @@ static const std::string fragment_source_sprite { R"(
 namespace iris::material_factory
 {
 
-Material* sprite()
+Material *sprite()
 {
-    static auto mat = std::make_unique<Material>(vertex_source_sprite, fragment_source_sprite);
+    static auto mat = std::make_unique<Material>(
+        vertex_source_sprite, fragment_source_sprite);
     return mat.get();
 }
 
-Material* mesh()
+Material *mesh()
 {
-    static auto mat = std::make_unique<Material>(vertex_source_mesh, fragment_source_mesh);
+    static auto mat =
+        std::make_unique<Material>(vertex_source_mesh, fragment_source_mesh);
     return mat.get();
 }
 
 }
-

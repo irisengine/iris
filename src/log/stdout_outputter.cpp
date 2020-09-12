@@ -12,4 +12,3 @@ void StdoutFormatter::output(const std::string &log)
 }
 
 }
-

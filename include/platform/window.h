@@ -18,56 +18,53 @@ namespace iris
  */
 class Window
 {
-    public:
+  public:
+    /**
+     * Create and display a new native window.
+     *
+     * @param width
+     *   Width of the window.
+     *
+     * @param height
+     *   Height of the window.
+     */
+    Window(real with, real height);
 
-        /**
-         * Create and display a new native window.
-         *
-         * @param width
-         *   Width of the window.
-         *
-         * @param height
-         *   Height of the window.
-         */
-        Window(real with, real height);
+    /** Disabled */
+    Window(const Window &) = delete;
+    Window &operator=(const Window &) = delete;
 
-        /** Disabled */
-        Window(const Window&) = delete;
-        Window& operator=(const Window&) = delete;
+    /**
+     * Pump the next user input event. Result will be empty if there are no
+     * new events.
+     *
+     * @returns
+     *   Optional event.
+     */
+    std::optional<Event> pump_event();
 
-        /**
-         * Pump the next user input event. Result will be empty if there are no
-         * new events.
-         *
-         * @returns
-         *   Optional event.
-         */
-        std::optional<Event> pump_event();
+    /**
+     * Get the width of the window.
+     *
+     * @returns
+     *   Window width.
+     */
+    real width() const;
 
-        /**
-         * Get the width of the window.
-         *
-         * @returns
-         *   Window width.
-         */
-        real width() const;
+    /**
+     * Get the height of the window.
+     *
+     * @returns
+     *   Window height.
+     */
+    real height() const;
 
-        /**
-         * Get the height of the window.
-         *
-         * @returns
-         *   Window height.
-         */
-        real height() const;
+  private:
+    /** Window width. */
+    real width_;
 
-    private:
-
-        /** Window width. */
-        real width_;
-
-        /** Window height. */
-        real height_;
+    /** Window height. */
+    real height_;
 };
 
 }
-

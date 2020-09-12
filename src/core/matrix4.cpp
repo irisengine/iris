@@ -11,15 +11,30 @@ namespace iris
 {
 
 Matrix4::Matrix4()
-    : elements_({{ 1.0f, 0.0f, 0.0f, 0.0f,
-                   0.0f, 1.0f, 0.0f, 0.0f,
-                   0.0f, 0.0f, 1.0f, 0.0f,
-                   0.0f, 0.0f, 0.0f, 1.0f  }})
-{ }
+    : elements_(
+          {{1.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            1.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            1.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            1.0f}})
+{
+}
 
 Matrix4::Matrix4(const std::array<real, 16> &elements)
     : elements_(elements)
-{ }
+{
+}
 
 Matrix4::Matrix4(const Quaternion &q)
     : Matrix4()
@@ -29,7 +44,7 @@ Matrix4::Matrix4(const Quaternion &q)
     elements_[2] = 2.0f * q.x * q.z + 2.0f * q.y * q.w;
 
     elements_[4] = 2.0f * q.x * q.y + 2.0f * q.z * q.w;
-    elements_[5] = 1.0f - 2.0f * q.x * q.x  - 2.0f * q.z * q.z;
+    elements_[5] = 1.0f - 2.0f * q.x * q.x - 2.0f * q.z * q.z;
     elements_[6] = 2.0f * q.y * q.z - 2.0f * q.x * q.w;
 
     elements_[8] = 2.0f * q.x * q.z - 2.0f * q.y * q.w;
@@ -45,10 +60,13 @@ Matrix4::Matrix4(const Quaternion &q, const Vector3 &p)
     elements_[11u] = p.z;
 }
 
-Matrix4 Matrix4::make_orthographic_projection(real width, real height, real depth)
+Matrix4 Matrix4::make_orthographic_projection(
+    real width,
+    real height,
+    real depth)
 {
     Matrix4 m;
-    
+
     const auto right = width;
     const auto left = -right;
     const auto top = height;
@@ -56,12 +74,23 @@ Matrix4 Matrix4::make_orthographic_projection(real width, real height, real dept
     const auto far = depth;
     const auto near = -far;
 
-    m.elements_ = {{
-        2.0f / (right - left), 0.0f, 0.0f, -(right + left) / (right - left),
-        0.0f, 2.0f / (top - bottom), 0.0f, -(top + bottom) / (top - bottom),
-        0.0f, 0.0f, -2.0f / (far - near), -(far + near) / (far - near),
-        0.0f, 0.0f, 0.0f, 1.0f
-    }};
+    m.elements_ = {
+        {2.0f / (right - left),
+         0.0f,
+         0.0f,
+         -(right + left) / (right - left),
+         0.0f,
+         2.0f / (top - bottom),
+         0.0f,
+         -(top + bottom) / (top - bottom),
+         0.0f,
+         0.0f,
+         -2.0f / (far - near),
+         -(far + near) / (far - near),
+         0.0f,
+         0.0f,
+         0.0f,
+         1.0f}};
 
     return m;
 }
@@ -81,12 +110,23 @@ Matrix4 Matrix4::make_perspective_projection(
     const auto r = t * aspect_ratio;
     const auto l = b * aspect_ratio;
 
-    m.elements_ = {{
-        (2.0f * near) / (r - l), 0.0f, (r + l) / (r - l), 0.0f,
-        0.0f, (2.0f * near) / (t - b), (t + b) / (t - b), 0.0f,
-        0.0f, 0.0f, -(far + near) / (far - near), -(2.0f * far * near) / (far - near),
-        0.0f, 0.0f, -1.0f, 0.0f
-    }};
+    m.elements_ = {
+        {(2.0f * near) / (r - l),
+         0.0f,
+         (r + l) / (r - l),
+         0.0f,
+         0.0f,
+         (2.0f * near) / (t - b),
+         (t + b) / (t - b),
+         0.0f,
+         0.0f,
+         0.0f,
+         -(far + near) / (far - near),
+         -(2.0f * far * near) / (far - near),
+         0.0f,
+         0.0f,
+         -1.0f,
+         0.0f}};
 
     return m;
 }
@@ -104,12 +144,23 @@ Matrix4 Matrix4::make_look_at(
 
     Matrix4 m;
 
-    m.elements_ = {{
-        s.x, s.y, s.z, 0.0f,
-        u.x, u.y, u.z, 0.0f,
-        -f.x, -f.y, -f.z, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f
-    }};
+    m.elements_ = {
+        {s.x,
+         s.y,
+         s.z,
+         0.0f,
+         u.x,
+         u.y,
+         u.z,
+         0.0f,
+         -f.x,
+         -f.y,
+         -f.z,
+         0.0f,
+         0.0f,
+         0.0f,
+         0.0f,
+         1.0f}};
 
     return m * make_translate(-eye);
 }
@@ -118,13 +169,23 @@ Matrix4 Matrix4::make_scale(const Vector3 &scale)
 {
     Matrix4 m;
 
-    m.elements_ =
-    {{
-         scale.x, 0.0f, 0.0f, 0.0f,
-         0.0f, scale.y, 0.0f, 0.0f,
-         0.0f, 0.0f, scale.z, 0.0f,
-         0.0f, 0.0f, 0.0f, 1.0f
-    }};
+    m.elements_ = {
+        {scale.x,
+         0.0f,
+         0.0f,
+         0.0f,
+         0.0f,
+         scale.y,
+         0.0f,
+         0.0f,
+         0.0f,
+         0.0f,
+         scale.z,
+         0.0f,
+         0.0f,
+         0.0f,
+         0.0f,
+         1.0f}};
 
     return m;
 }
@@ -133,140 +194,89 @@ Matrix4 Matrix4::make_translate(const Vector3 &translate)
 {
     Matrix4 m;
 
-    m.elements_ =
-    {{
-         1.0f, 0.0f, 0.0f, translate.x,
-         0.0f, 1.0f, 0.0f, translate.y,
-         0.0f, 0.0f, 1.0f, translate.z,
-         0.0f, 0.0f, 0.0f, 1.0f
-    }};
+    m.elements_ = {
+        {1.0f,
+         0.0f,
+         0.0f,
+         translate.x,
+         0.0f,
+         1.0f,
+         0.0f,
+         translate.y,
+         0.0f,
+         0.0f,
+         1.0f,
+         translate.z,
+         0.0f,
+         0.0f,
+         0.0f,
+         1.0f}};
 
     return m;
 }
 
 Matrix4 Matrix4::invert(const Matrix4 &m)
 {
-    Matrix4 inv{ };
+    Matrix4 inv{};
 
-    inv[0] = m[5]  * m[10] * m[15] -
-             m[5]  * m[11] * m[14] -
-             m[9]  * m[6]  * m[15] +
-             m[9]  * m[7]  * m[14] +
-             m[13] * m[6]  * m[11] -
-             m[13] * m[7]  * m[10];
+    inv[0] = m[5] * m[10] * m[15] - m[5] * m[11] * m[14] - m[9] * m[6] * m[15] +
+             m[9] * m[7] * m[14] + m[13] * m[6] * m[11] - m[13] * m[7] * m[10];
 
-    inv[4] = -m[4]  * m[10] * m[15] +
-              m[4]  * m[11] * m[14] +
-              m[8]  * m[6]  * m[15] -
-              m[8]  * m[7]  * m[14] -
-              m[12] * m[6]  * m[11] +
-              m[12] * m[7]  * m[10];
+    inv[4] = -m[4] * m[10] * m[15] + m[4] * m[11] * m[14] +
+             m[8] * m[6] * m[15] - m[8] * m[7] * m[14] - m[12] * m[6] * m[11] +
+             m[12] * m[7] * m[10];
 
-    inv[8] = m[4]  * m[9] * m[15] -
-             m[4]  * m[11] * m[13] -
-             m[8]  * m[5] * m[15] +
-             m[8]  * m[7] * m[13] +
-             m[12] * m[5] * m[11] -
-             m[12] * m[7] * m[9];
+    inv[8] = m[4] * m[9] * m[15] - m[4] * m[11] * m[13] - m[8] * m[5] * m[15] +
+             m[8] * m[7] * m[13] + m[12] * m[5] * m[11] - m[12] * m[7] * m[9];
 
-    inv[12] = -m[4]  * m[9] * m[14] +
-               m[4]  * m[10] * m[13] +
-               m[8]  * m[5] * m[14] -
-               m[8]  * m[6] * m[13] -
-               m[12] * m[5] * m[10] +
-               m[12] * m[6] * m[9];
+    inv[12] = -m[4] * m[9] * m[14] + m[4] * m[10] * m[13] +
+              m[8] * m[5] * m[14] - m[8] * m[6] * m[13] - m[12] * m[5] * m[10] +
+              m[12] * m[6] * m[9];
 
-    inv[1] = -m[1]  * m[10] * m[15] +
-              m[1]  * m[11] * m[14] +
-              m[9]  * m[2] * m[15] -
-              m[9]  * m[3] * m[14] -
-              m[13] * m[2] * m[11] +
-              m[13] * m[3] * m[10];
+    inv[1] = -m[1] * m[10] * m[15] + m[1] * m[11] * m[14] +
+             m[9] * m[2] * m[15] - m[9] * m[3] * m[14] - m[13] * m[2] * m[11] +
+             m[13] * m[3] * m[10];
 
-    inv[5] = m[0]  * m[10] * m[15] -
-             m[0]  * m[11] * m[14] -
-             m[8]  * m[2] * m[15] +
-             m[8]  * m[3] * m[14] +
-             m[12] * m[2] * m[11] -
-             m[12] * m[3] * m[10];
+    inv[5] = m[0] * m[10] * m[15] - m[0] * m[11] * m[14] - m[8] * m[2] * m[15] +
+             m[8] * m[3] * m[14] + m[12] * m[2] * m[11] - m[12] * m[3] * m[10];
 
-    inv[9] = -m[0]  * m[9] * m[15] +
-              m[0]  * m[11] * m[13] +
-              m[8]  * m[1] * m[15] -
-              m[8]  * m[3] * m[13] -
-              m[12] * m[1] * m[11] +
-              m[12] * m[3] * m[9];
+    inv[9] = -m[0] * m[9] * m[15] + m[0] * m[11] * m[13] + m[8] * m[1] * m[15] -
+             m[8] * m[3] * m[13] - m[12] * m[1] * m[11] + m[12] * m[3] * m[9];
 
-    inv[13] = m[0]  * m[9] * m[14] -
-              m[0]  * m[10] * m[13] -
-              m[8]  * m[1] * m[14] +
-              m[8]  * m[2] * m[13] +
-              m[12] * m[1] * m[10] -
-              m[12] * m[2] * m[9];
+    inv[13] = m[0] * m[9] * m[14] - m[0] * m[10] * m[13] - m[8] * m[1] * m[14] +
+              m[8] * m[2] * m[13] + m[12] * m[1] * m[10] - m[12] * m[2] * m[9];
 
-    inv[2] = m[1]  * m[6] * m[15] -
-             m[1]  * m[7] * m[14] -
-             m[5]  * m[2] * m[15] +
-             m[5]  * m[3] * m[14] +
-             m[13] * m[2] * m[7] -
-             m[13] * m[3] * m[6];
+    inv[2] = m[1] * m[6] * m[15] - m[1] * m[7] * m[14] - m[5] * m[2] * m[15] +
+             m[5] * m[3] * m[14] + m[13] * m[2] * m[7] - m[13] * m[3] * m[6];
 
-    inv[6] = -m[0]  * m[6] * m[15] +
-              m[0]  * m[7] * m[14] +
-              m[4]  * m[2] * m[15] -
-              m[4]  * m[3] * m[14] -
-              m[12] * m[2] * m[7] +
-              m[12] * m[3] * m[6];
+    inv[6] = -m[0] * m[6] * m[15] + m[0] * m[7] * m[14] + m[4] * m[2] * m[15] -
+             m[4] * m[3] * m[14] - m[12] * m[2] * m[7] + m[12] * m[3] * m[6];
 
-    inv[10] = m[0]  * m[5] * m[15] -
-              m[0]  * m[7] * m[13] -
-              m[4]  * m[1] * m[15] +
-              m[4]  * m[3] * m[13] +
-              m[12] * m[1] * m[7] -
-              m[12] * m[3] * m[5];
+    inv[10] = m[0] * m[5] * m[15] - m[0] * m[7] * m[13] - m[4] * m[1] * m[15] +
+              m[4] * m[3] * m[13] + m[12] * m[1] * m[7] - m[12] * m[3] * m[5];
 
-    inv[14] = -m[0]  * m[5] * m[14] +
-               m[0]  * m[6] * m[13] +
-               m[4]  * m[1] * m[14] -
-               m[4]  * m[2] * m[13] -
-               m[12] * m[1] * m[6] +
-               m[12] * m[2] * m[5];
+    inv[14] = -m[0] * m[5] * m[14] + m[0] * m[6] * m[13] + m[4] * m[1] * m[14] -
+              m[4] * m[2] * m[13] - m[12] * m[1] * m[6] + m[12] * m[2] * m[5];
 
-    inv[3] = -m[1] * m[6] * m[11] +
-              m[1] * m[7] * m[10] +
-              m[5] * m[2] * m[11] -
-              m[5] * m[3] * m[10] -
-              m[9] * m[2] * m[7] +
-              m[9] * m[3] * m[6];
+    inv[3] = -m[1] * m[6] * m[11] + m[1] * m[7] * m[10] + m[5] * m[2] * m[11] -
+             m[5] * m[3] * m[10] - m[9] * m[2] * m[7] + m[9] * m[3] * m[6];
 
-    inv[7] = m[0] * m[6] * m[11] -
-             m[0] * m[7] * m[10] -
-             m[4] * m[2] * m[11] +
-             m[4] * m[3] * m[10] +
-             m[8] * m[2] * m[7] -
-             m[8] * m[3] * m[6];
+    inv[7] = m[0] * m[6] * m[11] - m[0] * m[7] * m[10] - m[4] * m[2] * m[11] +
+             m[4] * m[3] * m[10] + m[8] * m[2] * m[7] - m[8] * m[3] * m[6];
 
-    inv[11] = -m[0] * m[5] * m[11] +
-               m[0] * m[7] * m[9] +
-               m[4] * m[1] * m[11] -
-               m[4] * m[3] * m[9] -
-               m[8] * m[1] * m[7] +
-               m[8] * m[3] * m[5];
+    inv[11] = -m[0] * m[5] * m[11] + m[0] * m[7] * m[9] + m[4] * m[1] * m[11] -
+              m[4] * m[3] * m[9] - m[8] * m[1] * m[7] + m[8] * m[3] * m[5];
 
-    inv[15] = m[0] * m[5] * m[10] -
-              m[0] * m[6] * m[9] -
-              m[4] * m[1] * m[10] +
-              m[4] * m[2] * m[9] +
-              m[8] * m[1] * m[6] -
-              m[8] * m[2] * m[5];
+    inv[15] = m[0] * m[5] * m[10] - m[0] * m[6] * m[9] - m[4] * m[1] * m[10] +
+              m[4] * m[2] * m[9] + m[8] * m[1] * m[6] - m[8] * m[2] * m[5];
 
     auto det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
 
-    if(det != 0.0f)
+    if (det != 0.0f)
     {
         det = 1.0 / det;
 
-        for(auto i = 0; i < 16; i++)
+        for (auto i = 0; i < 16; i++)
         {
             inv[i] *= det;
         }
@@ -277,7 +287,7 @@ Matrix4 Matrix4::invert(const Matrix4 &m)
 
 Matrix4 Matrix4::transpose(const Matrix4 &matrix)
 {
-    auto m{ matrix };
+    auto m{matrix};
 
     std::swap(m[1], m[4]);
     std::swap(m[2], m[8]);
@@ -289,19 +299,17 @@ Matrix4 Matrix4::transpose(const Matrix4 &matrix)
     return m;
 }
 
-Matrix4& Matrix4::operator*=(const Matrix4 &matrix)
+Matrix4 &Matrix4::operator*=(const Matrix4 &matrix)
 {
     const auto e = elements_;
 
-    const auto calculate_cell = [&e, &matrix](
-        std::size_t row_num,
-        std::size_t col_num)
-    {
-        return (e[row_num + 0u] * matrix[col_num +  0u]) +
-               (e[row_num + 1u] * matrix[col_num +  4u]) +
-               (e[row_num + 2u] * matrix[col_num +  8u]) +
-               (e[row_num + 3u] * matrix[col_num + 12u]);
-    };
+    const auto calculate_cell =
+        [&e, &matrix](std::size_t row_num, std::size_t col_num) {
+            return (e[row_num + 0u] * matrix[col_num + 0u]) +
+                   (e[row_num + 1u] * matrix[col_num + 4u]) +
+                   (e[row_num + 2u] * matrix[col_num + 8u]) +
+                   (e[row_num + 3u] * matrix[col_num + 12u]);
+        };
 
     elements_[0u] = calculate_cell(0u, 0u);
     elements_[1u] = calculate_cell(0u, 1u);
@@ -313,8 +321,8 @@ Matrix4& Matrix4::operator*=(const Matrix4 &matrix)
     elements_[6u] = calculate_cell(4u, 2u);
     elements_[7u] = calculate_cell(4u, 3u);
 
-    elements_[8u]  = calculate_cell(8u, 0u);
-    elements_[9u]  = calculate_cell(8u, 1u);
+    elements_[8u] = calculate_cell(8u, 0u);
+    elements_[9u] = calculate_cell(8u, 1u);
     elements_[10u] = calculate_cell(8u, 2u);
     elements_[11u] = calculate_cell(8u, 3u);
 
@@ -334,24 +342,18 @@ Matrix4 Matrix4::operator*(const Matrix4 &matrix) const
 Vector3 Matrix4::operator*(const Vector3 &vector) const
 {
     return {
-        vector.x * elements_[0] +
-        vector.y * elements_[1] +
-        vector.z * elements_[2] +
-        elements_[3],
+        vector.x * elements_[0] + vector.y * elements_[1] +
+            vector.z * elements_[2] + elements_[3],
 
-        vector.x * elements_[4] +
-        vector.y * elements_[5] +
-        vector.z * elements_[6] +
-        elements_[7],
+        vector.x * elements_[4] + vector.y * elements_[5] +
+            vector.z * elements_[6] + elements_[7],
 
-        vector.x * elements_[8] +
-        vector.y * elements_[9] +
-        vector.z * elements_[10] +
-        elements_[11],
+        vector.x * elements_[8] + vector.y * elements_[9] +
+            vector.z * elements_[10] + elements_[11],
     };
 }
 
-real& Matrix4::operator[](const std::size_t index)
+real &Matrix4::operator[](const std::size_t index)
 {
     return elements_[index];
 }
@@ -363,22 +365,14 @@ real Matrix4::operator[](const std::size_t index) const
 
 bool Matrix4::operator==(const Matrix4 &other) const
 {
-    return (elements_[0] == other[0]) &&
-           (elements_[1] == other[1]) &&
-           (elements_[2] == other[2]) &&
-           (elements_[3] == other[3]) &&
-           (elements_[4] == other[4]) &&
-           (elements_[5] == other[5]) &&
-           (elements_[6] == other[6]) &&
-           (elements_[7] == other[7]) &&
-           (elements_[8] == other[8]) &&
-           (elements_[9] == other[9]) &&
-           (elements_[10] == other[10]) &&
-           (elements_[11] == other[11]) &&
-           (elements_[12] == other[12]) &&
-           (elements_[13] == other[13]) &&
-           (elements_[14] == other[14]) &&
-           (elements_[15] == other[15]);
+    return (elements_[0] == other[0]) && (elements_[1] == other[1]) &&
+           (elements_[2] == other[2]) && (elements_[3] == other[3]) &&
+           (elements_[4] == other[4]) && (elements_[5] == other[5]) &&
+           (elements_[6] == other[6]) && (elements_[7] == other[7]) &&
+           (elements_[8] == other[8]) && (elements_[9] == other[9]) &&
+           (elements_[10] == other[10]) && (elements_[11] == other[11]) &&
+           (elements_[12] == other[12]) && (elements_[13] == other[13]) &&
+           (elements_[14] == other[14]) && (elements_[15] == other[15]);
 }
 
 bool Matrix4::operator!=(const Matrix4 &other) const
@@ -386,25 +380,24 @@ bool Matrix4::operator!=(const Matrix4 &other) const
     return !(*this == other);
 }
 
-const real* Matrix4::data() const
+const real *Matrix4::data() const
 {
     return elements_.data();
 }
 
 Vector3 Matrix4::column(const std::size_t index) const
 {
-    return{ elements_[index], elements_[index + 4u], elements_[index + 8u] };
+    return {elements_[index], elements_[index + 4u], elements_[index + 8u]};
 }
 
-std::ostream& operator<<(std::ostream &out, const Matrix4 &m)
+std::ostream &operator<<(std::ostream &out, const Matrix4 &m)
 {
-    out << m[0] << " " << m[1] << " " <<  m[2] << " " << m[3] << std::endl;
-    out << m[4] << " " << m[5] << " " <<  m[6] << " " << m[7] << std::endl;
-    out << m[8] << " " << m[9] << " " <<  m[10] << " " << m[11] << std::endl;
-    out << m[12] << " " << m[13] << " " <<  m[14] << " " << m[15];
+    out << m[0] << " " << m[1] << " " << m[2] << " " << m[3] << std::endl;
+    out << m[4] << " " << m[5] << " " << m[6] << " " << m[7] << std::endl;
+    out << m[8] << " " << m[9] << " " << m[10] << " " << m[11] << std::endl;
+    out << m[12] << " " << m[13] << " " << m[14] << " " << m[15];
 
     return out;
 }
 
 }
-

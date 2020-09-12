@@ -18,7 +18,7 @@ namespace iris
  * @param entry
  *   Entry point into game, will be passed argc and argv back.
  */
-void start(int argc, char **argv, std::function<void(int, char**)> entry);
+void start(int argc, char **argv, std::function<void(int, char **)> entry);
 
 /**
  * Start the engine! This performs all platform and subsystem initialisation
@@ -34,7 +34,9 @@ void start(int argc, char **argv, std::function<void(int, char**)> entry);
  * @param entry
  *   Entry point into game, will be passed argc and argv back.
  */
-void start_debug(int argc, char **argv, std::function<void(int, char**)> entry);
+void start_debug(
+    int argc,
+    char **argv,
+    std::function<void(int, char **)> entry);
 
 }
-

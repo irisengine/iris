@@ -7,7 +7,7 @@
 
 TEST(real, constructor)
 {
-    iris::real r{ 1.1f };
+    iris::real r{1.1f};
     ASSERT_EQ(r.value, 1.1f);
 }
 
@@ -37,7 +37,7 @@ TEST(real, equality)
     // create 1.0 with two different methods (addition and multiplication)
     // these are known to produce two different values due to float limitations
 
-    for(int i = 0; i < 9; ++i)
+    for (int i = 0; i < 9; ++i)
     {
         r1 += 0.1f;
     }
@@ -60,50 +60,50 @@ TEST(real, inequality)
 
 TEST(real, less)
 {
-    ASSERT_LT(iris::real{ 1.0f }, iris::real{ 2.0f });
-    ASSERT_FALSE(iris::real{ 1.0f } < iris::real{ 1.0f });
+    ASSERT_LT(iris::real{1.0f}, iris::real{2.0f});
+    ASSERT_FALSE(iris::real{1.0f} < iris::real{1.0f});
 }
 
 TEST(real, less_cast)
 {
-    ASSERT_LT(iris::real{ 1.0f }, 2.0);
-    ASSERT_FALSE(iris::real{ 1.0f } < 1.0);
+    ASSERT_LT(iris::real{1.0f}, 2.0);
+    ASSERT_FALSE(iris::real{1.0f} < 1.0);
 }
 
 TEST(real, less_equal)
 {
-    ASSERT_LE(iris::real{ 1.0f }, iris::real{ 2.0f });
-    ASSERT_LE(iris::real{ 1.0f }, iris::real{ 1.0f });
+    ASSERT_LE(iris::real{1.0f}, iris::real{2.0f});
+    ASSERT_LE(iris::real{1.0f}, iris::real{1.0f});
 }
 
 TEST(real, less_equal_cast)
 {
-    ASSERT_LE(iris::real{ 1.0f }, 2.0);
-    ASSERT_LE(iris::real{ 1.0f }, 1.0);
+    ASSERT_LE(iris::real{1.0f}, 2.0);
+    ASSERT_LE(iris::real{1.0f}, 1.0);
 }
 
 TEST(real, greater)
 {
-    ASSERT_GT(iris::real{ 3.0f }, iris::real{ 2.0f });
-    ASSERT_FALSE(iris::real{ 1.0f } > iris::real{ 1.0f });
+    ASSERT_GT(iris::real{3.0f}, iris::real{2.0f});
+    ASSERT_FALSE(iris::real{1.0f} > iris::real{1.0f});
 }
 
 TEST(real, greater_cast)
 {
-    ASSERT_GT(iris::real{ 3.0f }, 2.0);
-    ASSERT_FALSE(iris::real{ 1.0f } > 1.0);
+    ASSERT_GT(iris::real{3.0f}, 2.0);
+    ASSERT_FALSE(iris::real{1.0f} > 1.0);
 }
 
 TEST(real, greater_equal)
 {
-    ASSERT_GE(iris::real{ 3.0f }, iris::real{ 2.0f });
-    ASSERT_GE(iris::real{ 1.0f }, iris::real{ 1.0f });
+    ASSERT_GE(iris::real{3.0f}, iris::real{2.0f});
+    ASSERT_GE(iris::real{1.0f}, iris::real{1.0f});
 }
 
 TEST(real, greater_equal_cast)
 {
-    ASSERT_GE(iris::real{ 3.0f }, 2.0);
-    ASSERT_GE(iris::real{ 1.0f }, 1.0);
+    ASSERT_GE(iris::real{3.0f}, 2.0);
+    ASSERT_GE(iris::real{1.0f}, 1.0);
 }
 
 TEST(real, ostream)
@@ -131,4 +131,3 @@ TEST(real, istream)
 
     ASSERT_EQ(r.value, 1.234f);
 }
-

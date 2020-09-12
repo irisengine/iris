@@ -3,8 +3,8 @@
 #include <chrono>
 #include <cstddef>
 #include <functional>
-#include <memory>
 #include <map>
+#include <memory>
 
 #include "core/data_buffer.h"
 #include "networking/accepting_socket.h"
@@ -15,43 +15,43 @@ namespace iris
 {
 
 /**
- * This class provides an abstraction over the low-level handling of connections.
- * It automatically handles:
+ * This class provides an abstraction over the low-level handling of
+ * connections. It automatically handles:
  *  - accepting connections
  *  - handshakes
  *  - clock syncs
  *  - sending/receiving data
- * 
+ *
  * This is all done with the lightweight Packet protocol and Channels. This
  * class can also be provided with callbacks for key events.
- * 
+ *
  * Protocol:
- * 
+ *
  * Handshake - must be performed when client connections.
- * 
+ *
  * client           server
  *          HELLO
  *        -------->
- * 
+ *
  *         CONNECTED
  *           [id]
  *        <--------
- * 
+ *
  * Data - this is sent via DATA packets, ACKs may be sent in response depending
  * on the channel used.
- * 
- * Sync - this allows the client to synchronise its clock with the server, always
- * happens after handshake but my happen again if the server thinks the client
- * is out of sync.
- * 
+ *
+ * Sync - this allows the client to synchronise its clock with the server,
+ * always happens after handshake but my happen again if the server thinks the
+ * client is out of sync.
+ *
  * client           server
  *        SYNC_START
  *        <--------
- * 
+ *
  *      SYNC_RESPONSE
  *      [client_time]
  *        -------->
- * 
+ *
  *       SYNC_START
  *      [client_time]
  *      [server_time]
@@ -59,99 +59,102 @@ namespace iris
  */
 class ServerConnectionHandler
 {
-    public:
+  public:
+    /**
+     * Callback for new connections
+     *
+     * @param id
+     *   A unique id for this connection.
+     */
+    using NewConnectionCallback = std::function<void(std::size_t id)>;
 
-        /**
-         * Callback for new connections
-         * 
-         * @param id
-         *   A unique id for this connection.
-         */
-        using NewConnectionCallback = std::function<void(std::size_t id)>;
+    /**
+     * Callback for when a connection sends data.
+     *
+     * @param id
+     *   Id of connection sending data.
+     *
+     * @param data
+     *   The data send.
+     *
+     * @param channel
+     *   The channel type the client sent the data on.
+     */
+    using RecvCallback = std::function<
+        void(std::size_t id, const DataBuffer &data, ChannelType channel)>;
 
-        /**
-         * Callback for when a connection sends data.
-         * 
-         * @param id
-         *   Id of connection sending data.
-         * 
-         * @param data
-         *   The data send.
-         * 
-         * @param channel
-         *   The channel type the client sent the data on.
-         */ 
-        using RecvCallback = std::function<void(std::size_t id, const DataBuffer &data, ChannelType channel)>;
+    /**
+     * Create a new ServerConnectionHandler.
+     *
+     * @param socket
+     *   The underlying socket to use.
+     *
+     * @param new_connection
+     *   Callback to fire when a new connection is created.
+     *
+     * @param recv
+     *   Callback to fire when data is received.
+     */
+    ServerConnectionHandler(
+        std::unique_ptr<AcceptingSocket> socket,
+        NewConnectionCallback new_connection,
+        RecvCallback recv);
 
-        /**
-         * Create a new ServerConnectionHandler.
-         * 
-         * @param socket
-         *   The underlying socket to use.
-         * 
-         * @param new_connection
-         *   Callback to fire when a new connection is created.
-         * 
-         * @param recv
-         *   Callback to fire when data is received.
-         */
-        ServerConnectionHandler(
-            std::unique_ptr<AcceptingSocket> socket,
-            NewConnectionCallback new_connection,
-            RecvCallback recv);
+    // defined in implementation
+    ~ServerConnectionHandler();
 
-        // defined in implementation
-        ~ServerConnectionHandler();
+    // deleted
+    ServerConnectionHandler(const ServerConnectionHandler &) = delete;
+    ServerConnectionHandler &operator=(const ServerConnectionHandler &) =
+        delete;
 
-        // deleted
-        ServerConnectionHandler(const ServerConnectionHandler&) = delete;
-        ServerConnectionHandler& operator=(const ServerConnectionHandler&) = delete;
+    /**
+     * Updates the connection handler, processes all messages and fires all
+     * callbacks. This should be called regularly (e.g. from a game loop)
+     */
+    void update();
 
-        /**
-         * Updates the connection handler, processes all messages and fires all
-         * callbacks. This should be called regularly (e.g. from a game loop)
-         */
-        void update();
+    /**
+     * Send data to a connection.
+     *
+     * @param id
+     *   Id of connection to send data to.
+     *
+     * @param message
+     *   Data to send.
+     *
+     * @param channel_type
+     *   The channel to send the data through
+     */
+    void send(
+        std::size_t id,
+        const DataBuffer &message,
+        ChannelType channel_type);
 
-        /**
-         * Send data to a connection.
-         * 
-         * @param id
-         *   Id of connection to send data to.
-         * 
-         * @param message
-         *   Data to send.
-         * 
-         * @param channel_type
-         *   The channel to send the data through
-         */
-        void send(std::size_t id, const DataBuffer &message, ChannelType channel_type);
+  private:
+    // forward declare internal struct
+    struct Connection;
 
-    private:
+    /** Underlying socket. */
+    std::unique_ptr<AcceptingSocket> socket_;
 
-        // forward declare internal struct
-        struct Connection;
+    /** New connection callback. */
+    NewConnectionCallback new_connection_callback_;
 
-        /** Underlying socket. */
-        std::unique_ptr<AcceptingSocket> socket_;
+    /** Received data callback. */
+    RecvCallback recv_callback_;
 
-        /** New connection callback. */
-        NewConnectionCallback new_connection_callback_;
+    /** Start time of connection handler. */
+    std::chrono::steady_clock::time_point start_;
 
-        /** Received data callback. */
-        RecvCallback recv_callback_;
+    /** Map of connections to their unique id. */
+    std::map<std::size_t, std::unique_ptr<Connection>> connections;
 
-        /** Start time of connection handler. */
-        std::chrono::steady_clock::time_point start_;
+    /** Mutex to control access to messages. */
+    std::mutex mutex;
 
-        /** Map of connections to their unique id. */
-        std::map<std::size_t, std::unique_ptr<Connection>> connections;
-
-        /** Mutex to control access to messages. */
-        std::mutex mutex;
-
-        /** Collection of messages. */
-        std::vector<DataBuffer> messages;
+    /** Collection of messages. */
+    std::vector<DataBuffer> messages;
 };
 
 }

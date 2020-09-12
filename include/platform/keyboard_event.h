@@ -145,9 +145,8 @@ struct KeyboardEvent
      *    Down or up press
      */
     KeyboardEvent(const Key key, const KeyState state)
-        : key(key),
-          state(state)
-    { };
+        : key(key)
+        , state(state){};
 
     /** Key that was pressed */
     Key key;
@@ -157,4 +156,3 @@ struct KeyboardEvent
 };
 
 }
-

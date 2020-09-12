@@ -16,7 +16,7 @@ namespace iris::platform::utility
  * @returns
  *   Supplied string converted to NSString.
  */
-NSString* string_to_nsstring(const std::string &str);
+NSString *string_to_nsstring(const std::string &str);
 
 /**
  * Get the metal device object for the current view.
@@ -32,7 +32,7 @@ id<MTLDevice> metal_device();
  * @returns
  *   Metal layer.
  */
-CAMetalLayer* metal_layer();
+CAMetalLayer *metal_layer();
 
 /**
  * Get the natural scale for the screen. This value reflects the scale factor
@@ -45,5 +45,3 @@ CAMetalLayer* metal_layer();
 CGFloat screen_scale();
 
 }
-
-

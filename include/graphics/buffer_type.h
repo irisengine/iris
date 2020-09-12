@@ -19,4 +19,3 @@ enum class BufferType : std::uint32_t
 };
 
 }
-

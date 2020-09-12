@@ -15,4 +15,3 @@ enum shader_type : std::uint32_t
 };
 
 }
-

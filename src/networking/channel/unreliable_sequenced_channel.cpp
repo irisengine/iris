@@ -5,10 +5,11 @@ namespace iris
 {
 
 UnreliableSequencedChannel::UnreliableSequencedChannel()
-    : Channel(),
-      min_sequence_(0u),
-      send_sequence_(0u)
-{ }
+    : Channel()
+    , min_sequence_(0u)
+    , send_sequence_(0u)
+{
+}
 
 void UnreliableSequencedChannel::enqueue_send(Packet packet)
 {
@@ -23,7 +24,7 @@ void UnreliableSequencedChannel::enqueue_receive(Packet packet)
 {
     // discard all packets that are behind the largest sequence number we've
     // seen
-    if(packet.sequence() >= min_sequence_)
+    if (packet.sequence() >= min_sequence_)
     {
         receive_queue_.emplace_back(std::move(packet));
 

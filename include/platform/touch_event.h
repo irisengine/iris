@@ -44,11 +44,12 @@ struct TouchEvent
      *   y coordinate in screen space of event.
      */
     TouchEvent(std::uintptr_t id, TouchType type, real x, real y)
-        : id(id),
-          type(type),
-          x(x),
-          y(y)
-    { }
+        : id(id)
+        , type(type)
+        , x(x)
+        , y(y)
+    {
+    }
 
     /** Id of event. */
     std::uintptr_t id;
@@ -64,4 +65,3 @@ struct TouchEvent
 };
 
 }
-

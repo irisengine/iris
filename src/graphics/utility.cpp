@@ -18,9 +18,9 @@ std::tuple<
     std::uint32_t,
     std::uint32_t,
     std::uint32_t>
-    load_image(const std::filesystem::path &path)
+load_image(const std::filesystem::path &path)
 {
-    if(!std::filesystem::exists(path))
+    if (!std::filesystem::exists(path))
     {
         throw Exception(path.string() + " does not exist");
     }
@@ -38,7 +38,7 @@ std::tuple<
         ::stbi_load(path.c_str(), &width, &height, &num_channels, 0),
         ::stbi_image_free);
 
-    if(raw_data == nullptr)
+    if (raw_data == nullptr)
     {
         throw Exception("failed to load image");
     }
@@ -48,8 +48,8 @@ std::tuple<
 
     // take a copy of the image data
     auto data = std::vector<std::uint8_t>(
-        static_cast<std::uint8_t*>(raw_data.get()),
-        static_cast<std::uint8_t*>(raw_data.get()) + size);
+        static_cast<std::uint8_t *>(raw_data.get()),
+        static_cast<std::uint8_t *>(raw_data.get()) + size);
 
     return std::make_tuple(
         std::move(data),
@@ -63,7 +63,7 @@ std::tuple<
     std::uint32_t,
     std::uint32_t,
     std::uint32_t>
-    parse_image(const std::vector<std::uint8_t> &data)
+parse_image(const std::vector<std::uint8_t> &data)
 {
     int width = 0;
     int height = 0;
@@ -84,7 +84,7 @@ std::tuple<
             0),
         ::stbi_image_free);
 
-    if(raw_data == nullptr)
+    if (raw_data == nullptr)
     {
         throw Exception("failed to load image");
     }
@@ -94,8 +94,8 @@ std::tuple<
 
     // take a copy of the image data
     auto image_data = std::vector<std::uint8_t>(
-        static_cast<std::uint8_t*>(raw_data.get()),
-        static_cast<std::uint8_t*>(raw_data.get()) + size);
+        static_cast<std::uint8_t *>(raw_data.get()),
+        static_cast<std::uint8_t *>(raw_data.get()) + size);
 
     return std::make_tuple(
         std::move(image_data),
@@ -105,5 +105,3 @@ std::tuple<
 }
 
 }
-
-

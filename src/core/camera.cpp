@@ -42,22 +42,24 @@ namespace iris
 {
 
 Camera::Camera(CameraType type, real width, real height)
-    : position_(0.0f, 0.0f, 100.0f),
-      direction_(0.0f, 0.0f, -1.0f),
-      up_(0.0f, 1.0f, 0.0f),
-      view_(),
-      projection_(),
-      pitch_(0.0f),
-      yaw_(-3.141592654f / 2.0f),
-      type_(type)
+    : position_(0.0f, 0.0f, 100.0f)
+    , direction_(0.0f, 0.0f, -1.0f)
+    , up_(0.0f, 1.0f, 0.0f)
+    , view_()
+    , projection_()
+    , pitch_(0.0f)
+    , yaw_(-3.141592654f / 2.0f)
+    , type_(type)
 {
-    switch(type_)
+    switch (type_)
     {
         case CameraType::PERSPECTIVE:
-            projection_ = Matrix4::make_perspective_projection(0.785398f, width, height, 0.1f, 1000.0f);
+            projection_ = Matrix4::make_perspective_projection(
+                0.785398f, width, height, 0.1f, 1000.0f);
             break;
         case CameraType::ORTHOGRAPHIC:
-            projection_ = Matrix4::make_orthographic_projection(width, height, 1000.0f);
+            projection_ =
+                Matrix4::make_orthographic_projection(width, height, 1000.0f);
             break;
     }
 
@@ -141,4 +143,3 @@ CameraType Camera::type() const
 }
 
 }
-

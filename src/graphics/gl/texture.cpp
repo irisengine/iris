@@ -28,7 +28,7 @@ std::uint32_t channels_to_format(const std::uint32_t num_channels)
 {
     auto format = 0u;
 
-    switch(num_channels)
+    switch (num_channels)
     {
         case 1:
             format = GL_RED;
@@ -45,7 +45,6 @@ std::uint32_t channels_to_format(const std::uint32_t num_channels)
 
     return format;
 }
-
 
 /**
  * Helper function to create an opengl Texture from data.
@@ -73,7 +72,7 @@ std::uint32_t create_texture(
 {
     // sanity check we have enough data
     const auto expected_size = width * height * num_channels;
-    if(data.size() != expected_size)
+    if (data.size() != expected_size)
     {
         throw iris::Exception("incorrect data size");
     }
@@ -136,18 +135,19 @@ struct Texture::implementation
     /** Simple constructor which takes a value for each member. */
     implementation(std::uint32_t texture)
         : texture(texture)
-    { }
+    {
+    }
 
     /** Opengl handle for texture. */
     std::uint32_t texture;
 };
 
 Texture::Texture(const std::string &resource)
-    : data_(),
-      width_(0u),
-      height_(0u),
-      num_channels_(0u),
-      impl_(nullptr)
+    : data_()
+    , width_(0u)
+    , height_(0u)
+    , num_channels_(0u)
+    , impl_(nullptr)
 {
     const auto file_data = ResourceLoader::instance().load(resource);
     const auto [data, width, height, num_channels] =
@@ -164,11 +164,11 @@ Texture::Texture(
     const std::uint32_t width,
     const std::uint32_t height,
     const std::uint32_t num_channels)
-    : data_(data),
-      width_(width),
-      height_(height),
-      num_channels_(num_channels),
-      impl_(nullptr)
+    : data_(data)
+    , width_(width)
+    , height_(height)
+    , num_channels_(num_channels)
+    , impl_(nullptr)
 {
     const auto texture = create_texture(data, width, height, num_channels);
     impl_ = std::make_unique<implementation>(texture);
@@ -178,7 +178,7 @@ Texture::Texture(
 
 Texture::~Texture()
 {
-    if(impl_)
+    if (impl_)
     {
         // cleanup opengl resources
         ::glDeleteTextures(1, std::addressof(impl_->texture));
@@ -186,8 +186,8 @@ Texture::~Texture()
 }
 
 /** Default. */
-Texture::Texture(Texture&&) = default;
-Texture& Texture::operator=(Texture&&) = default;
+Texture::Texture(Texture &&) = default;
+Texture &Texture::operator=(Texture &&) = default;
 
 std::vector<std::uint8_t> Texture::data() const
 {
@@ -216,8 +216,7 @@ std::any Texture::native_handle() const
 
 Texture Texture::blank()
 {
-    return{ { 0xFF, 0xFF, 0xFF, 0xFF }, 1u, 1u, 4u };
+    return {{0xFF, 0xFF, 0xFF, 0xFF}, 1u, 1u, 4u};
 }
 
 }
-

@@ -13,18 +13,17 @@ class Socket;
  */
 class AcceptingSocket
 {
-    public:
+  public:
+    // default
+    virtual ~AcceptingSocket() = default;
 
-        // default
-        virtual ~AcceptingSocket() = default;
-
-        /**
-         * Block and wait for a new connection.
-         * 
-         * @returns
-         *   A Socket object for communicating with the new connection.
-         */
-        virtual Socket* accept() = 0;
+    /**
+     * Block and wait for a new connection.
+     *
+     * @returns
+     *   A Socket object for communicating with the new connection.
+     */
+    virtual Socket *accept() = 0;
 };
 
 }

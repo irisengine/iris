@@ -24,7 +24,7 @@ namespace
 iris::Matrix4 create_normal_transform(const iris::Matrix4 &model)
 {
     auto normal = iris::Matrix4::transpose(iris::Matrix4::invert(model));
-    
+
     // remove the translation components
     normal[3] = 0.0f;
     normal[7] = 0.0f;
@@ -46,17 +46,18 @@ RenderEntity::RenderEntity(
     Material *material,
     bool wireframe,
     CameraType camera_type)
-    : mesh_(std::move(mesh)),
-      position_(position),
-      orientation_(orientation),
-      scale_(scale),
-      model_(),
-      normal_(),
-      material_(material),
-      wireframe_(wireframe),
-      camera_type_(camera_type)
+    : mesh_(std::move(mesh))
+    , position_(position)
+    , orientation_(orientation)
+    , scale_(scale)
+    , model_()
+    , normal_()
+    , material_(material)
+    , wireframe_(wireframe)
+    , camera_type_(camera_type)
 {
-    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) * Matrix4::make_scale(scale_);
+    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) *
+             Matrix4::make_scale(scale_);
     normal_ = create_normal_transform(model_);
 }
 
@@ -66,21 +67,24 @@ void RenderEntity::set_position(const Vector3 &position)
 {
     position_ = position;
 
-    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) * Matrix4::make_scale(scale_);
+    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) *
+             Matrix4::make_scale(scale_);
     normal_ = create_normal_transform(model_);
 }
 
 void RenderEntity::set_orientation(const Quaternion &orientation)
 {
     orientation_ = orientation;
-    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) * Matrix4::make_scale(scale_);
+    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) *
+             Matrix4::make_scale(scale_);
     normal_ = create_normal_transform(model_);
 }
 
 void RenderEntity::set_scale(const Vector3 &scale)
 {
     scale_ = scale;
-    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) * Matrix4::make_scale(scale_);
+    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) *
+             Matrix4::make_scale(scale_);
     normal_ = create_normal_transform(model_);
 }
 
@@ -99,12 +103,12 @@ Matrix4 RenderEntity::normal_transform() const
     return normal_;
 }
 
-const Mesh& RenderEntity::mesh() const
+const Mesh &RenderEntity::mesh() const
 {
     return mesh_;
 }
 
-const Material& RenderEntity::material() const
+const Material &RenderEntity::material() const
 {
     return *material_;
 }
@@ -125,5 +129,3 @@ CameraType RenderEntity::camera_type() const
 }
 
 }
-
-

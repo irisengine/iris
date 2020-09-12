@@ -11,14 +11,15 @@ static const iris::DataBuffer test_data{
 
 TEST(packet, construct_invalid)
 {
-    iris::Packet p{ };
+    iris::Packet p{};
 
     ASSERT_FALSE(p.is_valid());
 }
 
 TEST(packet, construct_normal)
 {
-    iris::Packet p{ iris::PacketType::DATA, iris::ChannelType::RELIABLE_ORDERED, test_data };
+    iris::Packet p{
+        iris::PacketType::DATA, iris::ChannelType::RELIABLE_ORDERED, test_data};
 
     ASSERT_TRUE(p.is_valid());
     ASSERT_EQ(p.type(), iris::PacketType::DATA);
@@ -32,14 +33,16 @@ TEST(packet, construct_normal)
 
 TEST(packet, resize_too_large)
 {
-    iris::Packet p{ iris::PacketType::DATA, iris::ChannelType::RELIABLE_ORDERED, test_data };
+    iris::Packet p{
+        iris::PacketType::DATA, iris::ChannelType::RELIABLE_ORDERED, test_data};
 
     ASSERT_THROW(p.resize(sizeof(p) + 1u), iris::Exception);
 }
 
 TEST(packet, sequence)
 {
-    iris::Packet p{ iris::PacketType::DATA, iris::ChannelType::RELIABLE_ORDERED, test_data };
+    iris::Packet p{
+        iris::PacketType::DATA, iris::ChannelType::RELIABLE_ORDERED, test_data};
 
     p.set_sequence(10u);
 
@@ -48,16 +51,22 @@ TEST(packet, sequence)
 
 TEST(packet, equality)
 {
-    iris::Packet p1{ iris::PacketType::DATA, iris::ChannelType::RELIABLE_ORDERED, test_data };
-    iris::Packet p2{ iris::PacketType::DATA, iris::ChannelType::RELIABLE_ORDERED, test_data };
+    iris::Packet p1{
+        iris::PacketType::DATA, iris::ChannelType::RELIABLE_ORDERED, test_data};
+    iris::Packet p2{
+        iris::PacketType::DATA, iris::ChannelType::RELIABLE_ORDERED, test_data};
 
     ASSERT_EQ(p1, p2);
 }
 
 TEST(packet, inequality)
 {
-    iris::Packet p1{ iris::PacketType::HELLO, iris::ChannelType::RELIABLE_ORDERED, test_data };
-    iris::Packet p2{ iris::PacketType::DATA, iris::ChannelType::RELIABLE_ORDERED, test_data };
+    iris::Packet p1{
+        iris::PacketType::HELLO,
+        iris::ChannelType::RELIABLE_ORDERED,
+        test_data};
+    iris::Packet p2{
+        iris::PacketType::DATA, iris::ChannelType::RELIABLE_ORDERED, test_data};
 
     ASSERT_NE(p1, p2);
 }

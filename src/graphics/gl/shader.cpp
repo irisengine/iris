@@ -15,9 +15,8 @@ namespace iris
 shader::shader(const std::string &source, shader_type type)
     : shader_(0u)
 {
-    const auto native_type = (type == shader_type::VERTEX)
-        ? GL_VERTEX_SHADER
-        : GL_FRAGMENT_SHADER;
+    const auto native_type =
+        (type == shader_type::VERTEX) ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER;
 
     shader_ = ::glCreateShader(native_type);
     check_opengl_error("could not create vertex shader");
@@ -35,12 +34,12 @@ shader::shader(const std::string &source, shader_type type)
     iris::check_opengl_error("could not get shader parameter");
 
     // if shader failed to compile then get the opengl error
-    if(shader_param != GL_TRUE)
+    if (shader_param != GL_TRUE)
     {
         ::glGetShaderiv(shader_, GL_INFO_LOG_LENGTH, &shader_param);
         iris::check_opengl_error("could not get shader log length");
 
-        if(shader_param == 0)
+        if (shader_param == 0)
         {
             throw Exception("shader compilation failed: no log");
         }
@@ -75,13 +74,13 @@ shader::shader(shader &&other)
     std::swap(shader_, other.shader_);
 }
 
-shader& shader::operator=(shader &&other)
+shader &shader::operator=(shader &&other)
 {
     // create a new shader object to 'steal' the internal state of the supplied
     // object then swap
     // this ensures that the current shader is correctly deleted at the end
     // of this call
-    shader new_shader{ std::move(other) };
+    shader new_shader{std::move(other)};
     std::swap(shader_, new_shader.shader_);
 
     return *this;
@@ -93,4 +92,3 @@ std::uint32_t shader::native_handle() const
 }
 
 }
-

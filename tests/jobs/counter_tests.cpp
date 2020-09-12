@@ -34,17 +34,17 @@ TEST(counter, thread_safe)
     static constexpr auto value = 10000;
     iris::Counter ctr(value);
 
-    auto dec_thread = [&ctr](){
-        for(auto i = 0; i < value / 4; ++i)
+    auto dec_thread = [&ctr]() {
+        for (auto i = 0; i < value / 4; ++i)
         {
             --ctr;
         }
     };
 
-    std::thread thrd1 { dec_thread };
-    std::thread thrd2 { dec_thread };
-    std::thread thrd3 { dec_thread };
-    std::thread thrd4 { dec_thread };
+    std::thread thrd1{dec_thread};
+    std::thread thrd2{dec_thread};
+    std::thread thrd3{dec_thread};
+    std::thread thrd4{dec_thread};
 
     thrd1.join();
     thrd2.join();
@@ -53,4 +53,3 @@ TEST(counter, thread_safe)
 
     ASSERT_EQ(static_cast<int>(ctr), 0);
 }
-

@@ -45,19 +45,19 @@ using namespace std::chrono_literals;
 /**
  * Process all pending user input. This will send input to the server as well as
  * store it locally.
- * 
+ *
  * @param inputs
  *   Collection to store inputs in.
- * 
+ *
  * @param camera
  *   Camera to update.
- * 
+ *
  * @param tick
  *   Current client tick number.
- * 
+ *
  * @param client
  *   Object to communicate with server.
- * 
+ *
  * @returns
  *   True if user has quit, false otherwise.
  */
@@ -69,43 +69,47 @@ bool handle_input(
 {
     auto quit = false;
 
-    // we just continuously update a static input object, this ensures the object
-    // always represents the current input state
+    // we just continuously update a static input object, this ensures the
+    // object always represents the current input state
     static ClientInput input;
 
     auto has_input = false;
 
     // consume all inputs
-    for(;;)
+    for (;;)
     {
         auto evt = iris::Root::instance().window().pump_event();
-        if(!evt)
+        if (!evt)
         {
             break;
         }
 
-        if(evt->is_key(iris::Key::ESCAPE))
+        if (evt->is_key(iris::Key::ESCAPE))
         {
             quit = true;
         }
-        else if(evt->is_key())
+        else if (evt->is_key())
         {
             const auto keyboard = evt->key();
 
             // convert input keys to client input
-            switch(keyboard.key)
+            switch (keyboard.key)
             {
                 case iris::Key::W:
-                    input.forward = keyboard.state == iris::KeyState::DOWN ? -1.0f : 0.0f;
+                    input.forward =
+                        keyboard.state == iris::KeyState::DOWN ? -1.0f : 0.0f;
                     break;
                 case iris::Key::S:
-                    input.forward = keyboard.state == iris::KeyState::DOWN ? 1.0f : 0.0f;
+                    input.forward =
+                        keyboard.state == iris::KeyState::DOWN ? 1.0f : 0.0f;
                     break;
                 case iris::Key::A:
-                    input.side = keyboard.state == iris::KeyState::DOWN ? -1.0f : 0.0f;
+                    input.side =
+                        keyboard.state == iris::KeyState::DOWN ? -1.0f : 0.0f;
                     break;
                 case iris::Key::D:
-                    input.side = keyboard.state == iris::KeyState::DOWN ? 1.0f : 0.0f;
+                    input.side =
+                        keyboard.state == iris::KeyState::DOWN ? 1.0f : 0.0f;
                     break;
                 default:
                     break;
@@ -113,7 +117,7 @@ bool handle_input(
 
             has_input = true;
         }
-        else if(evt->is_mouse())
+        else if (evt->is_mouse())
         {
             // update camera based on mouse movement
             static const auto sensitivity = 0.0025f;
@@ -126,7 +130,7 @@ bool handle_input(
 
     // if we processed any input then send the latest input state to the server
     // and store a copy locally
-    if(has_input)
+    if (has_input)
     {
         input.tick = tick;
 
@@ -142,26 +146,34 @@ bool handle_input(
 
 /**
  * Process an update from the server on the state of the world.
- * 
+ *
  * @param server_data
  *   Data from server
- * 
+ *
  * @param snapshots
  *   Collection snapshots of server updates (of non player entity).
- * 
+ *
  * @param history
  *   Collection of local state history.
- * 
+ *
  * @param inputs
  *   Collection of stored user inputs.
- * 
+ *
  * @returns
  *   Tuple of various server data.
  */
-std::tuple<std::uint32_t, iris::Vector3, iris::Vector3, iris::Vector3> process_server_update(
+std::tuple<std::uint32_t, iris::Vector3, iris::Vector3, iris::Vector3>
+process_server_update(
     const iris::DataBuffer &server_data,
-    std::deque<std::tuple<std::chrono::steady_clock::time_point, iris::Vector3, iris::Quaternion>> &snapshots,
-    std::vector<std::tuple<std::uint32_t, iris::Vector3, std::unique_ptr<iris::PhysicsState, iris::PhysicsStateDeleter>>> &history,
+    std::deque<std::tuple<
+        std::chrono::steady_clock::time_point,
+        iris::Vector3,
+        iris::Quaternion>> &snapshots,
+    std::vector<std::tuple<
+        std::uint32_t,
+        iris::Vector3,
+        std::unique_ptr<iris::PhysicsState, iris::PhysicsStateDeleter>>>
+        &history,
     std::deque<ClientInput> &inputs)
 {
     // deserialise server update
@@ -176,19 +188,19 @@ std::tuple<std::uint32_t, iris::Vector3, iris::Vector3, iris::Vector3> process_s
 
     // store server update of box, put the time in the future so we can easily
     // interpolate between snapshots
-    snapshots.emplace_back(std::chrono::steady_clock::now() + 100ms, box_pos, box_rot);
+    snapshots.emplace_back(
+        std::chrono::steady_clock::now() + 100ms, box_pos, box_rot);
 
     // find the last input acknowledged by the server
     const auto acked_input = std::find_if(
         std::cbegin(inputs),
         std::cend(inputs),
-        [last_acked](const ClientInput &element)
-        {
+        [last_acked](const ClientInput &element) {
             return element.tick >= last_acked;
         });
-    
+
     // cleanup old inputs
-    if(acked_input != std::cend(inputs))
+    if (acked_input != std::cend(inputs))
     {
         inputs.erase(std::cbegin(inputs), acked_input);
     }
@@ -197,19 +209,18 @@ std::tuple<std::uint32_t, iris::Vector3, iris::Vector3, iris::Vector3> process_s
     const auto acked_history = std::find_if(
         std::cbegin(history),
         std::cend(history),
-        [last_acked](const auto &element)
-        {
+        [last_acked](const auto &element) {
             return std::get<0>(element) == last_acked;
         });
 
     // cleanup old history
-    if(acked_history != std::cend(history))
+    if (acked_history != std::cend(history))
     {
         history.erase(std::cbegin(history), acked_history);
     }
 
     // return useful data
-    return { last_acked, position, linear_velocity, angular_velocity };
+    return {last_acked, position, linear_velocity, angular_velocity};
 }
 
 /**
@@ -219,31 +230,35 @@ std::tuple<std::uint32_t, iris::Vector3, iris::Vector3, iris::Vector3> process_s
  *  - reset to that state
  *  - apply the correct server details
  *  - replay all user inputs since that tick
- * 
+ *
  * @param last_acked
  *   The last tick the server acknowledged.
- * 
+ *
  * @param history
  *   Collection of local state history.
- * 
+ *
  * @param server_position
  *   The true position of the client at last_acked.
- * 
+ *
  * @param linear_velocity
  *   The true linear_velocity of the client at last_acked.
- * 
+ *
  * @param angular_velocity
  *   The true angular_velocity of the client at last_acked.
- * 
+ *
  * @param character_controller
  *   Pointer to character controller.
- * 
+ *
  * @param inputs
  *   Collection of stored user inputs.
  */
 void client_prediciton(
     std::uint32_t last_acked,
-    std::vector<std::tuple<std::uint32_t, iris::Vector3, std::unique_ptr<iris::PhysicsState, iris::PhysicsStateDeleter>>> &history,
+    std::vector<std::tuple<
+        std::uint32_t,
+        iris::Vector3,
+        std::unique_ptr<iris::PhysicsState, iris::PhysicsStateDeleter>>>
+        &history,
     const iris::Vector3 &server_position,
     const iris::Vector3 &linear_velocity,
     const iris::Vector3 &angular_velocity,
@@ -256,41 +271,45 @@ void client_prediciton(
 
     // as we periodically purge acked history if we have an entry for the last
     // acked tick it will be the first in our collection
-    if(tck_num == last_acked)
+    if (tck_num == last_acked)
     {
-        // get the difference between our saved predicted position and the actual
-        // server prediction
+        // get the difference between our saved predicted position and the
+        // actual server prediction
         static const auto threshold = 0.3f;
         const auto diff = std::abs((pos - server_position).magnitude());
 
         // if the difference is above our threshold (which account for floating
-        //point rounding errors) then we have gone out of sync with the server
-        if(diff >= threshold)
+        // point rounding errors) then we have gone out of sync with the server
+        if (diff >= threshold)
         {
             // reset to the stored state
             ps.load(state.get());
 
             // update the player with the server supplied data
-            character_controller->reposition(server_position, iris::Quaternion{ 0.0f, 1.0f, 0.0f, 0.0f });
+            character_controller->reposition(
+                server_position, iris::Quaternion{0.0f, 1.0f, 0.0f, 0.0f});
             character_controller->set_linear_velocity(linear_velocity);
             character_controller->set_angular_velocity(angular_velocity);
 
             // update the history entry
-            history[0] = std::make_tuple(tck_num, character_controller->position(), ps.save());
+            history[0] = std::make_tuple(
+                tck_num, character_controller->position(), ps.save());
 
             // update every other history entry by replaying user inputs
-            for(auto i = 1u; i < history.size(); ++i)
+            for (auto i = 1u; i < history.size(); ++i)
             {
                 auto current_tick = tck_num + i;
 
                 // replay user inputs for our current history entry
-                for(const auto &input : inputs)
+                for (const auto &input : inputs)
                 {
-                    if(input.tick == current_tick)
+                    if (input.tick == current_tick)
                     {
-                        iris::Vector3 walk_direction{ input.side, 0.0f, input.forward };
+                        iris::Vector3 walk_direction{
+                            input.side, 0.0f, input.forward};
                         walk_direction.normalise();
-                        character_controller->set_walk_direction(walk_direction);
+                        character_controller->set_walk_direction(
+                            walk_direction);
                     }
                 }
 
@@ -298,7 +317,8 @@ void client_prediciton(
                 ps.step(std::chrono::milliseconds(33));
 
                 // update history
-                history[i] = std::make_tuple(current_tick, character_controller->position(), ps.save());
+                history[i] = std::make_tuple(
+                    current_tick, character_controller->position(), ps.save());
             }
         }
     }
@@ -311,15 +331,18 @@ void client_prediciton(
  * intervals rendering each update would give jerky motion. Instead we delay
  * rendering by a small amount so we have two snapshots of the entity positions,
  * we can then interpolate between them for smoother motion.
- * 
+ *
  * @param snapshots
  *   Collection snapshots of server updates (of non player entity).
- * 
+ *
  * @param box
  *   Pointer to RenderEntity for box.
  */
 void entity_interpolation(
-    std::deque<std::tuple<std::chrono::steady_clock::time_point, iris::Vector3, iris::Quaternion>> &snapshots,
+    std::deque<std::tuple<
+        std::chrono::steady_clock::time_point,
+        iris::Vector3,
+        iris::Quaternion>> &snapshots,
     iris::RenderEntity *box)
 {
     const auto now = std::chrono::steady_clock::now();
@@ -329,13 +352,10 @@ void entity_interpolation(
     const auto second_snapshot = std::find_if(
         std::cbegin(snapshots) + 1u,
         std::cend(snapshots),
-        [&now](const auto &element)
-        {
-            return std::get<0>(element) >= now;
-        });
+        [&now](const auto &element) { return std::get<0>(element) >= now; });
 
     // check we have two snapshots
-    if(second_snapshot != std::cend(snapshots))
+    if (second_snapshot != std::cend(snapshots))
     {
         const auto first_snapshot = second_snapshot - 1u;
 
@@ -345,7 +365,8 @@ void entity_interpolation(
         // calculate the interpolate amount
         const auto delta1 = now - time_start;
         const auto delta2 = time_end - time_start;
-        const auto lerp_amount = static_cast<float>(delta1.count()) / static_cast<float>(delta2.count());
+        const auto lerp_amount = static_cast<float>(delta1.count()) /
+                                 static_cast<float>(delta2.count());
 
         pos_start.lerp(pos_end, lerp_amount);
         rot_start.slerp(rot_end, lerp_amount);
@@ -369,36 +390,48 @@ void go(int, char **)
         std::chrono::milliseconds(0u),
         0.0f);
 
-    iris::ClientConnectionHandler client{ std::move(socket) };
+    iris::ClientConnectionHandler client{std::move(socket)};
 
     auto &rs = iris::Root::render_system();
     auto &camera = rs.persective_camera();
 
     rs.create<iris::Model>(
-        iris::Vector3{ 0.0f, -50.0f, 0.0f },
-        iris::Vector3{ 500.0f, 50.0f, 500.0f },
-        iris::shape_factory::cube({ 1.0f, 1.0f, 1.0f }));
+        iris::Vector3{0.0f, -50.0f, 0.0f},
+        iris::Vector3{500.0f, 50.0f, 500.0f},
+        iris::shape_factory::cube({1.0f, 1.0f, 1.0f}));
 
     auto *box = rs.create<iris::Model>(
-        iris::Vector3{ 0.0f, 1.0f, 0.0f },
-        iris::Vector3{ 0.5f, 0.5f, 0.5f },
-        iris::shape_factory::cube({ 1.0f, 0.0f, 0.0f }));
+        iris::Vector3{0.0f, 1.0f, 0.0f},
+        iris::Vector3{0.5f, 0.5f, 0.5f},
+        iris::shape_factory::cube({1.0f, 0.0f, 0.0f}));
 
-    std::deque<std::tuple<std::chrono::steady_clock::time_point, iris::Vector3, iris::Quaternion>> snapshots;
+    std::deque<std::tuple<
+        std::chrono::steady_clock::time_point,
+        iris::Vector3,
+        iris::Quaternion>>
+        snapshots;
     std::deque<ClientInput> inputs;
 
     auto &ps = iris::Root::physics_system();
-    auto *character_controller = ps.create_character_controller<iris::BasicCharacterController>();
-    ps.create_rigid_body<iris::BoxRigidBody>(iris::Vector3{ 0.0f, -50.0f, 0.0f }, iris::Vector3{ 500.0f, 50.0f, 500.0f }, true);
+    auto *character_controller =
+        ps.create_character_controller<iris::BasicCharacterController>();
+    ps.create_rigid_body<iris::BoxRigidBody>(
+        iris::Vector3{0.0f, -50.0f, 0.0f},
+        iris::Vector3{500.0f, 50.0f, 500.0f},
+        true);
 
-    std::vector<std::tuple<std::uint32_t, iris::Vector3, std::unique_ptr<iris::PhysicsState, iris::PhysicsStateDeleter>>> history;
+    std::vector<std::tuple<
+        std::uint32_t,
+        iris::Vector3,
+        std::unique_ptr<iris::PhysicsState, iris::PhysicsStateDeleter>>>
+        history;
     std::uint32_t tick = 0u;
 
     ClientInput input;
 
     // keep looping till handshake and sync is complete which will give us a lag
     // estimate
-    while(client.lag().count() == 0)
+    while (client.lag().count() == 0)
     {
     }
 
@@ -411,7 +444,7 @@ void go(int, char **)
     // step ourselves forward in time
     // we want be a head of the server just enough so that it received input for
     // the frame it is about to execute
-    for(auto i = 0u; i < ticks_behind; ++i)
+    for (auto i = 0u; i < ticks_behind; ++i)
     {
         ps.step(std::chrono::milliseconds(33));
     }
@@ -421,8 +454,7 @@ void go(int, char **)
     iris::Looper looper(
         33ms * ticks_behind,
         33ms,
-        [&](std::chrono::microseconds, std::chrono::microseconds)
-        {
+        [&](std::chrono::microseconds, std::chrono::microseconds) {
             // fixed timestep function
             // this simulates the same physics code as in the server, with the
             // same inputs
@@ -430,18 +462,20 @@ void go(int, char **)
             auto keep_looping = false;
 
             // process user inputs
-            if(!handle_input(inputs, camera, tick, client))
+            if (!handle_input(inputs, camera, tick, client))
             {
                 // apply inputs to physics simulation
-                for(const auto &input : inputs)
+                for (const auto &input : inputs)
                 {
                     // only process inputs for this tick
-                    if(input.tick == tick)
+                    if (input.tick == tick)
                     {
-                        iris::Vector3 walk_direction{ input.side, 0.0f, input.forward };
+                        iris::Vector3 walk_direction{
+                            input.side, 0.0f, input.forward};
                         walk_direction.normalise();
 
-                        character_controller->set_walk_direction(walk_direction);
+                        character_controller->set_walk_direction(
+                            walk_direction);
                     }
                 }
 
@@ -450,7 +484,8 @@ void go(int, char **)
                 // snapshot the state of the simulation at this tick, this is
                 // needed so we can rewind the state of we get out of sync with
                 // the server
-                history.emplace_back(tick, character_controller->position(), ps.save());
+                history.emplace_back(
+                    tick, character_controller->position(), ps.save());
 
                 ++tick;
                 keep_looping = true;
@@ -458,27 +493,33 @@ void go(int, char **)
 
             return keep_looping;
         },
-        [&](std::chrono::microseconds, std::chrono::microseconds)
-        {
+        [&](std::chrono::microseconds, std::chrono::microseconds) {
             // variable timestep function
             // this handles various lag compensation techniques as well as
             // renders the world
 
             // process all pending messages from the server
-            for(;;)
+            for (;;)
             {
-                const auto server_data = client.try_read(iris::ChannelType::RELIABLE_ORDERED);
-                if(!server_data)
+                const auto server_data =
+                    client.try_read(iris::ChannelType::RELIABLE_ORDERED);
+                if (!server_data)
                 {
                     break;
                 }
 
                 // process the message
-                const auto [last_acked, server_position, linear_velocity, angular_velocity] = process_server_update(*server_data, snapshots, history, inputs);
+                const auto
+                    [last_acked,
+                     server_position,
+                     linear_velocity,
+                     angular_velocity] =
+                        process_server_update(
+                            *server_data, snapshots, history, inputs);
 
                 // if we have history then update the client prediction based
                 // upon the latest information from the server
-                if(!history.empty())
+                if (!history.empty())
                 {
                     client_prediciton(
                         last_acked,
@@ -496,11 +537,11 @@ void go(int, char **)
 
             // if we have snapshots the interpolate the server entity for smooth
             // motion
-            if(snapshots.size() >= 2u)
+            if (snapshots.size() >= 2u)
             {
                 entity_interpolation(snapshots, box);
             }
-            
+
             // render the world
             rs.render();
 
@@ -518,17 +559,15 @@ int main(int argc, char **argv)
     {
         iris::start_debug(argc, argv, go);
     }
-    catch(iris::Exception &e)
+    catch (iris::Exception &e)
     {
         LOG_ERROR("client", e.what());
         LOG_ERROR("client", e.stack_trace());
     }
-    catch(...)
+    catch (...)
     {
         LOG_ERROR("client", "unknown exception");
     }
 
     return 0;
 }
-
-

@@ -13,62 +13,61 @@ namespace iris
  */
 class Looper
 {
-    public:
+  public:
+    /**
+     * Definition of a function to run in loop.
+     *
+     * @param clock
+     *   Total elapsed time since loop started.
+     *
+     * @param delta
+     *   Duration of frame.
+     *
+     * @returns
+     *   True if loop should continue, false if it should exit.
+     */
+    using LoopFunction = std::function<
+        bool(std::chrono::microseconds, std::chrono::microseconds)>;
 
-        /**
-         * Definition of a function to run in loop.
-         * 
-         * @param clock
-         *   Total elapsed time since loop started.
-         * 
-         * @param delta
-         *   Duration of frame.
-         * 
-         * @returns
-         *   True if loop should continue, false if it should exit.
-         */
-        using LoopFunction = std::function<bool(std::chrono::microseconds, std::chrono::microseconds)>;
+    /**
+     * Construct a new looper.
+     *
+     * @param clock
+     *   Start time of looping.
+     *
+     * @param timestep
+     *   How frequently to call the fixed time step function.
+     *
+     * @param fixed_timestep
+     *   Function to call at the supplied fixed timestep.
+     *
+     * @param variable_timestep
+     *   Function to call as frequently as possible.
+     */
+    Looper(
+        std::chrono::microseconds clock,
+        std::chrono::microseconds timestep,
+        LoopFunction fixed_timestep,
+        LoopFunction variable_timestep);
 
-        /**
-         * Construct a new looper.
-         * 
-         * @param clock
-         *   Start time of looping.
-         * 
-         * @param timestep
-         *   How frequently to call the fixed time step function.
-         * 
-         * @param fixed_timestep
-         *   Function to call at the supplied fixed timestep.
-         * 
-         * @param variable_timestep
-         *   Function to call as frequently as possible.
-         */
-        Looper(
-            std::chrono::microseconds clock,
-            std::chrono::microseconds timestep,
-            LoopFunction fixed_timestep,
-            LoopFunction variable_timestep);
+    /**
+     * Run the loop. Will continue until one of the supplied functions
+     * returns false. Clock time will start incrementing from this call.
+     */
+    void run();
 
-        /**
-         * Run the loop. Will continue until one of the supplied functions
-         * returns false. Clock time will start incrementing from this call.
-         */
-        void run();
+  private:
+    /** Elapsed time of loop. */
+    std::chrono::microseconds clock_;
 
-    private:
+    /** Fixed time step. */
+    std::chrono::microseconds timestep_;
 
-        /** Elapsed time of loop. */
-        std::chrono::microseconds clock_;
+    /** Function to run at foxed time step. */
+    LoopFunction fixed_timestep_;
 
-        /** Fixed time step. */
-        std::chrono::microseconds timestep_;
-
-        /** Function to run at foxed time step. */
-        LoopFunction fixed_timestep_;
-
-        /** Function to run at variable time step. */
-        LoopFunction variable_timestep_;
+    /** Function to run at variable time step. */
+    LoopFunction variable_timestep_;
 };
 
 }

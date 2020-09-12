@@ -17,18 +17,18 @@ id<MTLDevice> metal_device()
     return ::CGDirectDisplayCopyCurrentMetalDevice(::CGMainDisplayID());
 }
 
-CAMetalLayer* metal_layer()
+CAMetalLayer *metal_layer()
 {
     // get a pointer to the main window
     auto *window = [[NSApp windows] firstObject];
-    if(window == nullptr)
+    if (window == nullptr)
     {
         throw Exception("could not get main window");
     }
 
     // get a pointer to the metal layer to render to
-    auto *layer = static_cast<CAMetalLayer*>([[window contentView] layer]);
-    if(layer == nullptr)
+    auto *layer = static_cast<CAMetalLayer *>([[window contentView] layer]);
+    if (layer == nullptr)
     {
         throw Exception("could not get metal later");
     }
@@ -43,4 +43,3 @@ CGFloat screen_scale()
 }
 
 }
-

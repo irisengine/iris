@@ -9,4 +9,3 @@ namespace iris
 using Job = std::function<void()>;
 
 }
-

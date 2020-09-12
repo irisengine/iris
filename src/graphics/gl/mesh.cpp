@@ -28,7 +28,7 @@ std::uint32_t type_to_gl_type(const iris::BufferType type)
 {
     auto gl_type = GL_ARRAY_BUFFER;
 
-    switch(type)
+    switch (type)
     {
         case iris::BufferType::VERTEX_ATTRIBUTES:
             gl_type = GL_ARRAY_BUFFER;
@@ -70,7 +70,8 @@ struct Mesh::implementation
     /** Simple constructor which takes a value for each member. */
     implementation(std::uint32_t vao)
         : vao(vao)
-    { }
+    {
+    }
 
     /** Opengl handle for vao. */
     std::uint32_t vao;
@@ -80,11 +81,13 @@ Mesh::Mesh(
     const std::vector<vertex_data> &vertices,
     const std::vector<std::uint32_t> &indices,
     Texture &&textures)
-    : indices_(indices),
-      texture_(std::move(textures)),
-      vertex_buffer_(std::make_unique<Buffer>(vertices, BufferType::VERTEX_ATTRIBUTES)),
-      index_buffer_(std::make_unique<Buffer>(indices, BufferType::VERTEX_INDICES)),
-      impl_(std::make_unique<implementation>(0u))
+    : indices_(indices)
+    , texture_(std::move(textures))
+    , vertex_buffer_(
+          std::make_unique<Buffer>(vertices, BufferType::VERTEX_ATTRIBUTES))
+    , index_buffer_(
+          std::make_unique<Buffer>(indices, BufferType::VERTEX_INDICES))
+    , impl_(std::make_unique<implementation>(0u))
 {
     // create vao
     ::glGenVertexArrays(1, std::addressof(impl_->vao));
@@ -114,7 +117,13 @@ Mesh::Mesh(
     ::glEnableVertexAttribArray(normal_attribute);
     check_opengl_error("could not enable normal attribute");
 
-    ::glVertexAttribPointer(normal_attribute, 3, GL_FLOAT, GL_FALSE, data_size, reinterpret_cast<void*>(3 * sizeof(float)));
+    ::glVertexAttribPointer(
+        normal_attribute,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        data_size,
+        reinterpret_cast<void *>(3 * sizeof(float)));
     check_opengl_error("could not set normal attributes");
 
     const auto colour_attribute = 2u;
@@ -122,7 +131,13 @@ Mesh::Mesh(
     ::glEnableVertexAttribArray(colour_attribute);
     check_opengl_error("could not enable colour attribute");
 
-    ::glVertexAttribPointer(colour_attribute, 3, GL_FLOAT, GL_FALSE, data_size, reinterpret_cast<void*>(6 * sizeof(float)));
+    ::glVertexAttribPointer(
+        colour_attribute,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        data_size,
+        reinterpret_cast<void *>(6 * sizeof(float)));
     check_opengl_error("could not set colour attributes");
 
     const auto tex_attribute = 3u;
@@ -130,7 +145,13 @@ Mesh::Mesh(
     ::glEnableVertexAttribArray(tex_attribute);
     check_opengl_error("could not enable tex attribute");
 
-    ::glVertexAttribPointer(tex_attribute, 3, GL_FLOAT, GL_FALSE, data_size, reinterpret_cast<void*>(9 * sizeof(float)));
+    ::glVertexAttribPointer(
+        tex_attribute,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        data_size,
+        reinterpret_cast<void *>(9 * sizeof(float)));
     check_opengl_error("could not set tex attributes");
 
     // unbind vao
@@ -140,39 +161,38 @@ Mesh::Mesh(
 
 Mesh::~Mesh()
 {
-    if(impl_)
+    if (impl_)
     {
         ::glDeleteVertexArrays(1, std::addressof(impl_->vao));
     }
 }
 
-Mesh::Mesh(Mesh&&) = default;
-Mesh& Mesh::operator=(Mesh&&) = default;
+Mesh::Mesh(Mesh &&) = default;
+Mesh &Mesh::operator=(Mesh &&) = default;
 
-const std::vector<std::uint32_t>& Mesh::indices() const
+const std::vector<std::uint32_t> &Mesh::indices() const
 {
     return indices_;
 }
 
-const Buffer& Mesh::vertex_buffer() const
+const Buffer &Mesh::vertex_buffer() const
 {
     return *vertex_buffer_;
 }
 
-const Buffer& Mesh::index_buffer() const
+const Buffer &Mesh::index_buffer() const
 {
     return *index_buffer_;
 }
 
-const Texture& Mesh::texture() const
+const Texture &Mesh::texture() const
 {
     return texture_;
 }
 
 std::any Mesh::native_handle() const
 {
-    return std::any{ impl_->vao };
+    return std::any{impl_->vao};
 }
 
 }
-

@@ -13,7 +13,7 @@ namespace iris::material_factory
  * @returns
  *   Sprite material.
  */
-Material* sprite();
+Material *sprite();
 
 /**
  * Create a Material for rendering a basic mesh.
@@ -21,8 +21,6 @@ Material* sprite();
  * @returns
  *   Mesh material.
  */
-Material* mesh();
+Material *mesh();
 
 }
-
-

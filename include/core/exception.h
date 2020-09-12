@@ -12,31 +12,28 @@ namespace iris
  */
 class Exception : public std::runtime_error
 {
-    public:
+  public:
+    /**
+     * Construct a new exception.
+     *
+     * @param what
+     *   Exception message.
+     */
+    Exception(const std::string &what);
 
-        /**
-         * Construct a new exception.
-         *
-         * @param what
-         *   Exception message.
-         */
-        Exception(const std::string &what);
+    /**
+     * Get a formatted copy of the stack trace. Performs C++ name
+     * de-mangling where possible.
+     *
+     * @returns
+     *   Formatted stack trace, or empty string if no stack trace was
+     *   available or it could not be formatted.
+     */
+    std::string stack_trace() const;
 
-        /**
-         * Get a formatted copy of the stack trace. Performs C++ name
-         * de-mangling where possible.
-         *
-         * @returns
-         *   Formatted stack trace, or empty string if no stack trace was
-         *   available or it could not be formatted.
-         */
-        std::string stack_trace() const;
-
-    private:
-
-        /** Collection of pointers to stack frames to stack trace. */
-        std::vector<void*> frames_;
+  private:
+    /** Collection of pointers to stack frames to stack trace. */
+    std::vector<void *> frames_;
 };
 
 }
-

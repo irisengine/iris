@@ -12,19 +12,17 @@ namespace iris
  */
 class StdoutFormatter : public Outputter
 {
-    public:
+  public:
+    /** Default */
+    ~StdoutFormatter() override = default;
 
-        /** Default */
-        ~StdoutFormatter() override = default;
-
-        /**
-         * Output log.
-         *
-         * @param log
-         *   Log message to output.
-         */
-        void output(const std::string &log) override;
+    /**
+     * Output log.
+     *
+     * @param log
+     *   Log message to output.
+     */
+    void output(const std::string &log) override;
 };
 
 }
-

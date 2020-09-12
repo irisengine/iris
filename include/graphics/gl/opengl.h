@@ -21,4 +21,3 @@ namespace iris
 void check_opengl_error(const std::string &error_message);
 
 }
-

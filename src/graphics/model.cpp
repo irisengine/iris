@@ -9,14 +9,14 @@ namespace iris
 {
 Model::Model(const Vector3 &position, const Vector3 &scale, Mesh mesh)
     : RenderEntity(
-        std::move(mesh),
-        position,
-        { },
-        scale,
-        material_factory::mesh(),
-        false,
-        CameraType::PERSPECTIVE)
-{ }
-
+          std::move(mesh),
+          position,
+          {},
+          scale,
+          material_factory::mesh(),
+          false,
+          CameraType::PERSPECTIVE)
+{
 }
 
+}

@@ -21,95 +21,92 @@ namespace iris
  */
 class Root
 {
-    public:
+  public:
+    ~Root() = default;
 
-        ~Root() = default;
+    /**
+     * Initialises the Root object. Some platforms require deferred
+     * initialisation. This *should not* be called directly, the engine
+     * will call it when it safe to do so.
+     */
+    void init();
 
-        /**
-         * Initialises the Root object. Some platforms require deferred
-         * initialisation. This *should not* be called directly, the engine
-         * will call it when it safe to do so.
-         */
-        void init();
+    /**
+     * Get the single instance of root.
+     *
+     * @returns
+     *   Root single instance.
+     */
+    static Root &instance();
 
-        /**
-         * Get the single instance of root.
-         *
-         * @returns
-         *   Root single instance.
-         */
-        static Root& instance();
+    /**
+     * Get single instance of job system.
+     *
+     * @returns
+     *   Job system single instance.
+     */
+    static JobSystem &job_system();
 
-        /**
-         * Get single instance of job system.
-         *
-         * @returns
-         *   Job system single instance.
-         */
-        static JobSystem& job_system();
+    /**
+     * Get single instance of logger.
+     *
+     * @returns
+     *   Logger single instance.
+     */
+    static Logger &logger();
 
-        /**
-         * Get single instance of logger.
-         *
-         * @returns
-         *   Logger single instance.
-         */
-        static Logger& logger();
+    /**
+     * Get single instance of physics system.
+     *
+     * @returns
+     *   Render system single instance.
+     */
+    static PhysicsSystem &physics_system();
 
-        /**
-         * Get single instance of physics system.
-         *
-         * @returns
-         *   Render system single instance.
-         */
-        static PhysicsSystem& physics_system();
+    /**
+     * Get single instance of render system.
+     *
+     * @returns
+     *   Render system single instance.
+     */
+    static RenderSystem &render_system();
 
-        /**
-         * Get single instance of render system.
-         *
-         * @returns
-         *   Render system single instance.
-         */
-        static RenderSystem& render_system();
+    /**
+     * Get single instance of render window.
+     *
+     * @returns
+     *   Render system single instance.
+     */
+    static Window &window();
 
-        /**
-         * Get single instance of render window.
-         *
-         * @returns
-         *   Render system single instance.
-         */
-        static Window& window();
+  private:
+    /**
+     * Private to force access via instance.
+     */
+    Root();
 
-    private:
+    /** Single instance. */
+    static Root instance_;
 
-        /**
-         * Private to force access via instance.
-         */
-        Root();
+    // *NOTE*
+    // the order of the members is critical as we need to ensure destruction
+    // happens in a fixed order due to dependencies between components
+    // e.g. Logger must be destroyed last as other destructors use it
 
-        /** Single instance. */
-        static Root instance_;
+    /** Logger. */
+    std::unique_ptr<Logger> logger_;
 
-        // *NOTE*
-        // the order of the members is critical as we need to ensure destruction
-        // happens in a fixed order due to dependencies between components
-        // e.g. Logger must be destroyed last as other destructors use it
+    /** Job system. */
+    std::unique_ptr<JobSystem> job_system_;
 
-        /** Logger. */
-        std::unique_ptr<Logger> logger_;
+    /** Physics system. */
+    std::unique_ptr<PhysicsSystem> physics_system_;
 
-        /** Job system. */
-        std::unique_ptr<JobSystem> job_system_;
+    /** Render window. */
+    std::unique_ptr<Window> window_;
 
-        /** Physics system. */
-        std::unique_ptr<PhysicsSystem> physics_system_;
-
-        /** Render window. */
-        std::unique_ptr<Window> window_;
-
-        /** Render system. */
-        std::unique_ptr<RenderSystem> render_system_;
+    /** Render system. */
+    std::unique_ptr<RenderSystem> render_system_;
 };
 
 }
-

@@ -20,17 +20,18 @@ ClientConnection::ClientConnection(
     socklen_t length,
     const DataBuffer &existing_data,
     int socket)
-    : existing_data_(existing_data),
-      address_(address),
-      length_(length),
-      socket_(socket)
-{ }
+    : existing_data_(existing_data)
+    , address_(address)
+    , length_(length)
+    , socket_(socket)
+{
+}
 
 std::optional<DataBuffer> ClientConnection::try_read(std::size_t count)
 {
     std::optional<DataBuffer> out;
 
-    if(!existing_data_.empty())
+    if (!existing_data_.empty())
     {
         // we already have data from construction, so return that then clear
         out = existing_data_;
@@ -46,13 +47,13 @@ std::optional<DataBuffer> ClientConnection::try_read(std::size_t count)
             out->data(),
             out->size(),
             MSG_DONTWAIT,
-            reinterpret_cast<struct sockaddr*>(&address_),
+            reinterpret_cast<struct sockaddr *>(&address_),
             &length_);
 
-        if(read == -1)
+        if (read == -1)
         {
             // read failed but not because there was no data
-            if(errno != EAGAIN || errno != EWOULDBLOCK)
+            if (errno != EAGAIN || errno != EWOULDBLOCK)
             {
                 throw Exception("read failed");
             }
@@ -74,7 +75,7 @@ DataBuffer ClientConnection::read(std::size_t)
 {
     DataBuffer out(1024);
 
-    if(!existing_data_.empty())
+    if (!existing_data_.empty())
     {
         // we already have data from construction, so return that then clear
         out = existing_data_;
@@ -88,10 +89,10 @@ DataBuffer ClientConnection::read(std::size_t)
             out.data(),
             out.size(),
             0,
-            reinterpret_cast<struct sockaddr*>(&address_),
+            reinterpret_cast<struct sockaddr *>(&address_),
             &length_);
 
-        if(read == -1)
+        if (read == -1)
         {
             throw Exception("read failed");
         }
@@ -110,13 +111,13 @@ void ClientConnection::write(const DataBuffer &buffer)
 
 void ClientConnection::write(const std::byte *data, std::size_t size)
 {
-    if(::sendto(
-        socket_,
-        data,
-        size,
-        0,
-        reinterpret_cast<struct sockaddr*>(&address_),
-        length_) == -1)
+    if (::sendto(
+            socket_,
+            data,
+            size,
+            0,
+            reinterpret_cast<struct sockaddr *>(&address_),
+            length_) == -1)
     {
         throw Exception("sendto failed");
     }

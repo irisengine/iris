@@ -19,9 +19,10 @@ struct MouseEvent
      *   The amount the cursor has moved along the y-axis since the last event.
      */
     MouseEvent(const float delta_x, const float delta_y)
-        : delta_x(delta_x),
-          delta_y(delta_y)
-    { }
+        : delta_x(delta_x)
+        , delta_y(delta_y)
+    {
+    }
 
     /** Amount cursor has moved along x-axis since last mouse Event */
     float delta_x;
@@ -31,4 +32,3 @@ struct MouseEvent
 };
 
 }
-

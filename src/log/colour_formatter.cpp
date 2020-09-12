@@ -19,10 +19,10 @@ std::string ColourFormatter::format(
     const std::string &filename,
     const int line)
 {
-    std::stringstream strm{ };
+    std::stringstream strm{};
 
     // apply an ANSI escape sequence to start colour output
-    switch(level)
+    switch (level)
     {
         case LogLevel::DEBUG:
             strm << "\x1b[35m";
@@ -36,17 +36,14 @@ std::string ColourFormatter::format(
         case LogLevel::ERROR:
             strm << "\x1b[31m";
             break;
-        default: break;
+        default:
+            break;
     }
 
     // write message and reset ANSI escape code
-    strm <<
-        formatter_.format(level, tag, message, filename, line)
-        << "\x1b[0m";
+    strm << formatter_.format(level, tag, message, filename, line) << "\x1b[0m";
 
     return strm.str();
 }
 
 }
-
-

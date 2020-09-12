@@ -33,4 +33,3 @@ Mesh sprite(const Vector3 &colour, Texture &&texture);
 Mesh cube(const Vector3 colour);
 
 }
-

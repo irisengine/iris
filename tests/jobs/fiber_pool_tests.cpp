@@ -12,7 +12,7 @@ TEST(fiber_pool, constructor)
 TEST(fiber_pool, capacity_grows)
 {
     iris::FiberPool<4u> pool;
-    
+
     pool.next();
     pool.next();
     pool.next();
@@ -47,4 +47,3 @@ TEST(fiber_pool, throw_on_extra_release)
     iris::FiberPool<4u> pool;
     ASSERT_THROW(pool.release(&fiber), iris::Exception);
 }
-

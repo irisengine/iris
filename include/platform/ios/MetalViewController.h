@@ -6,12 +6,11 @@
 
 #include "platform/event.h"
 
-@interface MetalViewController : UIViewController {
+@interface MetalViewController : UIViewController
+{
 
-@public
-std::queue<iris::Event> events_;
-
+  @public
+    std::queue<iris::Event> events_;
 }
 
 @end
-

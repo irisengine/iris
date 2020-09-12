@@ -16,24 +16,25 @@ struct JobSystem::implementation
 };
 
 JobSystem::JobSystem()
-    : impl_(std::make_unique<implementation>()),
-      running_(true),
-      stats_stream_(nullptr)
+    : impl_(std::make_unique<implementation>())
+    , running_(true)
+    , stats_stream_(nullptr)
 {
     impl_->async_count = 0;
 }
 
 JobSystem::~JobSystem()
 {
-    if(stats_stream_ != nullptr)
+    if (stats_stream_ != nullptr)
     {
-        *stats_stream_ << "created " << impl_->async_count << " tasks" << std::endl;
+        *stats_stream_ << "created " << impl_->async_count << " tasks"
+                       << std::endl;
     }
 }
 
 void JobSystem::add_jobs(const std::vector<Job> &jobs)
 {
-    for(const auto &job : jobs)
+    for (const auto &job : jobs)
     {
         // we cannot simply call std::async here as the std::future destructor
         // will block and wait for the job to finish
@@ -43,24 +44,22 @@ void JobSystem::add_jobs(const std::vector<Job> &jobs)
         // scope until the job is complete
         auto future = std::make_shared<std::future<void>>();
 
-        *future = std::async(std::launch::async, [future, job] {
-            job();
-        });
+        *future = std::async(std::launch::async, [future, job] { job(); });
         impl_->async_count++;
     }
 }
 
 void JobSystem::wait_for_jobs(const std::vector<Job> &jobs)
 {
-    std::vector<std::future<void>> waiting_jobs{ };
+    std::vector<std::future<void>> waiting_jobs{};
 
-    for(const auto &job : jobs)
+    for (const auto &job : jobs)
     {
         waiting_jobs.emplace_back(std::async(std::launch::async, job));
         impl_->async_count++;
     }
 
-    for(auto &waiting_job : waiting_jobs)
+    for (auto &waiting_job : waiting_jobs)
     {
         waiting_job.get();
     }
@@ -72,4 +71,3 @@ void JobSystem::set_stats_stream(std::ostream *stats_stream)
 }
 
 }
-

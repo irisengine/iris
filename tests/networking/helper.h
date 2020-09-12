@@ -1,7 +1,7 @@
 #pragma once
 
-#include <tuple>
 #include <cstdint>
+#include <tuple>
 #include <vector>
 
 #include "core/data_buffer.h"
@@ -16,26 +16,26 @@ static const iris::DataBuffer test_data{
 /**
  * Helper method to create a collection of packets with supplied sequence
  * numbers and types.
- * 
+ *
  * @param packet_sequence
  *   Collection of sequence numbers and types.
- * 
+ *
  * @returns
  *   Packets created using supplied data.
  */
-inline std::vector<iris::Packet> create_packets(
-    const std::vector<std::tuple<std::uint16_t, iris::PacketType>> &packet_sequence)
+inline std::vector<iris::Packet>
+create_packets(const std::vector<std::tuple<std::uint16_t, iris::PacketType>>
+                   &packet_sequence)
 {
     std::vector<iris::Packet> packets;
 
-    for(const auto &[sequence, type] : packet_sequence)
+    for (const auto &[sequence, type] : packet_sequence)
     {
         // acks don't have data
-        const auto data = type == iris::PacketType::ACK
-            ? iris::DataBuffer{ }
-            : test_data;
+        const auto data =
+            type == iris::PacketType::ACK ? iris::DataBuffer{} : test_data;
 
-        iris::Packet packet{ type, iris::ChannelType::RELIABLE_ORDERED, data };
+        iris::Packet packet{type, iris::ChannelType::RELIABLE_ORDERED, data};
         packet.set_sequence(sequence);
         packets.emplace_back(packet);
     }

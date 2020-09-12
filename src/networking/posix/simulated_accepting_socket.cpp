@@ -7,13 +7,13 @@
 #include <thread>
 #include <tuple>
 
-#include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <sys/types.h>
 
 #include "core/root.h"
-#include "networking/packet.h"
 #include "jobs/concurrent_queue.h"
+#include "networking/packet.h"
 #include "networking/simulated_socket.h"
 
 namespace iris
@@ -25,15 +25,21 @@ SimulatedAcceptingSocket::SimulatedAcceptingSocket(
     std::chrono::milliseconds delay,
     std::chrono::milliseconds jitter,
     real drop_rate)
-    : client_(std::make_unique<SimulatedSocket>(client_queue_name, server_queue_name, delay, jitter, drop_rate))
-{ }
+    : client_(std::make_unique<SimulatedSocket>(
+          client_queue_name,
+          server_queue_name,
+          delay,
+          jitter,
+          drop_rate))
+{
+}
 
-Socket* SimulatedAcceptingSocket::accept()
+Socket *SimulatedAcceptingSocket::accept()
 {
     Socket *socket = nullptr;
 
     static auto once = false;
-    if(!once)
+    if (!once)
     {
         socket = client_.get();
         once = true;
@@ -49,4 +55,3 @@ Socket* SimulatedAcceptingSocket::accept()
 }
 
 }
-

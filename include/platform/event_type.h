@@ -16,4 +16,3 @@ enum class EventType : std::uint32_t
 };
 
 }
-

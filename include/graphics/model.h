@@ -12,25 +12,23 @@ namespace iris
  */
 class Model : public RenderEntity
 {
-    public:
+  public:
+    /**
+     * Create a model.
+     *
+     * @param position
+     *   Centre of mesh in world coordinates.
+     *
+     * @param scale
+     *   Scale of mesh.
+     *
+     * @param mesh
+     *   Mesh data.
+     */
+    Model(const Vector3 &position, const Vector3 &scale, Mesh mesh);
 
-        /**
-         * Create a model.
-         *
-         * @param position
-         *   Centre of mesh in world coordinates.
-         *
-         * @param scale
-         *   Scale of mesh.
-         *
-         * @param mesh
-         *   Mesh data.
-         */
-        Model(const Vector3 &position, const Vector3 &scale, Mesh mesh);
-
-        // default
-        ~Model() override = default;
+    // default
+    ~Model() override = default;
 };
 
 }
-

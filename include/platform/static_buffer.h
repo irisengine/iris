@@ -15,52 +15,48 @@ namespace iris
  */
 class StaticBuffer
 {
-    public:
+  public:
+    /**
+     * Create buffer with requested number of pages.
+     *
+     * @param pages
+     *   Number of pages to allocate.
+     */
+    explicit StaticBuffer(std::size_t pages);
 
-        /**
-         * Create buffer with requested number of pages.
-         *
-         * @param pages
-         *   Number of pages to allocate.
-         */
-        explicit StaticBuffer(std::size_t pages);
+    /**
+     * Release all allocated memory.
+     */
+    ~StaticBuffer();
 
-        /**
-         * Release all allocated memory.
-         */
-        ~StaticBuffer();
+    /**
+     * Get page size in bytes.
+     *
+     * @returns
+     *   Number of bytes in a page.
+     */
+    static std::size_t page_size();
 
-        /**
-         * Get page size in bytes.
-         *
-         * @returns
-         *   Number of bytes in a page.
-         */
-        static std::size_t page_size();
+    /**
+     * Get start of allocated buffer.
+     *
+     * @returns
+     *   Pointer to start of buffer.
+     */
+    operator std::byte *() const;
 
-        /**
-         * Get start of allocated buffer.
-         *
-         * @returns
-         *   Pointer to start of buffer.
-         */
-        operator std::byte*() const;
+    /**
+     * Number of allocated bytes. This does not include any guard pages.
+     *
+     * @returns
+     *   Number of allocated bytes.
+     */
+    std::size_t size() const;
 
-        /**
-         * Number of allocated bytes. This does not include any guard pages.
-         *
-         * @returns
-         *   Number of allocated bytes.
-         */
-        std::size_t size() const;
-
-    private:
-
-        /** Pointer to implementation. */
-        struct implementation;
-        std::unique_ptr<implementation> impl_;
-
+  private:
+    /** Pointer to implementation. */
+    struct implementation;
+    std::unique_ptr<implementation> impl_;
 };
 
 }
-

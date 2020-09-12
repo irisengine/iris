@@ -10,17 +10,18 @@ namespace iris
 {
 
 Quaternion::Quaternion()
-    : w(1.0f),
-      x(0.0f),
-      y(0.0f),
-      z(0.0f)
-{ }
+    : w(1.0f)
+    , x(0.0f)
+    , y(0.0f)
+    , z(0.0f)
+{
+}
 
 Quaternion::Quaternion(const Vector3 &axis, const real angle)
-    : w(0.0f),
-      x(0.0f),
-      y(0.0f),
-      z(0.0f)
+    : w(0.0f)
+    , x(0.0f)
+    , y(0.0f)
+    , z(0.0f)
 {
     const auto half_angle = angle / 2.0f;
     const auto sin_angle = std::sin(half_angle);
@@ -34,13 +35,14 @@ Quaternion::Quaternion(const Vector3 &axis, const real angle)
 }
 
 Quaternion::Quaternion(real x, real y, real z, real w)
-    : w(w),
-      x(x),
-      y(y),
-      z(z)
-{ }
+    : w(w)
+    , x(x)
+    , y(y)
+    , z(z)
+{
+}
 
-std::ostream& operator<<(std::ostream &out, const Quaternion &q)
+std::ostream &operator<<(std::ostream &out, const Quaternion &q)
 {
     out << "x: " << q.x << " "
         << "y: " << q.y << " "
@@ -50,30 +52,30 @@ std::ostream& operator<<(std::ostream &out, const Quaternion &q)
     return out;
 }
 
-Quaternion& Quaternion::operator*=(const Quaternion &quaternion)
+Quaternion &Quaternion::operator*=(const Quaternion &quaternion)
 {
-    const Quaternion copy{ *this };
+    const Quaternion copy{*this};
 
-    w = copy.w * quaternion.w - copy.x * quaternion.x -
-        copy.y * quaternion.y - copy.z * quaternion.z;
-    x = copy.w * quaternion.x + copy.x * quaternion.w +
-        copy.y * quaternion.z - copy.z * quaternion.y;
-    y = copy.w * quaternion.y + copy.y * quaternion.w +
-        copy.z * quaternion.x - copy.x * quaternion.z;
-    z = copy.w * quaternion.z + copy.z * quaternion.w +
-        copy.x * quaternion.y - copy.y * quaternion.x;
+    w = copy.w * quaternion.w - copy.x * quaternion.x - copy.y * quaternion.y -
+        copy.z * quaternion.z;
+    x = copy.w * quaternion.x + copy.x * quaternion.w + copy.y * quaternion.z -
+        copy.z * quaternion.y;
+    y = copy.w * quaternion.y + copy.y * quaternion.w + copy.z * quaternion.x -
+        copy.x * quaternion.z;
+    z = copy.w * quaternion.z + copy.z * quaternion.w + copy.x * quaternion.y -
+        copy.y * quaternion.x;
 
     return *this;
 }
 
 Quaternion Quaternion::operator*(const Quaternion &quaternion) const
 {
-    return Quaternion{ *this } *= quaternion;
+    return Quaternion{*this} *= quaternion;
 }
 
-Quaternion& Quaternion::operator+=(const Vector3 &vector)
+Quaternion &Quaternion::operator+=(const Vector3 &vector)
 {
-    Quaternion q{ };
+    Quaternion q{};
     q.w = 0.0f;
     q.x = vector.x;
     q.y = vector.y;
@@ -91,15 +93,15 @@ Quaternion& Quaternion::operator+=(const Vector3 &vector)
 
 Quaternion Quaternion::operator+(const Vector3 &vector) const
 {
-    return Quaternion{ *this } += vector;
+    return Quaternion{*this} += vector;
 }
 
 Quaternion Quaternion::operator*(real scale) const
 {
-    return Quaternion{ *this } *= scale;
+    return Quaternion{*this} *= scale;
 }
 
-Quaternion& Quaternion::operator*=(real scale)
+Quaternion &Quaternion::operator*=(real scale)
 {
     x *= scale;
     y *= scale;
@@ -111,20 +113,20 @@ Quaternion& Quaternion::operator*=(real scale)
 
 Quaternion Quaternion::operator-(const Quaternion &other) const
 {
-    return Quaternion{ *this } -= other;
+    return Quaternion{*this} -= other;
 }
 
-Quaternion& Quaternion::operator-=(const Quaternion &other)
+Quaternion &Quaternion::operator-=(const Quaternion &other)
 {
     return *this += -other;
 }
 
 Quaternion Quaternion::operator+(const Quaternion &other) const
 {
-    return Quaternion{ *this } += other;
+    return Quaternion{*this} += other;
 }
 
-Quaternion& Quaternion::operator+=(const Quaternion &other)
+Quaternion &Quaternion::operator+=(const Quaternion &other)
 {
     x += other.x;
     y += other.y;
@@ -136,7 +138,7 @@ Quaternion& Quaternion::operator+=(const Quaternion &other)
 
 Quaternion Quaternion::operator-() const
 {
-    return { -x, -y, -z, -w };
+    return {-x, -y, -z, -w};
 }
 
 real Quaternion::dot(const Quaternion &other) const
@@ -147,7 +149,7 @@ real Quaternion::dot(const Quaternion &other) const
 void Quaternion::slerp(Quaternion target, real amount)
 {
     auto dot = this->dot(target);
-    if(dot < 0.0f)
+    if (dot < 0.0f)
     {
         target = -target;
         dot = -dot;
@@ -175,10 +177,7 @@ void Quaternion::slerp(Quaternion target, real amount)
 
 bool Quaternion::operator==(const Quaternion &other) const
 {
-    return (w == other.w) &&
-           (x == other.x) &&
-           (y == other.y) &&
-           (z == other.z);
+    return (w == other.w) && (x == other.x) && (y == other.y) && (z == other.z);
 }
 
 bool Quaternion::operator!=(const Quaternion &other) const
@@ -186,15 +185,12 @@ bool Quaternion::operator!=(const Quaternion &other) const
     return !(*this == other);
 }
 
-Quaternion& Quaternion::normalise()
+Quaternion &Quaternion::normalise()
 {
-    const auto magnitude =
-        std::pow(w, 2.0f) +
-        std::pow(x, 2.0f) +
-        std::pow(y, 2.0f) +
-        std::pow(z, 2.0f);
+    const auto magnitude = std::pow(w, 2.0f) + std::pow(x, 2.0f) +
+                           std::pow(y, 2.0f) + std::pow(z, 2.0f);
 
-    if(magnitude == 0.0f)
+    if (magnitude == 0.0f)
     {
         w = 1.0f;
     }
@@ -212,4 +208,3 @@ Quaternion& Quaternion::normalise()
 }
 
 }
-

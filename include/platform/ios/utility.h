@@ -14,16 +14,17 @@
 namespace
 {
 
-MetalView* get_view()
+MetalView *get_view()
 {
-    const auto *window = [[[UIApplication sharedApplication] windows] objectAtIndex:0];
-    if(window == nullptr)
+    const auto *window =
+        [[[UIApplication sharedApplication] windows] objectAtIndex:0];
+    if (window == nullptr)
     {
         throw iris::Exception("unable to get main window");
     }
 
-    auto *view = static_cast<MetalView*>([[window rootViewController] view]);
-    if(view == nullptr)
+    auto *view = static_cast<MetalView *>([[window rootViewController] view]);
+    if (view == nullptr)
     {
         throw iris::Exception("unable to get metal view");
     }
@@ -41,7 +42,7 @@ id<MTLDevice> metal_device()
     const auto *view = get_view();
 
     auto *device = [view device];
-    if(device == nullptr)
+    if (device == nullptr)
     {
         throw Exception("unable to get metal device from view");
     }
@@ -49,23 +50,23 @@ id<MTLDevice> metal_device()
     return device;
 }
 
-CAMetalLayer* metal_layer()
+CAMetalLayer *metal_layer()
 {
     const auto *view = get_view();
 
     const auto *device = [view device];
-    if(device == nullptr)
+    if (device == nullptr)
     {
         throw Exception("unable to get metal device from view");
     }
 
     auto *layer = [view metalLayer];
-    if(layer == nullptr)
+    if (layer == nullptr)
     {
         throw Exception("unable to get layer from view");
     }
-    
-    return (CAMetalLayer*)layer;
+
+    return (CAMetalLayer *)layer;
 }
 
 CGFloat screen_scale()
@@ -74,4 +75,3 @@ CGFloat screen_scale()
 }
 
 }
-

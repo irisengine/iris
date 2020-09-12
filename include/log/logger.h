@@ -37,24 +37,23 @@ namespace detail
  * @param strm
  *   The stream to write to.
  */
-template<class T>
+template <class T>
 void format(
     const std::string &format_str,
     T &&obj,
     std::size_t &pos,
     std::stringstream &strm)
 {
-    static const std::string format_pattern{ "{}" };
+    static const std::string format_pattern{"{}"};
 
     const auto current_pos = pos;
 
     // find the pattern
     pos = format_str.find(format_pattern, pos);
-    if(pos != std::string::npos)
+    if (pos != std::string::npos)
     {
         // write the string up to the pattern then the supplied object
-        strm << format_str.substr(current_pos, pos - current_pos)
-             << obj;
+        strm << format_str.substr(current_pos, pos - current_pos) << obj;
 
         // move position passed the format
         pos += format_pattern.length();
@@ -78,7 +77,7 @@ void format(
  * @param head
  *   The object to write.
  */
-template<class Head>
+template <class Head>
 void unpack(
     const std::string &message,
     std::size_t &pos,
@@ -90,7 +89,7 @@ void unpack(
 
     // we have no more args to write to stream, so write the remainder of the
     // message to the string (if there is any left)
-    if(pos != std::string::npos)
+    if (pos != std::string::npos)
     {
         strm << message.substr(pos);
     }
@@ -116,13 +115,13 @@ void unpack(
  * @param args
  *   Remaining arguments
  */
-template<class Head, class ...Tail>
+template <class Head, class... Tail>
 void unpack(
     const std::string &message,
     std::size_t &pos,
     std::stringstream &strm,
     Head &&head,
-    Tail&& ...tail)
+    Tail &&... tail)
 {
     format(message, std::forward<Head>(head), pos, strm);
     unpack(message, pos, strm, std::forward<Tail>(tail)...);
@@ -148,226 +147,223 @@ void unpack(
  */
 class Logger
 {
-    public:
+  public:
+    /**
+     * Construct a new logger.
+     */
+    Logger()
+        : formatter_(std::make_unique<ColourFormatter>())
+        , outputter_(std::make_unique<StdoutFormatter>())
+        , ignore_()
+        , min_level_(LogLevel::DEBUG)
+        , log_engine_(false)
+        , mutex_(){};
 
-        /**
-         * Construct a new logger. 
-         */
-        Logger()
-            : formatter_(std::make_unique<ColourFormatter>()),
-              outputter_(std::make_unique<StdoutFormatter>()),
-              ignore_(),
-              min_level_(LogLevel::DEBUG),
-              log_engine_(false),
-              mutex_()
-        { };
+    /** Disabled */
+    Logger(const Logger &) = delete;
+    Logger &operator=(const Logger &) = delete;
+    Logger(Logger &&) = delete;
+    Logger &operator=(Logger &&) = delete;
 
-        /** Disabled */
-        Logger(const Logger&) = delete;
-        Logger& operator=(const Logger&) = delete;
-        Logger(Logger&&) = delete;
-        Logger& operator=(Logger&&) = delete;
+    /**
+     * Add a tag to be ignored, this prevents any log messages from the
+     * given tag being processed.
+     *
+     * Adding the same tag more than once is a no-op.
+     *
+     * @param tag
+     *   Tag to ignore.
+     */
+    void ignore_tag(const std::string &tag)
+    {
+        ignore_.emplace(tag);
+    }
 
-        /**
-         * Add a tag to be ignored, this prevents any log messages from the
-         * given tag being processed.
-         *
-         * Adding the same tag more than once is a no-op.
-         *
-         * @param tag
-         *   Tag to ignore.
-         */
-        void ignore_tag(const std::string &tag)
+    /**
+     * Show a supplied tag. This ensures that log messages from the given
+     * tag are processed.
+     *
+     * Adding the same tag more than once or showing a non-hidden tag is a
+     * no-op.
+     *
+     * @param tag
+     *   Tag to show.
+     */
+    void show_tag(const std::string &tag)
+    {
+        if (const auto find = ignore_.find(tag); find != std::cend(ignore_))
         {
-            ignore_.emplace(tag);
+            ignore_.erase(find);
         }
+    }
 
-        /**
-         * Show a supplied tag. This ensures that log messages from the given
-         * tag are processed.
-         *
-         * Adding the same tag more than once or showing a non-hidden tag is a
-         * no-op.
-         *
-         * @param tag
-         *   Tag to show.
-         */
-        void show_tag(const std::string &tag)
+    /**
+     * Set minimum log level, anything above this level is not processed.
+     *
+     * See log_level.h for definition of log_level.
+     *
+     * @param min_level
+     *   Minimum level to process.
+     */
+    void set_min_level(const LogLevel min_level)
+    {
+        min_level_ = min_level;
+    }
+
+    /**
+     * Set whether internal engine messages should be processed.
+     *
+     * @param log_engine
+     *   True if engine messages should be processed, false of not.
+     */
+    void set_log_engine(const bool log_engine)
+    {
+        log_engine_ = log_engine;
+    }
+
+    /**
+     * Set the Formatter class.
+     *
+     * Uses perfect forwarding to construct object.
+     *
+     * @param args
+     *   Varaidic list of arguments for Formatter constructor.
+     */
+    template <
+        class T,
+        class... Args,
+        typename = std::enable_if_t<std::is_base_of<Formatter, T>::value>>
+    void set_Formatter(Args &&... args)
+    {
+        formatter_ = std::make_unique<T>(std::forward<Args>(args)...);
+    }
+
+    /**
+     * Set the Outputter class.
+     *
+     * Uses perfect forwarding to construct object.
+     *
+     * @param args
+     *   Varaidic list of arguments for Outputter constructor.
+     */
+    template <
+        class T,
+        class... Args,
+        typename = std::enable_if_t<std::is_base_of<Outputter, T>::value>>
+    void set_Outputter(Args &&... args)
+    {
+        outputter_ = std::make_unique<T>(std::forward<Args>(args)...);
+    }
+
+    /**
+     * Log a message. This function handles the case where no arguments
+     * are supplied i.e. just a log message.
+     *
+     * @param level
+     *   Log level.
+     *
+     * @param tag
+     *   Tag for log message.
+     *
+     * @param filename
+     *   Name of the file logging the message.
+     *
+     * @param line
+     *   Line of the log call in the file.
+     *
+     * @param engine
+     *   True if this log message is from the internal engine, false
+     *   otherwise.
+     *
+     * @param message
+     *   Log message.
+     */
+    void log(
+        const LogLevel level,
+        const std::string &tag,
+        const std::string &filename,
+        const int line,
+        const bool engine,
+        const std::string &message)
+    {
+        // check if we want to process this log message
+        if ((!engine || log_engine_) && (level >= min_level_) &&
+            (ignore_.find(tag) == std::cend(ignore_)))
         {
-            if(const auto find = ignore_.find(tag) ; find != std::cend(ignore_))
-            {
-                ignore_.erase(find);
-            }
+            std::stringstream strm{};
+            strm << message;
+
+            const auto log =
+                formatter_->format(level, tag, strm.str(), filename, line);
+
+            std::unique_lock lock(mutex_);
+            outputter_->output(log);
         }
+    }
 
-        /**
-         * Set minimum log level, anything above this level is not processed.
-         *
-         * See log_level.h for definition of log_level.
-         *
-         * @param min_level
-         *   Minimum level to process.
-         */
-        void set_min_level(const LogLevel min_level)
-        {
-            min_level_ = min_level;
-        }
+    /**
+     * Log a message. This function handles the case where there are
+     * arguments.
+     *
+     * @param level
+     *   Log level.
+     *
+     * @param tag
+     *   Tag for log message.
+     *
+     * @param filename
+     *   Name of the file logging the message.
+     *
+     * @param line
+     *   Line of the log call in the file.
+     *
+     * @param engine
+     *   True if this log message is from the internal engine, false
+     *   otherwise.
+     *
+     * @param message
+     *   Log message.
+     *
+     * @param args
+     *   Variadic list of arguments for log formatting.
+     */
+    template <class... Args>
+    void log(
+        const LogLevel level,
+        const std::string &tag,
+        const std::string &filename,
+        const int line,
+        const bool engine,
+        const std::string &message,
+        Args &&... args)
+    {
+        std::stringstream strm{};
 
-        /**
-         * Set whether internal engine messages should be processed.
-         *
-         * @param log_engine
-         *   True if engine messages should be processed, false of not.
-         */
-        void set_log_engine(const bool log_engine)
-        {
-            log_engine_ = log_engine;
-        }
+        // apply string formatting
+        std::size_t pos = 0u;
+        detail::unpack(message, pos, strm, std::forward<Args>(args)...);
 
-        /**
-         * Set the Formatter class.
-         *
-         * Uses perfect forwarding to construct object.
-         *
-         * @param args
-         *   Varaidic list of arguments for Formatter constructor.
-         */
-        template<
-            class T,
-            class ...Args,
-            typename = std::enable_if_t<std::is_base_of<Formatter, T>::value>>
-        void set_Formatter(Args&& ...args)
-        {
-            formatter_ = std::make_unique<T>(std::forward<Args>(args)...);
-        }
+        log(level, tag, filename, line, engine, strm.str());
+    }
 
-        /**
-         * Set the Outputter class.
-         *
-         * Uses perfect forwarding to construct object.
-         *
-         * @param args
-         *   Varaidic list of arguments for Outputter constructor.
-         */
-        template<
-            class T,
-            class ...Args,
-            typename = std::enable_if_t<std::is_base_of<Outputter, T>::value>>
-        void set_Outputter(Args&& ...args)
-        {
-            outputter_ = std::make_unique<T>(std::forward<Args>(args)...);
-        }
+  private:
+    /** Formatter object. */
+    std::unique_ptr<Formatter> formatter_;
 
-        /**
-         * Log a message. This function handles the case where no arguments
-         * are supplied i.e. just a log message.
-         *
-         * @param level
-         *   Log level.
-         *
-         * @param tag
-         *   Tag for log message.
-         *
-         * @param filename
-         *   Name of the file logging the message.
-         *
-         * @param line
-         *   Line of the log call in the file.
-         *
-         * @param engine
-         *   True if this log message is from the internal engine, false
-         *   otherwise.
-         *
-         * @param message
-         *   Log message.
-         */
-        void log(
-            const LogLevel level,
-            const std::string &tag,
-            const std::string &filename,
-            const int line,
-            const bool engine,
-            const std::string &message)
-        {
-            // check if we want to process this log message
-            if((!engine || log_engine_) &&
-               (level >= min_level_) &&
-               (ignore_.find(tag) == std::cend(ignore_)))
-            {
-                std::stringstream strm{ };
-                strm << message;
+    /** Outputter object. */
+    std::unique_ptr<Outputter> outputter_;
 
-                const auto log = formatter_->format(level, tag, strm.str(), filename, line);
+    /** Collection of tags to ignore. */
+    std::set<std::string> ignore_;
 
-                std::unique_lock lock(mutex_);
-                outputter_->output(log);
-            }
-        }
+    /** Minimum log level. */
+    LogLevel min_level_;
 
-        /**
-         * Log a message. This function handles the case where there are
-         * arguments.
-         *
-         * @param level
-         *   Log level.
-         *
-         * @param tag
-         *   Tag for log message.
-         *
-         * @param filename
-         *   Name of the file logging the message.
-         *
-         * @param line
-         *   Line of the log call in the file.
-         *
-         * @param engine
-         *   True if this log message is from the internal engine, false
-         *   otherwise.
-         *
-         * @param message
-         *   Log message.
-         *
-         * @param args
-         *   Variadic list of arguments for log formatting.
-         */
-        template<class ...Args>
-        void log(
-            const LogLevel level,
-            const std::string &tag,
-            const std::string &filename,
-            const int line,
-            const bool engine,
-            const std::string &message,
-            Args&& ...args)
-        {
-            std::stringstream strm{ };
+    /** Whether to log internal engine messages. */
+    bool log_engine_;
 
-            // apply string formatting
-            std::size_t pos = 0u;
-            detail::unpack(message, pos, strm, std::forward<Args>(args)...);
-
-            log(level, tag, filename, line, engine, strm.str());
-        }
-
-    private:
-
-        /** Formatter object. */
-        std::unique_ptr<Formatter> formatter_;
-
-        /** Outputter object. */
-        std::unique_ptr<Outputter> outputter_;
-
-        /** Collection of tags to ignore. */
-        std::set<std::string> ignore_;
-
-        /** Minimum log level. */
-        LogLevel min_level_;
-
-        /** Whether to log internal engine messages. */
-        bool log_engine_;
-
-        /** Lock for logging. */
-        std::mutex mutex_;
+    /** Lock for logging. */
+    std::mutex mutex_;
 };
 
 }
