@@ -18,7 +18,7 @@ target_compile_options(unit_tests PRIVATE -glldb -fno-rtti -fobjc-arc)
 
 include_directories(unit_tests SYSTEM third_party/googletest/googletest/include)
 include_directories(unit_tests SYSTEM third_party/googletest/googlemock/include)
-include_directories(unit_tests PUBLIC ${CMAKE_SOURCE_DIR}/include)
+include_directories(unit_tests PUBLIC ${CMAKE_SOURCE_DIR}/include/iris)
 include_directories(unit_tests PUBLIC ${CMAKE_SOURCE_DIR}/tests)
 
 if(IRIS_PLATFORM MATCHES "MACOS")

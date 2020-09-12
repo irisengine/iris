@@ -44,5 +44,5 @@ else()
     target_link_libraries(sprites "-framework CoreGraphics")
 endif()
 
-target_include_directories(sprites PUBLIC "${CMAKE_SOURCE_DIR}/include")
+target_include_directories(sprites PUBLIC "${CMAKE_SOURCE_DIR}/include/iris")
 target_link_libraries(sprites iris)

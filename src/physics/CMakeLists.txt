@@ -1,5 +1,5 @@
 set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
-set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/physics")
+set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/physics")
 
 add_subdirectory("bullet")
 

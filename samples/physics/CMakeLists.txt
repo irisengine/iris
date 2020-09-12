@@ -43,5 +43,5 @@ else()
     target_link_libraries(physics "-framework CoreGraphics")
 endif()
 
-target_include_directories(physics PUBLIC "${CMAKE_SOURCE_DIR}/include")
+target_include_directories(physics PUBLIC "${CMAKE_SOURCE_DIR}/include/iris")
 target_link_libraries(physics iris)

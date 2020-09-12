@@ -16,7 +16,7 @@ add_library(iris STATIC
     ${PLATFORM_SRCS}
 )
 
-target_include_directories(iris PUBLIC "${CMAKE_SOURCE_DIR}/include")
+target_include_directories(iris PUBLIC "${CMAKE_SOURCE_DIR}/include/iris")
 
 target_include_directories(iris SYSTEM PRIVATE "${CMAKE_SOURCE_DIR}/third_party")
 target_include_directories(iris SYSTEM PRIVATE "${CMAKE_SOURCE_DIR}/third_party/bullet/src")

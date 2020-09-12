@@ -39,5 +39,5 @@ else()
     target_link_libraries(window "-framework CoreGraphics")
 endif()
 
-target_include_directories(window PUBLIC "${CMAKE_SOURCE_DIR}/include")
+target_include_directories(window PUBLIC "${CMAKE_SOURCE_DIR}/include/iris")
 target_link_libraries(window iris)

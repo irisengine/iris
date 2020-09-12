@@ -1,5 +1,5 @@
 set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
-set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/jobs")
+set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/jobs")
 
 if(IRIS_ARCH MATCHES "X86_64")
     set(ARCH_SRCS
