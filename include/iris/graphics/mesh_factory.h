@@ -4,7 +4,7 @@
 #include "graphics/mesh.h"
 #include "graphics/texture.h"
 
-namespace iris::shape_factory
+namespace iris::mesh_factory
 {
 
 /**
@@ -19,7 +19,7 @@ namespace iris::shape_factory
  * @returns
  *   Mesh for sprite.
  */
-Mesh sprite(const Vector3 &colour, Texture &&texture);
+std::vector<Mesh> sprite(const Vector3 &colour, Texture &&texture);
 
 /**
  * Create a cube mesh.
@@ -30,6 +30,8 @@ Mesh sprite(const Vector3 &colour, Texture &&texture);
  * @returns
  *   Mesh for cube.
  */
-Mesh cube(const Vector3 colour);
+std::vector<Mesh> cube(const Vector3 colour);
+
+std::vector<Mesh> load(const std::string &mesh_file);
 
 }

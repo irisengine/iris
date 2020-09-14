@@ -4,8 +4,8 @@
 #include <vector>
 
 #include "core/camera.h"
+#include "graphics/mesh_factory.h"
 #include "graphics/model.h"
-#include "graphics/shape_factory.h"
 #include "graphics/sprite.h"
 #include "log/log.h"
 #include "physics/basic_character_controller.h"
@@ -76,7 +76,7 @@ void go(int, char **)
     rs.create<iris::Model>(
         iris::Vector3{0.0f, -50.0f, 0.0f},
         iris::Vector3{500.0f, 50.0f, 500.0f},
-        iris::shape_factory::cube({1.0f, 1.0f, 1.0f}));
+        iris::mesh_factory::cube({1.0f, 1.0f, 1.0f}));
 
     ps.create_rigid_body<iris::BoxRigidBody>(
         iris::Vector3{0.0f, -50.0f, 0.0f},
@@ -98,7 +98,7 @@ void go(int, char **)
 
             boxes.emplace_back(
                 rs.create<iris::Model>(
-                    pos, half_size, iris::shape_factory::cube(colour)),
+                    pos, half_size, iris::mesh_factory::cube(colour)),
                 ps.create_rigid_body<iris::BoxRigidBody>(
                     pos, half_size, false));
         }

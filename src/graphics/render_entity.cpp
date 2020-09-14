@@ -6,7 +6,7 @@
 #include "core/vector3.h"
 #include "graphics/material_factory.h"
 #include "graphics/mesh.h"
-#include "graphics/shape_factory.h"
+#include "graphics/mesh_factory.h"
 
 namespace
 {
@@ -39,14 +39,14 @@ namespace iris
 {
 
 RenderEntity::RenderEntity(
-    Mesh mesh,
+    std::vector<Mesh> meshes,
     const Vector3 &position,
     const Quaternion &orientation,
     const Vector3 &scale,
     Material *material,
     bool wireframe,
     CameraType camera_type)
-    : mesh_(std::move(mesh))
+    : meshes_(std::move(meshes))
     , position_(position)
     , orientation_(orientation)
     , scale_(scale)
@@ -88,9 +88,9 @@ void RenderEntity::set_scale(const Vector3 &scale)
     normal_ = create_normal_transform(model_);
 }
 
-void RenderEntity::set_mesh(Mesh mesh)
+void RenderEntity::set_meshes(std::vector<Mesh> meshes)
 {
-    mesh_ = std::move(mesh);
+    meshes_ = std::move(meshes);
 }
 
 Matrix4 RenderEntity::transform() const
@@ -103,9 +103,9 @@ Matrix4 RenderEntity::normal_transform() const
     return normal_;
 }
 
-const Mesh &RenderEntity::mesh() const
+const std::vector<Mesh> &RenderEntity::meshes() const
 {
-    return mesh_;
+    return meshes_;
 }
 
 const Material &RenderEntity::material() const

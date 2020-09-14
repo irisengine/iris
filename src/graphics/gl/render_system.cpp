@@ -119,35 +119,37 @@ void RenderSystem::render()
         ::glUniform3f(light_uniform, light.x, light.y, light.z);
         check_opengl_error("could not set light uniform data");
 
-        // bind Mesh so the final draw call renders it
-        const auto vao =
-            std::any_cast<std::uint32_t>(e->mesh().native_handle());
-
-        // bind the vao
-        ::glBindVertexArray(vao);
-        check_opengl_error("could not bind vao");
-
-        const auto tex_handle =
-            std::any_cast<std::uint32_t>(e->mesh().texture().native_handle());
-        // use default Texture unit
-        ::glActiveTexture(GL_TEXTURE0);
-        check_opengl_error("could not activiate texture");
-
-        ::glBindTexture(GL_TEXTURE_2D, tex_handle);
-        check_opengl_error("could not bind texture");
-
-        // draw!
-        ::glDrawElements(
-            GL_TRIANGLES, e->mesh().indices().size(), GL_UNSIGNED_INT, 0);
-        check_opengl_error("could not draw triangles");
-
-        // unbind vao
-        ::glBindVertexArray(0u);
-        check_opengl_error("could not unbind vao");
-
-        if (e->should_render_wireframe())
+        for (const auto &mesh : e->meshes())
         {
-            ::glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            // bind Mesh so the final draw call renders it
+            const auto vao = std::any_cast<std::uint32_t>(mesh.native_handle());
+
+            // bind the vao
+            ::glBindVertexArray(vao);
+            check_opengl_error("could not bind vao");
+
+            const auto tex_handle =
+                std::any_cast<std::uint32_t>(mesh.texture().native_handle());
+            // use default Texture unit
+            ::glActiveTexture(GL_TEXTURE0);
+            check_opengl_error("could not activiate texture");
+
+            ::glBindTexture(GL_TEXTURE_2D, tex_handle);
+            check_opengl_error("could not bind texture");
+
+            // draw!
+            ::glDrawElements(
+                GL_TRIANGLES, mesh.indices().size(), GL_UNSIGNED_INT, 0);
+            check_opengl_error("could not draw triangles");
+
+            // unbind vao
+            ::glBindVertexArray(0u);
+            check_opengl_error("could not unbind vao");
+
+            if (e->should_render_wireframe())
+            {
+                ::glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            }
         }
 
         // unbind program

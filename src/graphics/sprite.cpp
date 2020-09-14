@@ -3,7 +3,7 @@
 #include "core/camera_type.h"
 #include "core/vector3.h"
 #include "graphics/material_factory.h"
-#include "graphics/shape_factory.h"
+#include "graphics/mesh_factory.h"
 #include "graphics/texture.h"
 #include "log/log.h"
 
@@ -23,7 +23,7 @@ Sprite::Sprite(
     const Vector3 &colour,
     Texture &&tex)
     : RenderEntity(
-          shape_factory::sprite(colour, std::move(tex)),
+          mesh_factory::sprite(colour, std::move(tex)),
           {x, y, 0.0f},
           {},
           {width, height, 1.0f},
@@ -37,7 +37,7 @@ Sprite::Sprite(
 
 void Sprite::set_texture(Texture texture)
 {
-    set_mesh(shape_factory::sprite(colour_, std::move(texture)));
+    set_meshes(mesh_factory::sprite(colour_, std::move(texture)));
 }
 
 }

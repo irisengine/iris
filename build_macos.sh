@@ -48,6 +48,7 @@ graphics_api_upper=$(echo "$graphics_api" | tr a-z A-Z)
 jobs_api_upper=$(echo "$jobs_api" | tr a-z A-Z)
 
 cmake $root \
+    -DCMAKE_BUILD_TYPE=Debug \
     -DIRIS_PLATFORM=MACOS \
     -DIRIS_GRAPHICS_API="$graphics_api_upper" \
     -DIRIS_JOBS_API="$jobs_api_upper" \

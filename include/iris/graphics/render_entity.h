@@ -44,7 +44,7 @@ class RenderEntity
      *   Type of camera to render with.
      */
     RenderEntity(
-        Mesh mesh,
+        std::vector<Mesh> meshes,
         const Vector3 &position,
         const Quaternion &orientation,
         const Vector3 &scale,
@@ -88,7 +88,7 @@ class RenderEntity
      * @param mesh
      *   New mesh.
      */
-    void set_mesh(Mesh mesh);
+    void set_meshes(std::vector<Mesh> meshes);
 
     /**
      * Get the transformation matrix of the RenderEntity.
@@ -112,7 +112,7 @@ class RenderEntity
      * @returns
      *   Const reference to mesh.
      */
-    const Mesh &mesh() const;
+    const std::vector<Mesh> &meshes() const;
 
     /**
      * Get a const reference to the RenderEntitys rendering material.
@@ -148,7 +148,7 @@ class RenderEntity
 
   protected:
     /** Collection of meshes. */
-    Mesh mesh_;
+    std::vector<Mesh> meshes_;
 
     /** The position of the RenderEntity. */
     Vector3 position_;

@@ -147,53 +147,56 @@ void RenderSystem::render()
         // render scene
         for(const auto &entity : scene_)
         {
-            // get pipeline state handle
-            const auto pipeline_state = std::any_cast<id<MTLRenderPipelineState>>(entity->material().native_handle());
-
-            [render_encoder setTriangleFillMode:MTLTriangleFillModeFill];
-
-            // set wireframe if needed
-            if(entity->should_render_wireframe())
+            for(const auto &mesh : entity->meshes())
             {
-                [render_encoder setTriangleFillMode:MTLTriangleFillModeLines];
+                // get pipeline state handle
+                const auto pipeline_state = std::any_cast<id<MTLRenderPipelineState>>(entity->material().native_handle());
+
+                [render_encoder setTriangleFillMode:MTLTriangleFillModeFill];
+
+                // set wireframe if needed
+                if(entity->should_render_wireframe())
+                {
+                    [render_encoder setTriangleFillMode:MTLTriangleFillModeLines];
+                }
+
+                // get vertex Buffer handle
+                const auto &vertex_buffer_any = mesh.vertex_buffer();
+                const auto vertex_Buffer = std::any_cast<id<MTLBuffer>>(vertex_buffer_any.native_handle());
+
+                // get index Buffer handle
+                const auto &index_buffer_any = mesh.index_buffer();
+                const auto index_buffer = std::any_cast<id<MTLBuffer>>(index_buffer_any.native_handle());
+
+                auto &cam = camera(entity->camera_type());
+
+                // copy uniform data into a struct
+                const uniform uniform_data{
+                    cam.projection(),
+                    cam.view(),
+                    entity->transform(),
+                    entity->normal_transform(),
+                };
+
+                static float light[] = { 100.0f, 100.0f, 100.0f, 1.0f };
+
+                // encode render commands
+                [render_encoder setRenderPipelineState:pipeline_state];
+                [render_encoder setVertexBuffer:vertex_Buffer offset:0 atIndex:0];
+                [render_encoder setVertexBytes:static_cast<const void*>(&uniform_data) length:sizeof(uniform_data) atIndex:1];
+                [render_encoder setFragmentBytes:static_cast<const void*>(&light) length:sizeof(light) atIndex:0];
+
+                const auto texture = std::any_cast<id<MTLTexture>>(mesh.texture().native_handle());
+                [render_encoder setFragmentTexture:texture atIndex:0];
+
+                // draw command
+                [render_encoder
+                    drawIndexedPrimitives:MTLPrimitiveTypeTriangle
+                    indexCount:mesh.indices().size()
+                    indexType:MTLIndexTypeUInt32
+                    indexBuffer:index_buffer
+                    indexBufferOffset:0];
             }
-
-            // get vertex Buffer handle
-            const auto &vertex_buffer_any = entity->mesh().vertex_buffer();
-            const auto vertex_Buffer = std::any_cast<id<MTLBuffer>>(vertex_buffer_any.native_handle());
-
-            // get index Buffer handle
-            const auto &index_buffer_any = entity->mesh().index_buffer();
-            const auto index_buffer = std::any_cast<id<MTLBuffer>>(index_buffer_any.native_handle());
-
-            auto &cam = camera(entity->camera_type());
-
-            // copy uniform data into a struct
-            const uniform uniform_data{
-                cam.projection(),
-                cam.view(),
-                entity->transform(),
-                entity->normal_transform(),
-            };
-
-            static float light[] = { 100.0f, 100.0f, 100.0f, 1.0f };
-
-            // encode render commands
-            [render_encoder setRenderPipelineState:pipeline_state];
-            [render_encoder setVertexBuffer:vertex_Buffer offset:0 atIndex:0];
-            [render_encoder setVertexBytes:static_cast<const void*>(&uniform_data) length:sizeof(uniform_data) atIndex:1];
-            [render_encoder setFragmentBytes:static_cast<const void*>(&light) length:sizeof(light) atIndex:0];
-
-            const auto texture = std::any_cast<id<MTLTexture>>(entity->mesh().texture().native_handle());
-            [render_encoder setFragmentTexture:texture atIndex:0];
-
-            // draw command
-            [render_encoder
-                drawIndexedPrimitives:MTLPrimitiveTypeTriangle
-                indexCount:entity->mesh().indices().size()
-                indexType:MTLIndexTypeUInt32
-                indexBuffer:index_buffer
-                indexBufferOffset:0];
         }
 
         // end frame

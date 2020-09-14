@@ -25,7 +25,10 @@ class Model : public RenderEntity
      * @param mesh
      *   Mesh data.
      */
-    Model(const Vector3 &position, const Vector3 &scale, Mesh mesh);
+    Model(
+        const Vector3 &position,
+        const Vector3 &scale,
+        std::vector<Mesh> meshes);
 
     // default
     ~Model() override = default;

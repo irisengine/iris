@@ -2,8 +2,8 @@
 
 #include "core/camera.h"
 #include "core/root.h"
+#include "graphics/mesh_factory.h"
 #include "graphics/model.h"
-#include "graphics/shape_factory.h"
 #include "graphics/sprite.h"
 #include "log/log.h"
 #include "platform/keyboard_event.h"
@@ -29,12 +29,12 @@ void go(int, char **)
     rs.create<iris::Model>(
         iris::Vector3{-20.0f, 0.0f, 0.0f},
         iris::Vector3{10.0f, 10.0f, 10.0f},
-        iris::shape_factory::cube({1.0f, 0.0f, 0.0f}));
+        iris::mesh_factory::cube({1.0f, 0.0f, 0.0f}));
 
     rs.create<iris::Model>(
         iris::Vector3{20.0f, 0.0f, 0.0f},
         iris::Vector3{10.0f, 10.0f, 10.0f},
-        iris::shape_factory::cube({1.0f, 0.0f, 0.0f}));
+        iris::mesh_factory::cube({1.0f, 0.0f, 0.0f}));
 
     for (;;)
     {

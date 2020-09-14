@@ -10,7 +10,7 @@
 
 #include "core/exception.h"
 #include "graphics/material.h"
-#include "graphics/shape_factory.h"
+#include "graphics/mesh_factory.h"
 #include "graphics/sprite.h"
 #include "graphics/texture.h"
 #include "log/log.h"

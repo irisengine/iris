@@ -7,9 +7,12 @@
 
 namespace iris
 {
-Model::Model(const Vector3 &position, const Vector3 &scale, Mesh mesh)
+Model::Model(
+    const Vector3 &position,
+    const Vector3 &scale,
+    std::vector<Mesh> meshes)
     : RenderEntity(
-          std::move(mesh),
+          std::move(meshes),
           position,
           {},
           scale,
