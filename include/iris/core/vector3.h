@@ -20,6 +20,15 @@ class Vector3
     Vector3();
 
     /**
+     * Constructs a new Vector3 with all components initialised to the same
+     * value.
+     *
+     * @param xyz
+     *   Value for x, y and z.
+     */
+    Vector3(real xyz);
+
+    /**
      * Constructs a new Vector3 with the supplied components.
      *
      * @param x

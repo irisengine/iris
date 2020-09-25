@@ -11,7 +11,16 @@ TEST(vector3, default_constructor)
     ASSERT_EQ(v.x, 0.0f);
 }
 
-TEST(vector3, constructor)
+TEST(vector3, single_value_constructor)
+{
+    iris::Vector3 v{1.1f};
+
+    ASSERT_EQ(v.x, 1.1f);
+    ASSERT_EQ(v.y, 1.1f);
+    ASSERT_EQ(v.z, 1.1f);
+}
+
+TEST(vector3, multi_value_constructor)
 {
     iris::Vector3 v{1.1f, 2.2f, 3.3f};
 
