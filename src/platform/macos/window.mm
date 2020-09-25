@@ -12,6 +12,8 @@
 #include "log/log.h"
 #include "platform/keyboard_event.h"
 #include "platform/macos/AppDelegate.h"
+#include "platform/mouse_button_event.h"
+#include "platform/mouse_event.h"
 
 namespace
 {
@@ -249,7 +251,19 @@ std::optional<Event> Window::pump_event()
                 evt = handle_keyboard_event(event);
                 break;
             case NSEventTypeMouseMoved:
-                evt = handle_mouse_event(event);
+                evt = handle_mouse_event(event, width_, height_);
+                break;
+            case NSEventTypeLeftMouseDown:
+                evt = MouseButtonEvent{ MouseButton::LEFT, MouseButtonState::DOWN };
+                break;
+            case NSEventTypeLeftMouseUp:
+                evt = MouseButtonEvent{ MouseButton::LEFT, MouseButtonState::UP };
+                break;
+            case NSEventTypeRightMouseDown:
+                evt = MouseButtonEvent{ MouseButton::RIGHT, MouseButtonState::DOWN };
+                break;
+            case NSEventTypeRightMouseUp:
+                evt = MouseButtonEvent{ MouseButton::RIGHT, MouseButtonState::UP };
                 break;
             default:
                 break;
