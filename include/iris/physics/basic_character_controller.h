@@ -78,6 +78,14 @@ class BasicCharacterController : public CharacterController
     void set_angular_velocity(const Vector3 &angular_velocity) override;
 
     /**
+     * Set speed of character.
+     *
+     * @param speed
+     *   New speed.
+     */
+    void set_speed(real speed) override;
+
+    /**
      * Reposition character.
      *
      * @param position

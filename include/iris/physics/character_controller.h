@@ -67,6 +67,14 @@ class CharacterController
     virtual void set_angular_velocity(const Vector3 &angular_velocity) = 0;
 
     /**
+     * Set speed of character.
+     *
+     * @param speed
+     *   New speed.
+     */
+    virtual void set_speed(real speed) = 0;
+
+    /**
      * Reposition character.
      *
      * @param position

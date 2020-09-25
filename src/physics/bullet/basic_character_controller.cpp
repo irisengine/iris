@@ -75,6 +75,11 @@ void BasicCharacterController::set_angular_velocity(
     impl_->body->set_angular_velocity(angular_velocity);
 }
 
+void BasicCharacterController::set_speed(real speed)
+{
+    speed_ = speed;
+}
+
 void BasicCharacterController::reposition(
     const Vector3 &position,
     const Quaternion &orientation)
