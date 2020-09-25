@@ -146,7 +146,9 @@ struct KeyboardEvent
      */
     KeyboardEvent(const Key key, const KeyState state)
         : key(key)
-        , state(state){};
+        , state(state)
+    {
+    }
 
     /** Key that was pressed */
     Key key;
