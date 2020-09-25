@@ -15,6 +15,7 @@
 
 #include "core/quaternion.h"
 #include "core/vector3.h"
+#include "physics/bullet/debug_draw.h"
 #include "physics/character_controller.h"
 #include "physics/rigid_body.h"
 
@@ -71,10 +72,12 @@ struct PhysicsSystem::implementation
     std::unique_ptr<::btDiscreteDynamicsWorld> world;
     std::vector<std::unique_ptr<RigidBody>> bodies;
     std::vector<std::unique_ptr<CharacterController>> character_controllers;
+    DebugDraw debug_draw;
 };
 
 PhysicsSystem::PhysicsSystem()
     : impl_(std::make_unique<implementation>())
+    , draw_debug_(false)
 {
     impl_->collision_config =
         std::make_unique<::btDefaultCollisionConfiguration>();
@@ -89,6 +92,10 @@ PhysicsSystem::PhysicsSystem()
         impl_->collision_config.get());
 
     impl_->world->setGravity({0.0f, -10.0f, 0.0f});
+
+    // create debug drawer, only draw wireframe as that's what we support
+    impl_->debug_draw.setDebugMode(::btIDebugDraw::DBG_DrawWireframe);
+    impl_->world->setDebugDrawer(&impl_->debug_draw);
 }
 
 PhysicsSystem::~PhysicsSystem() = default;
@@ -97,6 +104,15 @@ void PhysicsSystem::step(std::chrono::milliseconds time_step)
 {
     const auto ticks = static_cast<float>(time_step.count());
     impl_->world->stepSimulation(ticks / 1000.0f, 1);
+
+    if (draw_debug_)
+    {
+        // tell bullet to draw debug world
+        impl_->world->debugDrawWorld();
+
+        // now we pass bullet debug information to our render system
+        impl_->debug_draw.render();
+    }
 }
 
 RigidBody *PhysicsSystem::add(std::unique_ptr<RigidBody> body)
@@ -192,6 +208,11 @@ void PhysicsSystem::load(const PhysicsState *state)
         bullet_body->setLinearVelocity(body_state.linear_velocity);
         bullet_body->setAngularVelocity(body_state.angular_velocity);
     }
+}
+
+void PhysicsSystem::set_draw_debug(bool draw_debug)
+{
+    draw_debug_ = draw_debug;
 }
 
 }

@@ -154,10 +154,20 @@ class PhysicsSystem
      */
     void load(const PhysicsState *state);
 
+    /**
+     * Set whether debug information should be rendered.
+     *
+     * @param draw_debug
+     *   True if debug information should be rendered, false otherwise.
+     */
+    void set_draw_debug(bool draw_debug);
+
   private:
     /** Physics API implementation. */
     struct implementation;
     std::unique_ptr<implementation> impl_;
+
+    bool draw_debug_;
 };
 
 }
