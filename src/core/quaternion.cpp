@@ -42,6 +42,22 @@ Quaternion::Quaternion(real x, real y, real z, real w)
 {
 }
 
+Quaternion::Quaternion(real yaw, real pitch, real roll)
+    : Quaternion()
+{
+    const auto cy = std::cos(yaw * 0.5f);
+    const auto sy = std::sin(yaw * 0.5f);
+    const auto cp = std::cos(pitch * 0.5f);
+    const auto sp = std::sin(pitch * 0.5f);
+    const auto cr = std::cos(roll * 0.5f);
+    const auto sr = std::sin(roll * 0.5f);
+
+    w = cr * cp * cy + sr * sp * sy;
+    x = sr * cp * cy - cr * sp * sy;
+    y = cr * sp * cy + sr * cp * sy;
+    z = cr * cp * sy - sr * sp * cy;
+}
+
 std::ostream &operator<<(std::ostream &out, const Quaternion &q)
 {
     out << "x: " << q.x << " "

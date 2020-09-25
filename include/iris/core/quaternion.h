@@ -50,6 +50,20 @@ class Quaternion
     Quaternion(real x, real y, real z, real w);
 
     /**
+     * Construct a Quaternion with Euler angles.
+     *
+     * @param yaw
+     *   Yaw angle in radians.
+     *
+     * @param pitch
+     *   Pitch angle in radians.
+     *
+     * @param roll
+     *   Roll angle in radians.
+     */
+    Quaternion(real yaw, real pitch, real roll);
+
+    /**
      * Write a Quaternion to a stream, useful for debugging.
      *
      * @param out

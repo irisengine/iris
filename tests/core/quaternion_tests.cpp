@@ -21,6 +21,16 @@ TEST(quaternion, compontent_constructor)
     ASSERT_EQ(q, iris::Quaternion(1.0f, 2.0f, 3.0f, 4.0f));
 }
 
+TEST(quaternion, euler_constructor)
+{
+    iris::Quaternion q{0.1f, 0.2f, 0.3f};
+    std::cout << std::setprecision(10) << q << std::endl;
+    ASSERT_EQ(
+        q,
+        iris::Quaternion(
+            0.1435721964f, 0.1060205176f, 0.0342707932f, 0.9833474755f));
+}
+
 TEST(quaternion, multiply)
 {
     iris::Quaternion q1{{1.0f, 0.0f, 0.0f}, 0.5f};
