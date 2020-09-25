@@ -2,6 +2,7 @@
 
 #include "core/camera_type.h"
 #include "core/matrix4.h"
+#include "core/quaternion.h"
 #include "core/real.h"
 #include "core/vector3.h"
 
@@ -53,6 +54,14 @@ class Camera
     Vector3 position() const;
 
     /**
+     * Get orientation of camera.
+     *
+     * @returns
+     *   Camera orientation.
+     */
+    Quaternion orientation() const;
+
+    /**
      * Get direction camera is facing.
      *
      * @returns
@@ -85,6 +94,14 @@ class Camera
     Matrix4 projection() const;
 
     /**
+     * Get camera yaw.
+     *
+     * @returns
+     *   Camera yaw.
+     */
+    real yaw() const;
+
+    /**
      * Set the yaw of the camera.
      *
      * @param yaw
@@ -99,6 +116,14 @@ class Camera
      *   Amount to adjust yaw by.
      */
     void adjust_yaw(real adjust);
+
+    /**
+     * Get camera pitch.
+     *
+     * @returns
+     *   Camera pitch.
+     */
+    real pitch() const;
 
     /**
      * Set the pitch of the camera.

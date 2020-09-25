@@ -4,6 +4,7 @@
 
 #include "core/camera_type.h"
 #include "core/matrix4.h"
+#include "core/quaternion.h"
 #include "core/real.h"
 #include "core/vector3.h"
 #include "log/log.h"
@@ -85,6 +86,11 @@ Vector3 Camera::position() const
     return position_;
 }
 
+Quaternion Camera::orientation() const
+{
+    return {yaw_, pitch_, 0.0f};
+}
+
 Vector3 Camera::direction() const
 {
     return direction_;
@@ -105,6 +111,11 @@ Matrix4 Camera::projection() const
     return projection_;
 }
 
+real Camera::yaw() const
+{
+    return yaw_;
+}
+
 void Camera::set_yaw(real yaw)
 {
     yaw_ = yaw;
@@ -116,6 +127,11 @@ void Camera::set_yaw(real yaw)
 void Camera::adjust_yaw(real adjust)
 {
     set_yaw(yaw_ + adjust);
+}
+
+real Camera::pitch() const
+{
+    return pitch_;
 }
 
 void Camera::set_pitch(real pitch)
