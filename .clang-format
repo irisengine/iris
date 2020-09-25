@@ -21,3 +21,4 @@ PenaltyBreakBeforeFirstCallParameter: 80
 PenaltyReturnTypeOnItsOwnLine: 1000
 ExperimentalAutoDetectBinPacking: false
 PointerAlignment: Right
+AlwaysBreakTemplateDeclarations: Yes
