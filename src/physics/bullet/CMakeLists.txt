@@ -6,6 +6,7 @@ set(PHYSICS_SRCS
     "${SOURCE_ROOT}/box_rigid_body.cpp"
     "${SOURCE_ROOT}/capsule_rigid_body.cpp"
     "${SOURCE_ROOT}/physics_system.cpp"
+    "${INCLUDE_ROOT}/debug_draw.h" "${SOURCE_ROOT}/debug_draw.cpp"
 
     PARENT_SCOPE
 )
