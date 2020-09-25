@@ -51,7 +51,7 @@ std::uint32_t type_to_gl_type(const iris::BufferType type)
  *   Handle to opengl buffer.
  */
 template <class T>
-std::uint32_t create_Buffer(
+std::uint32_t create_buffer(
     const std::vector<T> &data,
     const iris::BufferType type)
 {
@@ -98,21 +98,11 @@ struct Buffer::implementation final
     std::uint32_t handle;
 };
 
-Buffer::Buffer(const std::vector<float> &data, const BufferType type)
-    : impl_(std::make_unique<implementation>(create_Buffer(data, type)))
+Buffer::Buffer(const DataBuffer &data, const BufferType type)
+    : impl_(std::make_unique<implementation>(create_buffer(data, type)))
     , type_(type)
-{
-}
-
-Buffer::Buffer(const std::vector<std::uint32_t> &data, const BufferType type)
-    : impl_(std::make_unique<implementation>(create_Buffer(data, type)))
-    , type_(type)
-{
-}
-
-Buffer::Buffer(const std::vector<vertex_data> &data, const BufferType type)
-    : impl_(std::make_unique<implementation>(create_Buffer(data, type)))
-    , type_(type)
+    , element_count_(0u)
+    , data_(data)
 {
 }
 
@@ -136,6 +126,16 @@ std::any Buffer::native_handle() const
 BufferType Buffer::type() const
 {
     return type_;
+}
+
+std::size_t Buffer::element_count() const
+{
+    return element_count_;
+}
+
+const DataBuffer &Buffer::data() const
+{
+    return data_;
 }
 
 }

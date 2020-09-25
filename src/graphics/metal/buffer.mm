@@ -51,19 +51,14 @@ struct Buffer::implementation
     id<MTLBuffer> handle;
 };
 
-Buffer::Buffer(const std::vector<float> &data, const BufferType type)
+Buffer::Buffer(
+    const DataBuffer &data,
+    const BufferType type,
+    std::size_t element_count)
     : impl_(std::make_unique<implementation>(create_Buffer(data))),
-      type_(type)
-{ }
-
-Buffer::Buffer(const std::vector<std::uint32_t> &data, const BufferType type)
-    : impl_(std::make_unique<implementation>(create_Buffer(data))),
-      type_(type)
-{ }
-
-Buffer::Buffer(const std::vector<vertex_data> &data, const BufferType type)
-    : impl_(std::make_unique<implementation>(create_Buffer(data))),
-      type_(type)
+      type_(type),
+      element_count_(element_count),
+      data_(data)
 { }
 
 /** Default. */
@@ -79,6 +74,16 @@ std::any Buffer::native_handle() const
 BufferType Buffer::type() const
 {
     return type_;
+}
+
+std::size_t Buffer::element_count() const
+{
+    return element_count_;
+}
+
+const DataBuffer& Buffer::data() const
+{
+    return data_;
 }
 
 }
