@@ -2,6 +2,7 @@
 
 #include "platform/event_type.h"
 #include "platform/keyboard_event.h"
+#include "platform/mouse_button_event.h"
 #include "platform/mouse_event.h"
 #include "platform/touch_event.h"
 
@@ -16,6 +17,12 @@ Event::Event(const KeyboardEvent event)
 
 Event::Event(const MouseEvent event)
     : type_(EventType::MOUSE)
+    , event_(event)
+{
+}
+
+Event::Event(MouseButtonEvent event)
+    : type_(EventType::MOUSE_BUTTON)
     , event_(event)
 {
 }
@@ -83,6 +90,45 @@ MouseEvent Event::mouse() const
     }
 
     return std::get<MouseEvent>(event_);
+}
+
+bool Event::is_mouse_button() const
+{
+    return std::holds_alternative<MouseButtonEvent>(event_);
+}
+
+bool Event::is_mouse_button(MouseButton button) const
+{
+    auto match = false;
+
+    if (auto val = std::get_if<MouseButtonEvent>(&event_); val)
+    {
+        match = val->button == button;
+    }
+
+    return match;
+}
+
+bool Event::is_mouse_button(MouseButton button, MouseButtonState state) const
+{
+    auto match = false;
+
+    if (auto val = std::get_if<MouseButtonEvent>(&event_); val)
+    {
+        match = (val->button == button) && (val->state == state);
+    }
+
+    return match;
+}
+
+MouseButtonEvent Event::mouse_button() const
+{
+    if (!is_key())
+    {
+        throw Exception("not mouse button event");
+    }
+
+    return std::get<MouseButtonEvent>(event_);
 }
 
 bool Event::is_touch() const

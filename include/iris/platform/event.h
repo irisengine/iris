@@ -6,6 +6,7 @@
 #include "core/exception.h"
 #include "platform/event_type.h"
 #include "platform/keyboard_event.h"
+#include "platform/mouse_button_event.h"
 #include "platform/mouse_event.h"
 #include "platform/touch_event.h"
 
@@ -34,6 +35,14 @@ class Event
      *   Mouse event.
      */
     Event(const MouseEvent event);
+
+    /**
+     * Construct a new mouse button event.
+     *
+     * @param event
+     *   Mouse button event.
+     */
+    Event(MouseButtonEvent event);
 
     /**
      * Construct a new touch event.
@@ -110,6 +119,48 @@ class Event
     MouseEvent mouse() const;
 
     /**
+     * Check if event is a mouse button event.
+     *
+     * @returns
+     *   True if Event is a mouse button event, else false.
+     */
+    bool is_mouse_button() const;
+
+    /**
+     * Check if this event is a specific mouse button event
+     *
+     * @param button
+     *   Mouse button to check.
+     *
+     * @returns
+     *   True if Event is a mouse button Event and matches supplied button.
+     */
+    bool is_mouse_button(MouseButton button) const;
+
+    /**
+     * Check if this event is a specific mouse button event and state
+     *
+     * @param button
+     *   Mouse button to check.
+     *
+     * @param state
+     *   State to check.
+     *
+     * @returns
+     *   True if Event is a mouse button Event and matches supplied button and
+     *   state.
+     */
+    bool is_mouse_button(MouseButton button, MouseButtonState state) const;
+
+    /**
+     * Get mouse button event, will throw if wrong type.
+     *
+     * @returns
+     *   Mouse button event.
+     */
+    MouseButtonEvent mouse_button() const;
+
+    /**
      * Check if Event is a touch event.
      *
      * @returns
@@ -130,7 +181,8 @@ class Event
     EventType type_;
 
     /** Variant of possible Event types. */
-    std::variant<KeyboardEvent, MouseEvent, TouchEvent> event_;
+    std::variant<KeyboardEvent, MouseEvent, MouseButtonEvent, TouchEvent>
+        event_;
 };
 
 }
