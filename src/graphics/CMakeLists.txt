@@ -15,6 +15,7 @@ set(GRAPHICS_SRCS
     ${GRAPHICS_SRCS}
     ${PLATFORM_SRCS}
     "${INCLUDE_ROOT}/buffer.h"
+    "${INCLUDE_ROOT}/buffer_descriptor.h"
     "${INCLUDE_ROOT}/buffer_type.h"
     "${INCLUDE_ROOT}/font.h"
     "${INCLUDE_ROOT}/material.h"

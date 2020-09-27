@@ -4,6 +4,7 @@ set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/graphics/gl")
 set(GRAPHICS_SRCS
     "${INCLUDE_ROOT}/shader_type.h"
     "${SOURCE_ROOT}/buffer.cpp"
+    "${SOURCE_ROOT}/buffer_descriptor.cpp"
     "${SOURCE_ROOT}/material.cpp"
     "${SOURCE_ROOT}/material_factory.cpp"
     "${SOURCE_ROOT}/mesh.cpp"
