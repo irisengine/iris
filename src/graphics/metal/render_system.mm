@@ -105,7 +105,7 @@ RenderSystem::RenderSystem(float width, float height)
     // create and setup a render pass descriptor
     auto *render_pass_descriptor = [MTLRenderPassDescriptor renderPassDescriptor];
     [[[render_pass_descriptor colorAttachments] objectAtIndexedSubscript:0] setLoadAction:MTLLoadActionClear];
-    [[[render_pass_descriptor colorAttachments] objectAtIndexedSubscript:0] setClearColor:MTLClearColorMake(0.2, 0.2, 0.2, 1)];
+    [[[render_pass_descriptor colorAttachments] objectAtIndexedSubscript:0] setClearColor:MTLClearColorMake(0.1f,0.1f,0.1f,0.1f)];
     [[[render_pass_descriptor colorAttachments] objectAtIndexedSubscript:0] setStoreAction:MTLStoreActionStore];
     [[render_pass_descriptor depthAttachment] setTexture:depth_texture];
     [[render_pass_descriptor depthAttachment] setClearDepth:1.0f];
@@ -133,6 +133,8 @@ void RenderSystem::render()
     // drawables to vend
     @autoreleasepool
     {
+        auto *device = iris::platform::utility::metal_device();
+
         // update descriptor to render to next frame
         const auto drawable = [impl_->layer nextDrawable];
         [[[impl_->descriptor colorAttachments] objectAtIndexedSubscript:0] setTexture:drawable.texture];
@@ -149,8 +151,21 @@ void RenderSystem::render()
         {
             for(const auto &mesh : entity->meshes())
             {
+                const auto vertex_descriptor = std::any_cast<MTLVertexDescriptor*>(mesh.buffer_descriptor().native_handle());
+
+                const auto [vertex_program, fragment_program] =
+                    std::any_cast<std::tuple<id<MTLFunction>, id<MTLFunction>>>(entity->material().native_handle());
+
                 // get pipeline state handle
-                const auto pipeline_state = std::any_cast<id<MTLRenderPipelineState>>(entity->material().native_handle());
+                auto *pipeline_state_descriptor = [[MTLRenderPipelineDescriptor alloc] init];
+                [pipeline_state_descriptor setVertexFunction:vertex_program];
+                [pipeline_state_descriptor setFragmentFunction:fragment_program];
+                pipeline_state_descriptor.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
+                [pipeline_state_descriptor setDepthAttachmentPixelFormat:MTLPixelFormatDepth32Float];
+                [pipeline_state_descriptor setVertexDescriptor:vertex_descriptor];
+
+                auto *pipeline_state =
+                    [device newRenderPipelineStateWithDescriptor:pipeline_state_descriptor error:nullptr];
 
                 [render_encoder setTriangleFillMode:MTLTriangleFillModeFill];
 
@@ -161,12 +176,12 @@ void RenderSystem::render()
                 }
 
                 // get vertex Buffer handle
-                const auto &vertex_buffer_any = mesh.vertex_buffer();
-                const auto vertex_Buffer = std::any_cast<id<MTLBuffer>>(vertex_buffer_any.native_handle());
+                const auto &vertex_buffer = mesh.buffer_descriptor().vertex_buffer();
+                const auto vertex_buffer_native = std::any_cast<id<MTLBuffer>>(vertex_buffer.native_handle());
 
                 // get index Buffer handle
-                const auto &index_buffer_any = mesh.index_buffer();
-                const auto index_buffer = std::any_cast<id<MTLBuffer>>(index_buffer_any.native_handle());
+                const auto &index_buffer = mesh.buffer_descriptor().index_buffer();
+                const auto index_buffer_native = std::any_cast<id<MTLBuffer>>(index_buffer.native_handle());
 
                 auto &cam = camera(entity->camera_type());
 
@@ -178,23 +193,28 @@ void RenderSystem::render()
                     entity->normal_transform(),
                 };
 
-                static float light[] = { 100.0f, 100.0f, 100.0f, 1.0f };
+                static float light[] = { 10.0f, 10.0f, 10.0f, 0.0f };
 
                 // encode render commands
                 [render_encoder setRenderPipelineState:pipeline_state];
-                [render_encoder setVertexBuffer:vertex_Buffer offset:0 atIndex:0];
+                [render_encoder setVertexBuffer:vertex_buffer_native offset:0 atIndex:0];
                 [render_encoder setVertexBytes:static_cast<const void*>(&uniform_data) length:sizeof(uniform_data) atIndex:1];
                 [render_encoder setFragmentBytes:static_cast<const void*>(&light) length:sizeof(light) atIndex:0];
+                [render_encoder setCullMode:MTLCullModeNone];
 
                 const auto texture = std::any_cast<id<MTLTexture>>(mesh.texture().native_handle());
                 [render_encoder setFragmentTexture:texture atIndex:0];
 
+                const auto type = entity->primitive_type() == PrimitiveType::TRIANGLES
+                    ? MTLPrimitiveTypeTriangle
+                    : MTLPrimitiveTypeLine;
+
                 // draw command
                 [render_encoder
-                    drawIndexedPrimitives:MTLPrimitiveTypeTriangle
-                    indexCount:mesh.indices().size()
+                    drawIndexedPrimitives:type
+                    indexCount:index_buffer.element_count()
                     indexType:MTLIndexTypeUInt32
-                    indexBuffer:index_buffer
+                    indexBuffer:index_buffer_native
                     indexBufferOffset:0];
             }
         }

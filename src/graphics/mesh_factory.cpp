@@ -11,6 +11,7 @@
 
 #include "core/exception.h"
 #include "core/vector3.h"
+#include "graphics/buffer_descriptor.h"
 #include "graphics/mesh.h"
 #include "graphics/texture.h"
 #include "graphics/vertex_data.h"
@@ -24,7 +25,7 @@ std::vector<Mesh> sprite(const Vector3 &colour, Texture &&texture)
 {
     std::vector<Mesh> meshes;
 
-    std::vector<vertex_data> vertices{
+    std::vector<vertex_data> verticies{
         {{-0.5f, 0.5f, 0.0f}, {}, colour, {0.0f, 1.0f, 0.0f}},
         {{0.5f, 0.5f, 0.0f}, {}, colour, {1.0f, 1.0f, 0.0f}},
         {{0.5f, -0.5f, 0.0f}, {}, colour, {1.0f, 0.0f, 0.0f}},
@@ -32,7 +33,12 @@ std::vector<Mesh> sprite(const Vector3 &colour, Texture &&texture)
 
     std::vector<std::uint32_t> indices{0, 2, 1, 3, 2, 0};
 
-    meshes.emplace_back(vertices, indices, std::move(texture));
+    BufferDescriptor descriptor(
+        Buffer(verticies, BufferType::VERTEX_ATTRIBUTES),
+        Buffer(indices, BufferType::VERTEX_INDICES),
+        vertex_attributes);
+
+    meshes.emplace_back(std::move(descriptor), std::move(texture));
 
     return meshes;
 }
@@ -41,7 +47,7 @@ std::vector<Mesh> cube(const Vector3 colour)
 {
     std::vector<Mesh> meshes;
 
-    std::vector<vertex_data> vertices{
+    std::vector<vertex_data> verticies{
         {{1.0f, -1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, colour, {}},
         {{-1.0f, -1.0f, -1.0f}, {0.0f, -1.0f, 0.0f}, colour, {}},
         {{1.0f, -1.0f, -1.0f}, {0.0f, -1.0f, 0.0f}, colour, {}},
@@ -72,6 +78,11 @@ std::vector<Mesh> cube(const Vector3 colour)
                                        0, 18, 1,  3,  19, 4,  6,  20, 7,
                                        9, 21, 10, 12, 22, 13, 15, 23, 16};
 
+    BufferDescriptor descriptor(
+        Buffer(verticies, BufferType::VERTEX_ATTRIBUTES),
+        Buffer(indices, BufferType::VERTEX_INDICES),
+        vertex_attributes);
+
     meshes.emplace_back(vertices, indices, Texture::blank());
 
     return meshes;
@@ -79,11 +90,12 @@ std::vector<Mesh> cube(const Vector3 colour)
 
 std::vector<Mesh> load(const std::string &mesh_file)
 {
+    std::vector<Mesh> meshes;
+
     const auto file_data = ResourceLoader::instance().load(mesh_file);
 
     ::Assimp::Importer importer{};
-    const auto *scene = importer.ReadFile(
-        mesh_file, ::aiProcess_Triangulate | ::aiProcess_FlipUVs);
+    const auto *scene = importer.ReadFile(mesh_file, ::aiProcess_Triangulate);
 
     if (scene == nullptr || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE ||
         scene->mRootNode == nullptr)
@@ -94,8 +106,6 @@ std::vector<Mesh> load(const std::string &mesh_file)
 
     std::stack<::aiNode *> to_process;
     to_process.emplace(scene->mRootNode);
-
-    std::vector<Mesh> meshes;
 
     do
     {
@@ -109,6 +119,9 @@ std::vector<Mesh> load(const std::string &mesh_file)
             const auto *mesh = scene->mMeshes[node->mMeshes[i]];
             const auto *material = scene->mMaterials[mesh->mMaterialIndex];
             auto texture = Texture::blank();
+
+            aiString name;
+            material->Get(AI_MATKEY_NAME, name);
 
             for (auto j = 0u; j < mesh->mNumVertices; ++j)
             {
@@ -145,7 +158,34 @@ std::vector<Mesh> load(const std::string &mesh_file)
                 }
             }
 
-            meshes.emplace_back(vertices, indices, std::move(texture));
+            const auto type = ::aiTextureType_DIFFUSE;
+
+            for (auto j = 0u; j < material->GetTextureCount(type); j++)
+            {
+                ::aiString str;
+                material->GetTexture(type, i, &str);
+
+                const auto texture_path = "assets/" + std::string{str.C_Str()};
+
+                texture = Texture{texture_path};
+            }
+
+            for (auto j = 0u; j < mesh->mNumBones; ++j)
+            {
+                const auto *bone = mesh->mBones[j];
+                LOG_INFO(
+                    "mesh",
+                    "bone | name: {} weights: {}",
+                    bone->mName.C_Str(),
+                    bone->mNumWeights);
+            }
+
+            BufferDescriptor descriptor(
+                Buffer(vertices, BufferType::VERTEX_ATTRIBUTES),
+                Buffer(indices, BufferType::VERTEX_INDICES),
+                vertex_attributes);
+
+            meshes.emplace_back(std::move(descriptor), std::move(texture));
         }
 
         for (auto i = 0u; i < node->mNumChildren; ++i)
@@ -156,6 +196,5 @@ std::vector<Mesh> load(const std::string &mesh_file)
     } while (!to_process.empty());
 
     return meshes;
-    // return {vertices, indices, Texture::blank()};
 }
 }

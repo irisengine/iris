@@ -122,7 +122,8 @@ void RenderSystem::render()
         for (const auto &mesh : e->meshes())
         {
             // bind Mesh so the final draw call renders it
-            const auto vao = std::any_cast<std::uint32_t>(mesh.native_handle());
+            const auto vao = std::any_cast<std::uint32_t>(
+                mesh.buffer_descriptor().native_handle());
 
             // bind the vao
             ::glBindVertexArray(vao);
@@ -132,14 +133,21 @@ void RenderSystem::render()
                 std::any_cast<std::uint32_t>(mesh.texture().native_handle());
             // use default Texture unit
             ::glActiveTexture(GL_TEXTURE0);
-            check_opengl_error("could not activiate texture");
+            check_opengl_error("could not activate texture");
 
             ::glBindTexture(GL_TEXTURE_2D, tex_handle);
             check_opengl_error("could not bind texture");
 
+            const auto type = e->primitive_type() == PrimitiveType::TRIANGLES
+                                  ? GL_TRIANGLES
+                                  : GL_LINES;
+
             // draw!
             ::glDrawElements(
-                GL_TRIANGLES, mesh.indices().size(), GL_UNSIGNED_INT, 0);
+                type,
+                mesh.buffer_descriptor().index_buffer().element_count(),
+                GL_UNSIGNED_INT,
+                0);
             check_opengl_error("could not draw triangles");
 
             // unbind vao

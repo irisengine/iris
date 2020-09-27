@@ -25,10 +25,11 @@ namespace
  *   Handle to function in loaded source.
  */
 id<MTLFunction> load_function(
-    id<MTLDevice> device,
     const std::string &source,
     const std::string &function_name)
 {
+    auto *device = iris::platform::utility::metal_device();
+
     NSError *error = nullptr;
 
     // load source
@@ -56,37 +57,18 @@ namespace iris
  */
 struct Material::implementation
 {
-    /** Simple constructor which takes a value for each member. */
-    implementation(id<MTLRenderPipelineState> pipeline_state)
-        : pipeline_state(pipeline_state)
-    { }
-
-    /** Handle to metal pipeline state. */
-    id<MTLRenderPipelineState> pipeline_state;
+    id<MTLFunction> vertex_program;
+    id<MTLFunction> fragment_program;
 };
 
 Material::Material(
     const std::string &vertex_shader_source,
     const std::string &fragment_shader_source)
-    : impl_(nullptr)
+    : impl_(std::make_unique<implementation>())
 {
-    auto *device = iris::platform::utility::metal_device();
-    
     // load shaders and entry functions
-    const auto vertex_program = load_function(device, vertex_shader_source, "vertex_main");
-    const auto fragment_program = load_function(device, fragment_shader_source, "fragment_main");
-
-    // create and setup a metal pipeline state descriptor
-    auto *pipeline_state_descriptor = [[MTLRenderPipelineDescriptor alloc] init];
-    [pipeline_state_descriptor setVertexFunction:vertex_program];
-    [pipeline_state_descriptor setFragmentFunction:fragment_program];
-    pipeline_state_descriptor.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
-    [pipeline_state_descriptor setDepthAttachmentPixelFormat:MTLPixelFormatDepth32Float];
-
-    auto *pipeline_state =
-        [device newRenderPipelineStateWithDescriptor:pipeline_state_descriptor error:nullptr];
-
-    impl_ = std::make_unique<implementation>(pipeline_state);
+    impl_->vertex_program = load_function(vertex_shader_source, "vertex_main");
+    impl_->fragment_program = load_function(fragment_shader_source, "fragment_main");
 }
 
 /** Default */
@@ -96,8 +78,7 @@ Material& Material::operator=(Material&&) = default;
 
 std::any Material::native_handle() const
 {
-    return std::any{ impl_->pipeline_state };
+    return std::any{ std::make_tuple(impl_->vertex_program, impl_->fragment_program) };
 }
 
 }
-
