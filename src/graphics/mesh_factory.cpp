@@ -83,7 +83,34 @@ std::vector<Mesh> cube(const Vector3 colour)
         Buffer(indices, BufferType::VERTEX_INDICES),
         vertex_attributes);
 
-    meshes.emplace_back(vertices, indices, Texture::blank());
+    meshes.emplace_back(std::move(descriptor));
+
+    return meshes;
+}
+
+std::vector<Mesh> quad(
+    const Vector3 &colour,
+    const Vector3 &lower_left,
+    const Vector3 &lower_right,
+    const Vector3 &upper_left,
+    const Vector3 &upper_right)
+{
+    std::vector<Mesh> meshes;
+
+    std::vector<vertex_data> verticies{
+        {upper_left, {}, colour, {0.0f, 1.0f, 0.0f}},
+        {upper_right, {}, colour, {1.0f, 1.0f, 0.0f}},
+        {lower_right, {}, colour, {1.0f, 0.0f, 0.0f}},
+        {lower_left, {}, colour, {0.0f, 0.0f, 0.0f}}};
+
+    std::vector<std::uint32_t> indices{0, 2, 1, 3, 2, 0};
+
+    BufferDescriptor descriptor(
+        Buffer(verticies, BufferType::VERTEX_ATTRIBUTES),
+        Buffer(indices, BufferType::VERTEX_INDICES),
+        vertex_attributes);
+
+    meshes.emplace_back(std::move(descriptor));
 
     return meshes;
 }
