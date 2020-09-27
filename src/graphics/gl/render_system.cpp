@@ -168,6 +168,16 @@ RenderEntity *RenderSystem::add(std::unique_ptr<RenderEntity> entity)
     return scene_.back().get();
 }
 
+void RenderSystem::remove(RenderEntity *entity)
+{
+    scene_.erase(
+        std::remove_if(
+            std::begin(scene_),
+            std::end(scene_),
+            [entity](const auto &element) { return element.get() == entity; }),
+        std::end(scene_));
+}
+
 Camera &RenderSystem::persective_camera()
 {
     return persective_camera_;

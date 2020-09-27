@@ -71,6 +71,14 @@ class RenderSystem
     RenderEntity *add(std::unique_ptr<RenderEntity> entity);
 
     /**
+     * Remove entity from scene.
+     *
+     * @param entity
+     *   Pointer to entity to be removed (must be from a call to add()).
+     */
+    void remove(RenderEntity *entity);
+
+    /**
      * Render the current scene.
      */
     void render();
