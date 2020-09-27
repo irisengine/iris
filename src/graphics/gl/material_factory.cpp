@@ -46,14 +46,14 @@ uniform sampler2D texture1;
 uniform vec3 light;
 void main()
 {
-    const vec3 amb = vec3(0.2, 0.2, 0.2);
+    const vec3 amb = vec3(0.6, 0.6, 0.6);
     const vec3 lightColour = vec3(1.0, 1.0, 1.0);
     vec3 n = normalize(norm);
     vec3 light_dir = normalize(light - fragPos);
     float diff = max(dot(n, light_dir), 0.0);
     vec3 diffuse = diff * lightColour;
     vec3 l = amb + diffuse;
-    outColor = vec4(l, 1.0) * vec4(col, 1.0);
+    outColor = vec4(l, 1.0) * vec4(col, 1.0) * texture(texture1, texCoord);
 }
 )"};
 

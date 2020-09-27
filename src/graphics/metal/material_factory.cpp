@@ -84,7 +84,7 @@ fragment float4 fragment_main(
 {
     constexpr sampler s(coord::normalized, address::repeat, filter::linear);
     float4 sampled_colour = main_texture.sample(s, in.tex.xy);
-    float4 amb(0.2f, 0.2f, 0.2f, 1.0f);
+    float4 amb(0.6f, 0.6f, 0.6f, 1.0f);
     float4 light_colour(1.0f, 1.0f, 1.0f, 1.0f);
     float3 n3 = normalize(in.normal.xyz);
     float4 n = float4(n3.x, n3.y, n3.z, 1);
