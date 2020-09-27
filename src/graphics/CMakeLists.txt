@@ -20,7 +20,7 @@ set(GRAPHICS_SRCS
     "${INCLUDE_ROOT}/font.h"
     "${INCLUDE_ROOT}/material.h"
     "${INCLUDE_ROOT}/material_factory.h"
-    "${INCLUDE_ROOT}/mesh.h"
+    "${INCLUDE_ROOT}/primitive_type.h"
     "${INCLUDE_ROOT}/render_system.h"
     "${INCLUDE_ROOT}/texture.h"
     "${INCLUDE_ROOT}/vertex_data.h"

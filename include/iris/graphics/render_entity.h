@@ -7,6 +7,7 @@
 #include "core/quaternion.h"
 #include "graphics/material.h"
 #include "graphics/mesh.h"
+#include "graphics/primitive_type.h"
 #include "graphics/texture.h"
 
 namespace iris
@@ -146,6 +147,22 @@ class RenderEntity
      */
     CameraType camera_type() const;
 
+    /**
+     * Get primitive type.
+     *
+     * @returns
+     *   Primitive type.
+     */
+    PrimitiveType primitive_type() const;
+
+    /**
+     * Set primitive type.
+     *
+     * @param type
+     *   New primitive type.
+     */
+    void set_primitive_type(PrimitiveType type);
+
   protected:
     /** Collection of meshes. */
     std::vector<Mesh> meshes_;
@@ -173,6 +190,9 @@ class RenderEntity
 
     /** Type of camera. */
     CameraType camera_type_;
+
+    /** Primitive type. */
+    PrimitiveType primitive_type_;
 };
 
 }

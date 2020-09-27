@@ -55,6 +55,7 @@ RenderEntity::RenderEntity(
     , material_(material)
     , wireframe_(wireframe)
     , camera_type_(camera_type)
+    , primitive_type_(PrimitiveType::TRIANGLES)
 {
     model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) *
              Matrix4::make_scale(scale_);
@@ -126,6 +127,16 @@ void RenderEntity::set_wireframe(const bool wireframe)
 CameraType RenderEntity::camera_type() const
 {
     return camera_type_;
+}
+
+PrimitiveType RenderEntity::primitive_type() const
+{
+    return primitive_type_;
+}
+
+void RenderEntity::set_primitive_type(PrimitiveType type)
+{
+    primitive_type_ = type;
 }
 
 }
