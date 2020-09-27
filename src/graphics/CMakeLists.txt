@@ -28,6 +28,7 @@ set(GRAPHICS_SRCS
     "${SOURCE_ROOT}/mesh_factory.cpp" "${INCLUDE_ROOT}/mesh_factory.h"
     "${SOURCE_ROOT}/sprite.cpp" "${INCLUDE_ROOT}/sprite.h"
     "${SOURCE_ROOT}/utility.cpp" "${INCLUDE_ROOT}/utility.h"
+    "${SOURCE_ROOT}/vertex_attributes.cpp" "${INCLUDE_ROOT}/vertex_attributes.h"
 
     PARENT_SCOPE
 )
