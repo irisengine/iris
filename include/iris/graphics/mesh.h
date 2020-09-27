@@ -8,6 +8,7 @@
 #include "core/matrix4.h"
 #include "core/vector3.h"
 #include "graphics/buffer.h"
+#include "graphics/buffer_descriptor.h"
 #include "graphics/texture.h"
 #include "graphics/vertex_data.h"
 
@@ -15,66 +16,46 @@ namespace iris
 {
 
 /**
- * Class representing a renderable mesh.
- *
- * This class is designed to be de-coupled from the rendering system as much as
- * possible. An API specific implementation object is used internally to
- * achieve this.
+ * This class encapsulates data that represents a renderable mesh. This includes
+ * buffer descriptors and textures. By itself it is just a container, it should
+ * be passed to a RenderEntity which handles the remaining data and logic to
+ * actually render.
  */
 class Mesh
 {
   public:
     /**
-     * Construct a new mesh.
+     * Construct a new Mesh with no texture (a default blank texture will be
+     * used).
      *
-     * @param vertices
-     *   Collection of vertices to render.
-     *
-     * @param indices
-     *   Collection of indices representing vertex draw order.
-     *
-     * @param tex
-     *   The Texture to render the Mesh with.
-     *
-     * @param position
-     *   Position in world space of mesh.
-     *
-     * @param scale
-     *   Vector3 specifying amount to scale along each axis.
+     * @param buffer_descriptor
+     *   Descriptor for mesh vertex data.
      */
-    Mesh(
-        const std::vector<vertex_data> &vertices,
-        const std::vector<std::uint32_t> &indices,
-        Texture &&tex);
-
-    /** Declared in mm/cpp file as implementation is an incomplete file. */
-    ~Mesh();
-    Mesh(Mesh &&);
-    Mesh &operator=(Mesh &&);
+    Mesh(BufferDescriptor buffer_descriptor);
 
     /**
-     * Get const reference to Mesh indices.
+     * Construct a new Mesh.
      *
-     * @returns
-     *   Mesh vertices.
+     * @param buffer_descriptor
+     *   Descriptor for mesh vertex data.
+     *
+     * @param texture
+     *   Texture for mesh.
      */
-    const std::vector<std::uint32_t> &indices() const;
+    Mesh(BufferDescriptor buffer_descriptor, Texture texture);
+
+    // default
+    ~Mesh() = default;
+    Mesh(Mesh &&) = default;
+    Mesh &operator=(Mesh &&) = default;
 
     /**
-     * Get a reference to the vertex Buffer for this mesh.
+     * Get a reference to the buffer descriptor.
      *
      * @returns
-     *   Const reference to vertex buffer.
+     *   Const reference to buffer descriptor.
      */
-    const Buffer &vertex_buffer() const;
-
-    /**
-     * Get a reference to the index Buffer for this mesh.
-     *
-     * @returns
-     *   Const reference to index buffer.
-     */
-    const Buffer &index_buffer() const;
+    const BufferDescriptor &buffer_descriptor() const;
 
     /**
      * Get a reference to the Texture for this mesh.
@@ -84,31 +65,12 @@ class Mesh
      */
     const Texture &texture() const;
 
-    /**
-     * Get a native handle for the mesh. The type of this is dependant on
-     * the current graphics API.
-     *
-     * @returns
-     *   Graphics API specific handle.
-     */
-    std::any native_handle() const;
-
   private:
-    /** Mesh index data. */
-    std::vector<std::uint32_t> indices_;
+    /** Descriptor for vertex data. */
+    BufferDescriptor buffer_descriptor_;
 
     /** Texture to render Mesh with. */
     Texture texture_;
-
-    /** Buffer for vertex data. */
-    std::unique_ptr<Buffer> vertex_buffer_;
-
-    /** Buffer for vertex indices. */
-    std::unique_ptr<Buffer> index_buffer_;
-
-    /** Graphics API specific implementation. */
-    struct implementation;
-    std::unique_ptr<implementation> impl_;
 };
 
 }
