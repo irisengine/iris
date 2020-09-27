@@ -60,6 +60,14 @@ class RenderEntity
     RenderEntity &operator=(const RenderEntity &) = delete;
 
     /**
+     * Get position.
+     *
+     * @returns
+     *   Position.
+     */
+    Vector3 position() const;
+
+    /**
      * Set the position of the RenderEntity.
      *
      * @param position
@@ -71,7 +79,7 @@ class RenderEntity
      * Set the orientation of the RenderEntity.
      *
      * @param orientation
-     *   New oritentation.
+     *   New orientation.
      */
     void set_orientation(const Quaternion &orientation);
 
@@ -98,6 +106,14 @@ class RenderEntity
      *   Transformation matrix.
      */
     Matrix4 transform() const;
+
+    /**
+     * Set transformation matrix.
+     *
+     * @param transform
+     *   New transform matrix.
+     */
+    void set_transform(const Matrix4 &transform);
 
     /**
      * Get the transformation matrix for the normals of the RenderEntity.

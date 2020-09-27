@@ -64,6 +64,11 @@ RenderEntity::RenderEntity(
 
 RenderEntity::~RenderEntity() = default;
 
+Vector3 RenderEntity::position() const
+{
+    return position_;
+}
+
 void RenderEntity::set_position(const Vector3 &position)
 {
     position_ = position;
@@ -97,6 +102,12 @@ void RenderEntity::set_meshes(std::vector<Mesh> meshes)
 Matrix4 RenderEntity::transform() const
 {
     return model_;
+}
+
+void RenderEntity::set_transform(const Matrix4 &transform)
+{
+    model_ = transform;
+    normal_ = create_normal_transform(model_);
 }
 
 Matrix4 RenderEntity::normal_transform() const
