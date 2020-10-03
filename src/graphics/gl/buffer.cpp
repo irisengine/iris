@@ -98,10 +98,13 @@ struct Buffer::implementation final
     std::uint32_t handle;
 };
 
-Buffer::Buffer(const DataBuffer &data, const BufferType type)
+Buffer::Buffer(
+    const DataBuffer &data,
+    const BufferType type,
+    std::size_t element_count)
     : impl_(std::make_unique<implementation>(create_buffer(data, type)))
     , type_(type)
-    , element_count_(0u)
+    , element_count_(element_count)
     , data_(data)
 {
 }

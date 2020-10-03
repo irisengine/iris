@@ -1,6 +1,7 @@
 #include "graphics/buffer_descriptor.h"
 
 #include <memory>
+#include <tuple>
 
 #include "core/exception.h"
 #include "graphics/gl/opengl.h"
@@ -8,26 +9,28 @@
 
 namespace
 {
-GLenum to_opengl_format(iris::VertexAttributeType type)
+
+std::tuple<GLenum, bool> to_opengl_format(iris::VertexAttributeType type)
 {
     GLenum format = 0u;
+    auto is_float = true;
 
     switch (type)
     {
         case iris::VertexAttributeType::FLOAT_3:
-            format = GL_FLOAT;
-            break;
         case iris::VertexAttributeType::FLOAT_4:
             format = GL_FLOAT;
             break;
         case iris::VertexAttributeType::UINT32_1:
+        case iris::VertexAttributeType::UINT32_4:
             format = GL_UNSIGNED_INT;
+            is_float = false;
             break;
         default:
             throw iris::Exception("unknown vertex attribute type");
     }
 
-    return format;
+    return {format, is_float};
 }
 
 /**
@@ -97,28 +100,45 @@ BufferDescriptor::BufferDescriptor(
     // bind the vao
     ::glBindVertexArray(impl_->vao);
     check_opengl_error("could not bind vao");
-    const auto &attr = attributes.attributes();
 
     // ensure both buffers are bound for the vao
     bind_buffer(vertex_buffer_);
     bind_buffer(index_buffer_);
 
-    for (auto i = 0u; i < attr.size(); ++i)
-    {
-        const auto &[type, components, _, offset] = attr[i];
+    auto index = 0u;
 
-        ::glEnableVertexAttribArray(i);
+    for (const auto &attribute : attributes)
+    {
+        const auto &[type, components, _, offset] = attribute;
+
+        ::glEnableVertexAttribArray(index);
         check_opengl_error("could not enable attribute");
 
-        ::glVertexAttribPointer(
-            i,
-            components,
-            to_opengl_format(type),
-            GL_FALSE,
-            attributes.size(),
-            reinterpret_cast<void *>(offset));
-        std::cout << components << " " << offset << std::endl;
-        check_opengl_error("could not set attributes");
+        const auto &[open_gl_type, is_float] = to_opengl_format(type);
+
+        if (is_float)
+        {
+            ::glVertexAttribPointer(
+                index,
+                components,
+                open_gl_type,
+                GL_FALSE,
+                attributes.size(),
+                reinterpret_cast<void *>(offset));
+            check_opengl_error("could not set attributes");
+        }
+        else
+        {
+            ::glVertexAttribIPointer(
+                index,
+                components,
+                open_gl_type,
+                attributes.size(),
+                reinterpret_cast<void *>(offset));
+            check_opengl_error("could not set attributes");
+        }
+
+        ++index;
     }
 
     // unbind vao
