@@ -141,7 +141,7 @@ Vector3 &Vector3::normalise()
 
 real Vector3::magnitude() const
 {
-    return std::sqrt(std::pow(x, 2.0f) + std::pow(y, 2.0f) + std::pow(z, 2.0f));
+    return std::hypot(x, y, z);
 }
 
 void Vector3::lerp(const Vector3 &other, real amount)
