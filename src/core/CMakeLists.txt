@@ -10,6 +10,7 @@ set(CORE_SRCS
     "${SOURCE_ROOT}/matrix4.cpp" "${INCLUDE_ROOT}/matrix4.h"
     "${SOURCE_ROOT}/quaternion.cpp" "${INCLUDE_ROOT}/quaternion.h"
     "${SOURCE_ROOT}/root.cpp" "${INCLUDE_ROOT}/root.h"
+    "${SOURCE_ROOT}/transform.cpp" "${INCLUDE_ROOT}/transform.h"
     "${SOURCE_ROOT}/vector3.cpp" "${INCLUDE_ROOT}/vector3.h"
 
     PARENT_SCOPE
