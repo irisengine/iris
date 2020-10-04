@@ -50,6 +50,8 @@ Matrix4::Matrix4(const Quaternion &q)
     elements_[8] = 2.0f * q.x * q.z - 2.0f * q.y * q.w;
     elements_[9] = 2.0f * q.y * q.z + 2.0f * q.x * q.w;
     elements_[10] = 1.0f - 2.0f * q.x * q.x - 2.0f * q.y * q.y;
+
+    elements_[15] = 1.0f;
 }
 
 Matrix4::Matrix4(const Quaternion &q, const Vector3 &p)
