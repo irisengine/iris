@@ -26,6 +26,7 @@ set(GRAPHICS_SRCS
     "${INCLUDE_ROOT}/texture.h"
     "${INCLUDE_ROOT}/vertex_data.h"
     "${INCLUDE_ROOT}/weight.h"
+    "${SOURCE_ROOT}/animation.cpp" "${INCLUDE_ROOT}/animation.h"
     "${SOURCE_ROOT}/bone.cpp" "${INCLUDE_ROOT}/bone.h"
     "${SOURCE_ROOT}/mesh.cpp" "${INCLUDE_ROOT}/mesh.h"
     "${SOURCE_ROOT}/mesh_factory.cpp" "${INCLUDE_ROOT}/mesh_factory.h"
