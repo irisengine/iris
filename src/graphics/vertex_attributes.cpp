@@ -35,6 +35,9 @@ std::tuple<std::size_t, std::size_t> type_info(iris::VertexAttributeType type)
         case iris::VertexAttributeType::UINT32_1:
             info = {1u, sizeof(std::uint32_t)};
             break;
+        case iris::VertexAttributeType::UINT32_4:
+            info = {4u, sizeof(std::uint32_t)};
+            break;
         default:
             throw iris::Exception("unknown vertex attribute type");
     }

@@ -15,7 +15,8 @@ enum class VertexAttributeType
 {
     FLOAT_3,
     FLOAT_4,
-    UINT32_1
+    UINT32_1,
+    UINT32_4
 };
 
 /**
