@@ -32,6 +32,7 @@ set(GRAPHICS_SRCS
     "${SOURCE_ROOT}/mesh_factory.cpp" "${INCLUDE_ROOT}/mesh_factory.h"
     "${SOURCE_ROOT}/model.cpp" "${INCLUDE_ROOT}/model.h"
     "${SOURCE_ROOT}/render_entity.cpp" "${INCLUDE_ROOT}/render_entity.h"
+    "${SOURCE_ROOT}/skeleton.cpp" "${INCLUDE_ROOT}/skeleton.h"
     "${SOURCE_ROOT}/sprite.cpp" "${INCLUDE_ROOT}/sprite.h"
     "${SOURCE_ROOT}/utility.cpp" "${INCLUDE_ROOT}/utility.h"
     "${SOURCE_ROOT}/vertex_attributes.cpp" "${INCLUDE_ROOT}/vertex_attributes.h"
