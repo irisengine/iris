@@ -6,7 +6,10 @@
 namespace iris
 {
 
-ResourceLoader::ResourceLoader(){};
+ResourceLoader::ResourceLoader()
+    : root_(".")
+{
+}
 
 ResourceLoader &ResourceLoader::instance()
 {
@@ -21,11 +24,11 @@ const std::vector<std::uint8_t> &ResourceLoader::load(
     auto loaded_resource = resources_.find(resource);
 
     // if not found load from disk, treat resource as a path relative to
-    // current working directory
+    // root
     if (loaded_resource == std::cend(resources_))
     {
         std::stringstream strm{};
-        std::fstream f(resource, std::ios::in | std::ios::binary);
+        std::fstream f(root_ + "/" + resource, std::ios::in | std::ios::binary);
         strm << f.rdbuf();
 
         const auto str = strm.str();
@@ -36,6 +39,11 @@ const std::vector<std::uint8_t> &ResourceLoader::load(
     }
 
     return loaded_resource->second;
+}
+
+void ResourceLoader::set_root_directory(const std::string &root)
+{
+    root_ = root;
 }
 
 }

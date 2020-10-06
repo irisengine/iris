@@ -35,6 +35,14 @@ class ResourceLoader
      */
     const std::vector<std::uint8_t> &load(const std::string &resource);
 
+    /**
+     * Set root resource location.
+     *
+     * @param root
+     *   New root location.
+     */
+    void set_root_directory(const std::string &root);
+
   private:
     /**
      * Construct a new ResourceLoader. Private to force instantiation
@@ -44,6 +52,9 @@ class ResourceLoader
 
     /** Cache of loaded resources. */
     std::map<std::string, std::vector<std::uint8_t>> resources_;
+
+    /** Resource root. */
+    std::string root_;
 };
 
 }
