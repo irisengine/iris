@@ -77,7 +77,7 @@ void RenderSystem::render()
         ::glUniformMatrix4fv(
             proj_uniform,
             1,
-            GL_FALSE,
+            GL_TRUE,
             reinterpret_cast<const float *>(cam.projection().data()));
         check_opengl_error("could not set projection matrix uniform data");
 
@@ -87,7 +87,7 @@ void RenderSystem::render()
         ::glUniformMatrix4fv(
             view_uniform,
             1,
-            GL_FALSE,
+            GL_TRUE,
             reinterpret_cast<const float *>(cam.view().data()));
         check_opengl_error("could not set view matrix uniform data");
 
@@ -97,7 +97,7 @@ void RenderSystem::render()
         ::glUniformMatrix4fv(
             model_uniform,
             1,
-            GL_FALSE,
+            GL_TRUE,
             reinterpret_cast<const float *>(e->transform().data()));
         check_opengl_error("could not set model matrix uniform data");
 
@@ -108,7 +108,7 @@ void RenderSystem::render()
         ::glUniformMatrix4fv(
             normal_uniform,
             1,
-            GL_FALSE,
+            GL_TRUE,
             reinterpret_cast<const float *>(e->normal_transform().data()));
         check_opengl_error("could not set normal matrix uniform data");
 
@@ -118,6 +118,16 @@ void RenderSystem::render()
         static auto light = iris::Vector3(100.0f, 100.0f, 100.0f);
         ::glUniform3f(light_uniform, light.x, light.y, light.z);
         check_opengl_error("could not set light uniform data");
+
+        const auto bones_uniform = ::glGetUniformLocation(program, "bones");
+        check_opengl_error("could not get bones uniform location");
+
+        ::glUniformMatrix4fv(
+            bones_uniform,
+            e->skeleton().transforms().size(),
+            GL_TRUE,
+            reinterpret_cast<const float *>(e->skeleton().transforms().data()));
+        check_opengl_error("could not set bones uniform data");
 
         for (const auto &mesh : e->meshes())
         {
