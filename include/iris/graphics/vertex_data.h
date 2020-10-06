@@ -37,7 +37,7 @@ struct vertex_data
         : position(position)
         , pos_w(1.0f)
         , normal(normal)
-        , normal_w(1.0f)
+        , normal_w(0.0f)
         , colour(colour)
         , colour_a(1.0f)
         , texture_coords(texture_coords)
