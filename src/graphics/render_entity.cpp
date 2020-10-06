@@ -7,6 +7,7 @@
 #include "graphics/material_factory.h"
 #include "graphics/mesh.h"
 #include "graphics/mesh_factory.h"
+#include "graphics/skeleton.h"
 
 namespace
 {
@@ -46,6 +47,27 @@ RenderEntity::RenderEntity(
     Material *material,
     bool wireframe,
     CameraType camera_type)
+    : RenderEntity(
+          std::move(meshes),
+          position,
+          orientation,
+          scale,
+          material,
+          wireframe,
+          camera_type,
+          Skeleton{})
+{
+}
+
+RenderEntity::RenderEntity(
+    std::vector<Mesh> meshes,
+    const Vector3 &position,
+    const Quaternion &orientation,
+    const Vector3 &scale,
+    Material *material,
+    bool wireframe,
+    CameraType camera_type,
+    Skeleton skeleton)
     : meshes_(std::move(meshes))
     , position_(position)
     , orientation_(orientation)
@@ -56,6 +78,7 @@ RenderEntity::RenderEntity(
     , wireframe_(wireframe)
     , camera_type_(camera_type)
     , primitive_type_(PrimitiveType::TRIANGLES)
+    , skeleton_(std::move(skeleton))
 {
     model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) *
              Matrix4::make_scale(scale_);
@@ -148,6 +171,11 @@ PrimitiveType RenderEntity::primitive_type() const
 void RenderEntity::set_primitive_type(PrimitiveType type)
 {
     primitive_type_ = type;
+}
+
+Skeleton &RenderEntity::skeleton()
+{
+    return skeleton_;
 }
 
 }

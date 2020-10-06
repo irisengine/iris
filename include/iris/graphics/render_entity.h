@@ -8,6 +8,7 @@
 #include "graphics/material.h"
 #include "graphics/mesh.h"
 #include "graphics/primitive_type.h"
+#include "graphics/skeleton.h"
 #include "graphics/texture.h"
 
 namespace iris
@@ -52,6 +53,43 @@ class RenderEntity
         Material *material,
         bool wireframe,
         CameraType camera_type);
+
+    /**
+     * Construct a RenderEntity.
+     *
+     * @param mesh
+     *   Mesh to render.
+     *
+     * @param position
+     *   Centre of mesh in world space.
+     *
+     * @param orientation
+     *   Orientation of mesh.
+     *
+     * @param scale
+     *   Scale of mesh.
+     *
+     * @param material
+     *   Pointer to material to render mesh.
+     *
+     * @param wireframe
+     *   Should render as wireframe.
+     *
+     * @param camera_type
+     *   Type of camera to render with.
+     *
+     * @param skeleton
+     *   Skeleton.
+     */
+    RenderEntity(
+        std::vector<Mesh> meshes,
+        const Vector3 &position,
+        const Quaternion &orientation,
+        const Vector3 &scale,
+        Material *material,
+        bool wireframe,
+        CameraType camera_type,
+        Skeleton skeleton);
 
     virtual ~RenderEntity() = 0;
 
@@ -179,6 +217,14 @@ class RenderEntity
      */
     void set_primitive_type(PrimitiveType type);
 
+    /**
+     * Get reference to skeleton.
+     *
+     * @returns
+     *   Reference to skeleton.
+     */
+    Skeleton &skeleton();
+
   protected:
     /** Collection of meshes. */
     std::vector<Mesh> meshes_;
@@ -209,6 +255,9 @@ class RenderEntity
 
     /** Primitive type. */
     PrimitiveType primitive_type_;
+
+    /** Skeleton. */
+    Skeleton skeleton_;
 };
 
 }

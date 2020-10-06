@@ -11,6 +11,15 @@ Model::Model(
     const Vector3 &position,
     const Vector3 &scale,
     std::vector<Mesh> meshes)
+    : Model(position, scale, std::move(meshes), Skeleton{})
+{
+}
+
+Model::Model(
+    const Vector3 &position,
+    const Vector3 &scale,
+    std::vector<Mesh> meshes,
+    Skeleton skeleton)
     : RenderEntity(
           std::move(meshes),
           position,
@@ -18,7 +27,8 @@ Model::Model(
           scale,
           material_factory::mesh(),
           false,
-          CameraType::PERSPECTIVE)
+          CameraType::PERSPECTIVE,
+          std::move(skeleton))
 {
 }
 
