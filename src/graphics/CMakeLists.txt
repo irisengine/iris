@@ -18,6 +18,7 @@ set(GRAPHICS_SRCS
     "${INCLUDE_ROOT}/buffer_descriptor.h"
     "${INCLUDE_ROOT}/buffer_type.h"
     "${INCLUDE_ROOT}/font.h"
+    "${INCLUDE_ROOT}/keyframe.h"
     "${INCLUDE_ROOT}/material.h"
     "${INCLUDE_ROOT}/material_factory.h"
     "${INCLUDE_ROOT}/primitive_type.h"
