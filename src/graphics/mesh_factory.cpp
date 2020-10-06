@@ -10,9 +10,13 @@
 #include <assimp/scene.h>
 
 #include "core/exception.h"
+#include "core/transform.h"
 #include "core/vector3.h"
+#include "graphics/bone.h"
 #include "graphics/buffer_descriptor.h"
 #include "graphics/mesh.h"
+#include "graphics/mesh_loader.h"
+#include "graphics/skeleton.h"
 #include "graphics/texture.h"
 #include "graphics/vertex_data.h"
 #include "log/log.h"
@@ -115,113 +119,29 @@ std::vector<Mesh> quad(
     return meshes;
 }
 
-std::vector<Mesh> load(const std::string &mesh_file)
+std::tuple<std::vector<Mesh>, Skeleton> load(const std::string &mesh_file)
 {
+    std::vector<std::vector<vertex_data>> vertices{};
+    std::vector<std::vector<std::uint32_t>> indices{};
+    std::vector<Texture> textures{};
+    Skeleton skeleton{};
+
+    load_mesh(mesh_file, &vertices, &indices, &textures, &skeleton);
+
     std::vector<Mesh> meshes;
 
-    const auto file_data = ResourceLoader::instance().load(mesh_file);
-
-    ::Assimp::Importer importer{};
-    const auto *scene = importer.ReadFile(mesh_file, ::aiProcess_Triangulate);
-
-    if (scene == nullptr || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE ||
-        scene->mRootNode == nullptr)
+    for (auto i = 0u; i < vertices.size(); ++i)
     {
-        throw Exception(
-            std::string{"could not load mesh: "} + importer.GetErrorString());
+        // we can use the default attributes
+        meshes.emplace_back(
+            BufferDescriptor(
+                Buffer(std::move(vertices[i]), BufferType::VERTEX_ATTRIBUTES),
+                Buffer(std::move(indices[i]), BufferType::VERTEX_INDICES),
+                vertex_attributes),
+            std::move(textures[i]));
     }
 
-    std::stack<::aiNode *> to_process;
-    to_process.emplace(scene->mRootNode);
-
-    do
-    {
-        const auto *node = to_process.top();
-        to_process.pop();
-
-        for (auto i = 0u; i < node->mNumMeshes; ++i)
-        {
-            std::vector<vertex_data> vertices;
-            std::vector<std::uint32_t> indices;
-            const auto *mesh = scene->mMeshes[node->mMeshes[i]];
-            const auto *material = scene->mMaterials[mesh->mMaterialIndex];
-            auto texture = Texture::blank();
-
-            aiString name;
-            material->Get(AI_MATKEY_NAME, name);
-
-            for (auto j = 0u; j < mesh->mNumVertices; ++j)
-            {
-                const auto &vertex = mesh->mVertices[j];
-                const auto &normal = mesh->mNormals[j];
-                Vector3 colour{1.0f, 1.0f, 1.0f};
-                Vector3 texture_coords{};
-
-                if (mesh->HasTextureCoords(0))
-                {
-                    texture_coords.x = mesh->mTextureCoords[0][j].x;
-                    texture_coords.y = mesh->mTextureCoords[0][j].y;
-                }
-
-                aiColor3D c(0.f, 0.f, 0.f);
-                material->Get(AI_MATKEY_COLOR_DIFFUSE, c);
-                colour.x = c.r;
-                colour.y = c.g;
-                colour.z = c.b;
-
-                vertices.emplace_back(
-                    Vector3(vertex.x, vertex.y, vertex.z),
-                    Vector3(normal.x, normal.y, normal.z),
-                    colour,
-                    texture_coords);
-            }
-
-            for (auto j = 0u; j < mesh->mNumFaces; ++j)
-            {
-                const auto &face = mesh->mFaces[j];
-                for (auto k = 0u; k < face.mNumIndices; ++k)
-                {
-                    indices.emplace_back(face.mIndices[k]);
-                }
-            }
-
-            const auto type = ::aiTextureType_DIFFUSE;
-
-            for (auto j = 0u; j < material->GetTextureCount(type); j++)
-            {
-                ::aiString str;
-                material->GetTexture(type, i, &str);
-
-                const auto texture_path = "assets/" + std::string{str.C_Str()};
-
-                texture = Texture{texture_path};
-            }
-
-            for (auto j = 0u; j < mesh->mNumBones; ++j)
-            {
-                const auto *bone = mesh->mBones[j];
-                LOG_INFO(
-                    "mesh",
-                    "bone | name: {} weights: {}",
-                    bone->mName.C_Str(),
-                    bone->mNumWeights);
-            }
-
-            BufferDescriptor descriptor(
-                Buffer(vertices, BufferType::VERTEX_ATTRIBUTES),
-                Buffer(indices, BufferType::VERTEX_INDICES),
-                vertex_attributes);
-
-            meshes.emplace_back(std::move(descriptor), std::move(texture));
-        }
-
-        for (auto i = 0u; i < node->mNumChildren; ++i)
-        {
-            to_process.emplace(node->mChildren[i]);
-            LOG_INFO("mesh", "adding child");
-        }
-    } while (!to_process.empty());
-
-    return meshes;
+    return {std::move(meshes), skeleton};
 }
+
 }
