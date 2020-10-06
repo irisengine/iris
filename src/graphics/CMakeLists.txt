@@ -30,6 +30,7 @@ set(GRAPHICS_SRCS
     "${SOURCE_ROOT}/bone.cpp" "${INCLUDE_ROOT}/bone.h"
     "${SOURCE_ROOT}/mesh.cpp" "${INCLUDE_ROOT}/mesh.h"
     "${SOURCE_ROOT}/mesh_factory.cpp" "${INCLUDE_ROOT}/mesh_factory.h"
+    "${SOURCE_ROOT}/mesh_loader.cpp" "${INCLUDE_ROOT}/mesh_loader.h"
     "${SOURCE_ROOT}/model.cpp" "${INCLUDE_ROOT}/model.h"
     "${SOURCE_ROOT}/render_entity.cpp" "${INCLUDE_ROOT}/render_entity.h"
     "${SOURCE_ROOT}/skeleton.cpp" "${INCLUDE_ROOT}/skeleton.h"
