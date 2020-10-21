@@ -32,8 +32,9 @@
 #include "networking/simulated_socket.h"
 #include "networking/udp_socket.h"
 #include "physics/basic_character_controller.h"
-#include "physics/box_rigid_body.h"
+#include "physics/box_collision_shape.h"
 #include "physics/physics_system.h"
+#include "physics/rigid_body.h"
 #include "platform/keyboard_event.h"
 #include "platform/start.h"
 #include "platform/window.h"
@@ -415,10 +416,11 @@ void go(int, char **)
     auto &ps = iris::Root::physics_system();
     auto *character_controller =
         ps.create_character_controller<iris::BasicCharacterController>();
-    ps.create_rigid_body<iris::BoxRigidBody>(
+    ps.create_rigid_body(
         iris::Vector3{0.0f, -50.0f, 0.0f},
-        iris::Vector3{500.0f, 50.0f, 500.0f},
-        true);
+        std::make_unique<iris::BoxCollisionShape>(
+            iris::Vector3{500.0f, 50.0f, 500.0f}),
+        iris::RigidBodyType::STATIC);
 
     std::vector<std::tuple<
         std::uint32_t,

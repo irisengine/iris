@@ -30,8 +30,9 @@
 #include "networking/simulated_accepting_socket.h"
 #include "networking/udp_accepting_socket.h"
 #include "physics/basic_character_controller.h"
-#include "physics/box_rigid_body.h"
+#include "physics/box_collision_shape.h"
 #include "physics/physics_system.h"
+#include "physics/rigid_body.h"
 #include "platform/keyboard_event.h"
 
 #include "client_input.h"
@@ -86,14 +87,16 @@ void go(int, char **)
     iris::PhysicsSystem ps{};
     character_controller =
         ps.create_character_controller<iris::BasicCharacterController>();
-    ps.create_rigid_body<iris::BoxRigidBody>(
+    ps.create_rigid_body(
         iris::Vector3{0.0f, -50.0f, 0.0f},
-        iris::Vector3{500.0f, 50.0f, 500.0f},
-        true);
-    auto *box = ps.create_rigid_body<iris::BoxRigidBody>(
+        std::make_unique<iris::BoxCollisionShape>(
+            iris::Vector3{500.0f, 50.0f, 500.0f}),
+        iris::RigidBodyType::STATIC);
+    auto *box = ps.create_rigid_body(
         iris::Vector3{0.0f, 1.0f, 0.0f},
-        iris::Vector3{0.5f, 0.5f, 0.5f},
-        false);
+        std::make_unique<iris::BoxCollisionShape>(
+            iris::Vector3{0.5f, 0.5f, 0.5f}),
+        iris::RigidBodyType::NORMAL);
 
     // block and wait for client to connect
     while (player_id == std::numeric_limits<std::size_t>::max())

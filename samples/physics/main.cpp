@@ -9,8 +9,9 @@
 #include "graphics/sprite.h"
 #include "log/log.h"
 #include "physics/basic_character_controller.h"
-#include "physics/box_rigid_body.h"
+#include "physics/box_collision_shape.h"
 #include "physics/physics_system.h"
+#include "physics/rigid_body.h"
 #include "platform/keyboard_event.h"
 #include "platform/start.h"
 #include "platform/window.h"
@@ -78,10 +79,11 @@ void go(int, char **)
         iris::Vector3{500.0f, 50.0f, 500.0f},
         iris::mesh_factory::cube({1.0f, 1.0f, 1.0f}));
 
-    ps.create_rigid_body<iris::BoxRigidBody>(
+    ps.create_rigid_body(
         iris::Vector3{0.0f, -50.0f, 0.0f},
-        iris::Vector3{500.0f, 50.0f, 500.0f},
-        true);
+        std::make_unique<iris::BoxCollisionShape>(
+            iris::Vector3{500.0f, 50.0f, 500.0f}),
+        iris::RigidBodyType::STATIC);
 
     auto width = 21u;
     auto height = 10u;
@@ -99,8 +101,10 @@ void go(int, char **)
             boxes.emplace_back(
                 rs.create<iris::Model>(
                     pos, half_size, iris::mesh_factory::cube(colour)),
-                ps.create_rigid_body<iris::BoxRigidBody>(
-                    pos, half_size, false));
+                ps.create_rigid_body(
+                    pos,
+                    std::make_unique<iris::BoxCollisionShape>(half_size),
+                    iris::RigidBodyType::NORMAL));
         }
     }
 
