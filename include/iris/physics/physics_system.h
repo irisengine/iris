@@ -35,9 +35,6 @@ class PhysicsSystem
     using is_character_controller =
         std::enable_if_t<std::is_base_of_v<CharacterController, T>>;
 
-    template <class T>
-    using is_rigid_body = std::enable_if_t<std::is_base_of_v<RigidBody, T>>;
-
     /**
      * Create a new physics system.
      */
@@ -68,10 +65,10 @@ class PhysicsSystem
      * @returns
      *   A pointer to the newly created RigidBody.
      */
-    template <class T, class... Args, typename = is_rigid_body<T>>
+    template <class... Args>
     RigidBody *create_rigid_body(Args &&... args)
     {
-        auto element = std::make_unique<T>(std::forward<Args>(args)...);
+        auto element = std::make_unique<RigidBody>(std::forward<Args>(args)...);
         return add(std::move(element));
     }
 

@@ -6,6 +6,7 @@
 #include <optional>
 #include <vector>
 
+#include <BulletCollision/CollisionDispatch/btGhostObject.h>
 #include <BulletDynamics/Dynamics/btRigidBody.h>
 #include <LinearMath/btMotionState.h>
 #include <LinearMath/btQuaternion.h>
@@ -15,6 +16,7 @@
 
 #include "core/quaternion.h"
 #include "core/vector3.h"
+#include "log/log.h"
 #include "physics/bullet/debug_draw.h"
 #include "physics/character_controller.h"
 #include "physics/rigid_body.h"
@@ -70,6 +72,7 @@ struct PhysicsSystem::implementation
     std::unique_ptr<::btBroadphaseInterface> broadphase;
     std::unique_ptr<::btSequentialImpulseConstraintSolver> solver;
     std::unique_ptr<::btDiscreteDynamicsWorld> world;
+    std::unique_ptr<::btGhostPairCallback> ghost_pair_callback;
     std::vector<std::unique_ptr<RigidBody>> bodies;
     std::vector<std::unique_ptr<CharacterController>> character_controllers;
     DebugDraw debug_draw;
@@ -90,6 +93,9 @@ PhysicsSystem::PhysicsSystem()
         impl_->broadphase.get(),
         impl_->solver.get(),
         impl_->collision_config.get());
+    impl_->ghost_pair_callback = std::make_unique<::btGhostPairCallback>();
+    impl_->broadphase->getOverlappingPairCache()->setInternalGhostPairCallback(
+        impl_->ghost_pair_callback.get());
 
     impl_->world->setGravity({0.0f, -10.0f, 0.0f});
 
@@ -98,7 +104,33 @@ PhysicsSystem::PhysicsSystem()
     impl_->world->setDebugDrawer(&impl_->debug_draw);
 }
 
-PhysicsSystem::~PhysicsSystem() = default;
+PhysicsSystem::~PhysicsSystem()
+{
+    try
+    {
+
+    }
+        for (const auto &body : impl_->bodies)
+        {
+            if (body->type() == RigidBodyType::GHOST)
+            {
+                auto *bullet_ghost =
+                    std::any_cast<::btGhostObject *>(body->native_handle());
+                impl_->world->removeCollisionObject(bullet_ghost);
+            }
+            else
+            {
+                auto *bullet_body =
+                    std::any_cast<::btRigidBody *>(body->native_handle());
+                impl_->world->removeRigidBody(bullet_body);
+            }
+        }
+    }
+    catch (...)
+    {
+        LOG_ERROR("physics_system", "exception caught during dtor");
+    }
+}
 
 void PhysicsSystem::step(std::chrono::milliseconds time_step)
 {
@@ -118,12 +150,21 @@ void PhysicsSystem::step(std::chrono::milliseconds time_step)
 RigidBody *PhysicsSystem::add(std::unique_ptr<RigidBody> body)
 {
     impl_->bodies.emplace_back(std::move(body));
+    auto *b = impl_->bodies.back().get();
 
-    auto *bullet_body =
-        std::any_cast<::btRigidBody *>(impl_->bodies.back()->native_handle());
-    impl_->world->addRigidBody(bullet_body);
+    if (b->type() == RigidBodyType::GHOST)
+    {
+        auto *bullet_ghost =
+            std::any_cast<::btGhostObject *>(b->native_handle());
+        impl_->world->addCollisionObject(bullet_ghost);
+    }
+    else
+    {
+        auto *bullet_body = std::any_cast<::btRigidBody *>(b->native_handle());
+        impl_->world->addRigidBody(bullet_body);
+    }
 
-    return impl_->bodies.back().get();
+    return b;
 }
 
 CharacterController *PhysicsSystem::add(

@@ -5,15 +5,16 @@
 #include "core/root.h"
 #include "core/vector3.h"
 #include "log/log.h"
-#include "physics/capsule_rigid_body.h"
+#include "physics/capsule_collision_shape.h"
 #include "physics/physics_system.h"
+#include "physics/rigid_body.h"
 
 namespace iris
 {
 
 struct BasicCharacterController::implementation
 {
-    std::unique_ptr<CapsuleRigidBody> body;
+    std::unique_ptr<RigidBody> body;
     ::btRigidBody *bullet_rigid_body;
 };
 
@@ -23,8 +24,10 @@ BasicCharacterController::BasicCharacterController()
     , impl_(std::make_unique<implementation>())
 {
     // use capsule shape for character
-    impl_->body = std::make_unique<CapsuleRigidBody>(
-        Vector3{0.0f, 0.0f, 10.0f}, 0.5f, 1.7f, false);
+    impl_->body = std::make_unique<RigidBody>(
+        Vector3{0.0f, 0.0f, 10.0f},
+        std::make_unique<CapsuleCollisionShape>(0.5f, 1.7f),
+        RigidBodyType::NORMAL);
 
     // store a copy of the bullet rigid body pointer
     impl_->bullet_rigid_body =
@@ -108,7 +111,7 @@ bool BasicCharacterController::on_ground() const
     if (hit)
     {
         // we are on the ground if the closest object is less than our height
-        ground = (*hit - position()).magnitude() < 1.7f;
+        ground = (std::get<1>(*hit) - position()).magnitude() < 1.7f;
     }
 
     return ground;
