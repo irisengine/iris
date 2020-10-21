@@ -179,11 +179,11 @@ CharacterController *PhysicsSystem::add(
     return impl_->character_controllers.back().get();
 }
 
-std::optional<Vector3> PhysicsSystem::ray_cast(
+std::optional<std::tuple<RigidBody *, Vector3>> PhysicsSystem::ray_cast(
     const Vector3 &origin,
     const Vector3 &direction) const
 {
-    std::optional<Vector3> hit;
+    std::optional<std::tuple<RigidBody *, Vector3>> hit;
 
     // bullet does ray tracing between two vectors, so we create an end vector
     // some great distance away
@@ -197,8 +197,13 @@ std::optional<Vector3> PhysicsSystem::ray_cast(
 
     if (callback.hasHit())
     {
+        const auto *body =
+            static_cast<const ::btRigidBody *>(callback.m_collisionObject);
+
         const auto hit_position = callback.m_hitPointWorld;
-        hit = {hit_position.x(), hit_position.y(), hit_position.z()};
+        hit = {
+            static_cast<RigidBody *>(body->getUserPointer()),
+            {hit_position.x(), hit_position.y(), hit_position.z()}};
     }
 
     return hit;

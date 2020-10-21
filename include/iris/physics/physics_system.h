@@ -121,10 +121,10 @@ class PhysicsSystem
      *   Direction of ray.
      *
      * @returns
-     *   If ray hits an object then the point of intersection, else empty
-     *   optional.
+     *   If ray hits an object then a tuple [object hit, point of intersection],
+     *   else empty optional.
      */
-    std::optional<Vector3> ray_cast(
+    std::optional<std::tuple<RigidBody *, Vector3>> ray_cast(
         const Vector3 &origin,
         const Vector3 &direction) const;
 
