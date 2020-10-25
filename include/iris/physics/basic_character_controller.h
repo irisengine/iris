@@ -46,6 +46,14 @@ class BasicCharacterController : public CharacterController
     Vector3 position() const override;
 
     /**
+     * Get orientation of character.
+     *
+     * @returns
+     *   Orientation of character
+     */
+    Quaternion orientation() const override;
+
+    /**
      * Get linear velocity.
      *
      * @returns
@@ -118,6 +126,11 @@ class BasicCharacterController : public CharacterController
      *   True if character is on a surface, false otherwise.
      */
     bool on_ground() const override;
+
+    RigidBody *rigid_body() const override;
+
+    void set_collision_shape(
+        std::unique_ptr<CollisionShape> collision_shape) override;
 
   private:
     /**

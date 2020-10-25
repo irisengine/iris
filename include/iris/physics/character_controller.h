@@ -4,9 +4,12 @@
 
 #include "core/quaternion.h"
 #include "core/vector3.h"
+#include "physics/collision_shape.h"
 
 namespace iris
 {
+
+class RigidBody;
 
 /**
  * Interface for a character controller. Deriving classes should use this
@@ -33,6 +36,14 @@ class CharacterController
      *   World coordinates of character.
      */
     virtual Vector3 position() const = 0;
+
+    /**
+     * Get orientation of character.
+     *
+     * @returns
+     *   Orientation of character
+     */
+    virtual Quaternion orientation() const = 0;
 
     /**
      * Get linear velocity.
@@ -108,6 +119,11 @@ class CharacterController
      *   True if character is on a surface, false otherwise.
      */
     virtual bool on_ground() const = 0;
+
+    virtual RigidBody *rigid_body() const = 0;
+
+    virtual void set_collision_shape(
+        std::unique_ptr<CollisionShape> collision_shape) = 0;
 };
 
 }

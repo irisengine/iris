@@ -56,6 +56,11 @@ Vector3 BasicCharacterController::position() const
     return impl_->body->position();
 }
 
+Quaternion BasicCharacterController::orientation() const
+{
+    return impl_->body->orientation();
+}
+
 Vector3 BasicCharacterController::linear_velocity() const
 {
     return impl_->body->linear_velocity();
@@ -120,6 +125,17 @@ bool BasicCharacterController::on_ground() const
 std::any BasicCharacterController::native_handle() const
 {
     return impl_->bullet_rigid_body;
+}
+
+RigidBody *BasicCharacterController::rigid_body() const
+{
+    return impl_->body.get();
+}
+
+void BasicCharacterController::set_collision_shape(
+    std::unique_ptr<CollisionShape> collision_shape)
+{
+    impl_->body->set_collision_shape(std::move(collision_shape));
 }
 
 }
