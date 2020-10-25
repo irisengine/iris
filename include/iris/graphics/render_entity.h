@@ -114,6 +114,14 @@ class RenderEntity
     void set_position(const Vector3 &position);
 
     /**
+     * Get orientation.
+     *
+     * @return
+     *   Orientation.
+     */
+    Quaternion orientation() const;
+
+    /**
      * Set the orientation of the RenderEntity.
      *
      * @param orientation

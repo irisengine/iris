@@ -101,6 +101,11 @@ void RenderEntity::set_position(const Vector3 &position)
     normal_ = create_normal_transform(model_);
 }
 
+Quaternion RenderEntity::orientation() const
+{
+    return orientation_;
+}
+
 void RenderEntity::set_orientation(const Quaternion &orientation)
 {
     orientation_ = orientation;
