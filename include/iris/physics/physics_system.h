@@ -151,6 +151,14 @@ class PhysicsSystem
         const Vector3 &direction) const;
 
     /**
+     * Add a body to be excluded from ray_casts
+     *
+     * @param body
+     *   Body to ignore.
+     */
+    void ignore_in_raycast(RigidBody *body);
+
+    /**
      * Save the current state of the simulation.
      *
      * Note that depending on the implementation this may be a "best guess"

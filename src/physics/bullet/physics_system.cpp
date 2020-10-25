@@ -240,22 +240,51 @@ std::optional<std::tuple<RigidBody *, Vector3>> PhysicsSystem::ray_cast(
     const auto far_away = origin + (direction * 10000.0f);
     ::btVector3 to{far_away.x, far_away.y, far_away.z};
 
-    ::btCollisionWorld::ClosestRayResultCallback callback{from, to};
+    ::btCollisionWorld::AllHitsRayResultCallback callback{from, to};
 
     impl_->world->rayTest(from, to, callback);
 
     if (callback.hasHit())
     {
-        const auto *body =
-            static_cast<const ::btRigidBody *>(callback.m_collisionObject);
+        auto min = std::numeric_limits<float>::max();
+        ::btVector3 hit_position{};
+        const ::btRigidBody *body = nullptr;
 
-        const auto hit_position = callback.m_hitPointWorld;
-        hit = {
-            static_cast<RigidBody *>(body->getUserPointer()),
-            {hit_position.x(), hit_position.y(), hit_position.z()}};
+        // find the closest hit object excluding any ignored objects
+        for (auto i = 0u; i < callback.m_collisionObjects.size(); ++i)
+        {
+            const auto distance = from.distance(callback.m_hitPointWorld[i]);
+            if ((distance < min) &&
+                (impl_->ignore.count(callback.m_collisionObjects[i]) == 0))
+            {
+                min = distance;
+                hit_position = callback.m_hitPointWorld[i];
+                body = static_cast<const ::btRigidBody *>(
+                    callback.m_collisionObjects[i]);
+            }
+        }
+
+        if (body != nullptr)
+        {
+            hit = {
+                static_cast<RigidBody *>(body->getUserPointer()),
+                {hit_position.x(), hit_position.y(), hit_position.z()}};
+        }
     }
 
     return hit;
+}
+
+void PhysicsSystem::ignore_in_raycast(RigidBody *body)
+{
+    const auto *collision_shape =
+        (body->type() == RigidBodyType::GHOST)
+            ? static_cast<::btCollisionObject *>(
+                  std::any_cast<::btGhostObject *>(body->native_handle()))
+            : static_cast<::btCollisionObject *>(
+                  std::any_cast<::btRigidBody *>(body->native_handle()));
+
+    impl_->ignore.emplace(collision_shape);
 }
 
 std::unique_ptr<PhysicsState, PhysicsStateDeleter> PhysicsSystem::save()
