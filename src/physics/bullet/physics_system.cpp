@@ -95,6 +95,7 @@ void PhysicsStateDeleter::operator()(PhysicsState *state)
 
 struct PhysicsSystem::implementation
 {
+    std::unique_ptr<::btGhostPairCallback> ghost_pair_callback;
     std::unique_ptr<::btDefaultCollisionConfiguration> collision_config;
     std::unique_ptr<::btCollisionDispatcher> collision_dispatcher;
     std::unique_ptr<::btBroadphaseInterface> broadphase;
