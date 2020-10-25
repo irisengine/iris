@@ -251,7 +251,7 @@ std::optional<Event> Window::pump_event()
                 evt = handle_keyboard_event(event);
                 break;
             case NSEventTypeMouseMoved:
-                evt = handle_mouse_event(event, width_, height_);
+                evt = handle_mouse_event(event);
                 break;
             case NSEventTypeLeftMouseDown:
                 evt = MouseButtonEvent{ MouseButton::LEFT, MouseButtonState::DOWN };

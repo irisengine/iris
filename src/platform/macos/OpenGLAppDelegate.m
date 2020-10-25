@@ -82,6 +82,7 @@
 
         // hide the cursor
         CGDisplayHideCursor(kCGDirectMainDisplay);
+        CGAssociateMouseAndMouseCursorPosition(NO);
     }
 
     return self;
