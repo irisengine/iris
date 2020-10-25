@@ -63,7 +63,7 @@ class Sprite : public RenderEntity
         real width,
         real height,
         const Vector3 &colour,
-        Texture &&tex);
+        Texture *tex);
 
     // default
     ~Sprite() override = default;
@@ -74,7 +74,7 @@ class Sprite : public RenderEntity
      * @param texture
      *   New sprite texture.
      */
-    void set_texture(Texture texture);
+    void set_texture(Texture *texture);
 
   private:
     /** Colour of sprite. */

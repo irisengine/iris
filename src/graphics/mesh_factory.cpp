@@ -25,7 +25,7 @@
 namespace iris::mesh_factory
 {
 
-std::vector<Mesh> sprite(const Vector3 &colour, Texture &&texture)
+std::vector<Mesh> sprite(const Vector3 &colour, Texture *texture)
 {
     std::vector<Mesh> meshes;
 
@@ -42,7 +42,7 @@ std::vector<Mesh> sprite(const Vector3 &colour, Texture &&texture)
         Buffer(indices, BufferType::VERTEX_INDICES),
         vertex_attributes);
 
-    meshes.emplace_back(std::move(descriptor), std::move(texture));
+    meshes.emplace_back(std::move(descriptor), texture);
 
     return meshes;
 }
@@ -121,27 +121,57 @@ std::vector<Mesh> quad(
 
 std::tuple<std::vector<Mesh>, Skeleton> load(const std::string &mesh_file)
 {
-    std::vector<std::vector<vertex_data>> vertices{};
-    std::vector<std::vector<std::uint32_t>> indices{};
-    std::vector<Texture> textures{};
-    Skeleton skeleton{};
+    struct Cache
+    {
+        std::vector<std::vector<vertex_data>> vertices;
+        std::vector<std::vector<std::uint32_t>> indices;
+        std::vector<Texture *> textures;
+        Skeleton skeleton;
+    };
 
-    load_mesh(mesh_file, &vertices, &indices, &textures, &skeleton);
+    static std::map<std::string, Cache> cache{};
 
     std::vector<Mesh> meshes;
+    Skeleton *skeleton = nullptr;
 
-    for (auto i = 0u; i < vertices.size(); ++i)
+    if (cache.count(mesh_file) == 0)
     {
-        // we can use the default attributes
-        meshes.emplace_back(
-            BufferDescriptor(
-                Buffer(std::move(vertices[i]), BufferType::VERTEX_ATTRIBUTES),
-                Buffer(std::move(indices[i]), BufferType::VERTEX_INDICES),
-                vertex_attributes),
-            std::move(textures[i]));
+        Cache c;
+
+        load_mesh(mesh_file, &c.vertices, &c.indices, &c.textures, &c.skeleton);
+
+        for (auto i = 0u; i < c.vertices.size(); ++i)
+        {
+            // we can use the default attributes
+            meshes.emplace_back(
+                BufferDescriptor(
+                    Buffer(c.vertices[i], BufferType::VERTEX_ATTRIBUTES),
+                    Buffer(c.indices[i], BufferType::VERTEX_INDICES),
+                    vertex_attributes),
+                c.textures[i]);
+        }
+
+        cache[mesh_file] = c;
+        skeleton = &cache[mesh_file].skeleton;
+    }
+    else
+    {
+        auto c = cache[mesh_file];
+
+        for (auto i = 0u; i < c.vertices.size(); ++i)
+        {
+            // we can use the default attributes
+            meshes.emplace_back(
+                BufferDescriptor(
+                    Buffer(c.vertices[i], BufferType::VERTEX_ATTRIBUTES),
+                    Buffer(c.indices[i], BufferType::VERTEX_INDICES),
+                    vertex_attributes),
+                c.textures[i]);
+        }
+        skeleton = &cache[mesh_file].skeleton;
     }
 
-    return {std::move(meshes), skeleton};
+    return {std::move(meshes), *skeleton};
 }
 
 }

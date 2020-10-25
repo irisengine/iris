@@ -39,7 +39,7 @@ void load_mesh(
     const std::string &mesh_name,
     std::vector<std::vector<vertex_data>> *vertices,
     std::vector<std::vector<std::uint32_t>> *indices,
-    std::vector<Texture> *textures,
+    std::vector<Texture *> *textures,
     Skeleton *skeleton);
 
 }

@@ -5,13 +5,14 @@
 #include "graphics/material_factory.h"
 #include "graphics/mesh_factory.h"
 #include "graphics/texture.h"
+#include "graphics/texture_factory.h"
 #include "log/log.h"
 
 namespace iris
 {
 
 Sprite::Sprite(real x, real y, real width, real height, const Vector3 &colour)
-    : Sprite(x, y, width, height, colour, Texture::blank())
+    : Sprite(x, y, width, height, colour, texture_factory::blank())
 {
 }
 
@@ -21,9 +22,9 @@ Sprite::Sprite(
     real width,
     real height,
     const Vector3 &colour,
-    Texture &&tex)
+    Texture *tex)
     : RenderEntity(
-          mesh_factory::sprite(colour, std::move(tex)),
+          mesh_factory::sprite(colour, tex),
           {x, y, 0.0f},
           {},
           {width, height, 1.0f},
@@ -35,9 +36,9 @@ Sprite::Sprite(
     LOG_ENGINE_INFO("sprite", "constructed at: {} {}", position_, scale_);
 }
 
-void Sprite::set_texture(Texture texture)
+void Sprite::set_texture(Texture *texture)
 {
-    set_meshes(mesh_factory::sprite(colour_, std::move(texture)));
+    set_meshes(mesh_factory::sprite(colour_, texture));
 }
 
 }

@@ -4,6 +4,7 @@
 #include "core/root.h"
 #include "graphics/sprite.h"
 #include "graphics/texture.h"
+#include "graphics/texture_factory.h"
 #include "log/log.h"
 #include "platform/event.h"
 #include "platform/start.h"
@@ -26,7 +27,7 @@ void go(int, char **)
         100.0f,
         100.0f,
         iris::Vector3{1.0f, 1.0f, 1.0f},
-        iris::Texture("circle.png"));
+        iris::texture_factory::load("circle.png"));
 
     iris::Quaternion rot{{0.0f, 0.0f, 1.0f}, 0.0f};
     iris::Quaternion delta{{0.0f, 0.0f, 1.0f}, 0.02f};

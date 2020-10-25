@@ -18,6 +18,7 @@
 #include "graphics/bone.h"
 #include "graphics/skeleton.h"
 #include "graphics/texture.h"
+#include "graphics/texture_factory.h"
 #include "graphics/vertex_data.h"
 #include "log/log.h"
 #include "platform/resource_loader.h"
@@ -232,11 +233,11 @@ std::vector<iris::Bone> process_bones(
  * @returns
  *   Texture.
  */
-iris::Texture process_texture(const ::aiMaterial *material)
+iris::Texture *process_texture(const ::aiMaterial *material)
 {
     static const auto type = ::aiTextureType_DIFFUSE;
 
-    auto texture = iris::Texture::blank();
+    auto *texture = iris::texture_factory::blank();
 
     // only support a single texture
     if (material->GetTextureCount(type) == 1u)
@@ -244,7 +245,7 @@ iris::Texture process_texture(const ::aiMaterial *material)
         ::aiString str;
         material->GetTexture(type, 0u, &str);
 
-        texture = iris::Texture{str.C_Str()};
+        texture = iris::texture_factory::load(str.C_Str());
     }
 
     return texture;
@@ -332,7 +333,7 @@ void load_mesh(
     const std::string &mesh_name,
     std::vector<std::vector<vertex_data>> *vertices,
     std::vector<std::vector<std::uint32_t>> *indices,
-    std::vector<Texture> *textures,
+    std::vector<Texture *> *textures,
     Skeleton *skeleton)
 {
     const auto file_data = ResourceLoader::instance().load(mesh_name);
@@ -425,7 +426,8 @@ void load_mesh(
                     // only support four bones per vertex
                     if (bone_indices[id] >= 4)
                     {
-                        LOG_WARN("mf", "too many weights {} {}", id, weight);
+                        LOG_ENGINE_WARN(
+                            "mf", "too many weights {} {}", id, weight);
                         continue;
                     }
 

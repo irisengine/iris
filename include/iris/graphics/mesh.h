@@ -42,7 +42,7 @@ class Mesh
      * @param texture
      *   Texture for mesh.
      */
-    Mesh(BufferDescriptor buffer_descriptor, Texture texture);
+    Mesh(BufferDescriptor buffer_descriptor, Texture *texture);
 
     // default
     ~Mesh() = default;
@@ -63,14 +63,14 @@ class Mesh
      * @returns
      *   Const reference to texture.
      */
-    const Texture &texture() const;
+    const Texture *texture() const;
 
   private:
     /** Descriptor for vertex data. */
     BufferDescriptor buffer_descriptor_;
 
     /** Texture to render Mesh with. */
-    Texture texture_;
+    Texture *texture_;
 };
 
 }

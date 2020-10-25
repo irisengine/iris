@@ -10,20 +10,12 @@ namespace iris
 {
 
 /**
- * Class encapsulating a renderable texture. This class loads image data and
+ * Class encapsulating a renderable texture. This class parses image data and
  * performs all necessary graphics API setup for use.
  */
 class Texture
 {
   public:
-    /**
-     * Create a new Texture from a resource.
-     *
-     * @param resource
-     *   Resource to load, will be passed to ResourceLoader.
-     */
-    explicit Texture(const std::string &resource);
-
     /**
      * Creates a new Texture with custom values.
      *

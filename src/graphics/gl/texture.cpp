@@ -8,7 +8,6 @@
 
 #include "core/exception.h"
 #include "graphics/gl/opengl.h"
-#include "graphics/utility.h"
 #include "log/log.h"
 #include "platform/resource_loader.h"
 
@@ -141,23 +140,6 @@ struct Texture::implementation
     /** Opengl handle for texture. */
     std::uint32_t texture;
 };
-
-Texture::Texture(const std::string &resource)
-    : data_()
-    , width_(0u)
-    , height_(0u)
-    , num_channels_(0u)
-    , impl_(nullptr)
-{
-    const auto file_data = ResourceLoader::instance().load(resource);
-    const auto [data, width, height, num_channels] =
-        graphics::utility::parse_image(file_data);
-
-    const auto texture = create_texture(data, width, height, num_channels);
-    impl_ = std::make_unique<implementation>(texture);
-
-    LOG_ENGINE_INFO("texture", "loaded from file");
-}
 
 Texture::Texture(
     const std::vector<std::uint8_t> &data,

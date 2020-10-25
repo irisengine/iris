@@ -140,7 +140,7 @@ void RenderSystem::render()
             check_opengl_error("could not bind vao");
 
             const auto tex_handle =
-                std::any_cast<std::uint32_t>(mesh.texture().native_handle());
+                std::any_cast<std::uint32_t>(mesh.texture()->native_handle());
             // use default Texture unit
             ::glActiveTexture(GL_TEXTURE0);
             check_opengl_error("could not activate texture");

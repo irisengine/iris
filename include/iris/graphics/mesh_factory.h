@@ -22,7 +22,7 @@ namespace iris::mesh_factory
  * @returns
  *   Mesh for sprite.
  */
-std::vector<Mesh> sprite(const Vector3 &colour, Texture &&texture);
+std::vector<Mesh> sprite(const Vector3 &colour, Texture *texture);
 
 /**
  * Create a cube mesh.
