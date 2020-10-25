@@ -149,6 +149,14 @@ class RigidBody
      */
     CollisionShape *collision_shape() const;
 
+    /**
+     * Set collision shape.
+     *
+     * @param collision_shape
+     *   New collision shape.
+     */
+    void set_collision_shape(std::unique_ptr<CollisionShape> collision_shape);
+
   private:
     /** Name of rigid body.*/
     std::string name_;

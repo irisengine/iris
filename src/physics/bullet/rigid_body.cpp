@@ -222,4 +222,14 @@ CollisionShape *RigidBody::collision_shape() const
     return collision_shape_.get();
 }
 
+void RigidBody::set_collision_shape(
+    std::unique_ptr<CollisionShape> collision_shape)
+{
+    collision_shape_ = std::move(collision_shape);
+
+    auto *shape =
+        std::any_cast<::btCollisionShape *>(collision_shape_->native_handle());
+    impl_->body->setCollisionShape(shape);
+}
+
 }
