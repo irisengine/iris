@@ -1,5 +1,6 @@
 #include "graphics/skeleton.h"
 
+#include <cassert>
 #include <cstddef>
 #include <queue>
 #include <string>
@@ -23,7 +24,7 @@ namespace
  *   Collection to update.
  *
  * @param bones
- *   Bones to update.
+ *   Bones to calculate.
  *
  * @param parents
  *   Index of parents of bones.
@@ -33,12 +34,19 @@ namespace
  */
 void update_transforms(
     std::vector<iris::Matrix4> &transforms,
-    std::vector<iris::Bone> &bones,
+    const std::vector<iris::Bone> &bones,
     const std::vector<std::size_t> &parents,
     const iris::Animation *animation)
 {
     // get inverse transform of root node
     const auto inverse = iris::Matrix4::invert(bones.front().transform());
+
+    // we need some scratch space to save bone transformations as we calculate
+    // them, this allows us to look up a parents transform
+    // we don't want to update the actual bones transform as this causes issues
+    // when we change animation
+    std::vector<iris::Matrix4> cache(transforms.size());
+    transforms[0] = bones.front().transform();
 
     // walk remaining bones - these are in hierarchal order so we will always
     // update a parent before its children
@@ -46,21 +54,29 @@ void update_transforms(
     {
         auto &bone = bones[i];
 
-        if (animation != nullptr)
+        if (bone.is_manual())
         {
-            if (animation->node_exists(bone.name()))
+            // if a bone is manual then its transform is absolute, so no need
+            // to apply parents transform
+            cache[i] = bone.transform();
+            transforms[i] = inverse * cache[i] * bone.offset();
+        }
+        else if (animation != nullptr)
+        {
+            // check if our bone exists in the supplied animation
+            if (animation->bone_exists(bone.name()))
             {
-                bone.set_transform(
-                    bones[parents[i]].transform() *
-                    animation->transform(bone.name()).matrix());
-                transforms[i] = inverse * bone.transform() * bone.offset();
+                // apply parent transform with animation transform
+                cache[i] = cache[parents[i]] *
+                           animation->transform(bone.name()).matrix();
+                transforms[i] = inverse * cache[i] * bone.offset();
             }
         }
         else
         {
-            bone.set_transform(
-                bones[parents[i]].transform() * bone.transform());
-            transforms[i] = inverse * bone.transform() * bone.offset();
+            // apply parent transform
+            cache[i] = cache[parents[i]] * bone.transform();
+            transforms[i] = inverse * cache[i] * bone.offset();
         }
     }
 }
