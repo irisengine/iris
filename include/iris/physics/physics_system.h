@@ -112,6 +112,28 @@ class PhysicsSystem
     CharacterController *add(std::unique_ptr<CharacterController> character);
 
     /**
+     * Remove a body from the physics system.
+     *
+     * This will release all resources for the body, using the handle after this
+     * call is undefined.
+     *
+     * @param body
+     *   Body to remove.
+     */
+    void remove(RigidBody *body);
+
+    /**
+     * Character controller a body from the physics system.
+     *
+     * This will release all resources for the character, using the handle after
+     * this call is undefined.
+     *
+     * @param body
+     *   Body to remove.
+     */
+    void remove(CharacterController *charaacter);
+
+    /**
      * Cast a ray into physics engine world.
      *
      * @param origin

@@ -21,6 +21,34 @@
 #include "physics/character_controller.h"
 #include "physics/rigid_body.h"
 
+namespace
+{
+/**
+ * Helper function to remove a rigid body from a bullet dynamics world.
+ *
+ * @param body
+ *   Body to remove.
+ *
+ * @param world
+ *   World to remove from.
+ */
+void remove_body_from_world(iris::RigidBody *body, ::btDynamicsWorld *world)
+{
+    if (body->type() == iris::RigidBodyType::GHOST)
+    {
+        auto *bullet_ghost =
+            std::any_cast<::btGhostObject *>(body->native_handle());
+        world->removeCollisionObject(bullet_ghost);
+    }
+    else
+    {
+        auto *bullet_body =
+            std::any_cast<::btRigidBody *>(body->native_handle());
+        world->removeRigidBody(bullet_body);
+    }
+}
+}
+
 namespace iris
 {
 
@@ -108,22 +136,17 @@ PhysicsSystem::~PhysicsSystem()
 {
     try
     {
+        for (const auto &constraint : impl_->constraints)
+        {
+            auto *bullet_constraint = std::any_cast<::btTypedConstraint *>(
+                constraint->native_handle());
 
-    }
+            impl_->world->removeConstraint(bullet_constraint);
+        }
+
         for (const auto &body : impl_->bodies)
         {
-            if (body->type() == RigidBodyType::GHOST)
-            {
-                auto *bullet_ghost =
-                    std::any_cast<::btGhostObject *>(body->native_handle());
-                impl_->world->removeCollisionObject(bullet_ghost);
-            }
-            else
-            {
-                auto *bullet_body =
-                    std::any_cast<::btRigidBody *>(body->native_handle());
-                impl_->world->removeRigidBody(bullet_body);
-            }
+            remove_body_from_world(body.get(), impl_->world.get());
         }
     }
     catch (...)
@@ -177,6 +200,32 @@ CharacterController *PhysicsSystem::add(
     impl_->world->addRigidBody(bullet_body);
 
     return impl_->character_controllers.back().get();
+}
+
+void PhysicsSystem::remove(RigidBody *body)
+{
+    remove_body_from_world(body, impl_->world.get());
+
+    impl_->bodies.erase(
+        std::remove_if(
+            std::begin(impl_->bodies),
+            std::end(impl_->bodies),
+            [body](const auto &element) { return element.get() == body; }),
+        std::end(impl_->bodies));
+}
+
+void PhysicsSystem::remove(CharacterController *character)
+{
+    remove_body_from_world(character->rigid_body(), impl_->world.get());
+
+    impl_->character_controllers.erase(
+        std::remove_if(
+            std::begin(impl_->character_controllers),
+            std::end(impl_->character_controllers),
+            [character](const auto &element) {
+                return element.get() == character;
+            }),
+        std::end(impl_->character_controllers));
 }
 
 std::optional<std::tuple<RigidBody *, Vector3>> PhysicsSystem::ray_cast(
