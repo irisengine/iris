@@ -105,6 +105,14 @@ class Skeleton
     void set_animation(const std::string &name);
 
     /**
+     * Get reference to current animation.
+     *
+     * @returns
+     *   Animation reference.
+     */
+    Animation &animation();
+
+    /**
      * Advance animation time. See Animation::advance().
      */
     void advance();

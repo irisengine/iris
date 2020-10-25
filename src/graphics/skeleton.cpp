@@ -168,6 +168,18 @@ void Skeleton::set_animation(const std::string &name)
         transforms_, bones_, parents_, std::addressof(*animation));
 }
 
+Animation &Skeleton::animation()
+{
+    auto animation = std::find_if(
+        std::begin(animations_),
+        std::end(animations_),
+        [this](const Animation &element) {
+            return element.name() == current_animation_;
+        });
+
+    return *animation;
+}
+
 void Skeleton::advance()
 {
     auto animation = std::find_if(
