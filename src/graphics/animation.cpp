@@ -90,4 +90,14 @@ void Animation::reset()
     last_advance_ = std::chrono::steady_clock::now();
 }
 
+std::chrono::milliseconds Animation::duration() const
+{
+    return duration_;
+}
+
+void Animation::set_time(std::chrono::milliseconds time)
+{
+    time_ = time;
+}
+
 }

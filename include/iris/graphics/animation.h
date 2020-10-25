@@ -81,6 +81,22 @@ class Animation
      */
     void reset();
 
+    /**
+     * Get animation duration.
+     *
+     * @returns
+     *   Duration of animation.
+     */
+    std::chrono::milliseconds duration() const;
+
+    /**
+     * Set the current time of animation, must be in range [0, duration()].
+     *
+     * @param time
+     *   New time.
+     */
+    void set_time(std::chrono::milliseconds time);
+
   private:
     /** Current time of animation. */
     std::chrono::milliseconds time_;
