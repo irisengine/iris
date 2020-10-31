@@ -119,6 +119,51 @@ std::vector<Mesh> quad(
     return meshes;
 }
 
+std::vector<Mesh> lines(
+    const std::vector<Vector3> &line_data,
+    const Vector3 &colour)
+{
+    std::vector<std::tuple<Vector3, Vector3, Vector3, Vector3>> data{};
+
+    for (auto i = 0u; i < line_data.size() - 1u; ++i)
+    {
+        data.emplace_back(line_data[i], colour, line_data[i + 1u], colour);
+    }
+
+    return lines(data);
+}
+
+std::vector<Mesh> lines(
+    const std::vector<std::tuple<Vector3, Vector3, Vector3, Vector3>>
+        &line_data)
+{
+    std::vector<vertex_data> verticies{};
+    std::vector<std::uint32_t> indicies;
+
+    for (const auto &[from_position, from_colour, to_position, to_colour] :
+         line_data)
+    {
+        verticies.emplace_back(
+            from_position, Vector3{1.0f}, from_colour, Vector3{});
+        indicies.emplace_back(verticies.size() - 1u);
+
+        verticies.emplace_back(
+            to_position, Vector3{1.0f}, to_colour, Vector3{});
+        indicies.emplace_back(verticies.size() - 1u);
+    }
+
+    std::vector<Mesh> meshes{};
+
+    BufferDescriptor descriptor(
+        Buffer(verticies, BufferType::VERTEX_ATTRIBUTES),
+        Buffer(indicies, BufferType::VERTEX_INDICES),
+        vertex_attributes);
+
+    meshes.emplace_back(std::move(descriptor));
+
+    return meshes;
+}
+
 std::tuple<std::vector<Mesh>, Skeleton> load(const std::string &mesh_file)
 {
     struct Cache

@@ -64,6 +64,37 @@ std::vector<Mesh> quad(
     const Vector3 &upper_right);
 
 /**
+ * Create a mesh for a collection of lines.
+ *
+ * @param line_data
+ *   Collection of points to draw lines between.
+ *
+ * @param colour
+ *   Colour of lines.
+ *
+ * @returns
+ *   Mesh for lines.
+ */
+std::vector<Mesh> lines(
+    const std::vector<Vector3> &line_data,
+    const Vector3 &colour);
+
+/**
+ * Create a mesh for a collection of lines.
+ *
+ * @param line_data
+ *   Collection of data points representing (potentially disjoint) lines to
+ * . render, the tuple contains:
+ *   [start_position, start_colour, end_position, end_colour]
+ *
+ * @returns
+ *   Mesh for lines.
+ */
+std::vector<Mesh> lines(
+    const std::vector<std::tuple<Vector3, Vector3, Vector3, Vector3>>
+        &line_data);
+
+/**
  * Load a mesh from file.
  *
  * @param mesh_file
