@@ -10,14 +10,14 @@
 
 #include "core/exception.h"
 #include "graphics/material.h"
-#include "graphics/shape_factory.h"
+#include "graphics/mesh_factory.h"
 #include "graphics/sprite.h"
 #include "graphics/texture.h"
 #include "log/log.h"
 #include "platform/macos/cf_ptr.h"
 #include "platform/macos/macos_ios_utility.h"
 
-namespace eng
+namespace iris
 {
 
 /**
@@ -51,6 +51,8 @@ struct Font::implementation
 
     /** String attribute dictionary. */
     CfPtr<CFDictionaryRef> attributes;
+
+    std::unique_ptr<Texture> texture;
 };
 
 Font::Font(
@@ -209,10 +211,10 @@ Font::Font(
     ::CGContextFlush(context.get());
 
     // create a Texture from the rendered pixel data
-    Texture tex{ pixel_data, width, height, 4u };
+    impl_->texture = std::make_unique<Texture>(pixel_data, width, height, 4u);
 
     set_scale({ width, height, 1.0f });
-    set_texture(std::move(tex));
+    set_texture(impl_->texture.get());
 }
 
 Font::~Font() = default;

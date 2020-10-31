@@ -5,14 +5,14 @@
 
 TEST(fiber_pool, constructor)
 {
-    eng::FiberPool<4u> pool;
+    iris::FiberPool<4u> pool;
     ASSERT_EQ(pool.capacity(), 4u);
 }
 
 TEST(fiber_pool, capacity_grows)
 {
-    eng::FiberPool<4u> pool;
-    
+    iris::FiberPool<4u> pool;
+
     pool.next();
     pool.next();
     pool.next();
@@ -23,7 +23,7 @@ TEST(fiber_pool, capacity_grows)
 
 TEST(fiber_pool, next_release)
 {
-    eng::FiberPool<4u> pool;
+    iris::FiberPool<4u> pool;
 
     auto fib1 = pool.next();
     auto fib2 = pool.next();
@@ -43,8 +43,7 @@ TEST(fiber_pool, next_release)
 
 TEST(fiber_pool, throw_on_extra_release)
 {
-    eng::Fiber fiber;
-    eng::FiberPool<4u> pool;
-    ASSERT_THROW(pool.release(&fiber), eng::Exception);
+    iris::Fiber fiber;
+    iris::FiberPool<4u> pool;
+    ASSERT_THROW(pool.release(&fiber), iris::Exception);
 }
-

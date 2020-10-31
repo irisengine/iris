@@ -24,10 +24,10 @@ namespace
 std::string format_filename(const std::string &filename)
 {
     // find last occurrence of file separator
-    const auto index = filename.rfind(
-        std::filesystem::path::preferred_separator);
+    const auto index =
+        filename.rfind(std::filesystem::path::preferred_separator);
 
-    return std::string{ filename.substr(index + 1) };
+    return std::string{filename.substr(index + 1)};
 }
 
 /**
@@ -39,21 +39,19 @@ std::string format_filename(const std::string &filename)
  * @returns
  *   First character of log level.
  */
-char first_char_of_level(const eng::LogLevel level)
+char first_char_of_level(const iris::LogLevel level)
 {
-    std::stringstream strm{ };
+    std::stringstream strm{};
     strm << level;
 
     const auto str = strm.str();
 
-    return !str.empty()
-        ? str.front()
-        : 'U';
+    return !str.empty() ? str.front() : 'U';
 }
 
 }
 
-namespace eng
+namespace iris
 {
 
 std::string BasicFormatter::format(
@@ -66,18 +64,14 @@ std::string BasicFormatter::format(
     const auto now = std::chrono::system_clock::now();
     const auto in_time_t = std::chrono::system_clock::to_time_t(now);
 
-    std::stringstream strm{ };
+    std::stringstream strm{};
 
-    strm <<
-        first_char_of_level(level) << " " <<
-        std::put_time(std::localtime(&in_time_t), "%X") <<
-        " [" << tag << "] " <<
-        format_filename(filename) << ":" <<
-        line <<
-        " | " << message;
+    strm << first_char_of_level(level) << " "
+         << std::put_time(std::localtime(&in_time_t), "%X") << " [" << tag
+         << "] " << format_filename(filename) << ":" << line << " | "
+         << message;
 
     return strm.str();
 }
 
 }
-

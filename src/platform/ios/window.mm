@@ -9,7 +9,7 @@
 #include "graphics/font.h"
 #include "log/log.h"
 
-namespace eng
+namespace iris
 {
 
 Window::Window(real width, real height)

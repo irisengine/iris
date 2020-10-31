@@ -8,7 +8,6 @@
 
 #include "core/exception.h"
 #include "graphics/gl/opengl.h"
-#include "graphics/utility.h"
 #include "log/log.h"
 #include "platform/resource_loader.h"
 
@@ -28,7 +27,7 @@ std::uint32_t channels_to_format(const std::uint32_t num_channels)
 {
     auto format = 0u;
 
-    switch(num_channels)
+    switch (num_channels)
     {
         case 1:
             format = GL_RED;
@@ -45,7 +44,6 @@ std::uint32_t channels_to_format(const std::uint32_t num_channels)
 
     return format;
 }
-
 
 /**
  * Helper function to create an opengl Texture from data.
@@ -73,34 +71,34 @@ std::uint32_t create_texture(
 {
     // sanity check we have enough data
     const auto expected_size = width * height * num_channels;
-    if(data.size() != expected_size)
+    if (data.size() != expected_size)
     {
-        throw eng::Exception("incorrect data size");
+        throw iris::Exception("incorrect data size");
     }
 
     auto texture = 0u;
 
     ::glGenTextures(1, &texture);
-    eng::check_opengl_error("could not generate texture");
+    iris::check_opengl_error("could not generate texture");
 
     // use default Texture unit
     ::glActiveTexture(GL_TEXTURE0);
-    eng::check_opengl_error("could not activiate texture");
+    iris::check_opengl_error("could not activiate texture");
 
     ::glBindTexture(GL_TEXTURE_2D, texture);
-    eng::check_opengl_error("could not bind texture");
+    iris::check_opengl_error("could not bind texture");
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    eng::check_opengl_error("could not set wrap s parameter");
+    iris::check_opengl_error("could not set wrap s parameter");
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    eng::check_opengl_error("could not set wrap t parameter");
+    iris::check_opengl_error("could not set wrap t parameter");
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    eng::check_opengl_error("could not set min filter parameter");
+    iris::check_opengl_error("could not set min filter parameter");
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    eng::check_opengl_error("could not set max filter parameter");
+    iris::check_opengl_error("could not set max filter parameter");
 
     const auto format = channels_to_format(num_channels);
 
@@ -115,17 +113,17 @@ std::uint32_t create_texture(
         format,
         GL_UNSIGNED_BYTE,
         data.data());
-    eng::check_opengl_error("could not set Texture data");
+    iris::check_opengl_error("could not set Texture data");
 
     ::glGenerateMipmap(GL_TEXTURE_2D);
-    eng::check_opengl_error("could not generate mipmaps");
+    iris::check_opengl_error("could not generate mipmaps");
 
     return texture;
 }
 
 }
 
-namespace eng
+namespace iris
 {
 
 /**
@@ -136,39 +134,23 @@ struct Texture::implementation
     /** Simple constructor which takes a value for each member. */
     implementation(std::uint32_t texture)
         : texture(texture)
-    { }
+    {
+    }
 
     /** Opengl handle for texture. */
     std::uint32_t texture;
 };
-
-Texture::Texture(const std::string &resource)
-    : data_(),
-      width_(0u),
-      height_(0u),
-      num_channels_(0u),
-      impl_(nullptr)
-{
-    const auto file_data = ResourceLoader::instance().load(resource);
-    const auto [data, width, height, num_channels] =
-        graphics::utility::parse_image(file_data);
-
-    const auto texture = create_texture(data, width, height, num_channels);
-    impl_ = std::make_unique<implementation>(texture);
-
-    LOG_ENGINE_INFO("texture", "loaded from file");
-}
 
 Texture::Texture(
     const std::vector<std::uint8_t> &data,
     const std::uint32_t width,
     const std::uint32_t height,
     const std::uint32_t num_channels)
-    : data_(data),
-      width_(width),
-      height_(height),
-      num_channels_(num_channels),
-      impl_(nullptr)
+    : data_(data)
+    , width_(width)
+    , height_(height)
+    , num_channels_(num_channels)
+    , impl_(nullptr)
 {
     const auto texture = create_texture(data, width, height, num_channels);
     impl_ = std::make_unique<implementation>(texture);
@@ -178,7 +160,7 @@ Texture::Texture(
 
 Texture::~Texture()
 {
-    if(impl_)
+    if (impl_)
     {
         // cleanup opengl resources
         ::glDeleteTextures(1, std::addressof(impl_->texture));
@@ -186,8 +168,8 @@ Texture::~Texture()
 }
 
 /** Default. */
-Texture::Texture(Texture&&) = default;
-Texture& Texture::operator=(Texture&&) = default;
+Texture::Texture(Texture &&) = default;
+Texture &Texture::operator=(Texture &&) = default;
 
 std::vector<std::uint8_t> Texture::data() const
 {
@@ -216,8 +198,7 @@ std::any Texture::native_handle() const
 
 Texture Texture::blank()
 {
-    return{ { 0xFF, 0xFF, 0xFF, 0xFF }, 1u, 1u, 4u };
+    return {{0xFF, 0xFF, 0xFF, 0xFF}, 1u, 1u, 4u};
 }
 
 }
-

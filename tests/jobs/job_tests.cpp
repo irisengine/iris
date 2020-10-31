@@ -7,92 +7,81 @@
 
 TEST(jobs, add_jobs_single)
 {
-    eng::JobSystem js;
+    iris::JobSystem js;
     std::atomic<bool> done = false;
 
-    js.add_jobs({
-        [&done](){ done = true; }
-    });
+    js.add_jobs({[&done]() { done = true; }});
 
-    while(!done){}
+    while (!done)
+    {
+    }
 
     ASSERT_TRUE(done);
 }
 
 TEST(jobs, add_jobs_multiple)
 {
-    eng::JobSystem js;
+    iris::JobSystem js;
     std::atomic<int> counter = 0;
 
-    js.add_jobs({
-        [&counter](){ ++counter; },
-        [&counter](){ ++counter; },
-        [&counter](){ ++counter; },
-        [&counter](){ ++counter; }
-    });
+    js.add_jobs(
+        {[&counter]() { ++counter; },
+         [&counter]() { ++counter; },
+         [&counter]() { ++counter; },
+         [&counter]() { ++counter; }});
 
-    while(counter != 4){}
+    while (counter != 4)
+    {
+    }
 
     ASSERT_EQ(counter, 4);
 }
 
 TEST(jobs, wait_for_jobs_single)
 {
-    eng::JobSystem js;
+    iris::JobSystem js;
     std::atomic<bool> done = false;
 
-    js.wait_for_jobs({
-        [&done](){ done = true; }
-    });
+    js.wait_for_jobs({[&done]() { done = true; }});
 
     ASSERT_TRUE(done);
 }
 
 TEST(jobs, wait_for_jobs_multiple)
 {
-    eng::JobSystem js;
+    iris::JobSystem js;
     std::atomic<int> counter = 0;
 
-    js.wait_for_jobs({
-        [&counter](){ ++counter; },
-        [&counter](){ ++counter; },
-        [&counter](){ ++counter; },
-        [&counter](){ ++counter; }
-    });
+    js.wait_for_jobs(
+        {[&counter]() { ++counter; },
+         [&counter]() { ++counter; },
+         [&counter]() { ++counter; },
+         [&counter]() { ++counter; }});
 
     ASSERT_EQ(counter, 4);
 }
 
 TEST(jobs, wait_for_jobs_nested)
 {
-    eng::JobSystem js;
+    iris::JobSystem js;
     std::atomic<int> counter = 0;
 
-    js.wait_for_jobs({
-        [&js, &counter]() {
-            js.wait_for_jobs({
-                [&js, &counter]() {
-                    js.wait_for_jobs({
-                        [&counter]() { ++counter; }
-                    });
-                    ++counter;
-                }
-            });
+    js.wait_for_jobs({[&js, &counter]() {
+        js.wait_for_jobs({[&js, &counter]() {
+            js.wait_for_jobs({[&counter]() { ++counter; }});
             ++counter;
-        }
-    });
+        }});
+        ++counter;
+    }});
 
     ASSERT_EQ(counter, 3);
 }
 
 TEST(jobs, exceptions_propogate)
 {
-    eng::JobSystem js;
+    iris::JobSystem js;
 
-    const auto throws = [](){ throw std::runtime_error(""); };
+    const auto throws = []() { throw std::runtime_error(""); };
 
-    ASSERT_THROW(
-        js.wait_for_jobs({ throws }),
-        std::runtime_error);
-        
+    ASSERT_THROW(js.wait_for_jobs({throws}), std::runtime_error);
 }

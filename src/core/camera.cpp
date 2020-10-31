@@ -4,6 +4,7 @@
 
 #include "core/camera_type.h"
 #include "core/matrix4.h"
+#include "core/quaternion.h"
 #include "core/real.h"
 #include "core/vector3.h"
 #include "log/log.h"
@@ -23,9 +24,9 @@ namespace
  * @returns
  *   A new direction vector for the camera
  */
-eng::Vector3 create_direction(eng::real pitch, eng::real yaw)
+iris::Vector3 create_direction(iris::real pitch, iris::real yaw)
 {
-    eng::Vector3 direction;
+    iris::Vector3 direction;
 
     direction.x = std::cos(yaw) * std::cos(pitch);
     direction.y = std::sin(pitch);
@@ -38,26 +39,28 @@ eng::Vector3 create_direction(eng::real pitch, eng::real yaw)
 
 }
 
-namespace eng
+namespace iris
 {
 
 Camera::Camera(CameraType type, real width, real height)
-    : position_(0.0f, 0.0f, 100.0f),
-      direction_(0.0f, 0.0f, -1.0f),
-      up_(0.0f, 1.0f, 0.0f),
-      view_(),
-      projection_(),
-      pitch_(0.0f),
-      yaw_(-3.141592654f / 2.0f),
-      type_(type)
+    : position_(0.0f, 0.0f, 100.0f)
+    , direction_(0.0f, 0.0f, -1.0f)
+    , up_(0.0f, 1.0f, 0.0f)
+    , view_()
+    , projection_()
+    , pitch_(0.0f)
+    , yaw_(-3.141592654f / 2.0f)
+    , type_(type)
 {
-    switch(type_)
+    switch (type_)
     {
         case CameraType::PERSPECTIVE:
-            projection_ = Matrix4::make_perspective_projection(0.785398f, width, height, 0.1f, 1000.0f);
+            projection_ = Matrix4::make_perspective_projection(
+                0.785398f, width, height, 0.1f, 1000.0f);
             break;
         case CameraType::ORTHOGRAPHIC:
-            projection_ = Matrix4::make_orthographic_projection(width, height, 1000.0f);
+            projection_ =
+                Matrix4::make_orthographic_projection(width, height, 1000.0f);
             break;
     }
 
@@ -83,6 +86,11 @@ Vector3 Camera::position() const
     return position_;
 }
 
+Quaternion Camera::orientation() const
+{
+    return {yaw_, pitch_, 0.0f};
+}
+
 Vector3 Camera::direction() const
 {
     return direction_;
@@ -103,6 +111,11 @@ Matrix4 Camera::projection() const
     return projection_;
 }
 
+real Camera::yaw() const
+{
+    return yaw_;
+}
+
 void Camera::set_yaw(real yaw)
 {
     yaw_ = yaw;
@@ -114,6 +127,11 @@ void Camera::set_yaw(real yaw)
 void Camera::adjust_yaw(real adjust)
 {
     set_yaw(yaw_ + adjust);
+}
+
+real Camera::pitch() const
+{
+    return pitch_;
 }
 
 void Camera::set_pitch(real pitch)
@@ -141,4 +159,3 @@ CameraType Camera::type() const
 }
 
 }
-

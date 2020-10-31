@@ -9,7 +9,6 @@
 #import <Metal/Metal.h>
 
 #include "core/exception.h"
-#include "graphics/utility.h"
 #include "log/log.h"
 #include "platform/macos/macos_ios_utility.h"
 #include "platform/resource_loader.h"
@@ -39,7 +38,7 @@ MTLPixelFormat channels_to_format(const std::uint32_t num_channels)
             format = MTLPixelFormatRGBA8Unorm;
             break;
         default:
-            throw eng::Exception("incorrect number of channels");
+            throw iris::Exception("incorrect number of channels");
     }
 
     return format;
@@ -73,7 +72,7 @@ id<MTLTexture> create_texture(
     const auto expected_size = width * height * num_channels;
     if(data.size() != expected_size)
     {
-        throw eng::Exception("incorrect data size");
+        throw iris::Exception("incorrect data size");
     }
 
     const auto format = channels_to_format(num_channels);
@@ -86,7 +85,7 @@ id<MTLTexture> create_texture(
                                                        mipmapped:NO];
     
     // get metal device handle
-    auto *device = eng::platform::utility::metal_device();
+    auto *device = iris::platform::utility::metal_device();
 
     // create new texture
     auto texture = [device newTextureWithDescriptor:texture_descriptor];
@@ -105,7 +104,7 @@ id<MTLTexture> create_texture(
 
 }
 
-namespace eng
+namespace iris
 {
 
 /**
@@ -121,23 +120,6 @@ struct Texture::implementation
     /** Metal handle for texture. */
     id<MTLTexture> texture;
 };
-
-Texture::Texture(const std::string &resource)
-    : data_(),
-      width_(0u),
-      height_(0u),
-      num_channels_(0u),
-      impl_(nullptr)
-{
-    const auto file_data = ResourceLoader::instance().load(resource);
-    const auto [data, width, height, num_channels] =
-        graphics::utility::parse_image(file_data);
-
-    const auto texture = create_texture(data, width, height, num_channels);
-    impl_ = std::make_unique<implementation>(texture);
-
-    LOG_ENGINE_INFO("texture", "loaded from file");
-}
 
 
 Texture::Texture(

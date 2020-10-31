@@ -1,5 +1,5 @@
 set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
-set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/platform/ios")
+set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/platform/ios")
 
 set(PLATFORM_SRCS
     ${PLATFORM_SRCS}

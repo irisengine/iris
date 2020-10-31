@@ -10,7 +10,7 @@
 
 #include "core/exception.h"
 
-namespace eng
+namespace iris
 {
 
 struct StaticBuffer::implementation
@@ -27,7 +27,7 @@ StaticBuffer::StaticBuffer(std::size_t pages)
     // calculate amount of bytes to allocate, including guard pages
     impl_->allocated_size = (pages + 2u) * page_size();
 
-    impl_->allocated_region = static_cast<std::byte*>(::mmap(
+    impl_->allocated_region = static_cast<std::byte *>(::mmap(
         0,
         impl_->allocated_size,
         PROT_READ | PROT_WRITE,
@@ -35,25 +35,22 @@ StaticBuffer::StaticBuffer(std::size_t pages)
         -1,
         0));
 
-    if(impl_->allocated_region == MAP_FAILED)
+    if (impl_->allocated_region == MAP_FAILED)
     {
         throw Exception("failed to mmap memory");
     }
 
     // set head guard page
-    if(::mprotect(
-        impl_->allocated_region,
-        page_size(),
-        PROT_NONE) == -1)
+    if (::mprotect(impl_->allocated_region, page_size(), PROT_NONE) == -1)
     {
         throw Exception("failed to set head guard page");
     }
 
     // set tail guard page
-    if(::mprotect(
-        impl_->allocated_region + ((pages + 1u) * page_size()),
-        page_size(),
-        PROT_NONE) == -1)
+    if (::mprotect(
+            impl_->allocated_region + ((pages + 1u) * page_size()),
+            page_size(),
+            PROT_NONE) == -1)
     {
         throw Exception("failed to set tail guard page");
     }
@@ -73,7 +70,7 @@ std::size_t StaticBuffer::page_size()
     return static_cast<std::size_t>(::getpagesize());
 }
 
-StaticBuffer::operator std::byte*() const
+StaticBuffer::operator std::byte *() const
 {
     return impl_->usable_region;
 }
@@ -84,4 +81,3 @@ std::size_t StaticBuffer::size() const
 }
 
 }
-

@@ -16,10 +16,12 @@ add_library(iris STATIC
     ${PLATFORM_SRCS}
 )
 
-target_include_directories(iris PUBLIC "${CMAKE_SOURCE_DIR}/include")
+target_include_directories(iris PUBLIC "${CMAKE_SOURCE_DIR}/include/iris")
 
 target_include_directories(iris SYSTEM PRIVATE "${CMAKE_SOURCE_DIR}/third_party")
 target_include_directories(iris SYSTEM PRIVATE "${CMAKE_SOURCE_DIR}/third_party/bullet/src")
+target_include_directories(iris SYSTEM PRIVATE "${CMAKE_SOURCE_DIR}/third_party/assimp/include")
+target_include_directories(iris SYSTEM PRIVATE "${CMAKE_BINARY_DIR}/third_party/assimp/include")
 
-target_link_libraries(iris LinearMath BulletDynamics BulletCollision)
+target_link_libraries(iris LinearMath BulletDynamics BulletCollision assimp)
 target_compile_options(iris PRIVATE -Wall -Werror -pedantic -glldb -fno-rtti -fobjc-arc)

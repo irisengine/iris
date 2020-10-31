@@ -9,7 +9,7 @@
 
 TEST(thread, default_constructor)
 {
-    eng::Thread thrd{ };
+    iris::Thread thrd{};
     ASSERT_FALSE(thrd.joinable());
 }
 
@@ -17,7 +17,7 @@ TEST(thread, function_constructor)
 {
     std::atomic<bool> done = false;
 
-    eng::Thread thrd{ [](std::atomic<bool> *done) { *done = true; }, &done };
+    iris::Thread thrd{[](std::atomic<bool> *done) { *done = true; }, &done};
 
     ASSERT_TRUE(thrd.joinable());
 
@@ -29,9 +29,8 @@ TEST(thread, function_constructor)
 
 TEST(thread, invalid_bind)
 {
-    eng::Thread thrd{ };
+    iris::Thread thrd{};
     ASSERT_THROW(
         thrd.bind_to_core(std::thread::hardware_concurrency()),
-        eng::Exception);
+        iris::Exception);
 }
-

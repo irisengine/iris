@@ -18,7 +18,7 @@
 #include "networking/posix/client_connection.h"
 #include "networking/socket.h"
 
-namespace eng
+namespace iris
 {
 
 struct UdpAcceptingSocket::implementation
@@ -27,14 +27,20 @@ struct UdpAcceptingSocket::implementation
     AutoSocket socket = -1;
 };
 
-UdpAcceptingSocket::UdpAcceptingSocket(const std::string &address, std::uint32_t port)
+UdpAcceptingSocket::UdpAcceptingSocket(
+    const std::string &address,
+    std::uint32_t port)
     : impl_(std::make_unique<implementation>())
 {
-    LOG_ENGINE_INFO("udp_accepting_socket", "creating server socket ({}:{})", address, port);
+    LOG_ENGINE_INFO(
+        "udp_accepting_socket",
+        "creating server socket ({}:{})",
+        address,
+        port);
 
     // create socket
     impl_->socket = ::socket(AF_INET, SOCK_DGRAM, 0);
-    if(impl_->socket < 0)
+    if (impl_->socket < 0)
     {
         throw Exception("socket failed");
     }
@@ -44,30 +50,30 @@ UdpAcceptingSocket::UdpAcceptingSocket(const std::string &address, std::uint32_t
     socklen_t address_length = sizeof(address_storage);
     std::memset(&address_storage, 0x0, address_length);
 
-    auto *addr = reinterpret_cast<struct sockaddr_in*>(&address_storage);
+    auto *addr = reinterpret_cast<struct sockaddr_in *>(&address_storage);
     addr->sin_family = AF_INET;
     addr->sin_port = htons(port);
 
     // convert address from text to binary
-    if(::inet_pton(AF_INET, address.c_str(), &addr->sin_addr) != 1)
+    if (::inet_pton(AF_INET, address.c_str(), &addr->sin_addr) != 1)
     {
         throw Exception("failed to convert ip address");
     }
 
     // enable multicast
     int reuse = 1;
-    if(::setsockopt(
-        impl_->socket,
-        SOL_SOCKET,
-        SO_REUSEADDR,
-        reinterpret_cast<const char*>(&reuse),
-        sizeof(reuse)) < 0)
+    if (::setsockopt(
+            impl_->socket,
+            SOL_SOCKET,
+            SO_REUSEADDR,
+            reinterpret_cast<const char *>(&reuse),
+            sizeof(reuse)) < 0)
     {
-        throw eng::Exception("setsockopt failed");
+        throw iris::Exception("setsockopt failed");
     }
 
     // bind socket so we can accept connections
-    if(::bind(impl_->socket, (struct sockaddr*)&addr, address_length) == -1)
+    if (::bind(impl_->socket, (struct sockaddr *)&addr, address_length) == -1)
     {
         throw Exception("bind failed");
     }
@@ -77,7 +83,7 @@ UdpAcceptingSocket::UdpAcceptingSocket(const std::string &address, std::uint32_t
 
 UdpAcceptingSocket::~UdpAcceptingSocket() = default;
 
-Socket* UdpAcceptingSocket::accept()
+Socket *UdpAcceptingSocket::accept()
 {
     struct sockaddr_storage address;
     socklen_t length = sizeof(address);
@@ -91,10 +97,10 @@ Socket* UdpAcceptingSocket::accept()
         buffer.data(),
         buffer.size(),
         0,
-        reinterpret_cast<struct sockaddr*>(&address),
+        reinterpret_cast<struct sockaddr *>(&address),
         &length);
-    
-    if(read == -1)
+
+    if (read == -1)
     {
         throw Exception("recvfrom failed");
     }
@@ -103,13 +109,10 @@ Socket* UdpAcceptingSocket::accept()
     buffer.resize(read);
 
     // create new connection object, with the data we have already read
-    // this is necessary as it is not possible to accept a udp connection without
-    // also reading data
+    // this is necessary as it is not possible to accept a udp connection
+    // without also reading data
     impl_->connections.emplace_back(std::make_unique<ClientConnection>(
-        address,
-        length,
-        buffer,
-        static_cast<int>(impl_->socket)));
+        address, length, buffer, static_cast<int>(impl_->socket)));
 
     LOG_ENGINE_INFO("udp_accepting_socket", "new connection");
 

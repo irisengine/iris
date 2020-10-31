@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 
-namespace eng
+namespace iris
 {
 
 void StdoutFormatter::output(const std::string &log)
@@ -12,4 +12,3 @@ void StdoutFormatter::output(const std::string &log)
 }
 
 }
-

@@ -2,14 +2,15 @@
 #include <algorithm>
 #include <vector>
 
-namespace eng
+namespace iris
 {
 
 ReliableOrderedChannel::ReliableOrderedChannel()
-    : Channel(),
-      next_receive_seq_(0u),
-      out_sequence_(0u)
-{ }
+    : Channel()
+    , next_receive_seq_(0u)
+    , out_sequence_(0u)
+{
+}
 
 void ReliableOrderedChannel::enqueue_send(Packet packet)
 {
@@ -22,7 +23,7 @@ void ReliableOrderedChannel::enqueue_send(Packet packet)
 
 void ReliableOrderedChannel::enqueue_receive(Packet packet)
 {
-    if(packet.type() == PacketType::ACK)
+    if (packet.type() == PacketType::ACK)
     {
         // we got an ack so remove the corresponding packet from the send queue
         // also use the opportunity to purge acks we've sent from the send queue
@@ -30,8 +31,7 @@ void ReliableOrderedChannel::enqueue_receive(Packet packet)
             std::remove_if(
                 std::begin(send_queue_),
                 std::end(send_queue_),
-                [&packet](const Packet &p)
-                {
+                [&packet](const Packet &p) {
                     return (p.type() == PacketType::ACK) ||
                            (p.sequence() == packet.sequence());
                 }),
@@ -43,20 +43,20 @@ void ReliableOrderedChannel::enqueue_receive(Packet packet)
 
         // we only care about packets which are the one we are expecting or
         // after, anything before will have been yielded
-        if(packet.sequence() >= next_receive_seq_)
+        if (packet.sequence() >= next_receive_seq_)
         {
             // calculate index of packet into our receive queue
             const auto index = packet.sequence() - next_receive_seq_;
 
             // if index is larger than queue then grow the queue
-            if(index >= receive_queue_.size())
+            if (index >= receive_queue_.size())
             {
                 receive_queue_.resize(receive_queue_.size() + index + 1u);
             }
 
             // if this is a new packet i.e. not a duplicate then put it in the
             // queue
-            if(!receive_queue_[index].is_valid())
+            if (!receive_queue_[index].is_valid())
             {
                 receive_queue_[index] = packet;
             }
@@ -65,7 +65,7 @@ void ReliableOrderedChannel::enqueue_receive(Packet packet)
         // always send an ack, this is because acks aren't reliable so we may
         // keep receiving the same packet until an ack finally makes it
         // this is why we discard duplicates but still ack
-        Packet ack{ PacketType::ACK, ChannelType::RELIABLE_ORDERED, { } };
+        Packet ack{PacketType::ACK, ChannelType::RELIABLE_ORDERED, {}};
         ack.set_sequence(packet.sequence());
         send_queue_.emplace_back(std::move(ack));
     }
@@ -88,12 +88,13 @@ std::vector<Packet> ReliableOrderedChannel::yield_receive_queue()
         std::cend(receive_queue_),
         [](const Packet &element) { return !element.is_valid(); });
 
-    std::vector<Packet> packets{ };
+    std::vector<Packet> packets{};
 
-    if(end_of_valid != std::cbegin(receive_queue_))
+    if (end_of_valid != std::cbegin(receive_queue_))
     {
         // move packets from queue to output collection
-        packets = std::vector<Packet>(std::cbegin(receive_queue_), end_of_valid);
+        packets =
+            std::vector<Packet>(std::cbegin(receive_queue_), end_of_valid);
         receive_queue_.erase(std::begin(receive_queue_), end_of_valid);
 
         // our next expected sequence number will be one greater than the last

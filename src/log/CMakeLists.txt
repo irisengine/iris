@@ -1,5 +1,5 @@
 set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
-set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/log")
+set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/log")
 
 set(LOG_SRCS
     "${INCLUDE_ROOT}/log_level.h"

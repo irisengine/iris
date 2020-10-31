@@ -30,9 +30,9 @@
     for(UITouch *touch in touches)
     {
         CGPoint touchPosition = [touch locationInView:[touch window]];
-        events_.emplace(eng::TouchEvent(
+        events_.emplace(iris::TouchEvent(
             reinterpret_cast<std::uintptr_t>(touch),
-            eng::TouchType::BEGIN,
+            iris::TouchType::BEGIN,
             touchPosition.x,
             touchPosition.y));
     }
@@ -42,9 +42,9 @@
    for(UITouch *touch in touches)
    {
         CGPoint touchPosition = [touch locationInView:[touch window]];
-        events_.emplace(eng::TouchEvent(
+        events_.emplace(iris::TouchEvent(
             reinterpret_cast<std::uintptr_t>(touch),
-            eng::TouchType::MOVE,
+            iris::TouchType::MOVE,
             touchPosition.x,
             touchPosition.y));
     }
@@ -54,9 +54,9 @@
    for(UITouch *touch in touches)
    {
         CGPoint touchPosition = [touch locationInView:[touch window]];
-        events_.emplace(eng::TouchEvent(
+        events_.emplace(iris::TouchEvent(
             reinterpret_cast<std::uintptr_t>(touch),
-            eng::TouchType::END,
+            iris::TouchType::END,
             touchPosition.x,
             touchPosition.y));
     }

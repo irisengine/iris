@@ -5,13 +5,14 @@
 
 #include "core/exception.h"
 
-namespace eng
+namespace iris
 {
 
 Counter::Counter(int value)
-    : value_(value),
-      mutex_()
-{ }
+    : value_(value)
+    , mutex_()
+{
+}
 
 Counter::operator int()
 {
@@ -35,4 +36,3 @@ void Counter::operator--(int)
 }
 
 }
-

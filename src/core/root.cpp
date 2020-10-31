@@ -10,54 +10,55 @@
 #include "physics/physics_system.h"
 #include "platform/window.h"
 
-namespace eng
+namespace iris
 {
 
 Root Root::instance_;
 
 Root::Root()
-    : logger_(std::make_unique<Logger>()),
-      job_system_(std::make_unique<JobSystem>()),
-      physics_system_(std::make_unique<PhysicsSystem>()),
-      window_(),
-      render_system_()
-{ }
+    : logger_(std::make_unique<Logger>())
+    , job_system_(std::make_unique<JobSystem>())
+    , physics_system_(std::make_unique<PhysicsSystem>())
+    , window_()
+    , render_system_()
+{
+}
 
 void Root::init()
 {
     window_ = std::make_unique<Window>(800.0f, 800.0f);
-    render_system_ = std::make_unique<RenderSystem>(window_->width(), window_->height());
+    render_system_ =
+        std::make_unique<RenderSystem>(window_->width(), window_->height());
 }
 
-Root& Root::instance()
+Root &Root::instance()
 {
     return instance_;
 }
 
-JobSystem& Root::job_system()
+JobSystem &Root::job_system()
 {
     return *instance_.job_system_;
 }
 
-Logger& Root::logger()
+Logger &Root::logger()
 {
     return *instance_.logger_;
 }
 
-PhysicsSystem& Root::physics_system()
+PhysicsSystem &Root::physics_system()
 {
     return *instance_.physics_system_;
 }
 
-RenderSystem& Root::render_system()
+RenderSystem &Root::render_system()
 {
     return *instance_.render_system_;
 }
 
-Window& Root::window()
+Window &Root::window()
 {
     return *instance_.window_;
 }
 
 }
-

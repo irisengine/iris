@@ -25,7 +25,7 @@ CADisplayLink *_displayLink;
         _metalLayer.device = _device;
         _metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
         _metalLayer.frame = self.layer.frame;
-        self.contentScaleFactor = eng::platform::utility::screen_scale();
+        self.contentScaleFactor = iris::platform::utility::screen_scale();
         [self setUserInteractionEnabled:YES];
         [super setUserInteractionEnabled:YES];
         [self setBackgroundColor:[UIColor redColor]];

@@ -1,5 +1,5 @@
 set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
-set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/platform")
+set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/platform")
 
 if(IRIS_PLATFORM MATCHES "MACOS")
     add_subdirectory("macos")

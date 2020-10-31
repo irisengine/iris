@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-namespace eng
+namespace iris
 {
 
 Looper::Looper(
@@ -10,10 +10,10 @@ Looper::Looper(
     std::chrono::microseconds timestep,
     LoopFunction fixed_timestep,
     LoopFunction variable_timestep)
-    : clock_(clock),
-      timestep_(timestep),
-      fixed_timestep_(fixed_timestep),
-      variable_timestep_(variable_timestep)
+    : clock_(clock)
+    , timestep_(timestep)
+    , fixed_timestep_(fixed_timestep)
+    , variable_timestep_(variable_timestep)
 {
 }
 
@@ -34,7 +34,7 @@ void Looper::run()
         accumulator += frame_time;
 
         // fixed time step function consumed time
-        while(run && (accumulator >= timestep_))
+        while (run && (accumulator >= timestep_))
         {
             run &= fixed_timestep_(clock_, timestep_);
 
@@ -45,8 +45,7 @@ void Looper::run()
         run &= variable_timestep_(
             clock_,
             std::chrono::duration_cast<std::chrono::microseconds>(frame_time));
-    } while(run);
+    } while (run);
 }
 
 }
-

@@ -6,7 +6,8 @@
 #include "core/vector3.h"
 #include "graphics/material_factory.h"
 #include "graphics/mesh.h"
-#include "graphics/shape_factory.h"
+#include "graphics/mesh_factory.h"
+#include "graphics/skeleton.h"
 
 namespace
 {
@@ -21,10 +22,10 @@ namespace
  * @returns
  *   Normal transformation matrix.
  */
-eng::Matrix4 create_normal_transform(const eng::Matrix4 &model)
+iris::Matrix4 create_normal_transform(const iris::Matrix4 &model)
 {
-    auto normal = eng::Matrix4::transpose(eng::Matrix4::invert(model));
-    
+    auto normal = iris::Matrix4::transpose(iris::Matrix4::invert(model));
+
     // remove the translation components
     normal[3] = 0.0f;
     normal[7] = 0.0f;
@@ -35,58 +36,95 @@ eng::Matrix4 create_normal_transform(const eng::Matrix4 &model)
 
 }
 
-namespace eng
+namespace iris
 {
 
 RenderEntity::RenderEntity(
-    Mesh mesh,
+    std::vector<Mesh> meshes,
     const Vector3 &position,
     const Quaternion &orientation,
     const Vector3 &scale,
     Material *material,
     bool wireframe,
     CameraType camera_type)
-    : mesh_(std::move(mesh)),
-      position_(position),
-      orientation_(orientation),
-      scale_(scale),
-      model_(),
-      normal_(),
-      material_(material),
-      wireframe_(wireframe),
-      camera_type_(camera_type)
+    : RenderEntity(
+          std::move(meshes),
+          position,
+          orientation,
+          scale,
+          material,
+          wireframe,
+          camera_type,
+          Skeleton{})
 {
-    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) * Matrix4::make_scale(scale_);
+}
+
+RenderEntity::RenderEntity(
+    std::vector<Mesh> meshes,
+    const Vector3 &position,
+    const Quaternion &orientation,
+    const Vector3 &scale,
+    Material *material,
+    bool wireframe,
+    CameraType camera_type,
+    Skeleton skeleton)
+    : meshes_(std::move(meshes))
+    , position_(position)
+    , orientation_(orientation)
+    , scale_(scale)
+    , model_()
+    , normal_()
+    , material_(material)
+    , wireframe_(wireframe)
+    , camera_type_(camera_type)
+    , primitive_type_(PrimitiveType::TRIANGLES)
+    , skeleton_(std::move(skeleton))
+{
+    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) *
+             Matrix4::make_scale(scale_);
     normal_ = create_normal_transform(model_);
 }
 
 RenderEntity::~RenderEntity() = default;
 
+Vector3 RenderEntity::position() const
+{
+    return position_;
+}
+
 void RenderEntity::set_position(const Vector3 &position)
 {
     position_ = position;
 
-    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) * Matrix4::make_scale(scale_);
+    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) *
+             Matrix4::make_scale(scale_);
     normal_ = create_normal_transform(model_);
+}
+
+Quaternion RenderEntity::orientation() const
+{
+    return orientation_;
 }
 
 void RenderEntity::set_orientation(const Quaternion &orientation)
 {
     orientation_ = orientation;
-    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) * Matrix4::make_scale(scale_);
+    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) *
+             Matrix4::make_scale(scale_);
     normal_ = create_normal_transform(model_);
 }
 
 void RenderEntity::set_scale(const Vector3 &scale)
 {
     scale_ = scale;
-    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) * Matrix4::make_scale(scale_);
+    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) *
+             Matrix4::make_scale(scale_);
     normal_ = create_normal_transform(model_);
 }
 
-void RenderEntity::set_mesh(Mesh mesh)
+void RenderEntity::set_meshes(std::vector<Mesh> meshes)
 {
-    mesh_ = std::move(mesh);
+    meshes_ = std::move(meshes);
 }
 
 Matrix4 RenderEntity::transform() const
@@ -94,17 +132,23 @@ Matrix4 RenderEntity::transform() const
     return model_;
 }
 
+void RenderEntity::set_transform(const Matrix4 &transform)
+{
+    model_ = transform;
+    normal_ = create_normal_transform(model_);
+}
+
 Matrix4 RenderEntity::normal_transform() const
 {
     return normal_;
 }
 
-const Mesh& RenderEntity::mesh() const
+const std::vector<Mesh> &RenderEntity::meshes() const
 {
-    return mesh_;
+    return meshes_;
 }
 
-const Material& RenderEntity::material() const
+const Material &RenderEntity::material() const
 {
     return *material_;
 }
@@ -124,6 +168,19 @@ CameraType RenderEntity::camera_type() const
     return camera_type_;
 }
 
+PrimitiveType RenderEntity::primitive_type() const
+{
+    return primitive_type_;
 }
 
+void RenderEntity::set_primitive_type(PrimitiveType type)
+{
+    primitive_type_ = type;
+}
 
+Skeleton &RenderEntity::skeleton()
+{
+    return skeleton_;
+}
+
+}

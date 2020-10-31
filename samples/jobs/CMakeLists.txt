@@ -41,6 +41,6 @@ else()
     target_link_libraries(jobs "-framework CoreGraphics")
 endif()
 
-target_include_directories(jobs PUBLIC "${CMAKE_SOURCE_DIR}/include")
+target_include_directories(jobs PUBLIC "${CMAKE_SOURCE_DIR}/include/iris")
 target_include_directories(jobs PUBLIC "${PROJECT_SOURCE_DIR}/third_party")
 target_link_libraries(jobs iris)

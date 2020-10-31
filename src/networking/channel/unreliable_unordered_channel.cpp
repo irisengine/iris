@@ -1,6 +1,6 @@
 #include "networking/channel/unreliable_unordered_channel.h"
 
-namespace eng
+namespace iris
 {
 
 void UnreliableUnorderedChannel::enqueue_send(Packet packet)

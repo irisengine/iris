@@ -55,10 +55,10 @@ else()
     target_link_libraries(server "-framework CoreGraphics")
 endif()
 
-target_include_directories(client PUBLIC "${CMAKE_SOURCE_DIR}/include")
+target_include_directories(client PUBLIC "${CMAKE_SOURCE_DIR}/include/iris")
 target_link_libraries(client iris)
 target_compile_options(client PRIVATE -Wall -Werror -pedantic -glldb -fno-rtti -fobjc-arc)
 
-target_include_directories(server PUBLIC "${CMAKE_SOURCE_DIR}/include")
+target_include_directories(server PUBLIC "${CMAKE_SOURCE_DIR}/include/iris")
 target_link_libraries(server iris)
 target_compile_options(server PRIVATE -Wall -Werror -pedantic -glldb -fno-rtti -fobjc-arc)

@@ -39,5 +39,5 @@ else()
     target_link_libraries(cubes "-framework CoreGraphics")
 endif()
 
-target_include_directories(cubes PUBLIC "${CMAKE_SOURCE_DIR}/include")
+target_include_directories(cubes PUBLIC "${CMAKE_SOURCE_DIR}/include/iris")
 target_link_libraries(cubes iris)

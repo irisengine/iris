@@ -42,6 +42,6 @@ else()
     target_link_libraries(font "-framework CoreGraphics")
 endif()
 
-target_include_directories(font PUBLIC "${CMAKE_SOURCE_DIR}/include")
+target_include_directories(font PUBLIC "${CMAKE_SOURCE_DIR}/include/iris")
 target_link_libraries(font iris)
 
