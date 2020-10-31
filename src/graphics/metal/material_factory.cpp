@@ -19,6 +19,8 @@ typedef struct
     float4 normal;
     float4 color;
     float4 tex;
+    int4 bone_ids;
+    float4 bone_weights;
 } VertexIn;
 typedef struct
 {
@@ -26,6 +28,7 @@ typedef struct
     float4x4 view;
     float4x4 model;
     float4x4 normal_matrix;
+    float4x4 bones[100];
 } DefaultUniform;
 typedef struct
 {
@@ -44,10 +47,15 @@ vertex VertexOut vertex_main(
     constant LightUniform *light [[buffer(2)]],
     uint vid [[vertex_id]])
 {
+    float4x4 bone_transform = uniform->bones[vertices[vid].bone_ids.x] * vertices[vid].bone_weights.x;
+    bone_transform += uniform->bones[vertices[vid].bone_ids.y] * vertices[vid].bone_weights.y;
+    bone_transform += uniform->bones[vertices[vid].bone_ids.z] * vertices[vid].bone_weights.z;
+    bone_transform += uniform->bones[vertices[vid].bone_ids.w] * vertices[vid].bone_weights.w;
+
     VertexOut out;
-    out.position = transpose(uniform->projection) * transpose(uniform->view) * transpose(uniform->model) * vertices[vid].position;
-    out.pos = transpose(uniform->model) * vertices[vid].position;
-    out.normal = transpose(uniform->normal_matrix) * vertices[vid].normal;
+    out.pos = transpose(uniform->model) * transpose(bone_transform) * vertices[vid].position;
+    out.position = transpose(uniform->projection) * transpose(uniform->view) * out.pos;
+    out.normal = transpose(uniform->normal_matrix) * transpose(bone_transform) * vertices[vid].normal;
     out.color = vertices[vid].color;
     out.tex = vertices[vid].tex;
     return out;
@@ -108,6 +116,8 @@ typedef struct
     float4 normal;
     float4 color;
     float4 tex;
+    int4 bone_ids;
+    uint4 bone_weights;
 } VertexIn;
 
 typedef struct

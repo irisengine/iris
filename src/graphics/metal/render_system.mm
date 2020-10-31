@@ -22,6 +22,7 @@ struct uniform
     iris::Matrix4 view;
     iris::Matrix4 model;
     iris::Matrix4 normal_matrix;
+    iris::Matrix4 bones[100];
 };
 
 }
@@ -186,12 +187,16 @@ void RenderSystem::render()
                 auto &cam = camera(entity->camera_type());
 
                 // copy uniform data into a struct
-                const uniform uniform_data{
+                uniform uniform_data{
                     cam.projection(),
                     cam.view(),
                     entity->transform(),
                     entity->normal_transform(),
                 };
+                std::memcpy(
+                    uniform_data.bones,
+                    entity->skeleton().transforms().data(),
+                    entity->skeleton().transforms().size() * sizeof(Matrix4));
 
                 static float light[] = { 10.0f, 10.0f, 10.0f, 0.0f };
 
@@ -202,7 +207,7 @@ void RenderSystem::render()
                 [render_encoder setFragmentBytes:static_cast<const void*>(&light) length:sizeof(light) atIndex:0];
                 [render_encoder setCullMode:MTLCullModeNone];
 
-                const auto texture = std::any_cast<id<MTLTexture>>(mesh.texture().native_handle());
+                const auto texture = std::any_cast<id<MTLTexture>>(mesh.texture()->native_handle());
                 [render_encoder setFragmentTexture:texture atIndex:0];
 
                 const auto type = entity->primitive_type() == PrimitiveType::TRIANGLES

@@ -31,6 +31,9 @@ MTLVertexFormat to_metal_format(iris::VertexAttributeType type)
         case iris::VertexAttributeType::UINT32_1:
             format = MTLVertexFormatUInt;
             break;
+        case iris::VertexAttributeType::UINT32_4:
+            format = MTLVertexFormatUInt4;
+            break;
         default:
             throw iris::Exception("unknown vertex attribute type");
     }
@@ -48,7 +51,7 @@ struct BufferDescriptor::implementation
     MTLVertexDescriptor *descriptor;
 };
 
-BufferDescriptor::BufferDescriptor(
+BufferDescriptor::BufferDescriptor( 
     Buffer vertex_buffer,
     Buffer index_buffer,
     const VertexAttributes &attributes)
