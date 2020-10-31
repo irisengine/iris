@@ -3,8 +3,6 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "core/real.h"
-
 namespace iris
 {
 
@@ -43,7 +41,7 @@ struct TouchEvent
      * @param y
      *   y coordinate in screen space of event.
      */
-    TouchEvent(std::uintptr_t id, TouchType type, real x, real y)
+    TouchEvent(std::uintptr_t id, TouchType type, float x, float y)
         : id(id)
         , type(type)
         , x(x)
@@ -58,10 +56,10 @@ struct TouchEvent
     TouchType type;
 
     /** x screen coordinate. */
-    real x;
+    float x;
 
     /** y screen coordinate. */
-    real y;
+    float y;
 };
 
 }

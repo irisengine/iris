@@ -63,7 +63,7 @@ class Transform
      * @param amount
      *   Interpolation amount, must be in range [0.0, 1.0].
      */
-    void interpolate(const Transform &other, real amount);
+    void interpolate(const Transform &other, float amount);
 
     /**
      * Get the translation component of the transform.

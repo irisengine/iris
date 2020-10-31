@@ -6,8 +6,6 @@
 #include <limits>
 #include <ostream>
 
-#include "core/real.h"
-
 namespace iris
 {
 
@@ -16,12 +14,12 @@ Vector3::Vector3()
 {
 }
 
-Vector3::Vector3(real xyz)
+Vector3::Vector3(float xyz)
     : Vector3(xyz, xyz, xyz)
 {
 }
 
-Vector3::Vector3(real x, real y, real z)
+Vector3::Vector3(float x, float y, float z)
     : x(x)
     , y(y)
     , z(z)
@@ -37,7 +35,7 @@ std::ostream &operator<<(std::ostream &out, const Vector3 &v)
     return out;
 }
 
-Vector3 &Vector3::operator*=(real scale)
+Vector3 &Vector3::operator*=(float scale)
 {
     x *= scale;
     y *= scale;
@@ -46,7 +44,7 @@ Vector3 &Vector3::operator*=(real scale)
     return *this;
 }
 
-Vector3 Vector3::operator*(real scale) const
+Vector3 Vector3::operator*(float scale) const
 {
     return Vector3(*this) *= scale;
 }
@@ -97,7 +95,8 @@ Vector3 Vector3::operator-() const
 
 bool Vector3::operator==(const Vector3 &other) const
 {
-    return (x == other.x) && (y == other.y) && (z == other.z);
+    return (float{x} == float{other.x}) && (float{y} == float{other.y}) &&
+           (float{z} == float{other.z});
 }
 
 bool Vector3::operator!=(const Vector3 &other) const
@@ -105,7 +104,7 @@ bool Vector3::operator!=(const Vector3 &other) const
     return !(other == *this);
 }
 
-real Vector3::dot(const Vector3 &vector) const
+float Vector3::dot(const Vector3 &vector) const
 {
     return x * vector.x + y * vector.y + z * vector.z;
 }
@@ -139,12 +138,12 @@ Vector3 &Vector3::normalise()
     return *this;
 }
 
-real Vector3::magnitude() const
+float Vector3::magnitude() const
 {
     return std::hypot(x, y, z);
 }
 
-void Vector3::lerp(const Vector3 &other, real amount)
+void Vector3::lerp(const Vector3 &other, float amount)
 {
     *this *= (1.0f - amount);
     *this += (other * amount);
@@ -158,6 +157,11 @@ Vector3 Vector3::cross(const Vector3 &v1, const Vector3 &v2)
 Vector3 Vector3::normalise(const Vector3 &vector)
 {
     return Vector3(vector).normalise();
+}
+
+float Vector3::distance(const Vector3 &a, const Vector3 &b)
+{
+    return (b - a).magnitude();
 }
 
 }

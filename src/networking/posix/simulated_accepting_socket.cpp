@@ -24,7 +24,7 @@ SimulatedAcceptingSocket::SimulatedAcceptingSocket(
     const std::string &server_queue_name,
     std::chrono::milliseconds delay,
     std::chrono::milliseconds jitter,
-    real drop_rate)
+    float drop_rate)
     : client_(std::make_unique<SimulatedSocket>(
           client_queue_name,
           server_queue_name,

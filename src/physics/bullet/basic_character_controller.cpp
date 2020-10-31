@@ -83,7 +83,7 @@ void BasicCharacterController::set_angular_velocity(
     impl_->body->set_angular_velocity(angular_velocity);
 }
 
-void BasicCharacterController::set_speed(real speed)
+void BasicCharacterController::set_speed(float speed)
 {
     speed_ = speed;
 }

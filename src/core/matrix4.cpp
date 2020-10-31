@@ -4,7 +4,6 @@
 #include <iostream>
 
 #include "core/quaternion.h"
-#include "core/real.h"
 #include "core/vector3.h"
 
 namespace iris
@@ -31,7 +30,7 @@ Matrix4::Matrix4()
 {
 }
 
-Matrix4::Matrix4(const std::array<real, 16> &elements)
+Matrix4::Matrix4(const std::array<float, 16> &elements)
     : elements_(elements)
 {
 }
@@ -63,9 +62,9 @@ Matrix4::Matrix4(const Quaternion &q, const Vector3 &p)
 }
 
 Matrix4 Matrix4::make_orthographic_projection(
-    real width,
-    real height,
-    real depth)
+    float width,
+    float height,
+    float depth)
 {
     Matrix4 m;
 
@@ -98,11 +97,11 @@ Matrix4 Matrix4::make_orthographic_projection(
 }
 
 Matrix4 Matrix4::make_perspective_projection(
-    real fov,
-    real width,
-    real height,
-    real near,
-    real far)
+    float fov,
+    float width,
+    float height,
+    float near,
+    float far)
 {
     Matrix4 m;
 
@@ -355,12 +354,12 @@ Vector3 Matrix4::operator*(const Vector3 &vector) const
     };
 }
 
-real &Matrix4::operator[](const std::size_t index)
+float &Matrix4::operator[](const std::size_t index)
 {
     return elements_[index];
 }
 
-real Matrix4::operator[](const std::size_t index) const
+float Matrix4::operator[](const std::size_t index) const
 {
     return elements_[index];
 }
@@ -382,7 +381,7 @@ bool Matrix4::operator!=(const Matrix4 &other) const
     return !(*this == other);
 }
 
-const real *Matrix4::data() const
+const float *Matrix4::data() const
 {
     return elements_.data();
 }

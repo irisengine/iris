@@ -75,16 +75,16 @@ TEST(data_buffer_seraliser_tests, enum)
     ASSERT_EQ(der.pop<Val>(), val);
 }
 
-TEST(data_buffer_seraliser_tests, real)
+TEST(data_buffer_seraliser_tests, float)
 {
-    iris::real val = 1.2345f;
+    float val = 1.2345f;
 
     iris::DataBufferSerialiser ser{};
 
     ser.push(val);
     iris::DataBufferDeserialiser der{ser.data()};
 
-    ASSERT_EQ(der.pop<iris::real>().value, val.value);
+    ASSERT_EQ(der.pop<float>(), val);
 }
 
 TEST(data_buffer_seraliser_tests, vector3)

@@ -5,7 +5,6 @@
 #include <memory>
 #include <optional>
 
-#include "core/real.h"
 #include "networking/socket.h"
 
 namespace iris
@@ -44,7 +43,7 @@ class SimulatedSocket : public Socket
         const std::string &server_queue_name,
         std::chrono::milliseconds delay,
         std::chrono::milliseconds jitter,
-        real drop_rate);
+        float drop_rate);
 
     // defined in implementation
     ~SimulatedSocket() override;
@@ -107,7 +106,7 @@ class SimulatedSocket : public Socket
     std::chrono::milliseconds jitter_;
 
     /** Packet drop rate. */
-    real drop_rate_;
+    float drop_rate_;
 };
 
 }

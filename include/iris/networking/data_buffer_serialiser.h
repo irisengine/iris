@@ -60,17 +60,6 @@ class DataBufferSerialiser
     }
 
     /**
-     * Serialise a real.
-     *
-     * @param value
-     *   Value to serialise.
-     */
-    void push(real value)
-    {
-        push(value.value);
-    }
-
-    /**
      * Serialise a Vector3.
      *
      * @param value

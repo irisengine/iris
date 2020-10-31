@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <chrono>
 
-#include "core/real.h"
 #include "networking/accepting_socket.h"
 #include "networking/simulated_socket.h"
 
@@ -42,7 +41,7 @@ class SimulatedAcceptingSocket : public AcceptingSocket
         const std::string &server_queue_name,
         std::chrono::milliseconds delay,
         std::chrono::milliseconds jitter,
-        real drop_rate);
+        float drop_rate);
 
     // default
     ~SimulatedAcceptingSocket() override = default;

@@ -213,7 +213,7 @@ Font::Font(
     // create a Texture from the rendered pixel data
     impl_->texture = std::make_unique<Texture>(pixel_data, width, height, 4u);
 
-    set_scale({ width, height, 1.0f });
+    set_scale({ static_cast<float>(width), static_cast<float>(height), 1.0f });
     set_texture(impl_->texture.get());
 }
 
