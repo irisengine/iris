@@ -5,8 +5,8 @@
 #include <LinearMath/btIDebugDraw.h>
 #include <LinearMath/btVector3.h>
 
+#include "core/vector3.h"
 #include "graphics/render_entity.h"
-#include "graphics/vertex_data.h"
 
 namespace iris
 {
@@ -64,10 +64,7 @@ class DebugDraw : public ::btIDebugDraw
 
   private:
     /** Collection of vertices to render. */
-    std::vector<vertex_data> verticies_;
-
-    /** Indices for render order. */
-    std::vector<std::uint32_t> indicies_;
+    std::vector<std::tuple<Vector3, Vector3, Vector3, Vector3>> verticies_;
 
     /** A render entity for all debug shapes. */
     RenderEntity *model_;
