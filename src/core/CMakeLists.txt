@@ -11,6 +11,7 @@ set(CORE_SRCS
     "${SOURCE_ROOT}/random.cpp" "${INCLUDE_ROOT}/random.h"
     "${SOURCE_ROOT}/root.cpp" "${INCLUDE_ROOT}/root.h"
     "${SOURCE_ROOT}/transform.cpp" "${INCLUDE_ROOT}/transform.h"
+    "${SOURCE_ROOT}/utils.cpp" "${INCLUDE_ROOT}/utils.h"
     "${SOURCE_ROOT}/vector3.cpp" "${INCLUDE_ROOT}/vector3.h"
 
     PARENT_SCOPE
