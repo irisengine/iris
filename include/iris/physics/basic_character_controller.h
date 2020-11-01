@@ -4,7 +4,6 @@
 #include <memory>
 
 #include "core/quaternion.h"
-#include "core/real.h"
 #include "core/vector3.h"
 #include "physics/character_controller.h"
 
@@ -91,7 +90,7 @@ class BasicCharacterController : public CharacterController
      * @param speed
      *   New speed.
      */
-    void set_speed(real speed) override;
+    void set_speed(float speed) override;
 
     /**
      * Reposition character.
@@ -136,12 +135,12 @@ class BasicCharacterController : public CharacterController
     /**
      * Speed of character.
      */
-    real speed_;
+    float speed_;
 
     /**
      * Mass of character.
      */
-    real mass_;
+    float mass_;
 
     /**
      * Physics API implementation.

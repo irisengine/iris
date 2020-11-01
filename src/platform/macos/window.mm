@@ -8,7 +8,6 @@
 #include <OpenGL/gl3ext.h>
 
 #include "core/exception.h"
-#include "core/real.h"
 #include "log/log.h"
 #include "platform/keyboard_event.h"
 #include "platform/macos/AppDelegate.h"
@@ -187,7 +186,7 @@ iris::MouseEvent handle_mouse_event(NSEvent *event)
     ::CGGetLastMouseDelta(&dx, &dy);
 
     // convert and dispatch
-    return { static_cast<iris::real>(dx), static_cast<iris::real>(dy) };
+    return { static_cast<float>(dx), static_cast<float>(dy) };
 }
 
 }
@@ -195,7 +194,7 @@ iris::MouseEvent handle_mouse_event(NSEvent *event)
 namespace iris
 {
 
-Window::Window(real width, real height)
+Window::Window(float width, float height)
     : width_(width),
       height_(height)
 {
@@ -277,12 +276,12 @@ std::optional<Event> Window::pump_event()
     return evt;
 }
 
-real Window::width() const
+float Window::width() const
 {
     return width_;
 }
 
-real Window::height() const
+float Window::height() const
 {
     return height_;
 }

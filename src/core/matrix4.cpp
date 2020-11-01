@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "core/quaternion.h"
-#include "core/real.h"
+#include "core/utils.h"
 #include "core/vector3.h"
 
 namespace iris
@@ -31,7 +31,7 @@ Matrix4::Matrix4()
 {
 }
 
-Matrix4::Matrix4(const std::array<real, 16> &elements)
+Matrix4::Matrix4(const std::array<float, 16> &elements)
     : elements_(elements)
 {
 }
@@ -63,9 +63,9 @@ Matrix4::Matrix4(const Quaternion &q, const Vector3 &p)
 }
 
 Matrix4 Matrix4::make_orthographic_projection(
-    real width,
-    real height,
-    real depth)
+    float width,
+    float height,
+    float depth)
 {
     Matrix4 m;
 
@@ -98,11 +98,11 @@ Matrix4 Matrix4::make_orthographic_projection(
 }
 
 Matrix4 Matrix4::make_perspective_projection(
-    real fov,
-    real width,
-    real height,
-    real near,
-    real far)
+    float fov,
+    float width,
+    float height,
+    float near,
+    float far)
 {
     Matrix4 m;
 
@@ -355,26 +355,23 @@ Vector3 Matrix4::operator*(const Vector3 &vector) const
     };
 }
 
-real &Matrix4::operator[](const std::size_t index)
+float &Matrix4::operator[](const std::size_t index)
 {
     return elements_[index];
 }
 
-real Matrix4::operator[](const std::size_t index) const
+float Matrix4::operator[](const std::size_t index) const
 {
     return elements_[index];
 }
 
 bool Matrix4::operator==(const Matrix4 &other) const
 {
-    return (elements_[0] == other[0]) && (elements_[1] == other[1]) &&
-           (elements_[2] == other[2]) && (elements_[3] == other[3]) &&
-           (elements_[4] == other[4]) && (elements_[5] == other[5]) &&
-           (elements_[6] == other[6]) && (elements_[7] == other[7]) &&
-           (elements_[8] == other[8]) && (elements_[9] == other[9]) &&
-           (elements_[10] == other[10]) && (elements_[11] == other[11]) &&
-           (elements_[12] == other[12]) && (elements_[13] == other[13]) &&
-           (elements_[14] == other[14]) && (elements_[15] == other[15]);
+    return std::equal(
+        std::cbegin(elements_),
+        std::cend(elements_),
+        std::cbegin(other.elements_),
+        compare);
 }
 
 bool Matrix4::operator!=(const Matrix4 &other) const
@@ -382,7 +379,7 @@ bool Matrix4::operator!=(const Matrix4 &other) const
     return !(*this == other);
 }
 
-const real *Matrix4::data() const
+const float *Matrix4::data() const
 {
     return elements_.data();
 }

@@ -3,7 +3,6 @@
 #include <memory>
 
 #include "core/exception.h"
-#include "core/real.h"
 #include "graphics/render_system.h"
 #include "jobs/job_system.h"
 #include "log/logger.h"

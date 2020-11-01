@@ -62,25 +62,14 @@ class DataBufferDeserialiser
      * @returns
      *   Next element in buffer as supplied type.
      */
-    template <class T, std::enable_if_t<std::is_enum_v<T>> * = nullptr> T pop()
+    template <class T, std::enable_if_t<std::is_enum_v<T>> * = nullptr>
+    T pop()
     {
         using type = std::underlying_type_t<T>;
 
         const auto value = pop<type>();
 
         return static_cast<T>(value);
-    }
-
-    /**
-     * Pop real.
-     *
-     * @returns
-     *   Next element in buffer as supplied type.
-     */
-    template <class T, std::enable_if_t<std::is_same_v<T, real>> * = nullptr>
-    T pop()
-    {
-        return pop<float>();
     }
 
     /**
@@ -92,7 +81,7 @@ class DataBufferDeserialiser
     template <class T, std::enable_if_t<std::is_same_v<T, Vector3>> * = nullptr>
     T pop()
     {
-        return T{pop<real>(), pop<real>(), pop<real>()};
+        return T{pop<float>(), pop<float>(), pop<float>()};
     }
 
     /**
@@ -106,7 +95,7 @@ class DataBufferDeserialiser
         std::enable_if_t<std::is_same_v<T, Quaternion>> * = nullptr>
     T pop()
     {
-        return T{pop<real>(), pop<real>(), pop<real>(), pop<real>()};
+        return T{pop<float>(), pop<float>(), pop<float>(), pop<float>()};
     }
 
     /**
@@ -134,7 +123,8 @@ class DataBufferDeserialiser
      * @returns
      *   std::tuple of requested types from buffer.
      */
-    template <class... Types> std::tuple<Types...> pop_tuple()
+    template <class... Types>
+    std::tuple<Types...> pop_tuple()
     {
         std::tuple<Types...> values;
 
@@ -164,7 +154,8 @@ class DataBufferDeserialiser
     /**
      * Base method for template recursion.
      */
-    template <std::size_t Index, class T> void pop_tuple_impl(T &)
+    template <std::size_t Index, class T>
+    void pop_tuple_impl(T &)
     {
     }
 

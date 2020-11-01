@@ -2,8 +2,6 @@
 
 #include <cstdint>
 
-#include "core/real.h"
-
 namespace iris
 {
 
@@ -22,7 +20,7 @@ struct Weight
      * @param weight
      *   Influence over vertex, must be in the range [0.0, 1.0].
      */
-    Weight(std::uint32_t vertex, real weight)
+    Weight(std::uint32_t vertex, float weight)
         : vertex(vertex)
         , weight(weight)
     {
@@ -32,7 +30,7 @@ struct Weight
     std::uint32_t vertex;
 
     /** Influence. */
-    real weight;
+    float weight;
 };
 
 }

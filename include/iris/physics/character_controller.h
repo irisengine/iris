@@ -83,7 +83,7 @@ class CharacterController
      * @param speed
      *   New speed.
      */
-    virtual void set_speed(real speed) = 0;
+    virtual void set_speed(float speed) = 0;
 
     /**
      * Reposition character.

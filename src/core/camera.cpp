@@ -5,7 +5,6 @@
 #include "core/camera_type.h"
 #include "core/matrix4.h"
 #include "core/quaternion.h"
-#include "core/real.h"
 #include "core/vector3.h"
 #include "log/log.h"
 
@@ -24,7 +23,7 @@ namespace
  * @returns
  *   A new direction vector for the camera
  */
-iris::Vector3 create_direction(iris::real pitch, iris::real yaw)
+iris::Vector3 create_direction(float pitch, float yaw)
 {
     iris::Vector3 direction;
 
@@ -42,7 +41,7 @@ iris::Vector3 create_direction(iris::real pitch, iris::real yaw)
 namespace iris
 {
 
-Camera::Camera(CameraType type, real width, real height)
+Camera::Camera(CameraType type, float width, float height)
     : position_(0.0f, 0.0f, 100.0f)
     , direction_(0.0f, 0.0f, -1.0f)
     , up_(0.0f, 1.0f, 0.0f)
@@ -111,12 +110,12 @@ Matrix4 Camera::projection() const
     return projection_;
 }
 
-real Camera::yaw() const
+float Camera::yaw() const
 {
     return yaw_;
 }
 
-void Camera::set_yaw(real yaw)
+void Camera::set_yaw(float yaw)
 {
     yaw_ = yaw;
 
@@ -124,17 +123,17 @@ void Camera::set_yaw(real yaw)
     view_ = Matrix4::make_look_at(position_, position_ + direction_, up_);
 }
 
-void Camera::adjust_yaw(real adjust)
+void Camera::adjust_yaw(float adjust)
 {
     set_yaw(yaw_ + adjust);
 }
 
-real Camera::pitch() const
+float Camera::pitch() const
 {
     return pitch_;
 }
 
-void Camera::set_pitch(real pitch)
+void Camera::set_pitch(float pitch)
 {
     pitch_ = pitch;
 
@@ -148,7 +147,7 @@ void Camera::set_position(const Vector3 &position)
     view_ = Matrix4::make_look_at(position_, position_ + direction_, up_);
 }
 
-void Camera::adjust_pitch(real adjust)
+void Camera::adjust_pitch(float adjust)
 {
     set_pitch(pitch_ + adjust);
 }

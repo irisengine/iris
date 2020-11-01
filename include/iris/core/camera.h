@@ -3,7 +3,6 @@
 #include "core/camera_type.h"
 #include "core/matrix4.h"
 #include "core/quaternion.h"
-#include "core/real.h"
 #include "core/vector3.h"
 
 namespace iris
@@ -27,7 +26,7 @@ class Camera
      * @param height
      *   Height of window.
      */
-    Camera(CameraType type, real width, real height);
+    Camera(CameraType type, float width, float height);
 
     /**
      * Translate the camera.
@@ -99,7 +98,7 @@ class Camera
      * @returns
      *   Camera yaw.
      */
-    real yaw() const;
+    float yaw() const;
 
     /**
      * Set the yaw of the camera.
@@ -107,7 +106,7 @@ class Camera
      * @param yaw
      *   New camera yaw.
      */
-    void set_yaw(real yaw);
+    void set_yaw(float yaw);
 
     /**
      * Adjust the camera yaw by the supplied value.
@@ -115,7 +114,7 @@ class Camera
      * @param adjust
      *   Amount to adjust yaw by.
      */
-    void adjust_yaw(real adjust);
+    void adjust_yaw(float adjust);
 
     /**
      * Get camera pitch.
@@ -123,7 +122,7 @@ class Camera
      * @returns
      *   Camera pitch.
      */
-    real pitch() const;
+    float pitch() const;
 
     /**
      * Set the pitch of the camera.
@@ -131,7 +130,7 @@ class Camera
      * @param pitch
      *   New camera pitch.
      */
-    void set_pitch(real pitch);
+    void set_pitch(float pitch);
 
     /**
      * Adjust the camera pitch by the supplied value.
@@ -139,7 +138,7 @@ class Camera
      * @param adjust
      *   Amount to adjust pitch by.
      */
-    void adjust_pitch(real adjust);
+    void adjust_pitch(float adjust);
 
     /**
      * Set world position of camera.
@@ -174,10 +173,10 @@ class Camera
     Matrix4 projection_;
 
     /** Pitch of camera. */
-    real pitch_;
+    float pitch_;
 
     /** Yaw of camera. */
-    real yaw_;
+    float yaw_;
 
     /** Type of camera. */
     CameraType type_;

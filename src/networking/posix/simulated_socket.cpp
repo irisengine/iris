@@ -82,7 +82,7 @@ SimulatedSocket::SimulatedSocket(
     const std::string &server_queue_name,
     std::chrono::milliseconds delay,
     std::chrono::milliseconds jitter,
-    real drop_rate)
+    float drop_rate)
     : impl_(std::make_unique<implementation>())
     , delay_(delay)
     , jitter_(jitter)

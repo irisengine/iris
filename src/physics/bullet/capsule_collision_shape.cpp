@@ -5,8 +5,6 @@
 
 #include <BulletCollision/CollisionShapes/btCapsuleShape.h>
 
-#include "core/real.h"
-
 namespace iris
 {
 
@@ -15,7 +13,7 @@ struct CapsuleCollisionShape::implementation
     ::btCapsuleShape shape = ::btCapsuleShape{0.0f, 0.0f};
 };
 
-CapsuleCollisionShape::CapsuleCollisionShape(real width, real height)
+CapsuleCollisionShape::CapsuleCollisionShape(float width, float height)
     : impl_(std::make_unique<implementation>())
 {
     impl_->shape = ::btCapsuleShape{width, height};

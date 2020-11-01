@@ -5,14 +5,13 @@
 #import <UIKit/UIKit.h>
 
 #import "platform/ios/MetalViewController.h"
-#include "core/real.h"
 #include "graphics/font.h"
 #include "log/log.h"
 
 namespace iris
 {
 
-Window::Window(real width, real height)
+Window::Window(float width, float height)
     : width_(width),
       height_(height)
 {
@@ -48,12 +47,12 @@ std::optional<Event> Window::pump_event()
     return event;
 }
 
-real Window::width() const
+float Window::width() const
 {
     return width_;
 }
 
-real Window::height() const
+float Window::height() const
 {
     return height_;
 }

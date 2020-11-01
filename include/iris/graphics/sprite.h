@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/real.h"
 #include "core/vector3.h"
 #include "graphics/material.h"
 #include "graphics/render_entity.h"
@@ -34,7 +33,7 @@ class Sprite : public RenderEntity
      * @param colour
      *   Colour of sprite.
      */
-    Sprite(real x, real y, real width, real height, const Vector3 &colour);
+    Sprite(float x, float y, float width, float height, const Vector3 &colour);
 
     /**
      * Create a textured sprite.
@@ -58,10 +57,10 @@ class Sprite : public RenderEntity
      *   Texture of sprite.
      */
     Sprite(
-        real x,
-        real y,
-        real width,
-        real height,
+        float x,
+        float y,
+        float width,
+        float height,
         const Vector3 &colour,
         Texture *tex);
 

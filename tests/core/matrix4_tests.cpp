@@ -5,7 +5,6 @@
 
 #include "core/matrix4.h"
 #include "core/quaternion.h"
-#include "core/real.h"
 #include "core/vector3.h"
 
 TEST(matrix4, constructor)
@@ -71,7 +70,7 @@ TEST(matrix4, value_constructor)
 
 TEST(matrix4, rotation_constructor)
 {
-    iris::Matrix4 m{{1.0f, 2.0f, 3.0f, 4.0f}};
+    iris::Matrix4 m{iris::Quaternion{1.0f, 2.0f, 3.0f, 4.0f}};
 
     iris::Matrix4 expected{{
         -25.0f,
@@ -176,7 +175,7 @@ TEST(matrix4, inequality)
 
 TEST(matrix4, data)
 {
-    std::array<iris::real, 16> elements{{
+    std::array<float, 16> elements{{
         1.0f,
         2.0f,
         3.0f,
@@ -198,8 +197,7 @@ TEST(matrix4, data)
     iris::Matrix4 m{elements};
 
     ASSERT_EQ(
-        std::memcmp(
-            elements.data(), m.data(), sizeof(iris::real) * elements.size()),
+        std::memcmp(elements.data(), m.data(), sizeof(float) * elements.size()),
         0);
 }
 

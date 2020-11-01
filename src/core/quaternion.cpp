@@ -3,7 +3,7 @@
 #include <cmath>
 #include <ostream>
 
-#include "core/real.h"
+#include "core/utils.h"
 #include "core/vector3.h"
 
 namespace iris
@@ -17,7 +17,7 @@ Quaternion::Quaternion()
 {
 }
 
-Quaternion::Quaternion(const Vector3 &axis, const real angle)
+Quaternion::Quaternion(const Vector3 &axis, float angle)
     : w(0.0f)
     , x(0.0f)
     , y(0.0f)
@@ -34,7 +34,7 @@ Quaternion::Quaternion(const Vector3 &axis, const real angle)
     normalise();
 }
 
-Quaternion::Quaternion(real x, real y, real z, real w)
+Quaternion::Quaternion(float x, float y, float z, float w)
     : w(w)
     , x(x)
     , y(y)
@@ -42,7 +42,7 @@ Quaternion::Quaternion(real x, real y, real z, real w)
 {
 }
 
-Quaternion::Quaternion(real yaw, real pitch, real roll)
+Quaternion::Quaternion(float yaw, float pitch, float roll)
     : Quaternion()
 {
     const auto cy = std::cos(yaw * 0.5f);
@@ -112,12 +112,12 @@ Quaternion Quaternion::operator+(const Vector3 &vector) const
     return Quaternion{*this} += vector;
 }
 
-Quaternion Quaternion::operator*(real scale) const
+Quaternion Quaternion::operator*(float scale) const
 {
     return Quaternion{*this} *= scale;
 }
 
-Quaternion &Quaternion::operator*=(real scale)
+Quaternion &Quaternion::operator*=(float scale)
 {
     x *= scale;
     y *= scale;
@@ -157,12 +157,12 @@ Quaternion Quaternion::operator-() const
     return {-x, -y, -z, -w};
 }
 
-real Quaternion::dot(const Quaternion &other) const
+float Quaternion::dot(const Quaternion &other) const
 {
     return x * other.x + y * other.y + z * other.z + w * other.w;
 }
 
-void Quaternion::slerp(Quaternion target, real amount)
+void Quaternion::slerp(Quaternion target, float amount)
 {
     auto dot = this->dot(target);
     if (dot < 0.0f)
@@ -193,7 +193,8 @@ void Quaternion::slerp(Quaternion target, real amount)
 
 bool Quaternion::operator==(const Quaternion &other) const
 {
-    return (w == other.w) && (x == other.x) && (y == other.y) && (z == other.z);
+    return compare(w, other.w) && compare(x, other.x) && compare(y, other.y) &&
+           compare(z, other.z);
 }
 
 bool Quaternion::operator!=(const Quaternion &other) const

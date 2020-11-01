@@ -2,8 +2,6 @@
 
 #include <ostream>
 
-#include "core/real.h"
-
 namespace iris
 {
 
@@ -26,7 +24,7 @@ class Vector3
      * @param xyz
      *   Value for x, y and z.
      */
-    Vector3(real xyz);
+    Vector3(float xyz);
 
     /**
      * Constructs a new Vector3 with the supplied components.
@@ -40,7 +38,7 @@ class Vector3
      * @param z
      *   z component.
      */
-    Vector3(real x, real y, real z);
+    Vector3(float x, float y, float z);
 
     /**
      * Write a Vector3 to a stream, useful for debugging.
@@ -65,7 +63,7 @@ class Vector3
      * @return
      *   Reference to this vector3.
      */
-    Vector3 &operator*=(real scale);
+    Vector3 &operator*=(float scale);
 
     /**
      * Create a new Vector3 which is this Vector3 with each component
@@ -78,7 +76,7 @@ class Vector3
      *   Copy of this Vector3 with each component multiplied by a
      *   scalar value.
      */
-    Vector3 operator*(real scale) const;
+    Vector3 operator*(float scale) const;
 
     /**
      * Component wise add a Vector3 to this vector3.
@@ -191,7 +189,7 @@ class Vector3
      * @returns
      *   Dot product of this vector with supplied one.
      */
-    real dot(const Vector3 &vector) const;
+    float dot(const Vector3 &vector) const;
 
     /**
      * Perform cross product of this Vector3 with a supplied one.
@@ -218,7 +216,7 @@ class Vector3
      * @return
      *   Vector magnitude.
      */
-    real magnitude() const;
+    float magnitude() const;
 
     /**
      * Linear interpolate between this and another vector.
@@ -229,7 +227,7 @@ class Vector3
      * @param amount
      *   Interpolation amount, must be in range [0.0, 1.0].
      */
-    void lerp(const Vector3 &other, real amount);
+    void lerp(const Vector3 &other, float amount);
 
     /**
      * Cross two Vector3 objects with each other.
@@ -256,14 +254,16 @@ class Vector3
      */
     static Vector3 normalise(const Vector3 &vector);
 
+    static float distance(const Vector3 &a, const Vector3 &b);
+
     /** x component */
-    real x;
+    float x;
 
     /** y component */
-    real y;
+    float y;
 
     /** z component */
-    real z;
+    float z;
 };
 
 }

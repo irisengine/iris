@@ -58,7 +58,7 @@ Transform Animation::transform(const std::string &bone) const
     const auto delta1 = second_keyframe->time - first_keyframe->time;
     const auto delta2 = time_ - first_keyframe->time;
     const auto interpolation =
-        static_cast<real>(delta2.count()) / static_cast<real>(delta1.count());
+        static_cast<float>(delta2.count()) / static_cast<float>(delta1.count());
 
     // interpolate between frames
     auto transform = first_keyframe->transform;

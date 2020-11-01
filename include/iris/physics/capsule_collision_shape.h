@@ -3,7 +3,6 @@
 #include <any>
 #include <memory>
 
-#include "core/real.h"
 #include "physics/collision_shape.h"
 
 namespace iris
@@ -23,7 +22,7 @@ class CapsuleCollisionShape : public CollisionShape
      * @param height
      *   Height of capsule.
      */
-    CapsuleCollisionShape(real width, real height);
+    CapsuleCollisionShape(float width, float height);
 
     ~CapsuleCollisionShape() override;
 

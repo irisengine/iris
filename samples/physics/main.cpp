@@ -1,4 +1,5 @@
 #include <chrono>
+#include <cmath>
 #include <map>
 #include <tuple>
 #include <vector>
@@ -92,7 +93,8 @@ void go(int, char **)
     {
         for (auto x = 0u; x < width; ++x)
         {
-            const iris::Vector3 pos{x, y, 0.0f};
+            const iris::Vector3 pos{
+                static_cast<float>(x), static_cast<float>(y), 0.0f};
             static const iris::Vector3 half_size{0.5f, 0.5f, 0.5f};
             auto colour = ((y * height) + x + (y % 2)) % 2 == 0
                               ? iris::Vector3{1.0f, 0.0f, 0.0f}
@@ -118,8 +120,8 @@ void go(int, char **)
     iris::Vector3 right_touch_origin;
     std::uintptr_t right_touch_id = 0u;
     iris::Vector3 walk_direction{};
-    iris::real delta_x = 0.0f;
-    iris::real delta_y = 0.0f;
+    auto delta_x = 0.0f;
+    auto delta_y = 0.0f;
 
     for (;;)
     {

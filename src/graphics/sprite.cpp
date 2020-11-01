@@ -11,16 +11,16 @@
 namespace iris
 {
 
-Sprite::Sprite(real x, real y, real width, real height, const Vector3 &colour)
+Sprite::Sprite(float x, float y, float width, float height, const Vector3 &colour)
     : Sprite(x, y, width, height, colour, texture_factory::blank())
 {
 }
 
 Sprite::Sprite(
-    real x,
-    real y,
-    real width,
-    real height,
+    float x,
+    float y,
+    float width,
+    float height,
     const Vector3 &colour,
     Texture *tex)
     : RenderEntity(

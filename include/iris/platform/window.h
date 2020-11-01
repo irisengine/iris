@@ -5,7 +5,6 @@
 #include <queue>
 
 #include "core/camera.h"
-#include "core/real.h"
 #include "graphics/render_system.h"
 #include "graphics/sprite.h"
 #include "platform/event.h"
@@ -28,7 +27,7 @@ class Window
      * @param height
      *   Height of the window.
      */
-    Window(real with, real height);
+    Window(float with, float height);
 
     /** Disabled */
     Window(const Window &) = delete;
@@ -49,7 +48,7 @@ class Window
      * @returns
      *   Window width.
      */
-    real width() const;
+    float width() const;
 
     /**
      * Get the height of the window.
@@ -57,14 +56,14 @@ class Window
      * @returns
      *   Window height.
      */
-    real height() const;
+    float height() const;
 
   private:
     /** Window width. */
-    real width_;
+    float width_;
 
     /** Window height. */
-    real height_;
+    float height_;
 };
 
 }

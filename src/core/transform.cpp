@@ -52,7 +52,7 @@ std::tuple<iris::Vector3, iris::Quaternion, iris::Vector3> decompose(
     //  article "Quaternion Calculus and Fast Animation".
 
     const auto trace = matrix[0] + matrix[5] + matrix[10];
-    iris::real root = 0.0f;
+    float root = 0.0f;
 
     if (trace > 0.0f)
     {
@@ -85,7 +85,7 @@ std::tuple<iris::Vector3, iris::Quaternion, iris::Vector3> decompose(
             matrix[(i * 4u) + i] - matrix[(j * 4u) + j] - matrix[(k * 4u) + k] +
             1.0f);
 
-        iris::real *quat[3] = {&rotation.x, &rotation.y, &rotation.z};
+        float *quat[3] = {&rotation.x, &rotation.y, &rotation.z};
 
         *quat[i] = 0.5f * root;
         root = 0.5f / root;
@@ -131,7 +131,7 @@ Matrix4 Transform::matrix() const
            Matrix4::make_scale(scale_);
 }
 
-void Transform::interpolate(const Transform &other, real amount)
+void Transform::interpolate(const Transform &other, float amount)
 {
     translation_.lerp(other.translation_, amount);
     rotation_.slerp(other.rotation_, amount);

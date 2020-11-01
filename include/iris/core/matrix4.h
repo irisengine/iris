@@ -4,7 +4,6 @@
 #include <ostream>
 
 #include "core/quaternion.h"
-#include "core/real.h"
 #include "core/vector3.h"
 
 namespace iris
@@ -29,7 +28,7 @@ class Matrix4
      * @param elements
      *   Row major elements.
      */
-    explicit Matrix4(const std::array<real, 16> &elements);
+    explicit Matrix4(const std::array<float, 16> &elements);
 
     /**
      * Construct a new Matrix4 which represents a rotation by the
@@ -68,9 +67,9 @@ class Matrix4
      *   An orthographic projection matrix.
      */
     static Matrix4 make_orthographic_projection(
-        real width,
-        real height,
-        real depth);
+        float width,
+        float height,
+        float depth);
 
     /**
      * Static method to create a perspective projection matrix.
@@ -94,11 +93,11 @@ class Matrix4
      *   A perspective projection matrix.
      */
     static Matrix4 make_perspective_projection(
-        real fov,
-        real width,
-        real height,
-        real near,
-        real far);
+        float fov,
+        float width,
+        float height,
+        float near,
+        float far);
 
     /**
      * Make a Matrix4 that can be used as a view matrix for a camera.
@@ -207,7 +206,7 @@ class Matrix4
      * @returns
      *   Reference to element at supplied index.
      */
-    real &operator[](const size_t index);
+    float &operator[](const size_t index);
 
     /**
      * Get a copy of the element at the supplied index.
@@ -218,7 +217,7 @@ class Matrix4
      * @returns
      *   Copy of element at supplied index.
      */
-    real operator[](const size_t index) const;
+    float operator[](const size_t index) const;
 
     /**
      * Equality operator.
@@ -248,7 +247,7 @@ class Matrix4
      * @returns
      *   Pointer to start if Matrix4 data.
      */
-    const real *data() const;
+    const float *data() const;
 
     /**
      * Get a column from the matrix and return as a vector3. This ignores
@@ -279,7 +278,7 @@ class Matrix4
 
   private:
     /** Matrix4 data */
-    std::array<real, 16u> elements_;
+    std::array<float, 16u> elements_;
 };
 
 }

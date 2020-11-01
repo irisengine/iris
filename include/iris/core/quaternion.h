@@ -2,7 +2,6 @@
 
 #include <iosfwd>
 
-#include "core/real.h"
 #include "core/vector3.h"
 
 namespace iris
@@ -30,7 +29,7 @@ class Quaternion
      * @param angle
      *   The rotation in radians.
      */
-    Quaternion(const Vector3 &axis, const real angle);
+    Quaternion(const Vector3 &axis, float angle);
 
     /**
      * Construct a Quaternion with supplied components.
@@ -47,7 +46,7 @@ class Quaternion
      * @param w
      *   x component.
      */
-    Quaternion(real x, real y, real z, real w);
+    Quaternion(float x, float y, float z, float w);
 
     /**
      * Construct a Quaternion with Euler angles.
@@ -61,7 +60,7 @@ class Quaternion
      * @param roll
      *   Roll angle in radians.
      */
-    Quaternion(real yaw, real pitch, real roll);
+    Quaternion(float yaw, float pitch, float roll);
 
     /**
      * Write a Quaternion to a stream, useful for debugging.
@@ -133,7 +132,7 @@ class Quaternion
      * @returns
      *   Scaled quaternion.
      */
-    Quaternion operator*(real scale) const;
+    Quaternion operator*(float scale) const;
 
     /**
      * Scale quaternion.
@@ -144,7 +143,7 @@ class Quaternion
      * @returns
      *   Reference to this Quaternion.
      */
-    Quaternion &operator*=(real scale);
+    Quaternion &operator*=(float scale);
 
     /**
      * Create a new Quaternion that is this Quaternion subtracted with a
@@ -209,7 +208,7 @@ class Quaternion
      * @returns
      *   Dot product of this Quaternion with the supplied one.
      */
-    real dot(const Quaternion &other) const;
+    float dot(const Quaternion &other) const;
 
     /**
      * Perform spherical linear interpolation toward target Quaternion.
@@ -220,7 +219,7 @@ class Quaternion
      * @param amount
      *   Amount to interpolate, must be in range [0.0, 1.0].
      */
-    void slerp(Quaternion target, real amount);
+    void slerp(Quaternion target, float amount);
 
     /**
      * Equality operator.
@@ -253,16 +252,16 @@ class Quaternion
     Quaternion &normalise();
 
     /** Angle of rotation. */
-    real w;
+    float w;
 
     /** x axis of rotation. */
-    real x;
+    float x;
 
     /** y axis of rotation. */
-    real y;
+    float y;
 
     /** z axis of rotation. */
-    real z;
+    float z;
 };
 
 }
