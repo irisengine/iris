@@ -3,6 +3,7 @@
 #include <cmath>
 #include <ostream>
 
+#include "core/utils.h"
 #include "core/vector3.h"
 
 namespace iris
@@ -192,7 +193,8 @@ void Quaternion::slerp(Quaternion target, float amount)
 
 bool Quaternion::operator==(const Quaternion &other) const
 {
-    return (w == other.w) && (x == other.x) && (y == other.y) && (z == other.z);
+    return compare(w, other.w) && compare(x, other.x) && compare(y, other.y) &&
+           compare(z, other.z);
 }
 
 bool Quaternion::operator!=(const Quaternion &other) const

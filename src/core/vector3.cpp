@@ -6,6 +6,8 @@
 #include <limits>
 #include <ostream>
 
+#include "core/utils.h"
+
 namespace iris
 {
 
@@ -95,8 +97,7 @@ Vector3 Vector3::operator-() const
 
 bool Vector3::operator==(const Vector3 &other) const
 {
-    return (float{x} == float{other.x}) && (float{y} == float{other.y}) &&
-           (float{z} == float{other.z});
+    return compare(x, other.x) && compare(y, other.y) && compare(z, other.z);
 }
 
 bool Vector3::operator!=(const Vector3 &other) const

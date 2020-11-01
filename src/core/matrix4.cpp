@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "core/quaternion.h"
+#include "core/utils.h"
 #include "core/vector3.h"
 
 namespace iris
@@ -366,14 +367,11 @@ float Matrix4::operator[](const std::size_t index) const
 
 bool Matrix4::operator==(const Matrix4 &other) const
 {
-    return (elements_[0] == other[0]) && (elements_[1] == other[1]) &&
-           (elements_[2] == other[2]) && (elements_[3] == other[3]) &&
-           (elements_[4] == other[4]) && (elements_[5] == other[5]) &&
-           (elements_[6] == other[6]) && (elements_[7] == other[7]) &&
-           (elements_[8] == other[8]) && (elements_[9] == other[9]) &&
-           (elements_[10] == other[10]) && (elements_[11] == other[11]) &&
-           (elements_[12] == other[12]) && (elements_[13] == other[13]) &&
-           (elements_[14] == other[14]) && (elements_[15] == other[15]);
+    return std::equal(
+        std::cbegin(elements_),
+        std::cend(elements_),
+        std::cbegin(other.elements_),
+        compare);
 }
 
 bool Matrix4::operator!=(const Matrix4 &other) const
