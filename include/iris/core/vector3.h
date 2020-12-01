@@ -230,6 +230,23 @@ class Vector3
     void lerp(const Vector3 &other, float amount);
 
     /**
+     * Linear interpolate between two vectors.
+     *
+     * @param start
+     *   Vector3 to start from.
+     *
+     * @param end
+     *   Vector3 to lerp towards.
+     *
+     * @param amount
+     *   Interpolation amount, must be in range [0.0, 1.0].
+     *
+     * @returns
+     *   Result of lerp.
+     */
+    static Vector3 lerp(const Vector3 &start, const Vector3 &end, float amount);
+
+    /**
      * Cross two Vector3 objects with each other.
      *
      * @param v1
