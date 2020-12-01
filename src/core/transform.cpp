@@ -131,6 +131,15 @@ Matrix4 Transform::matrix() const
            Matrix4::make_scale(scale_);
 }
 
+void Transform::set_matrix(const Matrix4 &matrix)
+{
+    const auto [translation, rotation, scale] = decompose(matrix);
+
+    translation_ = translation;
+    rotation_ = rotation;
+    scale_ = scale;
+}
+
 void Transform::interpolate(const Transform &other, float amount)
 {
     translation_.lerp(other.translation_, amount);
