@@ -2,15 +2,14 @@
 
 #include <memory>
 
-#include "graphics/render_system.h"
-#include "jobs/job_system.h"
-#include "log/logger.h"
-#include "physics/physics_system.h"
-#include "platform/window.h"
-
 namespace iris
 {
 
+class JobSystem;
+class Logger;
+class PhysicsSystem;
+class RenderSystem;
+class Window;
 /**
  * A singleton object that provides access to various parts of the engine. It
  * controls the construction and destruction of components.
