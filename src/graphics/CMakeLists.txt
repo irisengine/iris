@@ -11,6 +11,8 @@ if(IRIS_PLATFORM MATCHES "MACOS" OR IRIS_PLATFORM MATCHES "IOS")
     add_subdirectory("macos")
 endif()
 
+add_subdirectory("render_graph")
+
 set(GRAPHICS_SRCS
     ${GRAPHICS_SRCS}
     ${PLATFORM_SRCS}
