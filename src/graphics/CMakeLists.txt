@@ -16,6 +16,7 @@ add_subdirectory("render_graph")
 set(GRAPHICS_SRCS
     ${GRAPHICS_SRCS}
     ${PLATFORM_SRCS}
+    ${RENDER_GRAPH_SRCS}
     "${INCLUDE_ROOT}/buffer.h"
     "${INCLUDE_ROOT}/buffer_descriptor.h"
     "${INCLUDE_ROOT}/buffer_type.h"

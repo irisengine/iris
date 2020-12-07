@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <memory>
 
 #include "graphics/render_graph/node.h"
 
@@ -93,7 +92,7 @@ class ArithmeticNode : public Node
     /** First value. */
     Node *value1_;
 
-    /** Seconf value. */
+    /** Second value. */
     Node *value2_;
 
     /** Arithmetic operator applied to value1 and value2. */
