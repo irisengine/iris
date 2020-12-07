@@ -11,6 +11,7 @@ set(RENDER_GRAPH_SRCS
     "${SOURCE_ROOT}/component_node.cpp" "${INCLUDE_ROOT}/component_node.h"
     "${SOURCE_ROOT}/composite_node.cpp" "${INCLUDE_ROOT}/composite_node.h"
     "${SOURCE_ROOT}/invert_node.cpp" "${INCLUDE_ROOT}/invert_node.h"
+    "${SOURCE_ROOT}/render_graph.cpp" "${INCLUDE_ROOT}/render_graph.h"
     "${SOURCE_ROOT}/render_node.cpp" "${INCLUDE_ROOT}/render_node.h"
     "${SOURCE_ROOT}/sin_node.cpp" "${INCLUDE_ROOT}/sin_node.h"
     "${SOURCE_ROOT}/texture_node.cpp" "${INCLUDE_ROOT}/texture_node.h"
