@@ -8,6 +8,7 @@ set(GRAPHICS_SRCS
     "${SOURCE_ROOT}/compiler.cpp"
     "${SOURCE_ROOT}/material.cpp"
     "${SOURCE_ROOT}/material_factory.cpp"
+    "${SOURCE_ROOT}/render_target.cpp"
     "${SOURCE_ROOT}/opengl.cpp" "${INCLUDE_ROOT}/opengl.h"
     "${SOURCE_ROOT}/render_system.cpp"
     "${SOURCE_ROOT}/shader.cpp" "${INCLUDE_ROOT}/shader.h"

@@ -26,6 +26,7 @@ set(GRAPHICS_SRCS
     "${INCLUDE_ROOT}/material_factory.h"
     "${INCLUDE_ROOT}/primitive_type.h"
     "${INCLUDE_ROOT}/render_system.h"
+    "${INCLUDE_ROOT}/render_target.h"
     "${INCLUDE_ROOT}/texture.h"
     "${INCLUDE_ROOT}/vertex_data.h"
     "${INCLUDE_ROOT}/weight.h"
