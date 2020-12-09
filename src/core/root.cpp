@@ -20,6 +20,7 @@ Root::Root()
     , physics_system_(std::make_unique<PhysicsSystem>())
     , window_()
     , render_system_()
+    , screen_target_()
 {
 }
 
@@ -28,6 +29,9 @@ void Root::init()
     window_ = std::make_unique<Window>(800.0f, 800.0f);
     render_system_ =
         std::make_unique<RenderSystem>(window_->width(), window_->height());
+    screen_target_ = std::make_unique<RenderTarget>(
+        static_cast<std::uint32_t>(window_->width()),
+        static_cast<std::uint32_t>(window_->height()));
 }
 
 Root &Root::instance()
@@ -58,6 +62,11 @@ RenderSystem &Root::render_system()
 Window &Root::window()
 {
     return *instance_.window_;
+}
+
+RenderTarget &Root::screen_target()
+{
+    return *instance_.screen_target_;
 }
 
 }
