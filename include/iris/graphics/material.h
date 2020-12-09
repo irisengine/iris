@@ -3,36 +3,40 @@
 #include <any>
 #include <memory>
 #include <string>
+#include <vector>
+
+#include "graphics/buffer_descriptor.h"
+#include "graphics/render_graph/render_graph.h"
+#include "graphics/texture.h"
 
 namespace iris
 {
 
 /**
- * Class encapsulating a materal for rendering an entity.
+ * Class encapsulating a material for rendering an entity.
  */
 class Material
 {
   public:
-    /**
-     * Construct a new material.
-     *
-     * @param vertex_shader_source
-     *   Shader source for vertex.
-     *
-     * @param fragment_shader_source
-     *   Shader source for fragment.
-     */
     Material(
-        const std::string &vertex_shader_source,
-        const std::string &fragment_shader_source);
+        /**
+         * Construct a new material.
+         *
+         * @param render_graph
+         *   RenderGraph describing material.
+         *
+         * @param vertex_descriptor
+         *   BufferDescriptor for vertex data.
+         */
+        const RenderGraph &render_graph,
+        const BufferDescriptor &vertex_desciptor);
 
-    /** Declared in mm/cpp file as implementation is an incomplete file. */
     ~Material();
     Material(Material &&);
     Material &operator=(Material &&);
 
     /**
-     * Get a native handle for the material. The type of this is dependant
+     * Get a native handle for the material. The type of this is dependent
      * on the current graphics API.
      *
      * @returns
@@ -40,7 +44,18 @@ class Material
      */
     std::any native_handle() const;
 
+    /**
+     * Get Textures used in this material.
+     *
+     * @returns
+     *   Textures used.
+     */
+    std::vector<Texture *> textures() const;
+
   private:
+    /** Collection of textures used. */
+    std::vector<Texture *> textures_;
+
     /** Graphics API implementation. */
     struct implementation;
     std::unique_ptr<implementation> impl_;

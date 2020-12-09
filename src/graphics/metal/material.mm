@@ -7,6 +7,9 @@
 #import <Metal/Metal.h>
 
 #include "core/exception.h"
+#include "graphics/buffer_descriptor.h"
+#include "graphics/render_graph/compiler.h"
+#include "graphics/render_graph/render_graph.h"
 #include "platform/macos/macos_ios_utility.h"
 
 namespace
@@ -57,28 +60,47 @@ namespace iris
  */
 struct Material::implementation
 {
-    id<MTLFunction> vertex_program;
-    id<MTLFunction> fragment_program;
+    id<MTLRenderPipelineState> state;
 };
 
-Material::Material(
-    const std::string &vertex_shader_source,
-    const std::string &fragment_shader_source)
-    : impl_(std::make_unique<implementation>())
+Material::Material(const RenderGraph &render_graph, const BufferDescriptor &vertex_descriptor)
+    : textures_(),
+      impl_(std::make_unique<implementation>())
 {
-    // load shaders and entry functions
-    impl_->vertex_program = load_function(vertex_shader_source, "vertex_main");
-    impl_->fragment_program = load_function(fragment_shader_source, "fragment_main");
+    Compiler compiler{render_graph};
+
+    const auto vertex_program = load_function(compiler.vertex_shader(), "vertex_main");
+    const auto fragment_program = load_function(compiler.fragment_shader(), "fragment_main");
+
+    const auto vertex_descriptor_handle = std::any_cast<MTLVertexDescriptor*>(vertex_descriptor.native_handle());
+
+    auto *device = platform::utility::metal_device();
+
+    // get pipeline state handle
+    auto *pipeline_state_descriptor = [[MTLRenderPipelineDescriptor alloc] init];
+    [pipeline_state_descriptor setVertexFunction:vertex_program];
+    [pipeline_state_descriptor setFragmentFunction:fragment_program];
+    pipeline_state_descriptor.colorAttachments[0].pixelFormat = MTLPixelFormatRGBA8Unorm;
+    [pipeline_state_descriptor setDepthAttachmentPixelFormat:MTLPixelFormatDepth32Float];
+    [pipeline_state_descriptor setVertexDescriptor:vertex_descriptor_handle];
+
+    impl_->state = [device newRenderPipelineStateWithDescriptor:pipeline_state_descriptor error:nullptr];
+
+    textures_ = compiler.textures();
 }
 
-/** Default */
 Material::~Material() = default;
 Material::Material(Material&&) = default;
 Material& Material::operator=(Material&&) = default;
 
 std::any Material::native_handle() const
 {
-    return std::any{ std::make_tuple(impl_->vertex_program, impl_->fragment_program) };
+    return {impl_->state};
+}
+
+std::vector<Texture *> Material::textures() const
+{
+    return textures_;
 }
 
 }
