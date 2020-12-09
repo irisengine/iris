@@ -6,7 +6,6 @@
 
 #include "core/camera.h"
 #include "graphics/render_system.h"
-#include "graphics/sprite.h"
 #include "platform/event.h"
 
 namespace iris
