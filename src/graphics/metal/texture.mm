@@ -62,7 +62,7 @@ MTLPixelFormat channels_to_format(const std::uint32_t num_channels)
  * @returns
  *   Handle to texture.
  */
-id<MTLTexture> create_texture(
+std::tuple<id<MTLTexture>, std::uint32_t> create_texture(
     const std::vector<std::uint8_t> &data,
     std::uint32_t width,
     std::uint32_t height,
@@ -96,10 +96,12 @@ id<MTLTexture> create_texture(
     // set image data for texture
     [texture replaceRegion:region
                mipmapLevel:0
-                 withBytes:data.data()
+                 withBytes:data_ptr
                bytesPerRow:bytes_per_row];
 
-    return texture;
+    static std::uint32_t counter = 0u;
+
+    return {texture, counter++};
 }
 
 }
@@ -112,13 +114,9 @@ namespace iris
  */
 struct Texture::implementation
 {
-    /** Simple constructor which takes a value for each member. */
-    implementation(id<MTLTexture> texture)
-        : texture(texture)
-    { }
-
-    /** Metal handle for texture. */
     id<MTLTexture> texture;
+
+    std::uint32_t texture_id;
 };
 
 
@@ -131,10 +129,12 @@ Texture::Texture(
       width_(width),
       height_(height),
       num_channels_(num_channels),
-      impl_(nullptr)
+      flip_(false),
+      impl_(std::make_unique<implementation>())
 {
-    const auto texture = create_texture(data, width, height, num_channels);
-    impl_ = std::make_unique<implementation>(texture);
+    const auto [texture, texture_id] = create_texture(data, width, height, num_channels);
+    impl_->texture = texture;
+    impl_->texture_id = texture_id;
 
     LOG_ENGINE_INFO("texture", "loaded from data");
 }
@@ -169,9 +169,24 @@ std::any Texture::native_handle() const
     return impl_->texture;
 }
 
+std::uint32_t Texture::texture_id() const
+{
+    return impl_->texture_id;
+}
+
 Texture Texture::blank()
 {
     return{ { 0xFF, 0xFF, 0xFF, 0xFF }, 1u, 1u, 4u };
+}
+
+bool Texture::flip() const
+{
+    return flip_;
+}
+
+void Texture::set_flip(bool flip)
+{
+    flip_ = flip;
 }
 
 }

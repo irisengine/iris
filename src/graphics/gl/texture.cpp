@@ -63,7 +63,7 @@ std::uint32_t channels_to_format(const std::uint32_t num_channels)
  * @returns
  *   Handle to texture.
  */
-std::uint32_t create_texture(
+std::tuple<std::uint32_t, std::uint32_t> create_texture(
     const std::vector<std::uint8_t> &data,
     std::uint32_t width,
     std::uint32_t height,
@@ -78,11 +78,13 @@ std::uint32_t create_texture(
 
     auto texture = 0u;
 
+    static std::uint32_t counter = 0u;
+
     ::glGenTextures(1, &texture);
     iris::check_opengl_error("could not generate texture");
 
     // use default Texture unit
-    ::glActiveTexture(GL_TEXTURE0);
+    ::glActiveTexture(GL_TEXTURE0 + counter);
     iris::check_opengl_error("could not activiate texture");
 
     ::glBindTexture(GL_TEXTURE_2D, texture);
@@ -118,7 +120,7 @@ std::uint32_t create_texture(
     ::glGenerateMipmap(GL_TEXTURE_2D);
     iris::check_opengl_error("could not generate mipmaps");
 
-    return texture;
+    return {texture, counter++};
 }
 
 }
@@ -131,14 +133,9 @@ namespace iris
  */
 struct Texture::implementation
 {
-    /** Simple constructor which takes a value for each member. */
-    implementation(std::uint32_t texture)
-        : texture(texture)
-    {
-    }
-
-    /** Opengl handle for texture. */
     std::uint32_t texture;
+
+    std::uint32_t id;
 };
 
 Texture::Texture(
@@ -150,21 +147,21 @@ Texture::Texture(
     , width_(width)
     , height_(height)
     , num_channels_(num_channels)
-    , impl_(nullptr)
+    , flip_(false)
+    , impl_(std::make_unique<implementation>())
 {
-    const auto texture = create_texture(data, width, height, num_channels);
-    impl_ = std::make_unique<implementation>(texture);
+    const auto [texture, id] =
+        create_texture(data, width, height, num_channels);
+    impl_->texture = texture;
+    impl_->id = id;
 
     LOG_ENGINE_INFO("texture", "loaded from data");
 }
 
 Texture::~Texture()
 {
-    if (impl_)
-    {
-        // cleanup opengl resources
-        ::glDeleteTextures(1, std::addressof(impl_->texture));
-    }
+    // cleanup opengl resources
+    ::glDeleteTextures(1, std::addressof(impl_->texture));
 }
 
 /** Default. */
@@ -196,9 +193,24 @@ std::any Texture::native_handle() const
     return impl_->texture;
 }
 
+std::uint32_t Texture::texture_id() const
+{
+    return impl_->id;
+}
+
 Texture Texture::blank()
 {
     return {{0xFF, 0xFF, 0xFF, 0xFF}, 1u, 1u, 4u};
+}
+
+bool Texture::flip() const
+{
+    return flip_;
+}
+
+void Texture::set_flip(bool flip)
+{
+    flip_ = flip;
 }
 
 }

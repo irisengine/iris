@@ -84,12 +84,40 @@ class Texture
     std::any native_handle() const;
 
     /**
+     * Get a unique id for this texture.
+     *
+     * For most APIs this is just a unique integer (starting at 0 and
+     * increasing for each subsequent texture). For opengl it is the texture
+     * unit i.e. GL_TEXTURE0 + texture_id.
+     *
+     * @returns
+     *   Unique id.
+     */
+    std::uint32_t texture_id() const;
+
+    /**
      * Return a 1x1 pixel white texture.
      *
      * @returns
      *   Blank texture.
      */
     static Texture blank();
+
+    /**
+     * Should a texture be flipped vertically.
+     *
+     * @returns
+     *   Should flip.
+     */
+    bool flip() const;
+
+    /**
+     * Set whether texture should be flipped vertically.
+     *
+     * @param flip
+     *   New flip value.
+     */
+    void set_flip(bool flip);
 
   private:
     /** Raw image data. */
@@ -103,6 +131,9 @@ class Texture
 
     /** Number of channels in image. */
     std::uint32_t num_channels_;
+
+    /** Should texture be flipped vertically. */
+    bool flip_;
 
     /** Graphics API implementation. */
     struct implementation;
