@@ -7,6 +7,7 @@
 
 #include "core/exception.h"
 #include "graphics/gl/opengl.h"
+#include "graphics/pixel_format.h"
 
 namespace iris
 {
@@ -26,10 +27,10 @@ RenderTarget::RenderTarget(std::uint32_t width, std::uint32_t height)
     check_opengl_error("could not generate fbo");
 
     // create backing textures for colour and depth
-    colour_texture_ = std::make_unique<Texture>(
-        std::vector<std::uint8_t>{}, width * 2, height * 2, 3u);
-    depth_texture_ = std::make_unique<Texture>(
-        std::vector<std::uint8_t>{}, width * 2, height * 2, 5u);
+    colour_texture_ =
+        std::make_unique<Texture>(width * 2, height * 2, PixelFormat::RGB);
+    depth_texture_ =
+        std::make_unique<Texture>(width * 2, height * 2, PixelFormat::DEPTH);
 
     // bind fbo so we can set textures
     ::glBindFramebuffer(GL_FRAMEBUFFER, impl_->fbo);

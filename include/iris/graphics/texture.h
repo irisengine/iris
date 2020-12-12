@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "graphics/pixel_format.h"
+
 namespace iris
 {
 
@@ -17,10 +19,7 @@ class Texture
 {
   public:
     /**
-     * Creates a new Texture with custom values.
-     *
-     * @param data
-     *   Raw data of image.
+     * Creates a new empty Texture.
      *
      * @param width
      *   Width of image.
@@ -28,14 +27,34 @@ class Texture
      * @param height
      *   Height of image.
      *
-     * @param num_channels
+     * @param pixel_format
+     *   Number of channels.
+     */
+    Texture(
+        std::uint32_t width,
+        std::uint32_t height,
+        PixelFormat pixel_foramt);
+
+    /**
+     * Creates a new Texture with custom data.
+     *
+     * @param data
+     *   Raw data of image, in pixel_format.
+     *
+     * @param width
+     *   Width of image.
+     *
+     * @param height
+     *   Height of image.
+     *
+     * @param pixel_format
      *   Number of channels.
      */
     Texture(
         const std::vector<std::uint8_t> &data,
-        const std::uint32_t width,
-        const std::uint32_t height,
-        const std::uint32_t num_channels);
+        std::uint32_t width,
+        std::uint32_t height,
+        PixelFormat pixel_foramt);
 
     /** Declared in mm/cpp file as implementation is an incomplete type. */
     ~Texture();
@@ -65,14 +84,6 @@ class Texture
      *   Image height.
      */
     std::uint32_t height() const;
-
-    /**
-     * Get the number of channels in the image.
-     *
-     * @returns
-     *   Number of channels.
-     */
-    std::uint32_t num_channels() const;
 
     /**
      * Get a native handle for the texture. The type of this is dependant
@@ -128,9 +139,6 @@ class Texture
 
     /** Image height. */
     std::uint32_t height_;
-
-    /** Number of channels in image. */
-    std::uint32_t num_channels_;
 
     /** Should texture be flipped vertically. */
     bool flip_;

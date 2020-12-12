@@ -24,6 +24,7 @@ set(GRAPHICS_SRCS
     "${INCLUDE_ROOT}/keyframe.h"
     "${INCLUDE_ROOT}/material.h"
     "${INCLUDE_ROOT}/material_factory.h"
+    "${INCLUDE_ROOT}/pixel_format.h"
     "${INCLUDE_ROOT}/primitive_type.h"
     "${INCLUDE_ROOT}/render_system.h"
     "${INCLUDE_ROOT}/render_target.h"

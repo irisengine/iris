@@ -8,6 +8,7 @@
 #include <stb/stb_image.h>
 
 #include "core/exception.h"
+#include "graphics/pixel_format.h"
 #include "graphics/texture.h"
 #include "platform/resource_loader.h"
 
@@ -84,8 +85,21 @@ Texture *load(const std::string &resource)
         const auto file_data = ResourceLoader::instance().load(resource);
         const auto [data, width, height, num_channels] = parse_image(file_data);
 
+        auto format = PixelFormat::RGB;
+        switch (num_channels)
+        {
+            case 3:
+                format = PixelFormat::RGB;
+                break;
+            case 4:
+                format = PixelFormat::RGBA;
+                break;
+            default:
+                throw Exception("unsupported number of channels");
+        }
+
         cache[resource] =
-            std::make_unique<Texture>(data, width, height, num_channels);
+            std::make_unique<Texture>(data, width, height, format);
     }
 
     return cache[resource].get();

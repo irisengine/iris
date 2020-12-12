@@ -8,6 +8,7 @@
 
 #include "core/exception.h"
 #include "graphics/gl/opengl.h"
+#include "graphics/pixel_format.h"
 #include "log/log.h"
 #include "platform/resource_loader.h"
 
@@ -15,34 +16,37 @@ namespace
 {
 
 /**
- * Helper method to convert number of channels into an opengl enum.
+ * Helper method to convert engine pixel format into an opengl enum.
  *
- * @param num_channels
- *   The number of channels in an image.
+ * @param pixel_format
+ *   Format of texture data.
  *
  * @returns
- *   An opengl enum representing the number of channels.
+ *   An opengl enum representing the pixel format.
  */
-std::uint32_t channels_to_format(const std::uint32_t num_channels)
+std::uint32_t format_to_opengl(iris::PixelFormat pixel_format)
 {
-    auto format = 0u;
+    auto opengl_format = 0u;
 
-    switch (num_channels)
+    switch (pixel_format)
     {
-        case 1:
-            format = GL_RED;
+        case iris::PixelFormat::R:
+            opengl_format = GL_RED;
             break;
-        case 3:
-            format = GL_RGB;
+        case iris::PixelFormat::RGB:
+            opengl_format = GL_RGB;
             break;
-        case 4:
-            format = GL_RGBA;
+        case iris::PixelFormat::RGBA:
+            opengl_format = GL_RGBA;
+            break;
+        case iris::PixelFormat::DEPTH:
+            opengl_format = GL_DEPTH_COMPONENT;
             break;
         default:
             throw std::runtime_error("incorrect number of channels");
     }
 
-    return format;
+    return opengl_format;
 }
 
 /**
@@ -57,8 +61,8 @@ std::uint32_t channels_to_format(const std::uint32_t num_channels)
  * @param height
  *   Height of image.
  *
- * @param num_channels
- *   Number of channels.
+ * @param pixel_format
+ *   Format of texture data.
  *
  * @returns
  *   Handle to texture.
@@ -67,15 +71,8 @@ std::tuple<std::uint32_t, std::uint32_t> create_texture(
     const std::vector<std::uint8_t> &data,
     std::uint32_t width,
     std::uint32_t height,
-    std::uint32_t num_channels)
+    iris::PixelFormat pixel_format)
 {
-    // sanity check we have enough data
-    const auto expected_size = width * height * num_channels;
-    if (data.size() != expected_size)
-    {
-        throw iris::Exception("incorrect data size");
-    }
-
     auto texture = 0u;
 
     static std::uint32_t counter = 0u;
@@ -85,7 +82,7 @@ std::tuple<std::uint32_t, std::uint32_t> create_texture(
 
     // use default Texture unit
     ::glActiveTexture(GL_TEXTURE0 + counter);
-    iris::check_opengl_error("could not activiate texture");
+    iris::check_opengl_error("could not activate texture");
 
     ::glBindTexture(GL_TEXTURE_2D, texture);
     iris::check_opengl_error("could not bind texture");
@@ -102,7 +99,10 @@ std::tuple<std::uint32_t, std::uint32_t> create_texture(
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     iris::check_opengl_error("could not set max filter parameter");
 
-    const auto format = channels_to_format(num_channels);
+    const auto format = format_to_opengl(pixel_format);
+
+    // opengl requires a nullptr if there is no data
+    const auto *data_ptr = (data.empty()) ? nullptr : data.data();
 
     // create opengl texture
     ::glTexImage2D(
@@ -114,7 +114,7 @@ std::tuple<std::uint32_t, std::uint32_t> create_texture(
         0,
         format,
         GL_UNSIGNED_BYTE,
-        data.data());
+        data_ptr);
     iris::check_opengl_error("could not set Texture data");
 
     ::glGenerateMipmap(GL_TEXTURE_2D);
@@ -134,24 +134,30 @@ namespace iris
 struct Texture::implementation
 {
     std::uint32_t texture;
-
     std::uint32_t id;
 };
 
 Texture::Texture(
+    std::uint32_t width,
+    std::uint32_t height,
+    PixelFormat pixel_format)
+    : Texture({}, width, height, pixel_format)
+{
+}
+
+Texture::Texture(
     const std::vector<std::uint8_t> &data,
-    const std::uint32_t width,
-    const std::uint32_t height,
-    const std::uint32_t num_channels)
+    std::uint32_t width,
+    std::uint32_t height,
+    PixelFormat pixel_format)
     : data_(data)
     , width_(width)
     , height_(height)
-    , num_channels_(num_channels)
     , flip_(false)
     , impl_(std::make_unique<implementation>())
 {
     const auto [texture, id] =
-        create_texture(data, width, height, num_channels);
+        create_texture(data, width, height, pixel_format);
     impl_->texture = texture;
     impl_->id = id;
 
@@ -183,11 +189,6 @@ std::uint32_t Texture::height() const
     return height_;
 }
 
-std::uint32_t Texture::num_channels() const
-{
-    return num_channels_;
-}
-
 std::any Texture::native_handle() const
 {
     return impl_->texture;
@@ -200,7 +201,7 @@ std::uint32_t Texture::texture_id() const
 
 Texture Texture::blank()
 {
-    return {{0xFF, 0xFF, 0xFF, 0xFF}, 1u, 1u, 4u};
+    return {{0xFF, 0xFF, 0xFF, 0xFF}, 1u, 1u, PixelFormat::RGBA};
 }
 
 bool Texture::flip() const
