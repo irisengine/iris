@@ -8,6 +8,7 @@
 #import <Metal/Metal.h>
 
 #include "core/exception.h"
+#include "graphics/pixel_format.h"
 #include "graphics/texture.h"
 #include "platform/macos/macos_ios_utility.h"
 
@@ -29,10 +30,10 @@ RenderTarget::RenderTarget(std::uint32_t width, std::uint32_t height)
 
     // create textures for colour and depth
 
-    colour_texture_ = std::make_unique<Texture>(image_data, width * scale, height * scale, 4u);
+    colour_texture_ = std::make_unique<Texture>(image_data, width * scale, height * scale, PixelFormat::RGBA);
     colour_texture_->set_flip(true);
 
-    depth_texture_ = std::make_unique<Texture>(image_data, width * scale, height * scale, 5u);
+    depth_texture_ = std::make_unique<Texture>(image_data, width * scale, height * scale, PixelFormat::DEPTH);
     depth_texture_->set_flip(true);
 }
 
