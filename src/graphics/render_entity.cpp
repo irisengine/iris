@@ -4,7 +4,6 @@
 #include "core/matrix4.h"
 #include "core/quaternion.h"
 #include "core/vector3.h"
-#include "graphics/material_factory.h"
 #include "graphics/mesh_factory.h"
 #include "graphics/skeleton.h"
 

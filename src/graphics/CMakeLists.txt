@@ -23,7 +23,6 @@ set(GRAPHICS_SRCS
     "${INCLUDE_ROOT}/font.h"
     "${INCLUDE_ROOT}/keyframe.h"
     "${INCLUDE_ROOT}/material.h"
-    "${INCLUDE_ROOT}/material_factory.h"
     "${INCLUDE_ROOT}/pixel_format.h"
     "${INCLUDE_ROOT}/primitive_type.h"
     "${INCLUDE_ROOT}/render_system.h"

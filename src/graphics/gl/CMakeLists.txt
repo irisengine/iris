@@ -7,7 +7,6 @@ set(GRAPHICS_SRCS
     "${SOURCE_ROOT}/buffer_descriptor.cpp"
     "${SOURCE_ROOT}/compiler.cpp"
     "${SOURCE_ROOT}/material.cpp"
-    "${SOURCE_ROOT}/material_factory.cpp"
     "${SOURCE_ROOT}/render_target.cpp"
     "${SOURCE_ROOT}/opengl.cpp" "${INCLUDE_ROOT}/opengl.h"
     "${SOURCE_ROOT}/render_system.cpp"
