@@ -300,12 +300,22 @@ std::vector<iris::vertex_data> process_vertices(
         const auto &normal = mesh->mNormals[i];
         iris::Vector3 colour{1.0f, 1.0f, 1.0f};
         iris::Vector3 texture_coords{};
+        iris::Vector3 tangent{};
+        iris::Vector3 bitangent{};
 
         // get texture coordinates if they exist
         if (mesh->HasTextureCoords(0))
         {
             texture_coords.x = mesh->mTextureCoords[0][i].x;
             texture_coords.y = mesh->mTextureCoords[0][i].y;
+
+            tangent.x = mesh->mTangents[i].x;
+            tangent.y = mesh->mTangents[i].y;
+            tangent.z = mesh->mTangents[i].z;
+
+            bitangent.x = mesh->mBitangents[i].x;
+            bitangent.y = mesh->mBitangents[i].y;
+            bitangent.z = mesh->mBitangents[i].z;
         }
 
         // only support diffuse colour
@@ -319,7 +329,9 @@ std::vector<iris::vertex_data> process_vertices(
             iris::Vector3(vertex.x, vertex.y, vertex.z),
             iris::Vector3(normal.x, normal.y, normal.z),
             colour,
-            texture_coords);
+            texture_coords,
+            tangent,
+            bitangent);
     }
 
     return vertices;
@@ -341,7 +353,9 @@ void load_mesh(
     // parse file using assimp
     ::Assimp::Importer importer{};
     const auto *scene = importer.ReadFileFromMemory(
-        file_data.data(), file_data.size(), ::aiProcess_Triangulate);
+        file_data.data(),
+        file_data.size(),
+        ::aiProcess_Triangulate | ::aiProcess_CalcTangentSpace);
 
     if ((scene == nullptr) || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) ||
         (scene->mRootNode == nullptr))
