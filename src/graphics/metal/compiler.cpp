@@ -193,6 +193,11 @@ void Compiler::visit(const RenderNode &node)
     float3 amb = 0.5 * fragment_colour.rgb;
     float diff = max(dot(n, light_dir), 0.0);
     float3 diffuse = diff * fragment_colour.rgb;
+
+    if(fragment_colour.a < 0.01)
+    {
+        discard_fragment();
+    }
     
     return float4(amb + diffuse, 1.0);
 }

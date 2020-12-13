@@ -179,6 +179,11 @@ void Compiler::visit(const RenderNode &node)
 
     vec3 diffuse = diff * fragment_colour.rgb;
     outColor = vec4(amb+diffuse, 1.0);
+
+    if(fragment_colour.a < 0.01)
+    {
+        discard;
+    }
 )";
     fragment_stream_ << "}";
 }
