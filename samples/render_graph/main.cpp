@@ -98,7 +98,7 @@ void go(int, char **)
     auto scene3 = std::make_unique<iris::Scene>();
     scene3->create(
         std::move(graph3),
-        iris::mesh_factory::sprite({}, iris::texture_factory::blank()),
+        iris::mesh_factory::sprite({}),
         iris::Vector3{},
         iris::Vector3{800.0f, 800.0f, 1.0f});
 
