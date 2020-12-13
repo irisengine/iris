@@ -1,8 +1,11 @@
 #include "graphics/texture_factory.h"
 
+#include <cstdint>
 #include <map>
 #include <memory>
+#include <sstream>
 #include <string>
+#include <vector>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
@@ -17,6 +20,8 @@ namespace
 
 // static cache of loaded textures
 static std::map<std::string, std::unique_ptr<iris::Texture>> cache;
+
+static std::uint32_t counter = 0u;
 
 /**
  * Load an image from a data buffer.
@@ -101,6 +106,24 @@ Texture *load(const std::string &resource)
         cache[resource] =
             std::make_unique<Texture>(data, width, height, format);
     }
+
+    return cache[resource].get();
+}
+
+Texture *create(
+    const std::vector<std::uint8_t> &data,
+    std::uint32_t width,
+    std::uint32_t height,
+    PixelFormat pixel_format)
+{
+    std::stringstream strm;
+    strm << "!" << counter;
+    ++counter;
+
+    const auto resource = strm.str();
+
+    cache[resource] =
+        std::make_unique<Texture>(data, width, height, pixel_format);
 
     return cache[resource].get();
 }

@@ -36,7 +36,7 @@ BufferDescriptor empty()
         vertex_attributes};
 }
 
-BufferDescriptor sprite(const Vector3 &colour, Texture *texture)
+BufferDescriptor sprite(const Vector3 &colour)
 {
     std::vector<vertex_data> verticies{
         {{-1.0, 1.0, 0.0f}, {}, colour, {0.0f, 1.0f, 0.0f}},

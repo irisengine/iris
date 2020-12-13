@@ -1,4 +1,4 @@
-#include "graphics/font.h"
+#include "graphics/text_factory.h"
 
 #include <cmath>
 #include <memory>
@@ -11,64 +11,29 @@
 #include "core/exception.h"
 #include "graphics/material.h"
 #include "graphics/mesh_factory.h"
-#include "graphics/sprite.h"
+#include "graphics/render_entity.h"
+#include "graphics/render_graph/render_graph.h"
+#include "graphics/render_graph/texture_node.h"
+#include "graphics/scene.h"
 #include "graphics/texture.h"
+#include "graphics/texture_factory.h"
 #include "log/log.h"
 #include "platform/macos/cf_ptr.h"
 #include "platform/macos/macos_ios_utility.h"
 
-namespace iris
+namespace iris::text_factory
 {
 
-/**
- * Struct containing implementation specific data.
- */
-struct Font::implementation
-{
-    implementation()
-        : font(nullptr),
-          colour_space(nullptr),
-          colour(nullptr),
-          keys(),
-          values(),
-          attributes(nullptr)
-    { }
-
-    /** Font object. */
-    CfPtr<CTFontRef> font;
-
-    /** Colour space object. */
-    CfPtr<CGColorSpaceRef> colour_space;
-
-    /** Font colour. */
-    CfPtr<CGColorRef> colour;
-
-    /** Sting attribute keys. */
-    std::array<CFStringRef, 2> keys;
-
-    /** String attribute values. */
-    std::array<CFTypeRef, 2> values;
-
-    /** String attribute dictionary. */
-    CfPtr<CFDictionaryRef> attributes;
-
-    std::unique_ptr<Texture> texture;
-};
-
-Font::Font(
+std::unique_ptr<Scene> create(
     const std::string &font_name,
     const std::uint32_t size,
     const std::string &text,
     const Vector3 &colour)
-    : Sprite(0.0f, 0.0f, 1.0f, 1.0f, colour),
-      font_name_(font_name),
-      colour_(colour),
-      impl_(std::make_unique<implementation>())
 {
     // create a CoreFoundation string object from supplied Font name
     const auto font_name_cf = CfPtr<CFStringRef>(::CFStringCreateWithCString(
         kCFAllocatorDefault,
-        font_name_.c_str(),
+        font_name.c_str(),
         kCFStringEncodingASCII));
 
     if(!font_name_cf)
@@ -77,48 +42,48 @@ Font::Font(
     }
 
     // create Font object
-    impl_->font = CfPtr<CTFontRef>(::CTFontCreateWithName(
+    CfPtr<CTFontRef> font = CfPtr<CTFontRef>(::CTFontCreateWithName(
         font_name_cf.get(),
         size,
         nullptr));
 
-    if(!impl_->font)
+    if(!font)
     {
         throw Exception("failed to create font");
     }
 
     // create a device dependant colour space
-    impl_->colour_space = CfPtr<CGColorSpaceRef>(::CGColorSpaceCreateDeviceRGB());
+    CfPtr<CGColorSpaceRef> colour_space = CfPtr<CGColorSpaceRef>(::CGColorSpaceCreateDeviceRGB());
 
-    if(!impl_->colour_space)
+    if(!colour_space)
     {
         throw Exception("failed to create colour space");
     }
 
     // create a CoreFoundation colour object from supplied colour
-    const CGFloat components[] = { colour_.x, colour_.y, colour_.z, 1.0f };
-    impl_->colour = CfPtr<CGColorRef>(::CGColorCreate(
-        impl_->colour_space.get(),
+    const CGFloat components[] = { colour.x, colour.y, colour.z, 1.0f };
+    CfPtr<CGColorRef> font_colour = CfPtr<CGColorRef>(::CGColorCreate(
+        colour_space.get(),
         components));
 
-    if(!impl_->colour)
+    if(!font_colour)
     {
         throw Exception("failed to create colour");
     }
 
-    impl_->keys = {{ kCTFontAttributeName, kCTForegroundColorAttributeName }};
-    impl_->values = {{ impl_->font.get(), impl_->colour.get() }};
+    std::array<CFStringRef, 2> keys = {{ kCTFontAttributeName, kCTForegroundColorAttributeName }};
+    std::array<CFTypeRef, 2> values = {{ font.get(), font_colour.get() }};
 
     // create string attributes dictionary, containing Font name and colour
-    impl_->attributes = CfPtr<CFDictionaryRef>(::CFDictionaryCreate(
+    CfPtr<CFDictionaryRef> attributes = CfPtr<CFDictionaryRef>(::CFDictionaryCreate(
         kCFAllocatorDefault,
-        reinterpret_cast<const void**>(impl_->keys.data()),
-        reinterpret_cast<const void**>(impl_->values.data()),
-        impl_->keys.size(),
+        reinterpret_cast<const void**>(keys.data()),
+        reinterpret_cast<const void**>(values.data()),
+        keys.size(),
         &kCFTypeDictionaryKeyCallBacks,
         &kCFTypeDictionaryValueCallBacks));
 
-    if(!impl_->attributes)
+    if(!attributes)
     {
         throw Exception("failed to create attributes");
     }
@@ -135,7 +100,7 @@ Font::Font(
     const auto attr_string = CfPtr<CFAttributedStringRef>(::CFAttributedStringCreate(
         kCFAllocatorDefault,
         text_cf.get(),
-        impl_->attributes.get()));
+        attributes.get()));
 
     const auto frame_setter = CfPtr<CTFramesetterRef>(
         ::CTFramesetterCreateWithAttributedString(attr_string.get()));
@@ -189,7 +154,7 @@ Font::Font(
         height,
         bits_per_pixel,
         bytes_per_row,
-        impl_->colour_space.get(),
+        colour_space.get(),
         kCGImageAlphaPremultipliedLast,
         nullptr,
         nullptr));
@@ -211,13 +176,21 @@ Font::Font(
     ::CGContextFlush(context.get());
 
     // create a Texture from the rendered pixel data
-    impl_->texture = std::make_unique<Texture>(pixel_data, width, height, 4u);
+    auto *texture = texture_factory::create(pixel_data, width, height, PixelFormat::RGBA);
 
-    set_scale({ static_cast<float>(width), static_cast<float>(height), 1.0f });
-    set_texture(impl_->texture.get());
+    RenderGraph render_graph{};
+    auto *texture_node = render_graph.create<TextureNode>(texture);
+    render_graph.render_node()->set_colour_input(texture_node);
+
+    auto scene = std::make_unique<Scene>();
+    scene->create(
+        std::move(render_graph),
+        mesh_factory::sprite({1.0f}),
+        Vector3{1.0f},
+        Vector3{ static_cast<float>(width), static_cast<float>(height), 1.0f });
+
+    return scene;
 }
-
-Font::~Font() = default;
 
 }
 

@@ -24,13 +24,10 @@ BufferDescriptor empty();
  * @param colour
  *   Colour of sprite.
  *
- * @param texture
- *   Texture of sprite.
- *
  * @returns
  *   BufferDescriptor for sprite.
  */
-BufferDescriptor sprite(const Vector3 &colour, Texture *texture);
+BufferDescriptor sprite(const Vector3 &colour);
 
 /**
  * Create a cube mesh.

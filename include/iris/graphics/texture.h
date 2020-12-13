@@ -33,7 +33,7 @@ class Texture
     Texture(
         std::uint32_t width,
         std::uint32_t height,
-        PixelFormat pixel_foramt);
+        PixelFormat pixel_format);
 
     /**
      * Creates a new Texture with custom data.
@@ -54,7 +54,7 @@ class Texture
         const std::vector<std::uint8_t> &data,
         std::uint32_t width,
         std::uint32_t height,
-        PixelFormat pixel_foramt);
+        PixelFormat pixel_format);
 
     /** Declared in mm/cpp file as implementation is an incomplete type. */
     ~Texture();
