@@ -27,7 +27,7 @@ class DebugDraw : public ::btIDebugDraw
     /**
      * Construct a new DebugDraw.
      */
-    DebugDraw();
+    DebugDraw(RenderEntity *entity);
 
     // default
     ~DebugDraw() override = default;
@@ -67,7 +67,7 @@ class DebugDraw : public ::btIDebugDraw
     std::vector<std::tuple<Vector3, Vector3, Vector3, Vector3>> verticies_;
 
     /** A render entity for all debug shapes. */
-    RenderEntity *model_;
+    RenderEntity *entity_;
 
     /** Bullet specific debug mode. */
     int debug_mode_;
