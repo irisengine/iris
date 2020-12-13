@@ -11,6 +11,14 @@ namespace iris::mesh_factory
 {
 
 /**
+ * Create an empty mesh.
+ *
+ * @returns
+ *   BufferDescriptor for empty object.
+ */
+BufferDescriptor empty();
+
+/**
  * Create a Sprite mesh.
  *
  * @param colour

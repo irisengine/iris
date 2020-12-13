@@ -25,6 +25,17 @@
 namespace iris::mesh_factory
 {
 
+BufferDescriptor empty()
+{
+    std::vector<vertex_data> verticies{};
+    std::vector<std::uint32_t> indices{};
+
+    return {
+        Buffer(verticies, BufferType::VERTEX_ATTRIBUTES),
+        Buffer(indices, BufferType::VERTEX_INDICES),
+        vertex_attributes};
+}
+
 BufferDescriptor sprite(const Vector3 &colour, Texture *texture)
 {
     std::vector<vertex_data> verticies{
@@ -215,11 +226,10 @@ std::tuple<std::vector<BufferDescriptor>, Skeleton> load(
         for (auto i = 0u; i < c.vertices.size(); ++i)
         {
             // we can use the default attributes
-            meshes.emplace_back(
-                BufferDescriptor(
-                    Buffer(c.vertices[i], BufferType::VERTEX_ATTRIBUTES),
-                    Buffer(c.indices[i], BufferType::VERTEX_INDICES),
-                    vertex_attributes));
+            meshes.emplace_back(BufferDescriptor(
+                Buffer(c.vertices[i], BufferType::VERTEX_ATTRIBUTES),
+                Buffer(c.indices[i], BufferType::VERTEX_INDICES),
+                vertex_attributes));
         }
 
         cache[mesh_file] = c;
@@ -232,11 +242,10 @@ std::tuple<std::vector<BufferDescriptor>, Skeleton> load(
         for (auto i = 0u; i < c.vertices.size(); ++i)
         {
             // we can use the default attributes
-            meshes.emplace_back(
-                BufferDescriptor(
-                    Buffer(c.vertices[i], BufferType::VERTEX_ATTRIBUTES),
-                    Buffer(c.indices[i], BufferType::VERTEX_INDICES),
-                    vertex_attributes));
+            meshes.emplace_back(BufferDescriptor(
+                Buffer(c.vertices[i], BufferType::VERTEX_ATTRIBUTES),
+                Buffer(c.indices[i], BufferType::VERTEX_INDICES),
+                vertex_attributes));
         }
         skeleton = &cache[mesh_file].skeleton;
     }
