@@ -52,7 +52,7 @@ BufferDescriptor sprite(const Vector3 &colour)
         vertex_attributes};
 }
 
-BufferDescriptor cube(const Vector3 colour)
+BufferDescriptor cube(const Vector3 &colour)
 {
     std::vector<vertex_data> verticies{
         {{1.0f, -1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, colour, {}},
