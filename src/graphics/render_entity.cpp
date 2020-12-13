@@ -151,6 +151,19 @@ const std::vector<BufferDescriptor> &RenderEntity::buffer_descriptors() const
     return buffer_descriptors_;
 }
 
+void RenderEntity::set_buffer_descriptors(BufferDescriptor buffer_descriptor)
+{
+    std::vector<BufferDescriptor> descriptors;
+    descriptors.emplace_back(std::move(buffer_descriptor));
+    set_buffer_descriptors(std::move(descriptors));
+}
+
+void RenderEntity::set_buffer_descriptors(
+    std::vector<BufferDescriptor> buffer_descriptors)
+{
+    buffer_descriptors_ = std::move(buffer_descriptors);
+}
+
 bool RenderEntity::should_render_wireframe() const
 {
     return wireframe_;

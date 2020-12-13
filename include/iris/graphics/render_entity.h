@@ -189,6 +189,23 @@ class RenderEntity
     const std::vector<BufferDescriptor> &buffer_descriptors() const;
 
     /**
+     * Set buffer descriptor.
+     *
+     * @param buffer_descriptor.
+     *   New (single) buffer descriptor.
+     */
+    void set_buffer_descriptors(BufferDescriptor buffer_descriptor);
+
+    /**
+     * Set buffer descriptors.
+     *
+     * @param buffer_descriptor.
+     *   New buffer descriptors.
+     */
+    void set_buffer_descriptors(
+        std::vector<BufferDescriptor> buffer_descriptors);
+
+    /**
      * Returns whether the object should be rendered as a wireframe.
      *
      * @returns
