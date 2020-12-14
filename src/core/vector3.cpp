@@ -150,6 +150,14 @@ void Vector3::lerp(const Vector3 &other, float amount)
     *this += (other * amount);
 }
 
+Vector3 Vector3::lerp(const Vector3 &start, const Vector3 &end, float amount)
+{
+    auto tmp = start;
+    tmp.lerp(end, amount);
+
+    return tmp;
+}
+
 Vector3 Vector3::cross(const Vector3 &v1, const Vector3 &v2)
 {
     return Vector3(v1).cross(v2);

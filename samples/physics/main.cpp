@@ -6,8 +6,10 @@
 
 #include "core/camera.h"
 #include "graphics/mesh_factory.h"
-#include "graphics/model.h"
-#include "graphics/sprite.h"
+#include "graphics/pipeline.h"
+#include "graphics/render_graph/render_graph.h"
+#include "graphics/scene.h"
+#include "graphics/stage.h"
 #include "log/log.h"
 #include "physics/basic_character_controller.h"
 #include "physics/box_collision_shape.h"
@@ -71,14 +73,16 @@ void go(int, char **)
 
     auto &rs = iris::Root::render_system();
     auto &ps = iris::Root::physics_system();
-    auto &camera = rs.persective_camera();
+    iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};
 
     std::vector<std::tuple<iris::RenderEntity *, iris::RigidBody *>> boxes;
 
-    rs.create<iris::Model>(
+    auto scene = std::make_unique<iris::Scene>();
+    scene->create(
+        iris::RenderGraph{},
+        iris::mesh_factory::cube({1.0f}),
         iris::Vector3{0.0f, -50.0f, 0.0f},
-        iris::Vector3{500.0f, 50.0f, 500.0f},
-        iris::mesh_factory::cube({1.0f, 1.0f, 1.0f}));
+        iris::Vector3{500.0f, 50.0f, 500.0f});
 
     ps.create_rigid_body(
         iris::Vector3{0.0f, -50.0f, 0.0f},
@@ -101,8 +105,11 @@ void go(int, char **)
                               : iris::Vector3{0.0f, 0.0f, 1.0f};
 
             boxes.emplace_back(
-                rs.create<iris::Model>(
-                    pos, half_size, iris::mesh_factory::cube(colour)),
+                scene->create(
+                    iris::RenderGraph{},
+                    iris::mesh_factory::cube(colour),
+                    pos,
+                    half_size),
                 ps.create_rigid_body(
                     pos,
                     std::make_unique<iris::BoxCollisionShape>(half_size),
@@ -110,8 +117,13 @@ void go(int, char **)
         }
     }
 
+    auto stage = std::make_unique<iris::Stage>(std::move(scene), camera);
+    iris::Pipeline pipeline(std::move(stage));
+
     auto *character_controller =
         ps.create_character_controller<iris::BasicCharacterController>();
+
+    rs.set_light_position({10.0f});
 
     auto frame_start = std::chrono::high_resolution_clock::now();
 
@@ -242,7 +254,7 @@ void go(int, char **)
             g->set_orientation(p->orientation());
         }
 
-        rs.render();
+        rs.render(pipeline);
 
 #if !defined(PLATFORM_IOS)
         walk_direction = {};

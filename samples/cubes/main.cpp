@@ -3,8 +3,10 @@
 #include "core/camera.h"
 #include "core/root.h"
 #include "graphics/mesh_factory.h"
-#include "graphics/model.h"
-#include "graphics/sprite.h"
+#include "graphics/pipeline.h"
+#include "graphics/render_entity.h"
+#include "graphics/scene.h"
+#include "graphics/stage.h"
 #include "log/log.h"
 #include "platform/keyboard_event.h"
 #include "platform/start.h"
@@ -24,17 +26,24 @@ void go(int, char **)
     };
 
     auto &rs = iris::Root::instance().render_system();
-    auto &camera = rs.persective_camera();
+    iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};
 
-    rs.create<iris::Model>(
+    auto scene = std::make_unique<iris::Scene>();
+
+    scene->create(
+        iris::RenderGraph(),
+        iris::mesh_factory::cube({1.0f, 0.0f, 0.0f}),
         iris::Vector3{-20.0f, 0.0f, 0.0f},
-        iris::Vector3{10.0f, 10.0f, 10.0f},
-        iris::mesh_factory::cube({1.0f, 0.0f, 0.0f}));
+        iris::Vector3{10.0f});
 
-    rs.create<iris::Model>(
+    scene->create(
+        iris::RenderGraph(),
+        iris::mesh_factory::cube({0.0f, 0.0f, 1.0f}),
         iris::Vector3{20.0f, 0.0f, 0.0f},
-        iris::Vector3{10.0f, 10.0f, 10.0f},
-        iris::mesh_factory::cube({1.0f, 0.0f, 0.0f}));
+        iris::Vector3{10.0f});
+
+    auto stage = std::make_unique<iris::Stage>(std::move(scene), camera);
+    iris::Pipeline pipeline(std::move(stage));
 
     for (;;)
     {
@@ -94,7 +103,7 @@ void go(int, char **)
 
         camera.translate(velocity);
 
-        rs.render();
+        rs.render(pipeline);
     }
     LOG_ERROR("cube_sample", "goodbye!");
 }

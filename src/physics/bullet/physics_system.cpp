@@ -16,6 +16,7 @@
 
 #include "core/quaternion.h"
 #include "core/vector3.h"
+#include "graphics/render_entity.h"
 #include "log/log.h"
 #include "physics/bullet/debug_draw.h"
 #include "physics/character_controller.h"
@@ -104,7 +105,7 @@ struct PhysicsSystem::implementation
     std::unique_ptr<::btGhostPairCallback> ghost_pair_callback;
     std::vector<std::unique_ptr<RigidBody>> bodies;
     std::vector<std::unique_ptr<CharacterController>> character_controllers;
-    DebugDraw debug_draw;
+    std::unique_ptr<DebugDraw> debug_draw;
 };
 
 PhysicsSystem::PhysicsSystem()
@@ -127,10 +128,7 @@ PhysicsSystem::PhysicsSystem()
         impl_->ghost_pair_callback.get());
 
     impl_->world->setGravity({0.0f, -10.0f, 0.0f});
-
-    // create debug drawer, only draw wireframe as that's what we support
-    impl_->debug_draw.setDebugMode(::btIDebugDraw::DBG_DrawWireframe);
-    impl_->world->setDebugDrawer(&impl_->debug_draw);
+    impl_->debug_draw = nullptr;
 }
 
 PhysicsSystem::~PhysicsSystem()
@@ -161,13 +159,13 @@ void PhysicsSystem::step(std::chrono::milliseconds time_step)
     const auto ticks = static_cast<float>(time_step.count());
     impl_->world->stepSimulation(ticks / 1000.0f, 1);
 
-    if (draw_debug_)
+    if (impl_->debug_draw)
     {
         // tell bullet to draw debug world
         impl_->world->debugDrawWorld();
 
         // now we pass bullet debug information to our render system
-        impl_->debug_draw.render();
+        impl_->debug_draw->render();
     }
 }
 
@@ -335,9 +333,21 @@ void PhysicsSystem::load(const PhysicsState *state)
     }
 }
 
-void PhysicsSystem::set_draw_debug(bool draw_debug)
+void PhysicsSystem::enable_debug_draw(RenderEntity *entity)
 {
-    draw_debug_ = draw_debug;
+    if (impl_->debug_draw)
+    {
+        throw Exception("debug draw already enabled");
+    }
+
+    // create debug drawer, only draw wireframe as that's what we support
+    impl_->debug_draw = std::make_unique<DebugDraw>(entity);
+    impl_->debug_draw->setDebugMode(
+        ::btIDebugDraw::DBG_DrawWireframe |
+        ::btIDebugDraw::DBG_DrawConstraints |
+        ::btIDebugDraw::DBG_DrawConstraintLimits);
+
+    impl_->world->setDebugDrawer(impl_->debug_draw.get());
 }
 
 }

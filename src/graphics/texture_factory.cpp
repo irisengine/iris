@@ -1,13 +1,17 @@
 #include "graphics/texture_factory.h"
 
+#include <cstdint>
 #include <map>
 #include <memory>
+#include <sstream>
 #include <string>
+#include <vector>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
 #include "core/exception.h"
+#include "graphics/pixel_format.h"
 #include "graphics/texture.h"
 #include "platform/resource_loader.h"
 
@@ -16,6 +20,8 @@ namespace
 
 // static cache of loaded textures
 static std::map<std::string, std::unique_ptr<iris::Texture>> cache;
+
+static std::uint32_t counter = 0u;
 
 /**
  * Load an image from a data buffer.
@@ -84,9 +90,40 @@ Texture *load(const std::string &resource)
         const auto file_data = ResourceLoader::instance().load(resource);
         const auto [data, width, height, num_channels] = parse_image(file_data);
 
+        auto format = PixelFormat::RGB;
+        switch (num_channels)
+        {
+            case 3:
+                format = PixelFormat::RGB;
+                break;
+            case 4:
+                format = PixelFormat::RGBA;
+                break;
+            default:
+                throw Exception("unsupported number of channels");
+        }
+
         cache[resource] =
-            std::make_unique<Texture>(data, width, height, num_channels);
+            std::make_unique<Texture>(data, width, height, format);
     }
+
+    return cache[resource].get();
+}
+
+Texture *create(
+    const std::vector<std::uint8_t> &data,
+    std::uint32_t width,
+    std::uint32_t height,
+    PixelFormat pixel_format)
+{
+    std::stringstream strm;
+    strm << "!" << counter;
+    ++counter;
+
+    const auto resource = strm.str();
+
+    cache[resource] =
+        std::make_unique<Texture>(data, width, height, pixel_format);
 
     return cache[resource].get();
 }

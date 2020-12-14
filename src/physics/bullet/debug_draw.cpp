@@ -6,16 +6,17 @@
 #include "core/root.h"
 #include "core/vector3.h"
 #include "graphics/mesh_factory.h"
-#include "graphics/model.h"
+#include "graphics/render_system.h"
 
 namespace iris
 {
 
-DebugDraw::DebugDraw()
+DebugDraw::DebugDraw(RenderEntity *entity)
     : verticies_()
-    , model_(nullptr)
+    , entity_(entity)
     , debug_mode_(0)
 {
+    entity_->set_primitive_type(PrimitiveType::LINES);
 }
 
 void DebugDraw::drawLine(
@@ -34,20 +35,9 @@ void DebugDraw::render()
 {
     if (!verticies_.empty())
     {
-        auto &rs = Root::render_system();
+        auto mesh = mesh_factory::lines(verticies_);
+        entity_->set_buffer_descriptors(std::move(mesh));
 
-        // remove old model, we build it fresh each frame
-        if (model_ != nullptr)
-        {
-            rs.remove(model_);
-        }
-
-        // create mesh for all the debug lines
-        model_ = rs.create<Model>(
-            Vector3{}, Vector3{1.0f}, mesh_factory::lines(verticies_));
-        model_->set_primitive_type(PrimitiveType::LINES);
-
-        // clear data for next frame
         verticies_.clear();
     }
 }

@@ -2,14 +2,15 @@
 
 #include <memory>
 
-#include "graphics/render_system.h"
-#include "jobs/job_system.h"
-#include "log/logger.h"
-#include "physics/physics_system.h"
-#include "platform/window.h"
-
 namespace iris
 {
+
+class JobSystem;
+class Logger;
+class PhysicsSystem;
+class RenderSystem;
+class Window;
+class RenderTarget;
 
 /**
  * A singleton object that provides access to various parts of the engine. It
@@ -78,6 +79,15 @@ class Root
      */
     static Window &window();
 
+    /**
+     * Get single instance of screen render target. Anything rendered to this
+     * target will end up on the screen.
+     *
+     * @returns
+     *   Screen target single instance.
+     */
+    static RenderTarget &screen_target();
+
   private:
     /**
      * Private to force access via instance.
@@ -106,6 +116,9 @@ class Root
 
     /** Render system. */
     std::unique_ptr<RenderSystem> render_system_;
+
+    /** Screen target. */
+    std::unique_ptr<RenderTarget> screen_target_;
 };
 
 }

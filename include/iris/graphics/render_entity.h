@@ -1,13 +1,15 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include "core/camera_type.h"
 #include "core/matrix4.h"
 #include "core/quaternion.h"
+#include "graphics/buffer_descriptor.h"
 #include "graphics/material.h"
-#include "graphics/mesh.h"
 #include "graphics/primitive_type.h"
+#include "graphics/render_graph/render_node.h"
 #include "graphics/skeleton.h"
 #include "graphics/texture.h"
 
@@ -24,41 +26,25 @@ class RenderEntity
     /**
      * Construct a RenderEntity.
      *
-     * @param mesh
-     *   Mesh to render.
+     * @param buffer_descriptor
+     *   BufferDescriptor for mesh to render.
      *
      * @param position
      *   Centre of mesh in world space.
      *
-     * @param orientation
-     *   Orientation of mesh.
-     *
      * @param scale
      *   Scale of mesh.
-     *
-     * @param material
-     *   Pointer to material to render mesh.
-     *
-     * @param wireframe
-     *   Should render as wireframe.
-     *
-     * @param camera_type
-     *   Type of camera to render with.
      */
     RenderEntity(
-        std::vector<Mesh> meshes,
+        BufferDescriptor buffer_descriptor,
         const Vector3 &position,
-        const Quaternion &orientation,
-        const Vector3 &scale,
-        Material *material,
-        bool wireframe,
-        CameraType camera_type);
+        const Vector3 &scale);
 
     /**
      * Construct a RenderEntity.
      *
-     * @param mesh
-     *   Mesh to render.
+     * @param buffer_descriptor
+     *   BufferDescriptor for mesh to render.
      *
      * @param position
      *   Centre of mesh in world space.
@@ -68,34 +54,67 @@ class RenderEntity
      *
      * @param scale
      *   Scale of mesh.
+     */
+    RenderEntity(
+        BufferDescriptor buffer_descriptor,
+        const Vector3 &position,
+        const Quaternion &orientation,
+        const Vector3 &scale);
+
+    /**
+     * Construct a RenderEntity.
      *
-     * @param material
-     *   Pointer to material to render mesh.
+     * @param buffer_descriptor
+     *   BufferDescriptor for mesh to render.
      *
-     * @param wireframe
-     *   Should render as wireframe.
+     * @param position
+     *   Centre of mesh in world space.
      *
-     * @param camera_type
-     *   Type of camera to render with.
+     * @param orientation
+     *   Orientation of mesh.
+     *
+     * @param scale
+     *   Scale of mesh.
      *
      * @param skeleton
      *   Skeleton.
      */
     RenderEntity(
-        std::vector<Mesh> meshes,
+        BufferDescriptor buffer_descriptor,
         const Vector3 &position,
         const Quaternion &orientation,
         const Vector3 &scale,
-        Material *material,
-        bool wireframe,
-        CameraType camera_type,
         Skeleton skeleton);
 
-    virtual ~RenderEntity() = 0;
+    /**
+     * Construct a RenderEntity.
+     *
+     * @param buffer_descriptors
+     *   Collection of BufferDescriptors for meshes to render.
+     *
+     * @param position
+     *   Centre of mesh in world space.
+     *
+     * @param orientation
+     *   Orientation of mesh.
+     *
+     * @param scale
+     *   Scale of mesh.
+     *
+     * @param skeleton
+     *   Skeleton.
+     */
+    RenderEntity(
+        std::vector<BufferDescriptor> buffer_descriptor,
+        const Vector3 &position,
+        const Quaternion &orientation,
+        const Vector3 &scale,
+        Skeleton skeleton);
 
-    /** Disabled */
     RenderEntity(const RenderEntity &) = delete;
     RenderEntity &operator=(const RenderEntity &) = delete;
+    RenderEntity(RenderEntity &&) = default;
+    RenderEntity &operator=(RenderEntity &&) = default;
 
     /**
      * Get position.
@@ -138,14 +157,6 @@ class RenderEntity
     void set_scale(const Vector3 &scale);
 
     /**
-     * Set the mesh of the RenderEntity.
-     *
-     * @param mesh
-     *   New mesh.
-     */
-    void set_meshes(std::vector<Mesh> meshes);
-
-    /**
      * Get the transformation matrix of the RenderEntity.
      *
      * @returns
@@ -170,20 +181,29 @@ class RenderEntity
     Matrix4 normal_transform() const;
 
     /**
-     * Get a const reference to the Mesh that make up the RenderEntity.
+     * Get all BufferDescriptors for this entity.
      *
      * @returns
-     *   Const reference to mesh.
+     *   Collection of buffer descriptors.
      */
-    const std::vector<Mesh> &meshes() const;
+    const std::vector<BufferDescriptor> &buffer_descriptors() const;
 
     /**
-     * Get a const reference to the RenderEntitys rendering material.
+     * Set buffer descriptor.
      *
-     * @returns
-     *   Const reference to material.
+     * @param buffer_descriptor.
+     *   New (single) buffer descriptor.
      */
-    const Material &material() const;
+    void set_buffer_descriptors(BufferDescriptor buffer_descriptor);
+
+    /**
+     * Set buffer descriptors.
+     *
+     * @param buffer_descriptor.
+     *   New buffer descriptors.
+     */
+    void set_buffer_descriptors(
+        std::vector<BufferDescriptor> buffer_descriptors);
 
     /**
      * Returns whether the object should be rendered as a wireframe.
@@ -200,14 +220,6 @@ class RenderEntity
      *   True if should be rendered as a wireframe, false otherwise.
      */
     void set_wireframe(const bool wireframe);
-
-    /**
-     * Get camera type.
-     *
-     * @returns
-     *   Type of camera.
-     */
-    CameraType camera_type() const;
 
     /**
      * Get primitive type.
@@ -233,9 +245,9 @@ class RenderEntity
      */
     Skeleton &skeleton();
 
-  protected:
-    /** Collection of meshes. */
-    std::vector<Mesh> meshes_;
+  private:
+    /** BufferDescriptors to render. */
+    std::vector<BufferDescriptor> buffer_descriptors_;
 
     /** The position of the RenderEntity. */
     Vector3 position_;
@@ -252,14 +264,8 @@ class RenderEntity
     /** Normal transformation matrix. */
     Matrix4 normal_;
 
-    /** Material to render with. */
-    Material *material_;
-
     /** Whether the object should be rendered as a wireframe. */
     bool wireframe_;
-
-    /** Type of camera. */
-    CameraType camera_type_;
 
     /** Primitive type. */
     PrimitiveType primitive_type_;

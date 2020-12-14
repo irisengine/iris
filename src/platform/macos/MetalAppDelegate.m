@@ -70,8 +70,9 @@
         // add the tracking area
         [view addTrackingArea:tracking];
 
-        // hide the cursor
+        // hide and lock the cursor
         CGDisplayHideCursor(kCGDirectMainDisplay);
+        CGAssociateMouseAndMouseCursorPosition(NO);
     }
 
     return self;

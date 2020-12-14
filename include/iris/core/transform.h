@@ -55,6 +55,14 @@ class Transform
     Matrix4 matrix() const;
 
     /**
+     * Set matrix. Translation, rotation and scale will be derived from input.
+     *
+     * @param matrix
+     *   New matrix.
+     */
+    void set_matrix(const Matrix4 &matrix);
+
+    /**
      * Interpolate between this and another Transform.
      *
      * @param other

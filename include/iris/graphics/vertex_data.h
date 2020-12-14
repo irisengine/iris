@@ -40,6 +40,8 @@ struct vertex_data
               normal,
               colour,
               texture_coords,
+              {},
+              {},
               {{{0u, 1.0f}, {0u, 0.0f}, {0u, 0.0f}, {0u, 0.0f}}})
     {
     }
@@ -49,6 +51,26 @@ struct vertex_data
         const Vector3 &normal,
         const Vector3 &colour,
         const Vector3 &texture_coords,
+        const Vector3 &tangent,
+        const Vector3 &bitangent)
+        : vertex_data(
+              position,
+              normal,
+              colour,
+              texture_coords,
+              tangent,
+              bitangent,
+              {{{0u, 1.0f}, {0u, 0.0f}, {0u, 0.0f}, {0u, 0.0f}}})
+    {
+    }
+
+    vertex_data(
+        const Vector3 &position,
+        const Vector3 &normal,
+        const Vector3 &colour,
+        const Vector3 &texture_coords,
+        const Vector3 &tangent,
+        const Vector3 &bitangent,
         std::array<Weight, 4u> weights)
         : position(position)
         , pos_w(1.0f)
@@ -58,6 +80,10 @@ struct vertex_data
         , colour_a(1.0f)
         , texture_coords(texture_coords)
         , padding(1.0f)
+        , tangent(tangent)
+        , tangent_w(0.0f)
+        , bitangent(bitangent)
+        , bitangent_w(0.0f)
         , bone_ids({})
         , bone_weights({})
     {
@@ -92,6 +118,14 @@ struct vertex_data
     /** Padding so we can pass normal as 4 floats. */
     float padding;
 
+    Vector3 tangent;
+
+    float tangent_w;
+
+    Vector3 bitangent;
+
+    float bitangent_w;
+
     /** Array of bone ids. */
     std::array<std::uint32_t, 4u> bone_ids;
 
@@ -104,6 +138,8 @@ struct vertex_data
  */
 static VertexAttributes vertex_attributes{
     {VertexAttributeType::FLOAT_4,
+     VertexAttributeType::FLOAT_4,
+     VertexAttributeType::FLOAT_4,
      VertexAttributeType::FLOAT_4,
      VertexAttributeType::FLOAT_4,
      VertexAttributeType::FLOAT_4,

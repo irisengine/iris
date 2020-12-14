@@ -13,6 +13,8 @@
 namespace iris
 {
 
+class RenderEntity;
+
 // forward declare opaque type of storing physics state
 // this will be defined in the PhysicsSystem implementation
 struct PhysicsState;
@@ -182,19 +184,17 @@ class PhysicsSystem
     void load(const PhysicsState *state);
 
     /**
-     * Set whether debug information should be rendered.
+     * Enable debug rendering. This should only be called once.
      *
-     * @param draw_debug
-     *   True if debug information should be rendered, false otherwise.
+     * @param entity.
+     *   The RenderEntity to store debug render data in.
      */
-    void set_draw_debug(bool draw_debug);
+    void enable_debug_draw(RenderEntity *entity);
 
   private:
     /** Physics API implementation. */
     struct implementation;
     std::unique_ptr<implementation> impl_;
-
-    bool draw_debug_;
 };
 
 }

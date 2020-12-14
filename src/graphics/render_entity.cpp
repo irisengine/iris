@@ -4,8 +4,6 @@
 #include "core/matrix4.h"
 #include "core/quaternion.h"
 #include "core/vector3.h"
-#include "graphics/material_factory.h"
-#include "graphics/mesh.h"
 #include "graphics/mesh_factory.h"
 #include "graphics/skeleton.h"
 
@@ -38,45 +36,63 @@ iris::Matrix4 create_normal_transform(const iris::Matrix4 &model)
 
 namespace iris
 {
+RenderEntity::RenderEntity(
+    BufferDescriptor buffer_descriptor,
+    const Vector3 &position,
+    const Vector3 &scale)
+    : RenderEntity(std::move(buffer_descriptor), position, {}, scale)
+{
+}
 
 RenderEntity::RenderEntity(
-    std::vector<Mesh> meshes,
+    BufferDescriptor buffer_descriptor,
     const Vector3 &position,
     const Quaternion &orientation,
-    const Vector3 &scale,
-    Material *material,
-    bool wireframe,
-    CameraType camera_type)
+    const Vector3 &scale)
     : RenderEntity(
-          std::move(meshes),
+          std::move(buffer_descriptor),
           position,
           orientation,
           scale,
-          material,
-          wireframe,
-          camera_type,
           Skeleton{})
 {
 }
 
 RenderEntity::RenderEntity(
-    std::vector<Mesh> meshes,
+    BufferDescriptor buffer_descriptor,
     const Vector3 &position,
     const Quaternion &orientation,
     const Vector3 &scale,
-    Material *material,
-    bool wireframe,
-    CameraType camera_type,
     Skeleton skeleton)
-    : meshes_(std::move(meshes))
+    : buffer_descriptors_()
     , position_(position)
     , orientation_(orientation)
     , scale_(scale)
     , model_()
     , normal_()
-    , material_(material)
-    , wireframe_(wireframe)
-    , camera_type_(camera_type)
+    , wireframe_(false)
+    , primitive_type_(PrimitiveType::TRIANGLES)
+    , skeleton_(std::move(skeleton))
+{
+    buffer_descriptors_.emplace_back(std::move(buffer_descriptor));
+    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) *
+             Matrix4::make_scale(scale_);
+    normal_ = create_normal_transform(model_);
+}
+
+RenderEntity::RenderEntity(
+    std::vector<BufferDescriptor> buffer_descriptors,
+    const Vector3 &position,
+    const Quaternion &orientation,
+    const Vector3 &scale,
+    Skeleton skeleton)
+    : buffer_descriptors_(std::move(buffer_descriptors))
+    , position_(position)
+    , orientation_(orientation)
+    , scale_(scale)
+    , model_()
+    , normal_()
+    , wireframe_(false)
     , primitive_type_(PrimitiveType::TRIANGLES)
     , skeleton_(std::move(skeleton))
 {
@@ -84,8 +100,6 @@ RenderEntity::RenderEntity(
              Matrix4::make_scale(scale_);
     normal_ = create_normal_transform(model_);
 }
-
-RenderEntity::~RenderEntity() = default;
 
 Vector3 RenderEntity::position() const
 {
@@ -122,20 +136,9 @@ void RenderEntity::set_scale(const Vector3 &scale)
     normal_ = create_normal_transform(model_);
 }
 
-void RenderEntity::set_meshes(std::vector<Mesh> meshes)
-{
-    meshes_ = std::move(meshes);
-}
-
 Matrix4 RenderEntity::transform() const
 {
     return model_;
-}
-
-void RenderEntity::set_transform(const Matrix4 &transform)
-{
-    model_ = transform;
-    normal_ = create_normal_transform(model_);
 }
 
 Matrix4 RenderEntity::normal_transform() const
@@ -143,14 +146,22 @@ Matrix4 RenderEntity::normal_transform() const
     return normal_;
 }
 
-const std::vector<Mesh> &RenderEntity::meshes() const
+const std::vector<BufferDescriptor> &RenderEntity::buffer_descriptors() const
 {
-    return meshes_;
+    return buffer_descriptors_;
 }
 
-const Material &RenderEntity::material() const
+void RenderEntity::set_buffer_descriptors(BufferDescriptor buffer_descriptor)
 {
-    return *material_;
+    std::vector<BufferDescriptor> descriptors;
+    descriptors.emplace_back(std::move(buffer_descriptor));
+    set_buffer_descriptors(std::move(descriptors));
+}
+
+void RenderEntity::set_buffer_descriptors(
+    std::vector<BufferDescriptor> buffer_descriptors)
+{
+    buffer_descriptors_ = std::move(buffer_descriptors);
 }
 
 bool RenderEntity::should_render_wireframe() const
@@ -161,11 +172,6 @@ bool RenderEntity::should_render_wireframe() const
 void RenderEntity::set_wireframe(const bool wireframe)
 {
     wireframe_ = wireframe;
-}
-
-CameraType RenderEntity::camera_type() const
-{
-    return camera_type_;
 }
 
 PrimitiveType RenderEntity::primitive_type() const

@@ -3,7 +3,7 @@
 #include <tuple>
 
 #include "core/vector3.h"
-#include "graphics/mesh.h"
+#include "graphics/buffer_descriptor.h"
 #include "graphics/skeleton.h"
 #include "graphics/texture.h"
 
@@ -11,18 +11,23 @@ namespace iris::mesh_factory
 {
 
 /**
+ * Create an empty mesh.
+ *
+ * @returns
+ *   BufferDescriptor for empty object.
+ */
+BufferDescriptor empty();
+
+/**
  * Create a Sprite mesh.
  *
  * @param colour
  *   Colour of sprite.
  *
- * @param texture
- *   Texture of sprite.
- *
  * @returns
- *   Mesh for sprite.
+ *   BufferDescriptor for sprite.
  */
-std::vector<Mesh> sprite(const Vector3 &colour, Texture *texture);
+BufferDescriptor sprite(const Vector3 &colour);
 
 /**
  * Create a cube mesh.
@@ -31,9 +36,23 @@ std::vector<Mesh> sprite(const Vector3 &colour, Texture *texture);
  *   Colour of cube.
  *
  * @returns
- *   Mesh for cube.
+ *   BufferDescriptor for cube.
  */
-std::vector<Mesh> cube(const Vector3 colour);
+BufferDescriptor cube(const Vector3 &colour);
+
+/**
+ * Create a plane mesh.
+ *
+ * @param colour
+ *   Colour of plane.
+ *
+ * @param divisions
+ *   Number of divisions (both horizontal and vertical).
+ *
+ * @returns
+ *   BufferDescriptor for cube.
+ */
+BufferDescriptor plane(const Vector3 &colour, std::uint32_t divisions);
 
 /**
  * Create a Quad mesh.
@@ -54,9 +73,9 @@ std::vector<Mesh> cube(const Vector3 colour);
  *   World coords of upper right of quad.
  *
  * @returns
- *   Mesh for sprite.
+ *   BufferDescriptor for sprite.
  */
-std::vector<Mesh> quad(
+BufferDescriptor quad(
     const Vector3 &colour,
     const Vector3 &lower_left,
     const Vector3 &lower_right,
@@ -73,9 +92,9 @@ std::vector<Mesh> quad(
  *   Colour of lines.
  *
  * @returns
- *   Mesh for lines.
+ *   BufferDescriptor for lines.
  */
-std::vector<Mesh> lines(
+BufferDescriptor lines(
     const std::vector<Vector3> &line_data,
     const Vector3 &colour);
 
@@ -88,9 +107,9 @@ std::vector<Mesh> lines(
  *   [start_position, start_colour, end_position, end_colour]
  *
  * @returns
- *   Mesh for lines.
+ *   BufferDescriptor for lines.
  */
-std::vector<Mesh> lines(
+BufferDescriptor lines(
     const std::vector<std::tuple<Vector3, Vector3, Vector3, Vector3>>
         &line_data);
 
@@ -101,9 +120,11 @@ std::vector<Mesh> lines(
  *   File to load.
  *
  * @returns
- *   Tuple of <collection of meshes, skeleton>. If the animation file did not
- *   contain skeletal data then the skeleton object will be a default one.
+ *   Tuple of <collection of buffer descriptors, skeleton>. If the animation
+ *   file did not contain skeletal data then the skeleton object will be a
+ *   default one.
  */
-std::tuple<std::vector<Mesh>, Skeleton> load(const std::string &mesh_file);
+std::tuple<std::vector<BufferDescriptor>, Skeleton> load(
+    const std::string &mesh_file);
 
 }

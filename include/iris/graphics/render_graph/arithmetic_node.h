@@ -1,0 +1,101 @@
+#pragma once
+
+#include <cstdint>
+
+#include "graphics/render_graph/node.h"
+
+namespace iris
+{
+
+class Compiler;
+
+enum class ArithmeticOperator : std::uint8_t
+{
+    ADD,
+    SUBTRACT,
+    MULTIPLY,
+    DIVIDE
+};
+
+/**
+ * Implementation of Node which performs an ArithmeticOperator on two input
+ * Nodes.
+ *
+ * The hierarchy of Arithmetic nodes can be used to set operator precedence,
+ * for example:
+ *
+ *  ValueNode(3) ------\
+ *                      ArithmeticNode(+) ------\
+ *  ValueNode(4) ------/                         \
+ *                                                ArithmeticNode(/)
+ *  ValueNode(5) ------\                         /
+ *                      ArithmeticNode(+) ------/
+ *  ValueNode(6) ------/
+ *
+ * Weill evaluate to ((3 + 4) / (5 + 6))
+ */
+class ArithmeticNode : public Node
+{
+  public:
+    /**
+     * Create a new ArithmeticNode.
+     *
+     * @param value1
+     *   First input value.
+     *
+     * @param value2
+     *   Second input value.
+     *
+     * @param arithmetic_operator
+     *   Operator to apply to value1 and value2.
+     */
+    ArithmeticNode(
+        Node *value1,
+        Node *value2,
+        ArithmeticOperator arithmetic_operator);
+
+    ~ArithmeticNode() override = default;
+
+    /**
+     * Accept a compiler visitor.
+     *
+     * @param compiler
+     *   Compiler to accept.
+     */
+    void accept(Compiler &compiler) const override;
+
+    /**
+     * Get value1.
+     *
+     * @returns
+     *   value1.
+     */
+    Node *value1() const;
+
+    /**
+     * Get value2.
+     *
+     * @returns
+     *   value2.
+     */
+    Node *value2() const;
+
+    /**
+     * Get arithmetic operator.
+     *
+     * @returns
+     *   Arithmetic operator.
+     */
+    ArithmeticOperator arithmetic_operator() const;
+
+  private:
+    /** First value. */
+    Node *value1_;
+
+    /** Second value. */
+    Node *value2_;
+
+    /** Arithmetic operator applied to value1 and value2. */
+    ArithmeticOperator arithmetic_operator_;
+};
+}

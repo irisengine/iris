@@ -153,7 +153,7 @@ TEST(vector3, normalise_zero_vector3)
     ASSERT_EQ(v, iris::Vector3());
 }
 
-TEST(vector3, normalise_stataic)
+TEST(vector3, normalise_static)
 {
     ASSERT_EQ(
         iris::Vector3::normalise(iris::Vector3(1.0f, 2.0f, 3.0f)),
@@ -175,4 +175,14 @@ TEST(vector3, lerp)
     vec.lerp(end, 0.5f);
 
     ASSERT_EQ(vec, iris::Vector3(0.5f, 0.5f, 0.5f));
+}
+
+TEST(vector3, lerp_static)
+{
+    iris::Vector3 start(0.0f, 0.0f, 0.f);
+    iris::Vector3 end(1.0f, 1.0f, 1.0f);
+
+    const auto result = iris::Vector3::lerp(start, end, 0.5f);
+
+    ASSERT_EQ(result, iris::Vector3(0.5f, 0.5f, 0.5f));
 }
