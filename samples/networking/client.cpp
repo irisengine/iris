@@ -20,9 +20,11 @@
 #include "core/quaternion.h"
 #include "core/vector3.h"
 #include "graphics/mesh_factory.h"
-#include "graphics/model.h"
+#include "graphics/pipeline.h"
 #include "graphics/render_entity.h"
-#include "graphics/sprite.h"
+#include "graphics/render_graph/render_graph.h"
+#include "graphics/scene.h"
+#include "graphics/stage.h"
 #include "log/emoji_formatter.h"
 #include "log/log.h"
 #include "networking/client_connection_handler.h"
@@ -394,17 +396,26 @@ void go(int, char **)
     iris::ClientConnectionHandler client{std::move(socket)};
 
     auto &rs = iris::Root::render_system();
-    auto &camera = rs.persective_camera();
+    iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};
 
-    rs.create<iris::Model>(
+    auto scene = std::make_unique<iris::Scene>();
+
+    scene->create(
+        iris::RenderGraph{},
+        iris::mesh_factory::cube({1.0f}),
         iris::Vector3{0.0f, -50.0f, 0.0f},
-        iris::Vector3{500.0f, 50.0f, 500.0f},
-        iris::mesh_factory::cube({1.0f, 1.0f, 1.0f}));
+        iris::Vector3{500.0f, 50.0f, 500.0f});
 
-    auto *box = rs.create<iris::Model>(
+    auto *box = scene->create(
+        iris::RenderGraph{},
+        iris::mesh_factory::cube({1.0f, 0.0f, 0.0f}),
         iris::Vector3{0.0f, 1.0f, 0.0f},
-        iris::Vector3{0.5f, 0.5f, 0.5f},
-        iris::mesh_factory::cube({1.0f, 0.0f, 0.0f}));
+        iris::Vector3{0.5f, 0.5f, 0.5f});
+
+    auto stage = std::make_unique<iris::Stage>(std::move(scene), camera);
+    iris::Pipeline pipeline(std::move(stage));
+
+    rs.set_light_position({10.0f});
 
     std::deque<std::tuple<
         std::chrono::steady_clock::time_point,
@@ -537,15 +548,15 @@ void go(int, char **)
             // put the camera where the player is
             camera.set_position(character_controller->position());
 
-            // if we have snapshots the interpolate the server entity for smooth
-            // motion
+            // if we have snapshots then interpolate the server entity for
+            // smooth motion
             if (snapshots.size() >= 2u)
             {
                 entity_interpolation(snapshots, box);
             }
 
             // render the world
-            rs.render();
+            rs.render(pipeline);
 
             return true;
         });

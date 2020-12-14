@@ -1,13 +1,21 @@
 #include <iostream>
 
+#include "core/camera.h"
 #include "core/quaternion.h"
 #include "core/root.h"
-#include "graphics/sprite.h"
+#include "graphics/mesh_factory.h"
+#include "graphics/pipeline.h"
+#include "graphics/render_graph/render_graph.h"
+#include "graphics/render_graph/texture_node.h"
+#include "graphics/render_system.h"
+#include "graphics/scene.h"
+#include "graphics/stage.h"
 #include "graphics/texture.h"
 #include "graphics/texture_factory.h"
 #include "log/log.h"
 #include "platform/event.h"
 #include "platform/start.h"
+#include "platform/window.h"
 
 void go(int, char **)
 {
@@ -15,26 +23,41 @@ void go(int, char **)
 
     auto &rs = iris::Root::instance().render_system();
 
-    auto *sprite1 = rs.create<iris::Sprite>(
-        0, 0, 100, 100, iris::Vector3{0.39f, 0.58f, 0.92f});
+    iris::Camera screen_camera{iris::CameraType::ORTHOGRAPHIC, 800.0f, 800.0f};
 
-    auto *sprite2 = rs.create<iris::Sprite>(
-        0.0f, 150.0f, 100, 100, iris::Vector3{0.86f, 0.08f, 0.23f});
+    auto scene = std::make_unique<iris::Scene>();
 
-    auto *sprite3 = rs.create<iris::Sprite>(
-        0.0f,
-        -150.0f,
-        100.0f,
-        100.0f,
-        iris::Vector3{1.0f, 1.0f, 1.0f},
-        iris::texture_factory::load("circle.png"));
+    auto *sprite1 = scene->create(
+        iris::RenderGraph{},
+        iris::mesh_factory::sprite({0.39f, 0.58f, 0.92f}),
+        iris::Vector3{0.0f},
+        iris::Vector3{100.0f});
+
+    auto *sprite2 = scene->create(
+        iris::RenderGraph{},
+        iris::mesh_factory::sprite({0.86f, 0.08f, 0.23f}),
+        iris::Vector3{0.0f, 300.0f, 0.0f},
+        iris::Vector3{100.0f});
+
+    iris::RenderGraph graph{};
+    auto *texture_node = graph.create<iris::TextureNode>("circle.png");
+    graph.render_node()->set_colour_input(texture_node);
+
+    auto *sprite3 = scene->create(
+        std::move(graph),
+        iris::mesh_factory::sprite({1.0f}),
+        iris::Vector3{0.0f, -300.0f, 0.0f},
+        iris::Vector3{100.0f});
 
     iris::Quaternion rot{{0.0f, 0.0f, 1.0f}, 0.0f};
     iris::Quaternion delta{{0.0f, 0.0f, 1.0f}, 0.02f};
 
+    auto stage = std::make_unique<iris::Stage>(std::move(scene), screen_camera);
+    iris::Pipeline pipeline(std::move(stage));
+
     for (;;)
     {
-        if (auto evt = iris::Root::instance().window().pump_event(); evt)
+        if (auto evt = iris::Root::window().pump_event(); evt)
         {
             if (evt->is_key(iris::Key::Q))
             {
@@ -47,7 +70,7 @@ void go(int, char **)
         sprite3->set_orientation(rot);
         rot *= delta;
 
-        rs.render();
+        rs.render(pipeline);
     }
     LOG_ERROR("sprite_sample", "goodbye!");
 }
