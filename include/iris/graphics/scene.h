@@ -4,6 +4,7 @@
 #include <tuple>
 #include <vector>
 
+#include "graphics/light.h"
 #include "graphics/material.h"
 #include "graphics/render_entity.h"
 #include "graphics/render_graph/render_graph.h"
@@ -32,12 +33,30 @@ class Scene
      *   Pointer to the newly created RenderEntity.
      */
     template <class... Args>
-    RenderEntity *create(RenderGraph render_graph, Args &&... args)
+    RenderEntity *create_entity(RenderGraph render_graph, Args &&... args)
     {
         auto element =
             std::make_unique<RenderEntity>(std::forward<Args>(args)...);
 
         return add(std::move(render_graph), std::move(element));
+    }
+
+    /**
+     * Create a Light and add it to the scene. Uses perfect forwarding to pass
+     * along all arguments.
+     *
+     * @param args
+     *   Arguments for Light.
+     *
+     * @returns
+     *   Pointer to the newly created Light.
+     */
+    template <class... Args>
+    Light *create_light(Args &&... args)
+    {
+        auto light = std::make_unique<Light>(std::forward<Args>(args)...);
+
+        return add(std::move(light));
     }
 
     /**
@@ -57,6 +76,17 @@ class Scene
         std::unique_ptr<RenderEntity> entity);
 
     /**
+     * Add a Light to the scene.
+     *
+     * @param light
+     *   Light to add to scene.
+     *
+     * @returns
+     *   Pointer to added Light.
+     */
+    Light *add(std::unique_ptr<Light> light);
+
+    /**
      * Get a reference to all entities in the scene.
      *
      * @returns
@@ -65,10 +95,21 @@ class Scene
     std::vector<std::tuple<RenderGraph, std::unique_ptr<RenderEntity>>>
         &entities();
 
+    /**
+     * Get a const reference to all the lights in the scene.
+     *
+     * @returns
+     *   const reference to light collection.
+     */
+    const std::vector<std::unique_ptr<Light>> &lights() const;
+
   private:
     /** Collection of <RenderGraph, RenderEntity> tuples. */
     std::vector<std::tuple<RenderGraph, std::unique_ptr<RenderEntity>>>
         entities_;
+
+    /** Collection of lights. */
+    std::vector<std::unique_ptr<Light>> lights_;
 };
 
 }
