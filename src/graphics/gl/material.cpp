@@ -11,6 +11,7 @@
 #include "graphics/gl/opengl.h"
 #include "graphics/gl/shader.h"
 #include "graphics/gl/shader_type.h"
+#include "graphics/light.h"
 #include "graphics/render_graph/compiler.h"
 #include "graphics/render_graph/render_graph.h"
 
@@ -93,11 +94,14 @@ struct Material::implementation
     std::uint32_t program;
 };
 
-Material::Material(const RenderGraph &render_graph, const BufferDescriptor &)
+Material::Material(
+    const RenderGraph &render_graph,
+    const BufferDescriptor &,
+    const std::vector<Light *> &lights)
     : textures_()
     , impl_(std::make_unique<implementation>())
 {
-    Compiler compiler{render_graph};
+    Compiler compiler{render_graph, lights};
 
     impl_->program =
         create_program(compiler.vertex_shader(), compiler.fragment_shader());

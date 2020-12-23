@@ -18,7 +18,7 @@
 namespace
 {
 
-struct uniform
+struct DefaultUniform
 {
     iris::Matrix4 projection;
     iris::Matrix4 view;
@@ -27,6 +27,80 @@ struct uniform
     iris::Matrix4 bones[100];
     float time;
 };
+
+struct LightUniform
+{
+    float direction[4];
+    iris::Matrix4 proj;
+    iris::Matrix4 view;
+};
+
+/**
+ * Helper function to set uniforms for a render pass.
+ *
+ * @param render_encoder
+ *   Render encoder for current pass.
+ *
+ * @param camera
+ *   Camera for current render pass.
+ *
+ * @param entity
+ *   Entity being rendered.
+ *
+ * @param lights
+ *   Lights effecting entity.
+ */
+void set_uniforms(
+    id<MTLRenderCommandEncoder> render_encoder,
+    const iris::Camera &camera,
+    iris::RenderEntity *entity,
+    const std::vector<iris::Light *> lights)
+{
+    static const iris::Matrix4 metal_translate{
+        {{1.0f ,0.0f, 0.0f, 0.0f,
+          0.0f, 1.0f, 0.0f, 0.0f,
+          0.0f, 0.0f, 0.5f, 0.5f,
+          0.0f, 0.0f, 0.0f, 1.0f}}
+    };
+
+    // copy uniform data into a struct
+    DefaultUniform uniform_data{
+        iris::Matrix4::transpose(metal_translate * camera.projection()),
+        iris::Matrix4::transpose(camera.view()),
+        iris::Matrix4::transpose(entity->transform()),
+        iris::Matrix4::transpose(entity->normal_transform())
+    };
+
+    auto iter = std::begin(uniform_data.bones);
+    for(const auto &bone : entity->skeleton().transforms())
+    {
+        *iter = iris::Matrix4::transpose(bone);
+        ++iter;
+    }
+
+    static const auto start = std::chrono::steady_clock::now();
+    const auto now = std::chrono::steady_clock::now() - start;
+    uniform_data.time = static_cast<float>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(now).count());
+
+    std::vector<LightUniform> light_data(lights.size());
+
+    for (auto i = 0u; i < lights.size(); ++i)
+    {
+        const auto direction = lights[i]->direction();
+        std::memcpy(
+            &light_data[i].direction,
+            reinterpret_cast<const std::uint8_t*>(&direction),
+            sizeof(direction));
+        light_data[i].proj = iris::Matrix4::transpose(metal_translate * lights[i]->shadow_camera().projection());
+        light_data[i].view = iris::Matrix4::transpose(lights[i]->shadow_camera().view());
+        
+    }
+
+    [render_encoder setVertexBytes:static_cast<const void*>(&uniform_data) length:sizeof(uniform_data) atIndex:1];
+    [render_encoder setVertexBytes:static_cast<const void*>(light_data.data()) length:light_data.size() * sizeof(LightUniform) atIndex:2];
+    [render_encoder setFragmentBytes:static_cast<const void*>(light_data.data()) length:light_data.size() * sizeof(LightUniform) atIndex:0];
+}
 
 }
 
@@ -126,7 +200,7 @@ void RenderSystem::render(Pipeline &pipeline)
     for (const auto &stage : pipeline.stages())
     {
         auto &camera = stage->camera();
-        auto &target = stage ->target();
+        auto &target = stage->target();
 
         const auto texture_handle = std::any_cast<id<MTLTexture>>(target.colour_texture()->native_handle());
         impl_->descriptor.colorAttachments[0].texture = texture_handle;
@@ -135,12 +209,21 @@ void RenderSystem::render(Pipeline &pipeline)
         const auto depth_handle = std::any_cast<id<MTLTexture>>(target.depth_texture()->native_handle());
         impl_->descriptor.depthAttachment.texture = depth_handle;
 
+        MTLViewport view_port{
+            0.0,
+            0.0,
+            static_cast<double>(target.colour_texture()->width()),
+            static_cast<double>(target.colour_texture()->height()),
+            0.0,
+            1.0 };
+
         const auto render_encoder = [command_buffer renderCommandEncoderWithDescriptor:impl_->descriptor];
         [render_encoder setDepthStencilState:impl_->depth_stencil_state];
         [render_encoder setFrontFacingWinding:MTLWindingCounterClockwise];
         [render_encoder setCullMode:MTLCullModeBack];
+        [render_encoder setViewport: view_port];
 
-        for(const auto &[entity, material] : stage->render_items())
+        for(const auto &[entity, material, lights] : stage->render_items())
         {
             auto *pipeline_state = std::any_cast<id<MTLRenderPipelineState>>(material->native_handle());
 
@@ -162,34 +245,11 @@ void RenderSystem::render(Pipeline &pipeline)
                 const auto &index_buffer = buffer_descriptor.index_buffer();
                 const auto index_buffer_native = std::any_cast<id<MTLBuffer>>(index_buffer.native_handle());
 
-                // copy uniform data into a struct
-                uniform uniform_data{
-                    Matrix4::transpose(camera.projection()),
-                    Matrix4::transpose(camera.view()),
-                    Matrix4::transpose(entity->transform()),
-                    Matrix4::transpose(entity->normal_transform())
-                };
-
-                auto iter = std::begin(uniform_data.bones);
-                for(const auto &bone : entity->skeleton().transforms())
-                {
-                    *iter = Matrix4::transpose(bone);
-                    ++iter;
-                }
-
-                static const auto start = std::chrono::steady_clock::now();
-                const auto now = std::chrono::steady_clock::now() - start;
-                uniform_data.time = static_cast<float>(
-                    std::chrono::duration_cast<std::chrono::milliseconds>(now).count());
-
-                float light[] = { light_pos_.x, light_pos_.y, light_pos_.z, 0.0f };
+                set_uniforms(render_encoder, camera, entity, lights);
 
                 // encode render commands
                 [render_encoder setRenderPipelineState:pipeline_state];
                 [render_encoder setVertexBuffer:vertex_buffer_native offset:0 atIndex:0];
-                [render_encoder setVertexBytes:static_cast<const void*>(&uniform_data) length:sizeof(uniform_data) atIndex:1];
-                [render_encoder setVertexBytes:static_cast<const void*>(&light) length:sizeof(light) atIndex:2];
-                [render_encoder setFragmentBytes:static_cast<const void*>(&light) length:sizeof(light) atIndex:0];
                 [render_encoder setCullMode:MTLCullModeNone];
 
                 const auto textures = material->textures();

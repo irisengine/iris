@@ -80,23 +80,21 @@ std::tuple<std::uint32_t, std::uint32_t> create_texture(
     ::glGenTextures(1, &texture);
     iris::check_opengl_error("could not generate texture");
 
-    // use default Texture unit
     ::glActiveTexture(GL_TEXTURE0 + counter);
     iris::check_opengl_error("could not activate texture");
 
     ::glBindTexture(GL_TEXTURE_2D, texture);
     iris::check_opengl_error("could not bind texture");
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    iris::check_opengl_error("could not set wrap s parameter");
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    float borderColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    ::glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    iris::check_opengl_error("could not set wrap t parameter");
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     iris::check_opengl_error("could not set min filter parameter");
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     iris::check_opengl_error("could not set max filter parameter");
 
     const auto format = format_to_opengl(pixel_format);
@@ -104,21 +102,19 @@ std::tuple<std::uint32_t, std::uint32_t> create_texture(
     // opengl requires a nullptr if there is no data
     const auto *data_ptr = (data.empty()) ? nullptr : data.data();
 
+    const auto type =
+        (format == GL_DEPTH_COMPONENT) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_BYTE;
+
     // create opengl texture
     ::glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        format,
-        width,
-        height,
-        0,
-        format,
-        GL_UNSIGNED_BYTE,
-        data_ptr);
+        GL_TEXTURE_2D, 0, format, width, height, 0, format, type, data_ptr);
     iris::check_opengl_error("could not set Texture data");
 
-    ::glGenerateMipmap(GL_TEXTURE_2D);
-    iris::check_opengl_error("could not generate mipmaps");
+    if (format != GL_DEPTH_COMPONENT)
+    {
+        ::glGenerateMipmap(GL_TEXTURE_2D);
+        iris::check_opengl_error("could not generate mipmaps");
+    }
 
     return {texture, counter++};
 }

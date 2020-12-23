@@ -19,7 +19,9 @@ struct RenderTarget::implementation
 {
 };
 
-RenderTarget::RenderTarget(std::uint32_t width, std::uint32_t height)
+RenderTarget::RenderTarget(
+    std::uint32_t width,
+    std::uint32_t height)
     : colour_texture_(nullptr)
     , depth_texture_(nullptr)
     , impl_(std::make_unique<implementation>())

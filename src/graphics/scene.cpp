@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "graphics/light.h"
 #include "graphics/material.h"
 #include "graphics/render_entity.h"
 #include "graphics/render_graph/render_graph.h"
@@ -18,10 +19,22 @@ RenderEntity *Scene::add(
     return std::get<1>(entities_.back()).get();
 }
 
+Light *Scene::add(std::unique_ptr<Light> light)
+{
+    lights_.emplace_back(std::move(light));
+
+    return lights_.back().get();
+}
+
 std::vector<std::tuple<RenderGraph, std::unique_ptr<RenderEntity>>>
     &Scene::entities()
 {
     return entities_;
+}
+
+const std::vector<std::unique_ptr<Light>> &Scene::lights() const
+{
+    return lights_;
 }
 
 }

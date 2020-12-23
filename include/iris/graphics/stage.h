@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "core/camera.h"
+#include "graphics/light.h"
 #include "graphics/material.h"
 #include "graphics/render_entity.h"
 #include "graphics/render_target.h"
@@ -15,8 +16,27 @@
 
 namespace iris
 {
+
+/**
+ * Internal struct encapsulating all data needed by a RenderSystem to render.
+ */
+struct RenderItem
+{
+    /** Entity to render. */
+    RenderEntity *entity;
+
+    /** Material to render with. */
+    Material *material;
+
+    /** Lights effecting entity. */
+    std::vector<Light *> lights;
+};
+
 /**
  * A stage is a single render pass of a scene, with a camera to a target.
+ *
+ * This is an internal class and shouldn't be created directly. Pipeline should
+ * be used for creating render passes.
  *
  * Note this class doesn't do any rendering, it just encapsulates the
  * information required.
@@ -33,7 +53,7 @@ class Stage
      * @param camera
      *   Camera to render scene with.
      */
-    Stage(std::unique_ptr<Scene> scene, Camera &camera);
+    Stage(Scene *scene, Camera &camera);
 
     /**
      * Create a stage to render a scene to a custom target.
@@ -47,7 +67,7 @@ class Stage
      * @param target
      *   Target to be rendered to.
      */
-    Stage(std::unique_ptr<Scene> scene, Camera &camera, RenderTarget &target);
+    Stage(Scene *scene, Camera &camera, RenderTarget &target);
 
     /**
      * Get a collection of RenderEntity's and associated Materials.
@@ -55,7 +75,7 @@ class Stage
      * @returns
      *   Collection of <RenderEntity, Material> tuples.
      */
-    std::vector<std::tuple<RenderEntity *, Material *>> render_items() const;
+    std::vector<RenderItem> render_items() const;
 
     /**
      * Get reference to camera.
@@ -75,7 +95,7 @@ class Stage
 
   private:
     /** Scene to be rendered. */
-    std::unique_ptr<Scene> scene_;
+    Scene *scene_;
 
     /** Camera to render scene with. */
     Camera &camera_;
@@ -84,7 +104,7 @@ class Stage
     RenderTarget &target_;
 
     /** Collection of RenderEntity's and associated Materials. */
-    std::vector<std::tuple<RenderEntity *, Material *>> render_items_;
+    std::vector<RenderItem> render_items_;
 
     /** Collection of created Materials. */
     std::vector<std::unique_ptr<Material>> materials_;
