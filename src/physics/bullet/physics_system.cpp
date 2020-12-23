@@ -4,6 +4,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <set>
 #include <vector>
 
 #include <BulletCollision/CollisionDispatch/btGhostObject.h>
@@ -102,15 +103,14 @@ struct PhysicsSystem::implementation
     std::unique_ptr<::btBroadphaseInterface> broadphase;
     std::unique_ptr<::btSequentialImpulseConstraintSolver> solver;
     std::unique_ptr<::btDiscreteDynamicsWorld> world;
-    std::unique_ptr<::btGhostPairCallback> ghost_pair_callback;
     std::vector<std::unique_ptr<RigidBody>> bodies;
+    std::set<const ::btCollisionObject *> ignore;
     std::vector<std::unique_ptr<CharacterController>> character_controllers;
     std::unique_ptr<DebugDraw> debug_draw;
 };
 
 PhysicsSystem::PhysicsSystem()
     : impl_(std::make_unique<implementation>())
-    , draw_debug_(false)
 {
     impl_->collision_config =
         std::make_unique<::btDefaultCollisionConfiguration>();
@@ -135,14 +135,6 @@ PhysicsSystem::~PhysicsSystem()
 {
     try
     {
-        for (const auto &constraint : impl_->constraints)
-        {
-            auto *bullet_constraint = std::any_cast<::btTypedConstraint *>(
-                constraint->native_handle());
-
-            impl_->world->removeConstraint(bullet_constraint);
-        }
-
         for (const auto &body : impl_->bodies)
         {
             remove_body_from_world(body.get(), impl_->world.get());

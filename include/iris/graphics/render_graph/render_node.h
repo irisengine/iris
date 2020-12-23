@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #include "graphics/render_graph/node.h"
 
@@ -82,6 +83,41 @@ class RenderNode : public Node
      */
     void set_position_input(Node *input);
 
+    /**
+     * Get the shadow map input node at a specified index.
+     *
+     * @param index
+     *   Index of shadow map input.
+     *
+     * @returns
+     *   Shadow map node at index if one exists, otherwise nullptr.
+     */
+    Node *shadow_map_input(std::size_t index) const;
+
+    /**
+     * Add a new shadow map node.
+     *
+     * @param input
+     *   Shadow map input node.
+     */
+    void add_shadow_map_input(Node *input);
+
+    /**
+     * Is this render node a depth only render.
+     *
+     * @returns
+     *   True if depth only render, otherwise false.
+     */
+    bool is_depth_only() const;
+
+    /**
+     * Set if this node is for a depth only render.
+     *
+     * @param depth_only
+     *   New depth only value.
+     */
+    void set_depth_only(bool depth_only);
+
   private:
     /** Colour input. */
     Node *colour_input_;
@@ -91,5 +127,11 @@ class RenderNode : public Node
 
     /** Vertex position input. */
     Node *position_input_;
+
+    /** Collection of shadow map inputs. */
+    std::vector<Node *> shadow_map_inputs_;
+
+    /** Is depth only render. */
+    bool depth_only_;
 };
 }

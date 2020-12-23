@@ -27,13 +27,13 @@ void go(int, char **)
 
     auto scene = std::make_unique<iris::Scene>();
 
-    auto *sprite1 = scene->create(
+    auto *sprite1 = scene->create_entity(
         iris::RenderGraph{},
         iris::mesh_factory::sprite({0.39f, 0.58f, 0.92f}),
         iris::Vector3{0.0f},
         iris::Vector3{100.0f});
 
-    auto *sprite2 = scene->create(
+    auto *sprite2 = scene->create_entity(
         iris::RenderGraph{},
         iris::mesh_factory::sprite({0.86f, 0.08f, 0.23f}),
         iris::Vector3{0.0f, 300.0f, 0.0f},
@@ -43,7 +43,7 @@ void go(int, char **)
     auto *texture_node = graph.create<iris::TextureNode>("circle.png");
     graph.render_node()->set_colour_input(texture_node);
 
-    auto *sprite3 = scene->create(
+    auto *sprite3 = scene->create_entity(
         std::move(graph),
         iris::mesh_factory::sprite({1.0f}),
         iris::Vector3{0.0f, -300.0f, 0.0f},
@@ -52,8 +52,8 @@ void go(int, char **)
     iris::Quaternion rot{{0.0f, 0.0f, 1.0f}, 0.0f};
     iris::Quaternion delta{{0.0f, 0.0f, 1.0f}, 0.02f};
 
-    auto stage = std::make_unique<iris::Stage>(std::move(scene), screen_camera);
-    iris::Pipeline pipeline(std::move(stage));
+    iris::Pipeline pipeline{};
+    pipeline.add_stage(std::move(scene), screen_camera);
 
     for (;;)
     {

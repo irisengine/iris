@@ -73,6 +73,7 @@ RenderEntity::RenderEntity(
     , wireframe_(false)
     , primitive_type_(PrimitiveType::TRIANGLES)
     , skeleton_(std::move(skeleton))
+    , receive_shadow_(true)
 {
     buffer_descriptors_.emplace_back(std::move(buffer_descriptor));
     model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) *
@@ -95,6 +96,7 @@ RenderEntity::RenderEntity(
     , wireframe_(false)
     , primitive_type_(PrimitiveType::TRIANGLES)
     , skeleton_(std::move(skeleton))
+    , receive_shadow_(true)
 {
     model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) *
              Matrix4::make_scale(scale_);
@@ -187,6 +189,16 @@ void RenderEntity::set_primitive_type(PrimitiveType type)
 Skeleton &RenderEntity::skeleton()
 {
     return skeleton_;
+}
+
+bool RenderEntity::receive_shadow() const
+{
+    return receive_shadow_;
+}
+
+void RenderEntity::set_receive_shadow(bool receive_shadow)
+{
+    receive_shadow_ = receive_shadow;
 }
 
 }

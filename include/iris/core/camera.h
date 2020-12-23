@@ -25,8 +25,11 @@ class Camera
      *
      * @param height
      *   Height of window.
+     * 
+     * @param depth
+     *   Depth of projection.
      */
-    Camera(CameraType type, float width, float height);
+    Camera(CameraType type, float width, float height, float depth = 1000.0f);
 
     /**
      * Translate the camera.

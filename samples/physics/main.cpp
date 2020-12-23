@@ -78,11 +78,13 @@ void go(int, char **)
     std::vector<std::tuple<iris::RenderEntity *, iris::RigidBody *>> boxes;
 
     auto scene = std::make_unique<iris::Scene>();
-    scene->create(
+    scene->create_entity(
         iris::RenderGraph{},
         iris::mesh_factory::cube({1.0f}),
         iris::Vector3{0.0f, -50.0f, 0.0f},
         iris::Vector3{500.0f, 50.0f, 500.0f});
+
+    scene->create_light(iris::Vector3{0.0f, -1.0f, -1.0f}, true);
 
     ps.create_rigid_body(
         iris::Vector3{0.0f, -50.0f, 0.0f},
@@ -105,7 +107,7 @@ void go(int, char **)
                               : iris::Vector3{0.0f, 0.0f, 1.0f};
 
             boxes.emplace_back(
-                scene->create(
+                scene->create_entity(
                     iris::RenderGraph{},
                     iris::mesh_factory::cube(colour),
                     pos,
@@ -117,8 +119,8 @@ void go(int, char **)
         }
     }
 
-    auto stage = std::make_unique<iris::Stage>(std::move(scene), camera);
-    iris::Pipeline pipeline(std::move(stage));
+    iris::Pipeline pipeline{};
+    pipeline.add_stage(std::move(scene), camera);
 
     auto *character_controller =
         ps.create_character_controller<iris::BasicCharacterController>();

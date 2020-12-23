@@ -4,6 +4,7 @@
 #include <string>
 
 #include "core/exception.h"
+#include "graphics/light.h"
 #include "graphics/render_graph/arithmetic_node.h"
 #include "graphics/render_graph/blur_node.h"
 #include "graphics/render_graph/colour_node.h"
@@ -42,7 +43,6 @@ uniform mat4 view;
 uniform mat4 model;
 uniform mat4 normal_matrix;
 uniform mat4 bones[100];
-uniform vec3 light;
 )";
 
 static constexpr auto vertex_out = R"(
@@ -50,7 +50,6 @@ out vec4 fragPos;
 out vec2 texCoord;
 out vec4 col;
 out vec4 norm;
-out vec3 tangent_light_pos;
 out vec3 tangent_frag_pos;
 )";
 
@@ -59,8 +58,6 @@ in vec2 texCoord;
 in vec4 col;
 in vec4 norm;
 in vec4 fragPos;
-in vec3 tangent_light_pos;
-in vec3 tangent_view_pos;
 in vec3 tangent_frag_pos;
 )";
 
@@ -99,12 +96,15 @@ std::string texture_name(
 
 namespace iris
 {
-Compiler::Compiler(const RenderGraph &render_graph)
+Compiler::Compiler(
+    const RenderGraph &render_graph,
+    const std::vector<Light *> &lights)
     : vertex_stream_()
     , fragment_stream_()
     , vertex_functions_()
     , fragment_functions_()
     , textures_()
+    , lights_(lights)
 {
     render_graph.render_node()->accept(*this);
 }
@@ -132,9 +132,18 @@ void Compiler::visit(const RenderNode &node)
     fragPos = model * bone_transform * position;
     gl_Position = projection * view * fragPos;
 
-    tangent_light_pos = tbn * light;
-    tangent_frag_pos = tbn * fragPos.xyz;
 )";
+
+    for (auto i = 0u; i < lights_.size(); ++i)
+    {
+        vertex_stream_ << "frag_pos_light_space" << i << " = light_proj" << i
+                       << " * light_view" << i << " * fragPos;\n";
+
+        vertex_stream_ << "tangent_light_pos" << i << " = tbn * light" << i
+                       << ";\n";
+    }
+
+    vertex_stream_ << "tangent_frag_pos = tbn * fragPos.xyz;\n";
     vertex_stream_ << "}";
 
     current_stream_ = &fragment_stream_;
@@ -142,49 +151,103 @@ void Compiler::visit(const RenderNode &node)
 
     fragment_stream_ << "void main()\n{\n";
 
-    fragment_stream_ << "    vec4 fragment_colour = ";
-
-    auto colour_input = node.colour_input();
-    if (colour_input == nullptr)
+    if (!node.is_depth_only())
     {
-        fragment_stream_ << "col;";
-    }
-    else
-    {
-        colour_input->accept(*this);
-        fragment_stream_ << ";\n";
-    }
+        fragment_stream_ << "vec4 fragment_colour = ";
 
-    fragment_stream_ << "    vec3 n = ";
-    auto normal_input = node.normal_input();
-    if (normal_input == nullptr)
-    {
-        fragment_stream_ << "normalize(norm.xyz);\n";
-        fragment_stream_
-            << "vec3 light_dir = normalize(light - fragPos.xyz);\n";
-    }
-    else
-    {
-        fragment_stream_ << "vec3(";
-        normal_input->accept(*this);
-        fragment_stream_ << ");\n";
-        fragment_stream_ << "    n = n * 2.0 - 1.0;\n";
-        fragment_stream_ << "vec3 light_dir = normalize(tangent_light_pos - "
-                            "tangent_frag_pos);\n";
-    }
+        auto colour_input = node.colour_input();
+        if (colour_input == nullptr)
+        {
+            fragment_stream_ << "col;\n";
+        }
+        else
+        {
+            colour_input->accept(*this);
+            fragment_stream_ << ";\n";
+        }
 
-    fragment_stream_ << R"(
-    vec3 amb = 0.5 * fragment_colour.rgb;
-    float diff = max(dot(n, light_dir), 0.0);
+        fragment_stream_ << "vec3 n = ";
+        auto normal_input = node.normal_input();
+        if (normal_input == nullptr)
+        {
+            fragment_stream_ << "normalize(norm.xyz);\n";
 
-    vec3 diffuse = diff * fragment_colour.rgb;
-    outColor = vec4(amb+diffuse, 1.0);
+            for (auto i = 0u; i < lights_.size(); ++i)
+            {
+                fragment_stream_ << "vec3 light_dir" << i
+                                 << " = normalize(-light" << i << ");\n";
+            }
+        }
+        else
+        {
+            fragment_stream_ << "vec3(";
+            normal_input->accept(*this);
+            fragment_stream_ << ");\n";
+            fragment_stream_ << "    n = n * 2.0 - 1.0;\n";
+            for (auto i = 0u; i < lights_.size(); ++i)
+            {
+                fragment_stream_ << "vec3 light_dir" << i
+                                 << "= normalize(-tangent_light_pos" << i
+                                 << ");\n";
+            }
+        }
 
-    if(fragment_colour.a < 0.01)
-    {
-        discard;
-    }
+        if (lights_.empty())
+        {
+            fragment_stream_ << "vec3 amb = vec3(1.0);\n";
+        }
+        else
+        {
+            fragment_stream_ << "vec3 amb = vec3(0.15);\n";
+        }
+
+        fragment_stream_ << "vec3 diffuse = vec3(0);\n";
+
+        for (auto i = 0u; i < lights_.size(); ++i)
+        {
+            fragment_stream_ << "float shadow" << i << " = 0.0;\n";
+            if (node.shadow_map_input(i) != nullptr)
+            {
+                fragment_stream_
+                    << "vec3 proj_coord" << i << " = frag_pos_light_space" << i
+                    << ".xyz / frag_pos_light_space" << i << ".w;\n";
+                fragment_stream_ << "proj_coord" << i << " = proj_coord" << i
+                                 << " * 0.5 + 0.5;\n";
+                fragment_stream_
+                    << "float closest_depth" << i << " = texture("
+                    << texture_name(
+                           static_cast<TextureNode *>(node.shadow_map_input(i))
+                               ->texture(),
+                           textures_)
+                    << ", proj_coord" << i << ".xy).r;\n";
+                fragment_stream_ << "float current_depth" << i
+                                 << " = proj_coord" << i << ".z;\n";
+                fragment_stream_ << "float bias" << i
+                                 << " = max(0.05 * (1.0 - dot(n, light_dir" << i
+                                 << ")), 0.005);\n";
+                fragment_stream_ << "shadow" << i << " = current_depth" << i
+                                 << " - bias" << i << " > closest_depth" << i
+                                 << " ? 1.0 : 0.0;\n";
+                fragment_stream_ << "if(proj_coord" << i << ".z > 1.0) {shadow"
+                                 << i << " = 0.0;}\n";
+            }
+
+            fragment_stream_ << "float diff" << i << " = max(dot(n, light_dir"
+                             << i << "), 0.0);\n";
+            fragment_stream_ << "vec3 diffuse" << i << " = (1.0  - shadow" << i
+                             << ") * diff" << i << " * vec3(1);\n";
+            fragment_stream_ << "diffuse += diffuse" << i << ";\n";
+        }
+
+        fragment_stream_ << R"(
+        outColor = vec4((amb + diffuse) * fragment_colour.rgb, 1.0);
+
+        if (fragment_colour.a < 0.01)
+        {
+            discard;
+        }
 )";
+    }
     fragment_stream_ << "}";
 }
 
@@ -348,7 +411,21 @@ std::string Compiler::vertex_shader() const
 
     stream << preamble << '\n';
     stream << layouts << '\n';
+
+    for (auto i = 0u; i < lights_.size(); ++i)
+    {
+        stream << "out vec3 tangent_light_pos" << i << ";\n";
+        stream << "out vec4 frag_pos_light_space" << i << ";\n";
+    }
+
     stream << uniforms << '\n';
+
+    for (auto i = 0u; i < lights_.size(); ++i)
+    {
+        stream << "uniform vec3 light" << i << ";\n";
+        stream << "uniform mat4 light_proj" << i << ";\n";
+        stream << "uniform mat4 light_view" << i << ";\n";
+    }
 
     for (auto i = 0u; i < textures_.size(); ++i)
     {
@@ -368,12 +445,26 @@ std::string Compiler::fragment_shader() const
     stream << preamble << '\n';
     stream << uniforms << '\n';
 
+    for (auto i = 0u; i < lights_.size(); ++i)
+    {
+        stream << "uniform vec3 light" << i << ";\n";
+        stream << "uniform mat4 light_proj" << i << ";\n";
+        stream << "uniform mat4 light_view" << i << ";\n";
+    }
+
     for (const auto *texture : textures_)
     {
         stream << "uniform sampler2D texture" << texture->texture_id() << ";\n";
     }
 
     stream << fragment_in << '\n';
+
+    for (auto i = 0u; i < lights_.size(); ++i)
+    {
+        stream << "in vec3 tangent_light_pos" << i << ";\n";
+        stream << "in vec4 frag_pos_light_space" << i << ";\n";
+    }
+
     stream << fragment_out << '\n';
 
     for (const auto &function : fragment_functions_)
@@ -390,5 +481,4 @@ std::vector<Texture *> Compiler::textures() const
 {
     return textures_;
 }
-
 }

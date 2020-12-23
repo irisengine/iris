@@ -400,20 +400,20 @@ void go(int, char **)
 
     auto scene = std::make_unique<iris::Scene>();
 
-    scene->create(
+    scene->create_entity(
         iris::RenderGraph{},
         iris::mesh_factory::cube({1.0f}),
         iris::Vector3{0.0f, -50.0f, 0.0f},
         iris::Vector3{500.0f, 50.0f, 500.0f});
 
-    auto *box = scene->create(
+    auto *box = scene->create_entity(
         iris::RenderGraph{},
         iris::mesh_factory::cube({1.0f, 0.0f, 0.0f}),
         iris::Vector3{0.0f, 1.0f, 0.0f},
         iris::Vector3{0.5f, 0.5f, 0.5f});
 
-    auto stage = std::make_unique<iris::Stage>(std::move(scene), camera);
-    iris::Pipeline pipeline(std::move(stage));
+    iris::Pipeline pipeline{};
+    pipeline.add_stage(std::move(scene), camera);
 
     rs.set_light_position({10.0f});
 

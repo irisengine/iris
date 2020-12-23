@@ -41,7 +41,7 @@ iris::Vector3 create_direction(float pitch, float yaw)
 namespace iris
 {
 
-Camera::Camera(CameraType type, float width, float height)
+Camera::Camera(CameraType type, float width, float height, float depth)
     : position_(0.0f, 0.0f, 100.0f)
     , direction_(0.0f, 0.0f, -1.0f)
     , up_(0.0f, 1.0f, 0.0f)
@@ -55,11 +55,11 @@ Camera::Camera(CameraType type, float width, float height)
     {
         case CameraType::PERSPECTIVE:
             projection_ = Matrix4::make_perspective_projection(
-                0.785398f, width, height, 0.1f, 1000.0f);
+                0.785398f, width, height, 0.1f, depth);
             break;
         case CameraType::ORTHOGRAPHIC:
             projection_ =
-                Matrix4::make_orthographic_projection(width, height, 1000.0f);
+                Matrix4::make_orthographic_projection(width, height, depth);
             break;
     }
 

@@ -26,15 +26,13 @@ RenderTarget::RenderTarget(std::uint32_t width, std::uint32_t height)
     ::glGenFramebuffers(1, &impl_->fbo);
     check_opengl_error("could not generate fbo");
 
-    // create backing textures for colour and depth
-    colour_texture_ =
-        std::make_unique<Texture>(width * 2, height * 2, PixelFormat::RGB);
-    depth_texture_ =
-        std::make_unique<Texture>(width * 2, height * 2, PixelFormat::DEPTH);
-
     // bind fbo so we can set textures
     ::glBindFramebuffer(GL_FRAMEBUFFER, impl_->fbo);
     check_opengl_error("could not bind fbo");
+
+    // create backing textures for colour and depth
+    colour_texture_ =
+        std::make_unique<Texture>(width * 2, height * 2, PixelFormat::RGB);
 
     const auto colour_handle =
         std::any_cast<std::uint32_t>(colour_texture_->native_handle());
@@ -42,6 +40,9 @@ RenderTarget::RenderTarget(std::uint32_t width, std::uint32_t height)
     ::glFramebufferTexture2D(
         GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colour_handle, 0);
     check_opengl_error("could not attach colour texture");
+
+    depth_texture_ =
+        std::make_unique<Texture>(width * 2, height * 2, PixelFormat::DEPTH);
 
     const auto depth_handle =
         std::any_cast<std::uint32_t>(depth_texture_->native_handle());

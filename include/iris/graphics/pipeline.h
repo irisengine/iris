@@ -4,12 +4,15 @@
 #include <memory>
 #include <vector>
 
+#include "core/camera.h"
+#include "graphics/render_target.h"
+#include "graphics/scene.h"
 #include "graphics/stage.h"
 
 namespace iris
 {
 /**
- * A pipeline is a series of Stages which, when rendered, constitute a final
+ * A pipeline is a series of stages which, when rendered, constitute a final
  * frame to be displayed. In other words once a pipeline has been executed the
  * default screen target can be presented to the window and will show the
  * final rendered frame.
@@ -27,20 +30,32 @@ class Pipeline
 {
   public:
     /**
-     * Create a pipeline with a single stage.
+     * Add a stage, which renders to the default screen target.
      *
-     * @param stage
-     *   Single stage.
+     * @param scene
+     *   Scene to render
+     *
+     * @param camera
+     *   Camera to render scene with.
      */
-    Pipeline(std::unique_ptr<Stage> stage);
+    void add_stage(std::unique_ptr<Scene> scene, Camera &camera);
 
     /**
-     * Create a pipeline with multiple stages.
+     * Add a staged, which renders to a custom target.
      *
-     * @param stages
-     *   Stages of pipeline.
+     * @param scene
+     *   Scene to render
+     *
+     * @param camera
+     *   Camera to render scene with.
+     *
+     * @param target
+     *   Target to render scene to.
      */
-    Pipeline(std::vector<std::unique_ptr<Stage>> stages);
+    void add_stage(
+        std::unique_ptr<Scene> scene,
+        Camera &camera,
+        RenderTarget &target);
 
     /**
      * Get a reference to the stages.
@@ -51,6 +66,9 @@ class Pipeline
     std::vector<std::unique_ptr<Stage>> &stages();
 
   private:
+    /** Collection of scenes. */
+    std::vector<std::unique_ptr<Scene>> scenes_;
+
     /** Collection of stages. */
     std::vector<std::unique_ptr<Stage>> stages_;
 };

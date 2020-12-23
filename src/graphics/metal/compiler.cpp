@@ -4,6 +4,7 @@
 #include <string>
 
 #include "core/exception.h"
+#include "graphics/light.h"
 #include "graphics/render_graph/arithmetic_node.h"
 #include "graphics/render_graph/blur_node.h"
 #include "graphics/render_graph/colour_node.h"
@@ -42,18 +43,6 @@ typedef struct
 } VertexIn;
 )";
 
-static constexpr auto vertex_out = R"(
-typedef struct {
-    float4 position [[position]];
-    float4 normal [[normal]];
-    float4 color;
-    float4 tex;
-    float4 pos;
-    float3 tangent_light_pos;
-    float3 tangent_frag_pos;
-} VertexOut;
-)";
-
 static constexpr auto default_uniform = R"(
 typedef struct
 {
@@ -70,6 +59,8 @@ static constexpr auto light_uniform = R"(
 typedef struct
 {
     float4 position;
+    float4x4 proj;
+    float4x4 view;
 } LightUniform;
 )";
 
@@ -93,7 +84,9 @@ std::string texture_name(
 namespace iris
 {
 
-Compiler::Compiler(const RenderGraph &render_graph)
+Compiler::Compiler(
+    const RenderGraph &render_graph,
+    const std::vector<Light *> &lights)
     : vertex_stream_()
     , fragment_stream_()
     , current_stream_(nullptr)
@@ -101,6 +94,7 @@ Compiler::Compiler(const RenderGraph &render_graph)
     , fragment_functions_()
     , current_functions_(nullptr)
     , textures_()
+    , lights_(lights)
 {
     render_graph.render_node()->accept(*this);
 }
@@ -143,8 +137,17 @@ void Compiler::visit(const RenderNode &node)
     float3 B = normalize(float3(uniform->normal_matrix * bone_transform * vertices[vid].bitangent));
     float3 N = normalize(float3(uniform->normal_matrix * bone_transform * vertices[vid].normal));
     float3x3 tbn = transpose(float3x3(T, B, N));
+)";
 
-    out.tangent_light_pos = tbn * float3(light->position);
+    for (auto i = 0u; i < lights_.size(); ++i)
+    {
+        vertex_stream_ << "out.frag_pos_light_space" << i << " = light[" << i
+                       << "].proj * light[" << i << "].view * out.pos;\n";
+        vertex_stream_ << "out.tangent_light_pos" << i
+                       << " = tbn * float3(light[" << i << "].position);\n";
+    }
+
+    vertex_stream_ << R"(
     out.tangent_frag_pos = tbn * float3(out.pos);
 
     return out;
@@ -154,54 +157,129 @@ void Compiler::visit(const RenderNode &node)
     current_stream_ = &fragment_stream_;
     current_functions_ = &fragment_functions_;
 
-    fragment_stream_ << "    float2 uv = in.tex.xy;";
-    fragment_stream_ << "    float4 fragment_colour = ";
-
-    auto colour_input = node.colour_input();
-    if (colour_input == nullptr)
+    if (!node.is_depth_only())
     {
-        fragment_stream_ << "in.color;";
-    }
-    else
-    {
-        colour_input->accept(*this);
-        fragment_stream_ << ";\n";
-    }
+        fragment_stream_ << "float2 uv = in.tex.xy;\n";
+        fragment_stream_ << "float4 fragment_colour = ";
 
-    fragment_stream_ << "    float4 n4 = ";
+        auto colour_input = node.colour_input();
+        if (colour_input == nullptr)
+        {
+            fragment_stream_ << "in.color;\n";
+        }
+        else
+        {
+            colour_input->accept(*this);
+            fragment_stream_ << ";\n";
+        }
 
-    auto normal_input = node.normal_input();
-    if (normal_input == nullptr)
-    {
-        fragment_stream_ << "in.normal;";
-        fragment_stream_ << "float3 light_dir = normalize(light->position.xyz "
-                            "- in.pos.xyz);\n";
-    }
-    else
-    {
-        normal_input->accept(*this);
-        fragment_stream_ << ";\n";
-        fragment_stream_ << "n4 = normalize(n4 * 2.0 - 1.0);\n";
-        fragment_stream_
-            << "float3 light_dir = normalize(in.tangent_light_pos - "
-               "in.tangent_frag_pos);\n";
-    }
+        fragment_stream_ << "float4 n4 = ";
 
-    fragment_stream_ << R"(
+        auto normal_input = node.normal_input();
+        if (normal_input == nullptr)
+        {
+            fragment_stream_ << "in.normal;\n";
 
+            for (auto i = 0u; i < lights_.size(); ++i)
+            {
+                fragment_stream_ << "float3 light_dir" << i
+                                 << " = normalize(-(light[" << i
+                                 << "].position.xyz));\n";
+            }
+        }
+        else
+        {
+            normal_input->accept(*this);
+            fragment_stream_ << ";\n";
+            fragment_stream_ << "n4 = normalize(n4 * 2.0 - 1.0);\n";
+            for (auto i = 0u; i < lights_.size(); ++i)
+            {
+                fragment_stream_ << "float3 light_dir" << i
+                                 << " = normalize(-in.tangent_light_pos" << i
+                                 << ");\n";
+            }
+        }
+
+        if (lights_.empty())
+        {
+            fragment_stream_ << "float3 amb = float3(1.0);\n";
+        }
+        else
+        {
+            fragment_stream_ << "float3 amb = float3(0.15);\n";
+        }
+
+        fragment_stream_ << R"(
     float3 n = normalize(float3(n4));
-    float3 amb = 0.5 * fragment_colour.rgb;
-    float diff = max(dot(n, light_dir), 0.0);
-    float3 diffuse = diff * fragment_colour.rgb;
+    float3 diffuse = 0.0;
+)";
 
-    if(fragment_colour.a < 0.01)
+        for (auto i = 0u; i < lights_.size(); ++i)
+        {
+            fragment_stream_ << "float shadow" << i << " = 0.0;\n";
+            if (node.shadow_map_input(i) != nullptr)
+            {
+                auto *shadow_texture =
+                    static_cast<TextureNode *>(node.shadow_map_input(i))
+                        ->texture();
+                fragment_stream_ << "constexpr sampler s" << i
+                                 << "(coord::normalized, filter::linear, "
+                                    "address::clamp_to_edge, "
+                                    "compare_func::less);\n";
+                fragment_stream_
+                    << "float3 proj_coord" << i << " = in.frag_pos_light_space"
+                    << i << ".xyz / in.frag_pos_light_space" << i << ".w;\n";
+
+                fragment_stream_ << "float2 proj_uv" << i << " = float2(";
+                if (shadow_texture->flip())
+                {
+                    fragment_stream_ << "proj_coord" << i << ".x, -proj_coord"
+                                     << i << ".y);\n";
+                }
+                else
+                {
+                    fragment_stream_ << "proj_coord" << i << ".xy);\n";
+                }
+                fragment_stream_ << "proj_uv" << i << "= proj_uv" << i
+                                 << " * 0.5 + 0.5;\n";
+
+                fragment_stream_ << "float closest_depth" << i << " = "
+                                 << texture_name(shadow_texture, textures_)
+                                 << ".sample(s" << i << ", proj_uv" << i
+                                 << ").r;\n";
+                fragment_stream_ << "float current_depth" << i
+                                 << " = proj_coord" << i << ".z;\n";
+                fragment_stream_ << "float bias" << i
+                                 << " = max(0.05 * (1.0 - dot(n, light_dir" << i
+                                 << ")), 0.005);\n";
+                fragment_stream_ << "shadow" << i << " = current_depth" << i
+                                 << " - bias" << i << " > closest_depth" << i
+                                 << " ? 1.0 : 0.0;\n";
+                fragment_stream_ << "if(proj_coord" << i << ".z > 1.0) {shadow"
+                                 << i << " = 0.0;}\n";
+            }
+
+            fragment_stream_ << "float diff" << i << " = max(dot(n, light_dir"
+                             << i << "), 0.0);\n";
+            fragment_stream_ << "float3 diffuse" << i << " = (1.0  - shadow"
+                             << i << ") * diff" << i << " * float3(1);\n";
+            fragment_stream_ << "diffuse += diffuse" << i << ";\n";
+        }
+
+        fragment_stream_ << R"(
+    if (fragment_colour.a < 0.01)
     {
         discard_fragment();
     }
-    
-    return float4(amb + diffuse, 1.0);
+
+    return float4((amb + diffuse) * fragment_colour.rgb, 1.0);
 }
 )";
+    }
+    else
+    {
+        fragment_stream_ << "return float4(0); }\n";
+    }
 }
 
 void Compiler::visit(const ColourNode &node)
@@ -391,7 +469,23 @@ std::string Compiler::vertex_shader() const
 
     stream << preamble << '\n';
     stream << vertex_in << '\n';
-    stream << vertex_out << '\n';
+    stream << R"(
+typedef struct {
+    float4 position [[position]];
+    float4 normal;
+    float4 color;
+    float4 tex;
+    float4 pos;
+    )";
+    for (auto i = 0u; i < lights_.size(); ++i)
+    {
+        stream << "float3 tangent_light_pos" << i << ";\n";
+        stream << "float4 frag_pos_light_space" << i << ";\n";
+    }
+    stream << R"(
+    float3 tangent_frag_pos;
+} VertexOut;
+)";
     stream << default_uniform << '\n';
     stream << light_uniform << '\n';
 
@@ -429,7 +523,23 @@ std::string Compiler::fragment_shader() const
 
     stream << preamble << '\n';
     stream << vertex_in << '\n';
-    stream << vertex_out << '\n';
+    stream << R"(
+typedef struct {
+    float4 position [[position]];
+    float4 normal;
+    float4 color;
+    float4 tex;
+    float4 pos;
+    )";
+    for (auto i = 0u; i < lights_.size(); ++i)
+    {
+        stream << "float3 tangent_light_pos" << i << ";\n";
+        stream << "float4 frag_pos_light_space" << i << ";\n";
+    }
+    stream << R"(
+    float3 tangent_frag_pos;
+} VertexOut;
+)";
     stream << default_uniform << '\n';
     stream << light_uniform << '\n';
 

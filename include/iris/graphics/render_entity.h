@@ -245,6 +245,22 @@ class RenderEntity
      */
     Skeleton &skeleton();
 
+    /**
+     * Can this entity have shadows rendered on it.
+     *
+     * @returns
+     *   True if shadows should be rendered, false otherwise.
+     */
+    bool receive_shadow() const;
+
+    /**
+     * Set whether this object can have shadows rendered on it.
+     *
+     * @param receive_shadow
+     *   New receive shadow option.
+     */
+    void set_receive_shadow(bool receive_shadow);
+
   private:
     /** BufferDescriptors to render. */
     std::vector<BufferDescriptor> buffer_descriptors_;
@@ -272,6 +288,9 @@ class RenderEntity
 
     /** Skeleton. */
     Skeleton skeleton_;
+
+    /** Should object render shadows. */
+    bool receive_shadow_;
 };
 
 }
