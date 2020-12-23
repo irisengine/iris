@@ -220,7 +220,7 @@ void Compiler::visit(const RenderNode &node)
             if (node.shadow_map_input(i) != nullptr)
             {
                 auto *shadow_texture =
-                    static_cast<TextureNode *>(node.shadow_map_input())
+                    static_cast<TextureNode *>(node.shadow_map_input(i))
                         ->texture();
                 fragment_stream_ << "constexpr sampler s" << i
                                  << "(coord::normalized, filter::linear, "
