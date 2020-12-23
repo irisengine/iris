@@ -21,12 +21,11 @@ int go(int, char **)
 
     iris::Camera screen_camera{iris::CameraType::ORTHOGRAPHIC, 800.0f, 800.0f};
 
-    auto stage = std::make_unique<iris::Stage>(
+    iris::Pipeline pipeline{};
+    pipeline.add_stage(
         iris::text_factory::create(
             "Helvetica", 12, "hello world", iris::Vector3{1.0f, 1.0f, 1.0f}),
         screen_camera);
-
-    iris::Pipeline pipeline(std::move(stage));
 
     for (;;)
     {

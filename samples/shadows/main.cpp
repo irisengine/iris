@@ -14,7 +14,7 @@
 
 void go(int, char **)
 {
-    LOG_DEBUG("cube_sample", "hello world");
+    LOG_DEBUG("shadow_sample", "hello world");
 
     std::map<iris::Key, iris::KeyState> key_map{
         {iris::Key::W, iris::KeyState::UP},
@@ -32,22 +32,33 @@ void go(int, char **)
 
     scene->create_entity(
         iris::RenderGraph(),
+        iris::mesh_factory::cube({1.0f}),
+        iris::Vector3{0.0f, -510.0f, 0.0f},
+        iris::Vector3{500.0f});
+
+    auto *box = scene->create_entity(
+        iris::RenderGraph(),
         iris::mesh_factory::cube({1.0f, 0.0f, 0.0f}),
-        iris::Vector3{-20.0f, 0.0f, 0.0f},
+        iris::Vector3{0.0f, 10.0f, 0.0f},
         iris::Vector3{10.0f});
 
     scene->create_entity(
         iris::RenderGraph(),
-        iris::mesh_factory::cube({0.0f, 0.0f, 1.0f}),
-        iris::Vector3{20.0f, 0.0f, 0.0f},
+        iris::mesh_factory::cube({0.0f, 1.0f, 0.0f}),
+        iris::Vector3{-30.0f, 5.0f, 0.0f},
         iris::Vector3{10.0f});
+
+    auto *light1 = scene->create_light(iris::Vector3{-1.0f, -1.0f, 0.0f}, true);
+    // auto *light2 = scene->create_light(iris::Vector3{1.0f, -1.0f, 0.0f});
+
+    iris::Transform light_transform{light1->direction(), {}, {1.0f}};
 
     iris::Pipeline pipeline{};
     pipeline.add_stage(std::move(scene), camera);
 
     for (;;)
     {
-        if (auto evt = iris::Root::instance().window().pump_event(); evt)
+        if (auto evt = iris::Root::window().pump_event(); evt)
         {
             if (evt->is_key(iris::Key::ESCAPE))
             {
@@ -101,28 +112,24 @@ void go(int, char **)
             velocity -= camera.right().cross(camera.direction()) * speed;
         }
 
+        light_transform.set_matrix(
+            iris::Matrix4(iris::Quaternion{{0.0f, 1.0f, 0.0f}, -0.01f}) *
+            light_transform.matrix());
+        light1->set_direction(light_transform.translation());
+
         camera.translate(velocity);
+
+        box->set_orientation(
+            box->orientation() * iris::Quaternion{{0.0f, 1.0f, 0.0f}, -0.01f});
 
         rs.render(pipeline);
     }
-    LOG_ERROR("cube_sample", "goodbye!");
+    LOG_ERROR("shadow_sample", "goodbye!");
 }
 
 int main(int argc, char **argv)
 {
-    try
-    {
-        iris::start_debug(argc, argv, go);
-    }
-    catch (iris::Exception &e)
-    {
-        LOG_ERROR("cube_sample", e.what());
-        LOG_ERROR("cube_sample", e.stack_trace());
-    }
-    catch (...)
-    {
-        LOG_ERROR("cube_sample", "unknown exception");
-    }
+    iris::start_debug(argc, argv, go);
 
     return 0;
 }

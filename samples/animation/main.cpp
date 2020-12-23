@@ -41,9 +41,16 @@ void go(int, char **)
     auto &ps = iris::Root::instance().physics_system();
 
     iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};
-    iris::Camera screen_camera{iris::CameraType::ORTHOGRAPHIC, 800.0f, 800.0f};
+    camera.set_position(camera.position() + iris::Vector3{0.0f, 5.0f, 0.0f});
 
     auto scene = std::make_unique<iris::Scene>();
+
+    scene->create_entity(
+        iris::RenderGraph(),
+        iris::mesh_factory::cube({1.0f}),
+        iris::Vector3{0.0f, -500.0f, 0.0f},
+        iris::Vector3{500.0f});
+
     iris::RenderGraph render_graph{};
 
     auto *texture = render_graph.create<iris::TextureNode>("ZombieTexture.png");
@@ -52,7 +59,7 @@ void go(int, char **)
 
     auto [mesh, skeleton] = iris::mesh_factory::load("Zombie.fbx");
 
-    auto *zombie = scene->create(
+    auto *zombie = scene->create_entity(
         std::move(render_graph),
         std::move(mesh),
         iris::Vector3{0.0f, 0.0f, 0.0f},
@@ -60,18 +67,21 @@ void go(int, char **)
         iris::Vector3{0.035f},
         skeleton);
 
-    auto *debug_draw = scene->create(
+    zombie->set_receive_shadow(false);
+
+    auto *debug_draw = scene->create_entity(
         iris::RenderGraph{},
         iris::mesh_factory::empty(),
         iris::Vector3{},
         iris::Vector3{1.0f});
 
+    auto *light = scene->create_light(iris::Vector3{-1.0f, -1.0f, 0.0f}, true);
+    iris::Transform light_transform{light->direction(), {}, {1.0f}};
+
     ps.enable_debug_draw(debug_draw);
 
-    auto stage = std::make_unique<iris::Stage>(std::move(scene), camera);
-    iris::Pipeline pipeline{std::move(stage)};
-
-    iris::Transform light{{500.0f, 100.0f, 0.0f}, {}, {1.0f}};
+    iris::Pipeline pipeline{};
+    pipeline.add_stage(std::move(scene), camera);
 
     std::vector<std::string> animations{
         "Zombie|ZombieWalk",
@@ -213,11 +223,10 @@ void go(int, char **)
 
         camera.translate(velocity);
 
-        light.set_matrix(
+        light_transform.set_matrix(
             iris::Matrix4(iris::Quaternion{{0.0f, 1.0f, 0.0f}, -0.01f}) *
-            light.matrix());
-
-        rs.set_light_position(light.translation());
+            light_transform.matrix());
+        light->set_direction(light_transform.translation());
 
         zombie->skeleton().advance();
 
