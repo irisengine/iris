@@ -92,8 +92,10 @@ std::tuple<id<MTLTexture>, std::uint32_t> create_texture(
         // a fouth component (alpha - always 1)
         if (pixel_format == iris::PixelFormat::RGB)
         {
+            LOG_DEBUG("tex", "here");
             pixel_format = iris::PixelFormat::RGBA;
-            padded = std::vector<std::uint8_t>(width * height * 4u, 1);
+            padded = std::vector<std::uint8_t>(width * height * 4u, 255);
+            data_ptr = padded.data();
 
             auto *dst = padded.data();
             auto *src = data.data();
