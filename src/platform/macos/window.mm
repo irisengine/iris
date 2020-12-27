@@ -224,6 +224,10 @@ Window::Window(float width, float height)
 
     [NSCursor hide];
 
+    // opengl window won't render till we pump events, so we do that here as it
+    // doesn't matter if we are using opengl or metal
+    pump_event();
+
     LOG_ENGINE_INFO("window", "macos window created {} {}", width_, height_);
 }
 
