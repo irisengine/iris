@@ -2,6 +2,7 @@
 #include <map>
 
 #include "core/camera.h"
+#include "core/looper.h"
 #include "core/root.h"
 #include "core/transform.h"
 #include "graphics/material.h"
@@ -29,6 +30,8 @@
 #include "platform/resource_loader.h"
 #include "platform/start.h"
 #include "platform/window.h"
+
+using namespace std::chrono_literals;
 
 void go(int, char **)
 {
@@ -111,72 +114,79 @@ void go(int, char **)
 
     iris::Transform light_transform{light1->direction(), {}, {1.0f}};
 
-    for (;;)
-    {
-        if (auto evt = iris::Root::instance().window().pump_event(); evt)
-        {
-            if (evt->is_key(iris::Key::ESCAPE))
+    iris::Looper looper{
+        0ms,
+        33ms,
+        [](auto, auto) { return true; },
+        [&](auto, auto) {
+            if (auto evt = iris::Root::instance().window().pump_event(); evt)
             {
-                break;
+                if (evt->is_key(iris::Key::ESCAPE))
+                {
+                    return false;
+                }
+                else if (evt->is_key())
+                {
+                    const auto keyboard = evt->key();
+                    key_map[keyboard.key] = keyboard.state;
+                }
+                else if (evt->is_mouse())
+                {
+                    static const auto sensitivity = 0.0025f;
+                    const auto mouse = evt->mouse();
+
+                    camera.adjust_yaw(mouse.delta_x * sensitivity);
+                    camera.adjust_pitch(-mouse.delta_y * sensitivity);
+                }
             }
-            else if (evt->is_key())
+
+            static auto speed = 2.0f;
+            iris::Vector3 velocity;
+
+            if (key_map[iris::Key::W] == iris::KeyState::DOWN)
             {
-                const auto keyboard = evt->key();
-                key_map[keyboard.key] = keyboard.state;
+                velocity += camera.direction() * speed;
             }
-            else if (evt->is_mouse())
+
+            if (key_map[iris::Key::S] == iris::KeyState::DOWN)
             {
-                static const auto sensitivity = 0.0025f;
-                const auto mouse = evt->mouse();
-
-                camera.adjust_yaw(mouse.delta_x * sensitivity);
-                camera.adjust_pitch(-mouse.delta_y * sensitivity);
+                velocity -= camera.direction() * speed;
             }
-        }
 
-        static auto speed = 2.0f;
-        iris::Vector3 velocity;
+            if (key_map[iris::Key::A] == iris::KeyState::DOWN)
+            {
+                velocity -= camera.right() * speed;
+            }
 
-        if (key_map[iris::Key::W] == iris::KeyState::DOWN)
-        {
-            velocity += camera.direction() * speed;
-        }
+            if (key_map[iris::Key::D] == iris::KeyState::DOWN)
+            {
+                velocity += camera.right() * speed;
+            }
 
-        if (key_map[iris::Key::S] == iris::KeyState::DOWN)
-        {
-            velocity -= camera.direction() * speed;
-        }
+            if (key_map[iris::Key::Q] == iris::KeyState::DOWN)
+            {
+                velocity += camera.right().cross(camera.direction()) * speed;
+            }
 
-        if (key_map[iris::Key::A] == iris::KeyState::DOWN)
-        {
-            velocity -= camera.right() * speed;
-        }
+            if (key_map[iris::Key::E] == iris::KeyState::DOWN)
+            {
+                velocity -= camera.right().cross(camera.direction()) * speed;
+            }
 
-        if (key_map[iris::Key::D] == iris::KeyState::DOWN)
-        {
-            velocity += camera.right() * speed;
-        }
+            camera.translate(velocity);
 
-        if (key_map[iris::Key::Q] == iris::KeyState::DOWN)
-        {
-            velocity += camera.right().cross(camera.direction()) * speed;
-        }
+            light_transform.set_matrix(
+                iris::Matrix4(iris::Quaternion{{0.0f, 1.0f, 0.0f}, -0.01f}) *
+                light_transform.matrix());
+            light1->set_direction(light_transform.translation());
+            light2->set_direction(light_transform.translation());
 
-        if (key_map[iris::Key::E] == iris::KeyState::DOWN)
-        {
-            velocity -= camera.right().cross(camera.direction()) * speed;
-        }
+            rs.render(pipeline);
 
-        camera.translate(velocity);
+            return true;
+        }};
 
-        light_transform.set_matrix(
-            iris::Matrix4(iris::Quaternion{{0.0f, 1.0f, 0.0f}, -0.01f}) *
-            light_transform.matrix());
-        light1->set_direction(light_transform.translation());
-        light2->set_direction(light_transform.translation());
-
-        rs.render(pipeline);
-    }
+    looper.run();
     LOG_ERROR("cube_sample", "goodbye!");
 }
 
