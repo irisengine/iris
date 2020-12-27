@@ -415,8 +415,6 @@ void go(int, char **)
     iris::Pipeline pipeline{};
     pipeline.add_stage(std::move(scene), camera);
 
-    rs.set_light_position({10.0f});
-
     std::deque<std::tuple<
         std::chrono::steady_clock::time_point,
         iris::Vector3,

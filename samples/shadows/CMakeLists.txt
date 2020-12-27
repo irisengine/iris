@@ -1,44 +1,17 @@
-set(SAMPLE_SRCS
-    main.cpp
-)
+set(SAMPLE_SRCS main.cpp)
 
-if(IRIS_PLATFORM MATCHES "MACOS")
-    # macos specific linking
-    add_executable(shadows ${SAMPLE_SRCS})
-    target_link_libraries(shadows "-framework AppKit")
-    target_link_libraries(shadows "-framework CoreFoundation")
-elseif(IRIS_PLATFORM MATCHES "IOS")
-    set(IOS_RESOURCES "Default-568h@2x.png")
+if(IRIS_PLATFORM MATCHES "IOS")
+  set(IOS_RESOURCES "Default-568h@2x.png")
 
-    add_executable(shadows MACOSX_BUNDLE ${SAMPLE_SRCS} ${IOS_RESOURCES})
-    set(MACOSX_BUNDLE_GUI_IDENTIFIER "${IRIS_BUNDLE_IDENTIFIER}.shadows")
+  add_executable(shadows MACOSX_BUNDLE ${SAMPLE_SRCS} ${IOS_RESOURCES})
+  set(MACOSX_BUNDLE_GUI_IDENTIFIER "${IRIS_BUNDLE_IDENTIFIER}.shadows")
 
-    target_link_libraries(shadows "-framework UIKit")
-    target_link_libraries(shadows "-framework Foundation")
-
-    set_target_properties(
-        shadows
-        PROPERTIES
-        MACOSX_BUNDLE YES
-        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer"
-        XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${IRIS_DEVELOPMENT_TEAM}"
-        RESOURCE "${IOS_RESOURCES}"
-    )
-
+  set_target_properties(
+    shadows
+    PROPERTIES MACOSX_BUNDLE YES
+               XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer"
+               XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${IRIS_DEVELOPMENT_TEAM}"
+               RESOURCE "${IOS_RESOURCES}")
 endif()
 
-if(IRIS_GRAPHICS_API MATCHES "METAL")
-    target_link_libraries(shadows "-framework Metal")
-    target_link_libraries(shadows "-framework MetalKit")
-    target_link_libraries(shadows "-framework MetalPerformanceShaders")
-    target_link_libraries(shadows "-framework QuartzCore")
-    target_link_libraries(shadows "-framework CoreGraphics")
-else()
-    find_package(OpenGL REQUIRED)
-    include_directories(${OPENGL_INCLUDE_DIR})
-    target_link_libraries(shadows ${OPENGL_LIBRARIES})
-    target_link_libraries(shadows "-framework CoreGraphics")
-endif()
-
-target_include_directories(shadows PUBLIC "${CMAKE_SOURCE_DIR}/include/iris")
 target_link_libraries(shadows iris)
