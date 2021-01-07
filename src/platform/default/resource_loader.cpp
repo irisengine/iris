@@ -1,5 +1,6 @@
 #include "platform/resource_loader.h"
 
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 
@@ -28,7 +29,9 @@ const std::vector<std::uint8_t> &ResourceLoader::load(
     if (loaded_resource == std::cend(resources_))
     {
         std::stringstream strm{};
-        std::fstream f(root_ + "/" + resource, std::ios::in | std::ios::binary);
+        std::fstream f(
+            root_ / std::filesystem::path(resource),
+            std::ios::in | std::ios::binary);
         strm << f.rdbuf();
 
         const auto str = strm.str();
@@ -41,7 +44,7 @@ const std::vector<std::uint8_t> &ResourceLoader::load(
     return loaded_resource->second;
 }
 
-void ResourceLoader::set_root_directory(const std::string &root)
+void ResourceLoader::set_root_directory(const std::filesystem::path &root)
 {
     root_ = root;
 }
