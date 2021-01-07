@@ -2,9 +2,11 @@ set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/platform")
 
 if(IRIS_PLATFORM MATCHES "MACOS")
-    add_subdirectory("macos")
+  add_subdirectory("macos")
 elseif(IRIS_PLATFORM MATCHES "IOS")
-    add_subdirectory("ios")
+  add_subdirectory("ios")
+elseif(IRIS_PLATFORM MATCHES "WINDOWS")
+  add_subdirectory("windows")
 endif()
 
 set(PLATFORM_SRCS
