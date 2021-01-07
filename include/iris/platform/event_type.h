@@ -10,6 +10,7 @@ namespace iris
  */
 enum class EventType : std::uint32_t
 {
+    QUIT,
     KEYBOARD,
     MOUSE,
     MOUSE_BUTTON,

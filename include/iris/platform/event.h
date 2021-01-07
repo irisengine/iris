@@ -8,6 +8,7 @@
 #include "platform/keyboard_event.h"
 #include "platform/mouse_button_event.h"
 #include "platform/mouse_event.h"
+#include "platform/quit_event.h"
 #include "platform/touch_event.h"
 
 namespace iris
@@ -21,12 +22,19 @@ class Event
 {
   public:
     /**
+     * Construct a new Quit event.
+     *
+     * @param event
+     *   Quit event.
+     */
+    Event(QuitEvent event);
+    /**
      * Construct a new keyboard event.
      *
      * @param event
      *   Keyboard event.
      */
-    Event(const KeyboardEvent event);
+    Event(KeyboardEvent event);
 
     /**
      * Construct a new mouse event.
@@ -34,7 +42,7 @@ class Event
      * @param event
      *   Mouse event.
      */
-    Event(const MouseEvent event);
+    Event(MouseEvent event);
 
     /**
      * Construct a new mouse button event.
@@ -59,6 +67,14 @@ class Event
      *   Event type.
      */
     EventType type() const;
+
+    /**
+     * Check if Event is a quit event.
+     *
+     * @returns
+     *   True if this Event is a quit event, else false.
+     */
+    bool is_quit() const;
 
     /**
      * Check if Event is a keyboard event.
@@ -181,7 +197,12 @@ class Event
     EventType type_;
 
     /** Variant of possible Event types. */
-    std::variant<KeyboardEvent, MouseEvent, MouseButtonEvent, TouchEvent>
+    std::variant<
+        QuitEvent,
+        KeyboardEvent,
+        MouseEvent,
+        MouseButtonEvent,
+        TouchEvent>
         event_;
 };
 
