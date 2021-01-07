@@ -15,6 +15,7 @@ enum class KeyState : std::uint32_t
 /** Encapsulates all Key presses */
 enum class Key : std::uint32_t
 {
+    UNKNOWN,
     NUM_0,
     NUM_1,
     NUM_2,
@@ -83,7 +84,7 @@ enum class Key : std::uint32_t
     RETURN,
     TAB,
     SPACE,
-    DELETE,
+    DEL,
     ESCAPE,
     COMMAND,
     SHIFT,
