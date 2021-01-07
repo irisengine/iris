@@ -20,7 +20,8 @@ namespace
  * @returns
  *   Tuple of <number of components, size of single component>.
  */
-std::tuple<std::size_t, std::size_t> type_info(iris::VertexAttributeType type)
+std::tuple<std::size_t, std::size_t> type_information(
+    iris::VertexAttributeType type)
 {
     std::tuple<std::size_t, std::size_t> info(0u, 0u);
 
@@ -58,7 +59,7 @@ VertexAttributes::VertexAttributes(
 
     for (const auto type : types)
     {
-        const auto [components, size] = type_info(type);
+        const auto [components, size] = type_information(type);
         attributes_.emplace_back(
             VertexAttribute{type, components, size, offset});
         offset += components * size;

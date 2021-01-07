@@ -26,7 +26,7 @@ float random_float(float min, float max)
 {
     std::mt19937 engine(device());
 
-    std::uniform_real_distribution<> dist(min, max);
+    std::uniform_real_distribution<float> dist(min, max);
 
     return dist(engine);
 }

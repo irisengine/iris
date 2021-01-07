@@ -62,15 +62,14 @@ std::string BasicFormatter::format(
     const int line)
 {
     const auto now = std::chrono::system_clock::now();
-    const auto in_time_t = std::chrono::system_clock::to_time_t(now);
+    const auto seconds = std::chrono::duration_cast<std::chrono::seconds>(
+        now.time_since_epoch());
 
     std::stringstream strm{};
 
-    strm << first_char_of_level(level) << " "
-         << std::put_time(std::localtime(&in_time_t), "%X") << " [" << tag
+    strm << first_char_of_level(level) << " " << seconds.count() << " [" << tag
          << "] " << format_filename(filename) << ":" << line << " | "
          << message;
-
     return strm.str();
 }
 

@@ -276,7 +276,7 @@ Matrix4 Matrix4::invert(const Matrix4 &m)
 
     if (det != 0.0f)
     {
-        det = 1.0 / det;
+        det = 1.0f / det;
 
         for (auto i = 0; i < 16; i++)
         {

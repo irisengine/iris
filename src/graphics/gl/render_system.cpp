@@ -128,7 +128,7 @@ void set_uniforms(
 
     ::glUniformMatrix4fv(
         bones_uniform,
-        entity->skeleton().transforms().size(),
+        static_cast<GLsizei>(entity->skeleton().transforms().size()),
         GL_TRUE,
         reinterpret_cast<const float *>(
             entity->skeleton().transforms().data()));
@@ -192,7 +192,7 @@ void RenderSystem::render(Pipeline &pipeline)
         {
             // bind Material to render with
             const auto program =
-                std::any_cast<std::uint32_t>(material->native_handle());
+                std::any_cast<GLuint>(material->native_handle());
             ::glUseProgram(program);
             check_opengl_error("could not bind program");
 
@@ -246,7 +246,8 @@ void RenderSystem::render(Pipeline &pipeline)
                 // draw!
                 ::glDrawElements(
                     type,
-                    buffer_descriptor.index_buffer().element_count(),
+                    static_cast<GLsizei>(
+                        buffer_descriptor.index_buffer().element_count()),
                     GL_UNSIGNED_INT,
                     0);
                 check_opengl_error("could not draw triangles");

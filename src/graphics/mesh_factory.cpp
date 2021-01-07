@@ -98,7 +98,8 @@ BufferDescriptor plane(const Vector3 &colour, std::uint32_t divisions)
         throw Exception("divisions must be >= 0");
     }
 
-    std::vector<vertex_data> verticies(std::pow(divisions + 1u, 2u));
+    std::vector<vertex_data> verticies(
+        static_cast<std::size_t>(std::pow(divisions + 1u, 2u)));
 
     const Vector3 normal{0.0f, 0.0f, 1.0f};
     const Vector3 tangent{1.0f, 0.0f, 0.0f};
@@ -188,11 +189,13 @@ BufferDescriptor lines(
     {
         verticies.emplace_back(
             from_position, Vector3{1.0f}, from_colour, Vector3{});
-        indicies.emplace_back(verticies.size() - 1u);
+        indicies.emplace_back(
+            static_cast<std::uint32_t>(verticies.size() - 1u));
 
         verticies.emplace_back(
             to_position, Vector3{1.0f}, to_colour, Vector3{});
-        indicies.emplace_back(verticies.size() - 1u);
+        indicies.emplace_back(
+            static_cast<std::uint32_t>(verticies.size() - 1u));
     }
 
     return {

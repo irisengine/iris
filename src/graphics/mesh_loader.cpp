@@ -449,7 +449,7 @@ void load_mesh(
 
                     // update vertex data with bone data
                     vertices->back()[id].bone_ids[bone_indices[id]] =
-                        bone_index;
+                        static_cast<std::uint32_t>(bone_index);
                     vertices->back()[id].bone_weights[bone_indices[id]] =
                         weight;
 
