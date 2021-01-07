@@ -16,7 +16,7 @@
         iris::LogLevel::WARN, T, __FILE__, __LINE__, false, __VA_ARGS__)
 #define LOG_ERROR(T, ...)                                                      \
     iris::Root::logger().log(                                                  \
-        iris::LogLevel::ERROR, T, __FILE__, __LINE__, false, __VA_ARGS__)
+        iris::LogLevel::ERR, T, __FILE__, __LINE__, false, __VA_ARGS__)
 
 // convenient macros for engine logging
 #define LOG_ENGINE_DEBUG(T, ...)                                               \
@@ -30,4 +30,4 @@
         iris::LogLevel::WARN, T, __FILE__, __LINE__, true, __VA_ARGS__)
 #define LOG_ENGINE_ERROR(T, ...)                                               \
     iris::Root::logger().log(                                                  \
-        iris::LogLevel::ERROR, T, __FILE__, __LINE__, true, __VA_ARGS__)
+        iris::LogLevel::ERR, T, __FILE__, __LINE__, true, __VA_ARGS__)

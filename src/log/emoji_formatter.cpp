@@ -35,7 +35,7 @@ std::string EmojiFormatter::format(
         case LogLevel::WARN:
             strm << "⚠️ ";
             break;
-        case LogLevel::ERROR:
+        case LogLevel::ERR:
             strm << "❌ ";
             break;
         default:
