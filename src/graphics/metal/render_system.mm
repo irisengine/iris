@@ -187,7 +187,7 @@ RenderSystem::~RenderSystem() = default;
 RenderSystem::RenderSystem(RenderSystem&&) = default;
 RenderSystem& RenderSystem::operator=(RenderSystem&&) = default;
 
-void RenderSystem::render(Pipeline &pipeline)
+void RenderSystem::render(const Pipeline &pipeline)
 {
     auto *device = iris::platform::utility::metal_device();
     auto format = MTLPixelFormatRGBA8Unorm;
@@ -295,13 +295,6 @@ void RenderSystem::render(Pipeline &pipeline)
 
     [command_buffer presentDrawable:drawable];
     [command_buffer commit];
-
-}
-
-void RenderSystem::set_light_position(const Vector3 &position)
-{
-    light_pos_ = position;
 }
 
 }
-

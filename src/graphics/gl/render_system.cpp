@@ -143,9 +143,8 @@ struct RenderSystem::implementation
 {
 };
 
-RenderSystem::RenderSystem(float width, float height)
-    : light_pos_(100.0f)
-    , impl_(nullptr)
+RenderSystem::RenderSystem(float, float)
+    : impl_(nullptr)
 {
     // opengl setup
 
@@ -166,7 +165,7 @@ RenderSystem::~RenderSystem() = default;
 RenderSystem::RenderSystem(RenderSystem &&) = default;
 RenderSystem &RenderSystem::operator=(RenderSystem &&) = default;
 
-void RenderSystem::render(Pipeline &pipeline)
+void RenderSystem::render(const Pipeline &pipeline)
 {
     for (const auto &stage : pipeline.stages())
     {
@@ -297,15 +296,6 @@ void RenderSystem::render(Pipeline &pipeline)
         GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT,
         GL_NEAREST);
     check_opengl_error("could not blit to screen");
-
-#if defined(PLATFORM_MACOS)
-    ::glSwapAPPLE();
-#endif
-}
-
-void RenderSystem::set_light_position(const Vector3 &position)
-{
-    light_pos_ = position;
 }
 
 }

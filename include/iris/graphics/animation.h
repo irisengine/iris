@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include <tuple>
+#include <vector>
 
 #include "core/matrix4.h"
 #include "core/quaternion.h"
