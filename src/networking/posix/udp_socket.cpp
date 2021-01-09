@@ -7,16 +7,11 @@
 #include <optional>
 #include <string>
 
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-
+#include "core/auto_release.h"
 #include "core/data_buffer.h"
 #include "core/exception.h"
 #include "log/log.h"
-#include "networking/posix/auto_socket.h"
+#include "networking/networking.h"
 #include "networking/socket.h"
 
 namespace iris
@@ -24,8 +19,8 @@ namespace iris
 
 struct UdpSocket::implementation
 {
-    AutoSocket socket = -1;
-    struct sockaddr_storage address;
+    AutoRelease<SocketHandle, INVALID_SOCKET> socket;
+    struct sockaddr_in address;
     socklen_t address_length = 0;
 };
 
@@ -35,26 +30,26 @@ UdpSocket::UdpSocket(const std::string &address, std::uint16_t port)
     LOG_ENGINE_INFO("udp_socket", "creating socket ({}:{})", address, port);
 
     // create socket
-    impl_->socket = ::socket(AF_INET, SOCK_DGRAM, 0);
-    if (impl_->socket < 0)
+    impl_->socket = {::socket(AF_INET, SOCK_DGRAM, 0), CloseSocket};
+    if (!impl_->socket)
     {
         throw Exception("socket failed");
     }
 
     // configure address
     std::memset(&impl_->address, 0x0, sizeof(impl_->address));
-    auto *addr = reinterpret_cast<struct sockaddr_in *>(&impl_->address);
     impl_->address_length = sizeof(impl_->address);
-    addr->sin_family = AF_INET;
-    addr->sin_port = htons(port);
+    impl_->address.sin_family = AF_INET;
+    impl_->address.sin_port = htons(port);
 
     // convert address from text to binary
-    if (::inet_pton(AF_INET, address.c_str(), addr) != 1)
+    if (::inet_pton(
+            AF_INET, address.c_str(), &impl_->address.sin_addr.s_addr) != 1)
     {
         throw Exception("failed to convert ip address");
     }
 
-    // enable multicast
+    // enable socket reuse
     int reuse = 1;
     if (::setsockopt(
             impl_->socket,
@@ -88,19 +83,21 @@ std::optional<DataBuffer> UdpSocket::try_read(std::size_t count)
 {
     std::optional<DataBuffer> out = DataBuffer(count);
 
+    set_blocking(impl_->socket, false);
+
     // perform non-blocking read
     auto read = ::recvfrom(
         impl_->socket,
-        out->data(),
-        out->size(),
-        MSG_DONTWAIT,
+        reinterpret_cast<char *>(out->data()),
+        static_cast<int>(out->size()),
+        0,
         reinterpret_cast<struct sockaddr *>(&impl_->address),
         &impl_->address_length);
 
     if (read == -1)
     {
         // read failed but not because there was no data
-        if (errno != EAGAIN || errno != EWOULDBLOCK)
+        if (!last_call_blocked())
         {
             throw iris::Exception("read failed");
         }
@@ -121,11 +118,13 @@ DataBuffer UdpSocket::read(std::size_t count)
 {
     DataBuffer buffer(count);
 
+    set_blocking(impl_->socket, true);
+
     // perform blocking read
     auto read = ::recvfrom(
         impl_->socket,
-        buffer.data(),
-        buffer.size(),
+        reinterpret_cast<char *>(buffer.data()),
+        static_cast<int>(buffer.size()),
         0,
         reinterpret_cast<struct sockaddr *>(&impl_->address),
         &impl_->address_length);
@@ -150,8 +149,8 @@ void UdpSocket::write(const std::byte *data, std::size_t size)
 {
     if (::sendto(
             impl_->socket,
-            data,
-            size,
+            reinterpret_cast<const char *>(data),
+            static_cast<int>(size),
             0,
             reinterpret_cast<struct sockaddr *>(&impl_->address),
             impl_->address_length) != size)
