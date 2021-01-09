@@ -5,9 +5,10 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <mutex>
 
 #include "core/data_buffer.h"
-#include "networking/accepting_socket.h"
+#include "networking/server_socket.h"
 #include "networking/channel/channel.h"
 #include "networking/channel/channel_type.h"
 
@@ -96,7 +97,7 @@ class ServerConnectionHandler
      *   Callback to fire when data is received.
      */
     ServerConnectionHandler(
-        std::unique_ptr<AcceptingSocket> socket,
+        std::unique_ptr<ServerSocket> socket,
         NewConnectionCallback new_connection,
         RecvCallback recv);
 
@@ -136,7 +137,7 @@ class ServerConnectionHandler
     struct Connection;
 
     /** Underlying socket. */
-    std::unique_ptr<AcceptingSocket> socket_;
+    std::unique_ptr<ServerSocket> socket_;
 
     /** New connection callback. */
     NewConnectionCallback new_connection_callback_;
@@ -148,13 +149,13 @@ class ServerConnectionHandler
     std::chrono::steady_clock::time_point start_;
 
     /** Map of connections to their unique id. */
-    std::map<std::size_t, std::unique_ptr<Connection>> connections;
+    std::map<std::size_t, std::unique_ptr<Connection>> connections_;
 
     /** Mutex to control access to messages. */
-    std::mutex mutex;
+    std::mutex mutex_;
 
     /** Collection of messages. */
-    std::vector<DataBuffer> messages;
+    std::vector<DataBuffer> messages_;
 };
 
 }
