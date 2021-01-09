@@ -2,30 +2,24 @@
 
 #include <chrono>
 #include <cstddef>
-#include <memory>
 #include <optional>
 
+#include "jobs/concurrent_queue.h"
 #include "networking/socket.h"
 
 namespace iris
 {
 
 /**
- * An implementation of Socket that uses IPC to send/receive data. This class
- * is designed to send packets reliably and with minimal latency but allows the
- * user to simulate various properties of an unreliable connection.
+ * An adaptor for Socket which can simulate different network conditions. Note
+ * that these conditions are compounded with any properties of the underlying
+ * Socket.
  */
 class SimulatedSocket : public Socket
 {
   public:
     /**
      * Construct a new SimulatedSocket.
-     *
-     * @param client_queue_name
-     *   The name of the IPC queue for client messages. Must be numerical.
-     *
-     * @param server_queue_name
-     *   The name of the IPC queue for server messages. Must be numerical.
      *
      * @param delay
      *   The fixed delay for all packets.
@@ -37,13 +31,16 @@ class SimulatedSocket : public Socket
      * @param drop_rate
      *   The rate at which packets will be dropped, must be in the range
      *   [0.0, 1.0] -> [no packets dropped, all packets dropped]
+     *
+     * @param socket
+     *   Socket to adapt. Will be used for underlying communication, but with
+     *   simulated conditions.
      */
     SimulatedSocket(
-        const std::string &client_queue_name,
-        const std::string &server_queue_name,
         std::chrono::milliseconds delay,
         std::chrono::milliseconds jitter,
-        float drop_rate);
+        float drop_rate,
+        Socket *socket);
 
     // defined in implementation
     ~SimulatedSocket() override;
@@ -95,10 +92,6 @@ class SimulatedSocket : public Socket
     void write(const std::byte *data, std::size_t size) override;
 
   private:
-    /** Pointer to implementation. */
-    struct implementation;
-    std::unique_ptr<implementation> impl_;
-
     /** Packet delay. */
     std::chrono::milliseconds delay_;
 
@@ -107,6 +100,14 @@ class SimulatedSocket : public Socket
 
     /** Packet drop rate. */
     float drop_rate_;
+
+    /** Underlying socket. */
+    Socket *socket_;
+
+    /** Queue of data to send and when. */
+    ConcurrentQueue<
+        std::tuple<DataBuffer, std::chrono::steady_clock::time_point>>
+        write_queue_;
 };
 
 }
