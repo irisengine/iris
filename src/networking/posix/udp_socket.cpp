@@ -7,7 +7,6 @@
 #include <optional>
 #include <string>
 
-#include "core/auto_release.h"
 #include "core/data_buffer.h"
 #include "core/exception.h"
 #include "log/log.h"
@@ -17,34 +16,28 @@
 namespace iris
 {
 
-struct UdpSocket::implementation
-{
-    AutoRelease<SocketHandle, INVALID_SOCKET> socket;
-    struct sockaddr_in address;
-    socklen_t address_length = 0;
-};
-
 UdpSocket::UdpSocket(const std::string &address, std::uint16_t port)
-    : impl_(std::make_unique<implementation>())
+    : socket_()
+    , address_()
+    , address_length_(0)
 {
     LOG_ENGINE_INFO("udp_socket", "creating socket ({}:{})", address, port);
 
     // create socket
-    impl_->socket = {::socket(AF_INET, SOCK_DGRAM, 0), CloseSocket};
-    if (!impl_->socket)
+    socket_ = {::socket(AF_INET, SOCK_DGRAM, 0), CloseSocket};
+    if (!socket_)
     {
         throw Exception("socket failed");
     }
 
     // configure address
-    std::memset(&impl_->address, 0x0, sizeof(impl_->address));
-    impl_->address_length = sizeof(impl_->address);
-    impl_->address.sin_family = AF_INET;
-    impl_->address.sin_port = htons(port);
+    std::memset(&address_, 0x0, sizeof(address_));
+    address_length_ = sizeof(address_);
+    address_.sin_family = AF_INET;
+    address_.sin_port = htons(port);
 
     // convert address from text to binary
-    if (::inet_pton(
-            AF_INET, address.c_str(), &impl_->address.sin_addr.s_addr) != 1)
+    if (::inet_pton(AF_INET, address.c_str(), &address_.sin_addr.s_addr) != 1)
     {
         throw Exception("failed to convert ip address");
     }
@@ -52,7 +45,7 @@ UdpSocket::UdpSocket(const std::string &address, std::uint16_t port)
     // enable socket reuse
     int reuse = 1;
     if (::setsockopt(
-            impl_->socket,
+            socket_,
             SOL_SOCKET,
             SO_REUSEADDR,
             reinterpret_cast<const char *>(&reuse),
@@ -68,31 +61,26 @@ UdpSocket::UdpSocket(
     struct sockaddr_in socket_address,
     socklen_t socket_length,
     SocketHandle socket)
-    : impl_(std::make_unique<implementation>())
+    : socket_(socket, nullptr)
+    , address_(socket_address)
+    , address_length_(socket_length)
 {
-    impl_->socket = {socket, nullptr};
-    impl_->address = socket_address;
-    impl_->address_length = socket_length;
 }
-
-UdpSocket::~UdpSocket() = default;
-UdpSocket::UdpSocket(UdpSocket &&) = default;
-UdpSocket &UdpSocket::operator=(UdpSocket &&) = default;
 
 std::optional<DataBuffer> UdpSocket::try_read(std::size_t count)
 {
     std::optional<DataBuffer> out = DataBuffer(count);
 
-    set_blocking(impl_->socket, false);
+    set_blocking(socket_, false);
 
     // perform non-blocking read
     auto read = ::recvfrom(
-        impl_->socket,
+        socket_,
         reinterpret_cast<char *>(out->data()),
         static_cast<int>(out->size()),
         0,
-        reinterpret_cast<struct sockaddr *>(&impl_->address),
-        &impl_->address_length);
+        reinterpret_cast<struct sockaddr *>(&address_),
+        &address_length_);
 
     if (read == -1)
     {
@@ -118,16 +106,16 @@ DataBuffer UdpSocket::read(std::size_t count)
 {
     DataBuffer buffer(count);
 
-    set_blocking(impl_->socket, true);
+    set_blocking(socket_, true);
 
     // perform blocking read
     auto read = ::recvfrom(
-        impl_->socket,
+        socket_,
         reinterpret_cast<char *>(buffer.data()),
         static_cast<int>(buffer.size()),
         0,
-        reinterpret_cast<struct sockaddr *>(&impl_->address),
-        &impl_->address_length);
+        reinterpret_cast<struct sockaddr *>(&address_),
+        &address_length_);
 
     if (read == -1)
     {
@@ -148,12 +136,12 @@ void UdpSocket::write(const DataBuffer &buffer)
 void UdpSocket::write(const std::byte *data, std::size_t size)
 {
     if (::sendto(
-            impl_->socket,
+            socket_,
             reinterpret_cast<const char *>(data),
             static_cast<int>(size),
             0,
-            reinterpret_cast<struct sockaddr *>(&impl_->address),
-            impl_->address_length) != size)
+            reinterpret_cast<struct sockaddr *>(&address_),
+            address_length_) != size)
     {
         throw Exception("sendto failed");
     }

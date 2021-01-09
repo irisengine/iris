@@ -6,6 +6,7 @@
 #include <optional>
 #include <string>
 
+#include "core/auto_release.h"
 #include "core/data_buffer.h"
 #include "networking/networking.h"
 #include "networking/socket.h"
@@ -57,9 +58,7 @@ class UdpSocket : public Socket
     UdpSocket &operator=(const UdpSocket &) = delete;
 
     // defined in implementation
-    ~UdpSocket() override;
-    UdpSocket(UdpSocket &&);
-    UdpSocket &operator=(UdpSocket &&);
+    ~UdpSocket() override = default;
 
     /**
      * Try and read requested number bytes. Will return all bytes read up to
@@ -104,9 +103,14 @@ class UdpSocket : public Socket
     void write(const std::byte *data, std::size_t size) override;
 
   private:
-    /** Pointer to implementation. */
-    struct implementation;
-    std::unique_ptr<implementation> impl_;
+    /** Socket wrapper. */
+    AutoRelease<SocketHandle, INVALID_SOCKET> socket_;
+
+    /** BSD socket. */
+    struct sockaddr_in address_;
+
+    /** BSD socket length. */
+    socklen_t address_length_;
 };
 
 }
