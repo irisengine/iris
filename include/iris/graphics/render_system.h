@@ -41,20 +41,9 @@ class RenderSystem
      * @param pipeline
      *   Pipeline to execute.
      */
-    void render(Pipeline &pipeline);
-
-    /**
-     * Set position of light.
-     *
-     * @param position
-     *   New light position.
-     */
-    void set_light_position(const Vector3 &position);
+    void render(const Pipeline &pipeline);
 
   private:
-    /** Light position. */
-    Vector3 light_pos_;
-
     /** Pointer to implementation. */
     struct implementation;
     std::unique_ptr<implementation> impl_;

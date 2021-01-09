@@ -346,7 +346,7 @@ vec4 composite(vec4 colour1, vec4 colour2, vec4 depth1, vec4 depth2, vec2 tex_co
     *current_stream_ << ", texCoord)";
 }
 
-void Compiler::visit(const VertexPositionNode &node)
+void Compiler::visit(const VertexPositionNode &)
 {
     *current_stream_ << "position";
 }

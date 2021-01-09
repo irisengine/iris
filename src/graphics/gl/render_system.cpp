@@ -128,7 +128,7 @@ void set_uniforms(
 
     ::glUniformMatrix4fv(
         bones_uniform,
-        entity->skeleton().transforms().size(),
+        static_cast<GLsizei>(entity->skeleton().transforms().size()),
         GL_TRUE,
         reinterpret_cast<const float *>(
             entity->skeleton().transforms().data()));
@@ -143,9 +143,8 @@ struct RenderSystem::implementation
 {
 };
 
-RenderSystem::RenderSystem(float width, float height)
-    : light_pos_(100.0f)
-    , impl_(nullptr)
+RenderSystem::RenderSystem(float, float)
+    : impl_(nullptr)
 {
     // opengl setup
 
@@ -166,7 +165,7 @@ RenderSystem::~RenderSystem() = default;
 RenderSystem::RenderSystem(RenderSystem &&) = default;
 RenderSystem &RenderSystem::operator=(RenderSystem &&) = default;
 
-void RenderSystem::render(Pipeline &pipeline)
+void RenderSystem::render(const Pipeline &pipeline)
 {
     for (const auto &stage : pipeline.stages())
     {
@@ -192,7 +191,7 @@ void RenderSystem::render(Pipeline &pipeline)
         {
             // bind Material to render with
             const auto program =
-                std::any_cast<std::uint32_t>(material->native_handle());
+                std::any_cast<GLuint>(material->native_handle());
             ::glUseProgram(program);
             check_opengl_error("could not bind program");
 
@@ -246,7 +245,8 @@ void RenderSystem::render(Pipeline &pipeline)
                 // draw!
                 ::glDrawElements(
                     type,
-                    buffer_descriptor.index_buffer().element_count(),
+                    static_cast<GLsizei>(
+                        buffer_descriptor.index_buffer().element_count()),
                     GL_UNSIGNED_INT,
                     0);
                 check_opengl_error("could not draw triangles");
@@ -296,15 +296,6 @@ void RenderSystem::render(Pipeline &pipeline)
         GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT,
         GL_NEAREST);
     check_opengl_error("could not blit to screen");
-
-#if defined(PLATFORM_MACOS)
-    ::glSwapAPPLE();
-#endif
-}
-
-void RenderSystem::set_light_position(const Vector3 &position)
-{
-    light_pos_ = position;
 }
 
 }

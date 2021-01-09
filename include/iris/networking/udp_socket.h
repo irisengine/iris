@@ -6,7 +6,9 @@
 #include <optional>
 #include <string>
 
+#include "core/auto_release.h"
 #include "core/data_buffer.h"
+#include "networking/networking.h"
 #include "networking/socket.h"
 
 namespace iris
@@ -30,14 +32,33 @@ class UdpSocket : public Socket
      */
     UdpSocket(const std::string &address, std::uint16_t port);
 
+    /**
+     * Construct a new UdpSocket from an existing BSD socket. This is non-owning
+     * and will not close the SocketHandle when it goes out of scope.
+     *
+     * This constructor annoyingly breaks the abstraction around the BSD socket
+     * primitives but is a necessary evil.
+     *
+     * @param socket_address
+     *   BSD socket struct.
+     *
+     * @param socket_length
+     *   Length (in bytes) of socket_address
+     *
+     * @param socket
+     *   SocketHandle to take a non-owning copy of.
+     */
+    UdpSocket(
+        struct sockaddr_in socket_address,
+        socklen_t socket_length,
+        SocketHandle socket);
+
     // disabled
     UdpSocket(const UdpSocket &) = delete;
     UdpSocket &operator=(const UdpSocket &) = delete;
 
     // defined in implementation
-    ~UdpSocket() override;
-    UdpSocket(UdpSocket &&);
-    UdpSocket &operator=(UdpSocket &&);
+    ~UdpSocket() override = default;
 
     /**
      * Try and read requested number bytes. Will return all bytes read up to
@@ -82,9 +103,14 @@ class UdpSocket : public Socket
     void write(const std::byte *data, std::size_t size) override;
 
   private:
-    /** Pointer to implementation. */
-    struct implementation;
-    std::unique_ptr<implementation> impl_;
+    /** Socket wrapper. */
+    AutoRelease<SocketHandle, INVALID_SOCKET> socket_;
+
+    /** BSD socket. */
+    struct sockaddr_in address_;
+
+    /** BSD socket length. */
+    socklen_t address_length_;
 };
 
 }

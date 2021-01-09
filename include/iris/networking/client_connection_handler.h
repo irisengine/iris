@@ -59,6 +59,8 @@ class ClientConnectionHandler
      */
     void send(const DataBuffer &data, ChannelType channel_type);
 
+    void flush();
+
     /**
      * Unique id of the client (as set by server).
      *

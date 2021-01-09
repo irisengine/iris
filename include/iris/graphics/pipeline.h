@@ -63,7 +63,7 @@ class Pipeline
      * @returns
      *   Reference to collection of stages.
      */
-    std::vector<std::unique_ptr<Stage>> &stages();
+    const std::vector<std::unique_ptr<Stage>> &stages() const;
 
   private:
     /** Collection of scenes. */

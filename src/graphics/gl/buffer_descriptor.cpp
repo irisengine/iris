@@ -82,7 +82,7 @@ namespace iris
 
 struct BufferDescriptor::implementation
 {
-    std::uint32_t vao;
+    GLuint vao;
 };
 
 BufferDescriptor::BufferDescriptor(
@@ -120,10 +120,10 @@ BufferDescriptor::BufferDescriptor(
         {
             ::glVertexAttribPointer(
                 index,
-                components,
+                static_cast<GLint>(components),
                 open_gl_type,
                 GL_FALSE,
-                attributes.size(),
+                static_cast<GLsizei>(attributes.size()),
                 reinterpret_cast<void *>(offset));
             check_opengl_error("could not set attributes");
         }
@@ -131,9 +131,9 @@ BufferDescriptor::BufferDescriptor(
         {
             ::glVertexAttribIPointer(
                 index,
-                components,
+                static_cast<GLint>(components),
                 open_gl_type,
-                attributes.size(),
+                static_cast<GLsizei>(attributes.size()),
                 reinterpret_cast<void *>(offset));
             check_opengl_error("could not set attributes");
         }

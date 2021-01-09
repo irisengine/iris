@@ -13,12 +13,6 @@
 #include <memory>
 #include <string>
 
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-
 #include "core/data_buffer.h"
 #include "core/exception.h"
 #include "core/root.h"
@@ -32,7 +26,6 @@
 #include "networking/data_buffer_deserialiser.h"
 #include "networking/data_buffer_serialiser.h"
 #include "networking/packet.h"
-#include "networking/posix/auto_socket.h"
 #include "networking/socket.h"
 
 namespace
@@ -67,9 +60,7 @@ std::uint32_t handshake(iris::Socket *socket, iris::Channel *channel)
     {
         // read a packet
         const auto raw_packet = socket->read(sizeof(iris::Packet));
-        iris::Packet packet{};
-        std::memcpy(packet.data(), raw_packet.data(), raw_packet.size());
-        packet.resize(raw_packet.size());
+        iris::Packet packet{raw_packet};
 
         // enqueue the packet into the channel
         channel->enqueue_receive(std::move(packet));
@@ -119,7 +110,7 @@ void handle_sync_start(iris::Channel *channel, iris::Socket *socket)
     const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now().time_since_epoch());
     iris::DataBufferSerialiser serialiser{};
-    serialiser.push<std::uint32_t>(now.count());
+    serialiser.push<std::uint32_t>(static_cast<std::uint32_t>(now.count()));
 
     // create and enqueue SYNC_RESPONSE
     iris::Packet response{
@@ -203,9 +194,7 @@ ClientConnectionHandler::ClientConnectionHandler(std::unique_ptr<Socket> socket)
         {
             // block and read the next Packet
             const auto raw_packet = socket_->read(sizeof(Packet));
-            iris::Packet packet{};
-            std::memcpy(packet.data(), raw_packet.data(), raw_packet.size());
-            packet.resize(raw_packet.size());
+            iris::Packet packet{raw_packet};
 
             // enqueue the packet into the right channel
             const auto channel_type = packet.channel();
@@ -264,6 +253,17 @@ void ClientConnectionHandler::send(
     for (const auto &p : channel->yield_send_queue())
     {
         socket_->write(p.data(), p.packet_size());
+    }
+}
+
+void ClientConnectionHandler::flush()
+{
+    for (auto &[type, channel] : channels_)
+    {
+        for (const auto &p : channel->yield_send_queue())
+        {
+            socket_->write(p.data(), p.packet_size());
+        }
     }
 }
 

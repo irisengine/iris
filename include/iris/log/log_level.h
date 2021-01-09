@@ -15,7 +15,7 @@ enum class LogLevel : std::uint32_t
     DEBUG,
     INFO,
     WARN,
-    ERROR
+    ERR
 };
 
 /**
@@ -44,7 +44,7 @@ inline std::ostream &operator<<(std::ostream &out, const LogLevel level)
         case LogLevel::WARN:
             out << "WARN";
             break;
-        case LogLevel::ERROR:
+        case LogLevel::ERR:
             out << "ERROR";
             break;
         default:

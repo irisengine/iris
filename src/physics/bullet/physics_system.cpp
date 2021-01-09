@@ -242,7 +242,7 @@ std::optional<std::tuple<RigidBody *, Vector3>> PhysicsSystem::ray_cast(
         const ::btRigidBody *body = nullptr;
 
         // find the closest hit object excluding any ignored objects
-        for (auto i = 0u; i < callback.m_collisionObjects.size(); ++i)
+        for (auto i = 0; i < callback.m_collisionObjects.size(); ++i)
         {
             const auto distance = from.distance(callback.m_hitPointWorld[i]);
             if ((distance < min) &&

@@ -74,7 +74,7 @@ void Pipeline::add_stage(
         std::make_unique<Stage>(current_scene, camera, target));
 }
 
-std::vector<std::unique_ptr<Stage>> &Pipeline::stages()
+const std::vector<std::unique_ptr<Stage>> &Pipeline::stages() const
 {
     return stages_;
 }

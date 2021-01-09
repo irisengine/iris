@@ -5,6 +5,7 @@
 #include <queue>
 
 #include "core/camera.h"
+#include "graphics/pipeline.h"
 #include "graphics/render_system.h"
 #include "platform/event.h"
 
@@ -28,9 +29,19 @@ class Window
      */
     Window(float with, float height);
 
+    ~Window();
+
     /** Disabled */
     Window(const Window &) = delete;
     Window &operator=(const Window &) = delete;
+
+    /**
+     * Render a Pipeline. Afterwards the default screen target is displayed.
+     *
+     * @param pipeline
+     *   Pipeline to execute.
+     */
+    void render(const Pipeline &pipeline) const;
 
     /**
      * Pump the next user input event. Result will be empty if there are no
@@ -63,6 +74,13 @@ class Window
 
     /** Window height. */
     float height_;
+
+    /** Render system for window. */
+    std::unique_ptr<RenderSystem> render_system_;
+
+    /** Pointer to implementation. */
+    struct implementation;
+    std::unique_ptr<implementation> impl_;
 };
 
 }

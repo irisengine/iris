@@ -22,7 +22,6 @@
 #include "graphics/mesh_factory.h"
 #include "graphics/pipeline.h"
 #include "graphics/render_entity.h"
-#include "graphics/render_graph/render_graph.h"
 #include "graphics/scene.h"
 #include "graphics/stage.h"
 #include "log/emoji_formatter.h"
@@ -31,7 +30,6 @@
 #include "networking/data_buffer_deserialiser.h"
 #include "networking/data_buffer_serialiser.h"
 #include "networking/packet.h"
-#include "networking/simulated_socket.h"
 #include "networking/udp_socket.h"
 #include "physics/basic_character_controller.h"
 #include "physics/box_collision_shape.h"
@@ -114,8 +112,7 @@ bool handle_input(
                     input.side =
                         keyboard.state == iris::KeyState::DOWN ? 1.0f : 0.0f;
                     break;
-                default:
-                    break;
+                default: break;
             }
 
             has_input = true;
@@ -386,16 +383,11 @@ void go(int, char **)
 {
     LOG_DEBUG("client", "hello world");
 
-    auto socket = std::make_unique<iris::SimulatedSocket>(
-        "1",
-        "2",
-        std::chrono::milliseconds(0u),
-        std::chrono::milliseconds(0u),
-        0.0f);
+    auto socket = std::make_unique<iris::UdpSocket>("127.0.0.1", 8888);
 
     iris::ClientConnectionHandler client{std::move(socket)};
 
-    auto &rs = iris::Root::render_system();
+    auto &window = iris::Root::window();
     iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};
 
     auto scene = std::make_unique<iris::Scene>();
@@ -444,6 +436,7 @@ void go(int, char **)
     // estimate
     while (client.lag().count() == 0)
     {
+        client.flush();
     }
 
     LOG_WARN("client", "lag: {}", client.lag().count());
@@ -554,7 +547,7 @@ void go(int, char **)
             }
 
             // render the world
-            rs.render(pipeline);
+            window.render(pipeline);
 
             return true;
         });
@@ -566,19 +559,7 @@ void go(int, char **)
 
 int main(int argc, char **argv)
 {
-    try
-    {
-        iris::start_debug(argc, argv, go);
-    }
-    catch (iris::Exception &e)
-    {
-        LOG_ERROR("client", e.what());
-        LOG_ERROR("client", e.stack_trace());
-    }
-    catch (...)
-    {
-        LOG_ERROR("client", "unknown exception");
-    }
+    iris::start_debug(argc, argv, go);
 
     return 0;
 }

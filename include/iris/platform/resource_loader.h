@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <map>
 #include <string>
 #include <vector>
@@ -41,7 +42,7 @@ class ResourceLoader
      * @param root
      *   New root location.
      */
-    void set_root_directory(const std::string &root);
+    void set_root_directory(const std::filesystem::path &root);
 
   private:
     /**
@@ -54,7 +55,7 @@ class ResourceLoader
     std::map<std::string, std::vector<std::uint8_t>> resources_;
 
     /** Resource root. */
-    std::string root_;
+    std::filesystem::path root_;
 };
 
 }

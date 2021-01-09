@@ -33,7 +33,7 @@ std::string ColourFormatter::format(
         case LogLevel::WARN:
             strm << "\x1b[33m";
             break;
-        case LogLevel::ERROR:
+        case LogLevel::ERR:
             strm << "\x1b[31m";
             break;
         default:

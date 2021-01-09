@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <functional>
 #include <iterator>
 #include <map>
 #include <memory>
@@ -43,11 +44,15 @@ namespace
  * @param socket
  *   Socket for the connection.
  */
-void handle_hello(std::size_t id, iris::Channel *channel, iris::Socket *socket)
+void handle_hello(
+    std::size_t id,
+    iris::Channel *channel,
+    iris::Socket *socket,
+    std::mutex &mutex)
 {
     // we will send the client their id
     iris::DataBufferSerialiser serialiser{};
-    serialiser.push<std::uint32_t>(id);
+    serialiser.push(static_cast<std::uint32_t>(id));
 
     // create and enqueue response packets
     iris::Packet connected{
@@ -56,11 +61,19 @@ void handle_hello(std::size_t id, iris::Channel *channel, iris::Socket *socket)
         serialiser.data()};
     iris::Packet sync_start{
         iris::PacketType::SYNC_START, iris::ChannelType::RELIABLE_ORDERED, {}};
-    channel->enqueue_send(std::move(connected));
-    channel->enqueue_send(std::move(sync_start));
+
+    std::vector<iris::Packet> send_queue{};
+
+    {
+        std::unique_lock lock(mutex);
+
+        channel->enqueue_send(std::move(connected));
+        channel->enqueue_send(std::move(sync_start));
+        send_queue = channel->yield_send_queue();
+    }
 
     // send all packets
-    for (const auto &packet : channel->yield_send_queue())
+    for (const auto &packet : send_queue)
     {
         socket->write(packet.data(), packet.packet_size());
     }
@@ -81,7 +94,8 @@ void handle_hello(std::size_t id, iris::Channel *channel, iris::Socket *socket)
 void handle_sync_response(
     iris::Channel *channel,
     iris::Socket *socket,
-    const iris::Packet &packet)
+    const iris::Packet &packet,
+    std::mutex &mutex)
 {
     // get the client time and our time
     iris::DataBufferDeserialiser deserialiser{packet.body_buffer()};
@@ -92,15 +106,22 @@ void handle_sync_response(
     // send the client back their time and out time
     iris::DataBufferSerialiser serialiser{};
     serialiser.push(client_time_raw);
-    serialiser.push<std::uint32_t>(now.count());
+    serialiser.push(static_cast<std::uint32_t>(now.count()));
     iris::Packet sync_finish{
         iris::PacketType::SYNC_FINISH,
         iris::ChannelType::RELIABLE_ORDERED,
         serialiser.data()};
-    channel->enqueue_send(std::move(sync_finish));
+
+    std::vector<iris::Packet> send_queue{};
+
+    {
+        std::unique_lock lock(mutex);
+        channel->enqueue_send(std::move(sync_finish));
+        send_queue = channel->yield_send_queue();
+    }
 
     // send all packets
-    for (const auto &p : channel->yield_send_queue())
+    for (const auto &p : send_queue)
     {
         socket->write(p.data(), p.packet_size());
     }
@@ -122,33 +143,34 @@ struct ServerConnectionHandler::Connection
 };
 
 ServerConnectionHandler::ServerConnectionHandler(
-    std::unique_ptr<AcceptingSocket> socket,
+    std::unique_ptr<ServerSocket> socket,
     NewConnectionCallback new_connection_callback,
     RecvCallback recv_callback)
     : socket_(std::move(socket))
     , new_connection_callback_(new_connection_callback)
     , recv_callback_(recv_callback)
     , start_(std::chrono::steady_clock::now())
-    , connections()
-    , mutex()
-    , messages()
+    , connections_()
+    , mutex_()
+    , messages_()
 {
     // we want to always be accepting connections, so we do this in a background
     // job
     Root::job_system().add_jobs({[this]() {
-        static std::size_t id = 0u;
-
         for (;;)
         {
-            auto *socket = socket_->accept();
+            auto [client_socket, raw_packet, new_connection] =
+                socket_->read();
 
-            LOG_ENGINE_INFO("server_connection_handler", "accepted connection");
+            std::hash<Socket *> hash{};
 
-            if (socket != nullptr)
+            const auto id = hash(client_socket);
+
+            if (new_connection)
             {
                 // setup internal struct to manage connection
                 auto connection = std::make_unique<Connection>();
-                connection->socket = socket;
+                connection->socket = client_socket;
                 connection->channels[ChannelType::UNRELIABLE_UNORDERED] =
                     std::make_unique<UnreliableUnorderedChannel>();
                 connection->channels[ChannelType::UNRELIABLE_SEQUENCED] =
@@ -156,48 +178,36 @@ ServerConnectionHandler::ServerConnectionHandler(
                 connection->channels[ChannelType::RELIABLE_ORDERED] =
                     std::make_unique<ReliableOrderedChannel>();
 
-                std::unique_lock lock(mutex);
-
-                connections[id] = std::move(connection);
-                ++id;
+                connections_[id] = std::move(connection);
             }
-        }
-    }});
-}
 
-ServerConnectionHandler::~ServerConnectionHandler() = default;
+            auto *connection = connections_[id].get();
 
-void ServerConnectionHandler::update()
-{
-    std::unique_lock lock(mutex);
-
-    // process each connection
-    for (auto &[id, connection] : connections)
-    {
-        // has the connection sent us any data?
-        const auto raw_packet = connection->socket->try_read(1024);
-        if (raw_packet)
-        {
-            // convert data into a Packet
-            iris::Packet packet{};
-            std::memcpy(packet.data(), raw_packet->data(), raw_packet->size());
-            packet.resize(raw_packet->size());
+            iris::Packet packet{raw_packet};
 
             // enqueue the packet into the right channel
             const auto channel_type = packet.channel();
             auto *channel = connection->channels.at(channel_type).get();
-            channel->enqueue_receive(std::move(packet));
+
+            std::vector<Packet> receive_queue{};
+
+            {
+                std::unique_lock lock(mutex_);
+                channel->enqueue_receive(std::move(packet));
+                receive_queue = channel->yield_receive_queue();
+            }
 
             // handle all received packets from that channel
-            for (const auto &p : channel->yield_receive_queue())
+            for (const auto &p : receive_queue)
             {
                 switch (p.type())
                 {
                     case PacketType::HELLO:
                     {
-                        handle_hello(id, channel, connection->socket);
+                        handle_hello(id, channel, connection->socket, mutex_);
 
-                        // we got a new client, fire it back to the application
+                        // we got a new client, fire it back to the
+                        // application
                         new_connection_callback_(id);
                         break;
                     }
@@ -210,7 +220,7 @@ void ServerConnectionHandler::update()
                     case PacketType::SYNC_RESPONSE:
                     {
                         handle_sync_response(
-                            channel, connection->socket, packet);
+                            channel, connection->socket, packet, mutex_);
                         break;
                     }
                     default:
@@ -219,7 +229,13 @@ void ServerConnectionHandler::update()
                 }
             }
         }
-    }
+    }});
+}
+
+ServerConnectionHandler::~ServerConnectionHandler() = default;
+
+void ServerConnectionHandler::update()
+{
 }
 
 void ServerConnectionHandler::send(
@@ -227,23 +243,21 @@ void ServerConnectionHandler::send(
     const DataBuffer &message,
     ChannelType channel_type)
 {
-    Channel *channel = nullptr;
-    Socket *socket = nullptr;
+    auto *channel = connections_[id]->channels[channel_type].get();
+    auto *socket = connections_[id]->socket;
 
     {
-        std::unique_lock lock(mutex);
-        channel = connections[id]->channels[channel_type].get();
-        socket = connections[id]->socket;
-    }
+        std::unique_lock lock(mutex_);
 
-    // wrap data in a Packet and enqueue
-    Packet packet(PacketType::DATA, channel_type, message);
-    channel->enqueue_send(std::move(packet));
+        // wrap data in a Packet and enqueue
+        Packet packet(PacketType::DATA, channel_type, message);
+        channel->enqueue_send(std::move(packet));
 
-    // send all packets
-    for (const auto &p : channel->yield_send_queue())
-    {
-        socket->write(p.data(), p.packet_size());
+        // send all packets
+        for (const auto &p : channel->yield_send_queue())
+        {
+            socket->write(p.data(), p.packet_size());
+        }
     }
 }
 

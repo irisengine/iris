@@ -18,17 +18,14 @@ Root::Root()
     : logger_(std::make_unique<Logger>())
     , job_system_(std::make_unique<JobSystem>())
     , physics_system_(std::make_unique<PhysicsSystem>())
-    , window_()
-    , render_system_()
-    , screen_target_()
+    , window_(nullptr)
+    , screen_target_(nullptr)
 {
 }
 
 void Root::init()
 {
     window_ = std::make_unique<Window>(800.0f, 800.0f);
-    render_system_ =
-        std::make_unique<RenderSystem>(window_->width(), window_->height());
     screen_target_ = std::make_unique<RenderTarget>(
         static_cast<std::uint32_t>(window_->width()),
         static_cast<std::uint32_t>(window_->height()));
@@ -52,11 +49,6 @@ Logger &Root::logger()
 PhysicsSystem &Root::physics_system()
 {
     return *instance_.physics_system_;
-}
-
-RenderSystem &Root::render_system()
-{
-    return *instance_.render_system_;
 }
 
 Window &Root::window()

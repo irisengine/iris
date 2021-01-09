@@ -4,10 +4,17 @@
 #include "platform/keyboard_event.h"
 #include "platform/mouse_button_event.h"
 #include "platform/mouse_event.h"
+#include "platform/quit_event.h"
 #include "platform/touch_event.h"
 
 namespace iris
 {
+
+Event::Event(QuitEvent event)
+    : type_(EventType::QUIT)
+    , event_(event)
+{
+}
 
 Event::Event(const KeyboardEvent event)
     : type_(EventType::KEYBOARD)
@@ -36,6 +43,11 @@ Event::Event(TouchEvent event)
 EventType Event::type() const
 {
     return type_;
+}
+
+bool Event::is_quit() const
+{
+    return std::holds_alternative<QuitEvent>(event_);
 }
 
 bool Event::is_key() const

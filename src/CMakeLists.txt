@@ -22,16 +22,22 @@ target_include_directories(
   iris PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/iris>
               $<INSTALL_INTERFACE:include/iris>)
 
+# on windows SYSTEM includes do not prevent warnings - so we add bullet using
+# the /external flag
+if(IRIS_PLATFORM MATCHES "WINDOWS")
+  set(WINDOWS_SYSTEM_INCLUDES /external:I
+                              ${CMAKE_SOURCE_DIR}/third_party/bullet/src)
+else()
+  target_include_directories(
+    iris SYSTEM PRIVATE "${CMAKE_SOURCE_DIR}/third_party/bullet/src")
+  target_include_directories(iris SYSTEM
+                             PRIVATE "${CMAKE_SOURCE_DIR}/third_party")
+endif()
+
 target_include_directories(iris SYSTEM
                            PRIVATE "${CMAKE_SOURCE_DIR}/third_party")
 target_include_directories(iris SYSTEM
-                           PRIVATE "${CMAKE_SOURCE_DIR}/third_party/bullet/src")
-target_include_directories(
-  iris SYSTEM PRIVATE "${CMAKE_SOURCE_DIR}/third_party/assimp/include")
-target_include_directories(
-  iris SYSTEM PRIVATE "${CMAKE_BINARY_DIR}/third_party/assimp/include")
-
-set(LINK_FRAMEWORKS "")
+                           PRIVATE "${CMAKE_SOURCE_DIR}/third_party/assimp")
 
 if(IRIS_PLATFORM MATCHES "MACOS")
   set(LINK_FRAMEWORKS
@@ -44,7 +50,7 @@ endif()
 
 # handle platform specific setup including setting default graphics apis
 if(IRIS_PLATFORM MATCHES "MACOS")
-  target_compile_definitions(iris PRIVATE PLATFORM_MACOS)
+  target_compile_definitions(iris PUBLIC PLATFORM_MACOS)
   target_compile_definitions(iris PRIVATE IRIS_ARCH_X86_64)
   set(IRIS_ARCH "X86_64")
   if(NOT IRIS_GRAPHICS_API)
@@ -54,7 +60,7 @@ if(IRIS_PLATFORM MATCHES "MACOS")
     set(IRIS_JOBS_API "FIBERS")
   endif()
 elseif(IRIS_PLATFORM MATCHES "IOS")
-  target_compile_definitions(iris PRIVATE PLATFORM_IOS)
+  target_compile_definitions(iris PUBLIC PLATFORM_IOS)
   target_compile_definitions(iris PRIVATE IRIS_ARCH_ARM64)
   set(IRIS_ARCH "ARM64")
   if(NOT IRIS_GRAPHICS_API)
@@ -63,6 +69,12 @@ elseif(IRIS_PLATFORM MATCHES "IOS")
   if(NOT IRIS_JOBS_API)
     set(IRIS_JOBS_API "THREADS")
   endif()
+elseif(IRIS_PLATFORM MATCHES "WINDOWS")
+  target_compile_definitions(iris PUBLIC PLATFORM_WINDOWS)
+  target_compile_definitions(iris PRIVATE IRIS_ARCH_X86_64)
+  set(IRIS_GRAPHICS_API "OPENGL")
+  set(IRIS_JOBS_API "THREADS")
+  set(IRIS_ARCH "X86_64")
 else()
   message(FATAL_ERROR "Unsupported platform")
 endif()
@@ -79,16 +91,15 @@ if(IRIS_GRAPHICS_API MATCHES "METAL")
     message(FATAL_ERROR "METAL not supported on ${IRIS_PLATFORM}")
   endif()
 elseif(IRIS_GRAPHICS_API MATCHES "OPENGL")
+  find_package(OpenGL REQUIRED)
+  target_include_directories(iris SYSTEM PRIVATE ${OPENGL_INCLUDE_DIR})
+  target_compile_definitions(iris PRIVATE IRIS_GRAPHICS_API_OPENGL)
   if(IRIS_PLATFORM MATCHES "MACOS")
-    find_package(OpenGL REQUIRED)
-    target_include_directories(iris SYSTEM PRIVATE ${OPENGL_INCLUDE_DIR})
     set(LINK_FRAMEWORKS "${LINK_FRAMEWORKS} -framework OpenGL")
     target_compile_definitions(iris PRIVATE IRIS_GRAPHICS_API_OPENGL)
     # opengl is technically deprecated on macos, so silence the deprecation
     # warnings
     target_compile_definitions(iris PRIVATE GL_SILENCE_DEPRECATION)
-  else()
-    message(FATAL_ERROR "OPENGL not supported on ${IRIS_PLATFORM}")
   endif()
 else()
   message(FATAL_ERROR "Unsupported graphics API: ${IRIS_GRAPHICS_API}")
@@ -101,8 +112,15 @@ message(
 
 target_link_libraries(iris PUBLIC LinearMath BulletDynamics BulletCollision
                                   assimp ${LINK_FRAMEWORKS})
-target_compile_options(iris PRIVATE -Wall -Werror -pedantic -glldb -fno-rtti
-                                    -fobjc-arc)
+
+if(IRIS_PLATFORM MATCHES "WINDOWS")
+  target_compile_options(iris PRIVATE /W4 /WX /experimental:external
+                                      /external:W0 ${WINDOWS_SYSTEM_INCLUDES})
+  target_compile_options(iris PUBLIC /MTd)
+  target_link_options(iris PUBLIC /subsystem:windows /ENTRY:mainCRTStartup)
+else()
+  target_compile_options(iris PRIVATE -Wall -Werror -pedantic -glldb -fobjc-arc)
+endif()
 
 install(
   TARGETS iris

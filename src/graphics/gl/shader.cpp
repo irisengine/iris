@@ -21,7 +21,7 @@ shader::shader(const std::string &source, shader_type type)
     shader_ = ::glCreateShader(native_type);
     check_opengl_error("could not create vertex shader");
 
-    const auto shader_c_str = source.data();
+    auto shader_c_str = source.data();
 
     ::glShaderSource(shader_, 1, &shader_c_str, nullptr);
     iris::check_opengl_error("could not set shader source");

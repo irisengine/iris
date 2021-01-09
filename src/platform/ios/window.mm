@@ -11,14 +11,25 @@
 namespace iris
 {
 
+struct Window::implementation
+{
+};
+
 Window::Window(float width, float height)
     : width_(width),
-      height_(height)
+      height_(height),
+      render_system_(nullptr),
+      impl_(nullptr)
 {
     const auto bounds = [[UIScreen mainScreen] bounds];
     width_ = bounds.size.width;
     height_ = bounds.size.height;
+
+    // we can now create a render system
+    render_system_ = std::make_unique<RenderSystem>(width_, height_);
 }
+
+Window::~Window() = default;
 
 std::optional<Event> Window::pump_event()
 {
@@ -45,6 +56,11 @@ std::optional<Event> Window::pump_event()
     }
     
     return event;
+}
+
+void Window::render(const Pipeline &pipeline) const
+{
+    render_system_->render(pipeline);
 }
 
 float Window::width() const

@@ -17,7 +17,7 @@ int go(int, char **)
 {
     LOG_DEBUG("text_rendering_sample", "hello world");
 
-    auto &rs = iris::Root::instance().render_system();
+    const auto &window = iris::Root::window();
 
     iris::Camera screen_camera{iris::CameraType::ORTHOGRAPHIC, 800.0f, 800.0f};
 
@@ -37,7 +37,7 @@ int go(int, char **)
             }
         }
 
-        rs.render(pipeline);
+        window.render(pipeline);
     }
 
     LOG_ERROR("text_rendering_sample", "goodbye!");
@@ -47,17 +47,7 @@ int go(int, char **)
 
 int main(int argc, char **argv)
 {
-    try
-    {
-        iris::start_debug(argc, argv, go);
-    }
-    catch (iris::Exception &e)
-    {
-        LOG_ERROR("text_rendering_sample", e.what());
-        LOG_ERROR("text_rendering_sample", e.stack_trace());
-    }
-    catch (...)
-    {
-        LOG_ERROR("text_rendering_sample", "unknown exception");
-    }
+    iris::start_debug(argc, argv, go);
+
+    return 0;
 }

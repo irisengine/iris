@@ -8,7 +8,6 @@ namespace iris
 class JobSystem;
 class Logger;
 class PhysicsSystem;
-class RenderSystem;
 class Window;
 class RenderTarget;
 
@@ -64,14 +63,6 @@ class Root
     static PhysicsSystem &physics_system();
 
     /**
-     * Get single instance of render system.
-     *
-     * @returns
-     *   Render system single instance.
-     */
-    static RenderSystem &render_system();
-
-    /**
      * Get single instance of render window.
      *
      * @returns
@@ -113,9 +104,6 @@ class Root
 
     /** Render window. */
     std::unique_ptr<Window> window_;
-
-    /** Render system. */
-    std::unique_ptr<RenderSystem> render_system_;
 
     /** Screen target. */
     std::unique_ptr<RenderTarget> screen_target_;

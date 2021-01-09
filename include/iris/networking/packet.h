@@ -68,6 +68,14 @@ class Packet
     Packet(PacketType type, ChannelType channel, const DataBuffer &body);
 
     /**
+     * Construct a new Packet from raw data.
+     *
+     * @param raw_data
+     *   Raw Packet data
+     */
+    Packet(const DataBuffer &raw_packet);
+
+    /**
      * Get a pointer to the start of the packet.
      *
      * @returns
@@ -149,14 +157,6 @@ class Packet
      *   True if packet is valid, otherwise false.
      */
     bool is_valid() const;
-
-    /**
-     * Resize the packet so the body is size bytes.
-     *
-     * @param size
-     *   New size of body.
-     */
-    void resize(std::size_t size);
 
     /**
      * Get the sequence number of the Packet.

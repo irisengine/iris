@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "core/exception.h"
+#include "core/utils.h"
 #include "graphics/gl/opengl.h"
 #include "graphics/pixel_format.h"
 
@@ -30,9 +31,11 @@ RenderTarget::RenderTarget(std::uint32_t width, std::uint32_t height)
     ::glBindFramebuffer(GL_FRAMEBUFFER, impl_->fbo);
     check_opengl_error("could not bind fbo");
 
+    static const auto scale = screen_scale();
+
     // create backing textures for colour and depth
-    colour_texture_ =
-        std::make_unique<Texture>(width * 2, height * 2, PixelFormat::RGB);
+    colour_texture_ = std::make_unique<Texture>(
+        width * scale, height * scale, PixelFormat::RGB);
 
     const auto colour_handle =
         std::any_cast<std::uint32_t>(colour_texture_->native_handle());
@@ -41,8 +44,8 @@ RenderTarget::RenderTarget(std::uint32_t width, std::uint32_t height)
         GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colour_handle, 0);
     check_opengl_error("could not attach colour texture");
 
-    depth_texture_ =
-        std::make_unique<Texture>(width * 2, height * 2, PixelFormat::DEPTH);
+    depth_texture_ = std::make_unique<Texture>(
+        width * scale, height * scale, PixelFormat::DEPTH);
 
     const auto depth_handle =
         std::any_cast<std::uint32_t>(depth_texture_->native_handle());

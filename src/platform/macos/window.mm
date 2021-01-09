@@ -4,10 +4,15 @@
 
 #import <Appkit/Appkit.h>
 #import <Foundation/Foundation.h>
+
+#if defined(IRIS_GRAPHICS_API_OPENGL)
 #include <OpenGL/gl3.h>
 #include <OpenGL/gl3ext.h>
+#endif
 
 #include "core/exception.h"
+#include "graphics/pipeline.h"
+#include "graphics/render_system.h"
 #include "log/log.h"
 #include "platform/keyboard_event.h"
 #include "platform/macos/AppDelegate.h"
@@ -82,7 +87,7 @@ iris::Key macos_key_to_engine_Key(const std::uint16_t key_code)
         case 0x30: key = iris::Key::TAB;              break;
         case 0x31: key = iris::Key::SPACE;            break;
         case 0x32: key = iris::Key::GRAVE;            break;
-        case 0x33: key = iris::Key::DELETE;           break;
+        case 0x33: key = iris::Key::FORWARD_DELETE;   break;
         case 0x35: key = iris::Key::ESCAPE;           break;
         case 0x37: key = iris::Key::COMMAND;          break;
         case 0x38: key = iris::Key::SHIFT;            break;
@@ -144,7 +149,7 @@ iris::Key macos_key_to_engine_Key(const std::uint16_t key_code)
         case 0x7C: key = iris::Key::RIGHT_ARROW;      break;
         case 0x7D: key = iris::Key::DOWN_ARROW;       break;
         case 0x7E: key = iris::Key::UP_ARROW;         break;
-        default : throw iris::Exception("unknown Key type");
+        default : key = iris::Key::UNKNOWN;
     }
 
     return key;
@@ -194,9 +199,15 @@ iris::MouseEvent handle_mouse_event(NSEvent *event)
 namespace iris
 {
 
+struct Window::implementation
+{
+};
+
 Window::Window(float width, float height)
     : width_(width),
-      height_(height)
+      height_(height),
+      render_system_(nullptr),
+      impl_(nullptr)
 {
     // get and/or create the application singleton
     NSApplication *app = [NSApplication sharedApplication];
@@ -228,7 +239,24 @@ Window::Window(float width, float height)
     // doesn't matter if we are using opengl or metal
     pump_event();
 
+    // we can now create a render system
+    render_system_ = std::make_unique<RenderSystem>(width_, height_);
+
     LOG_ENGINE_INFO("window", "macos window created {} {}", width_, height_);
+}
+
+Window::~Window() = default;
+
+void Window::render(const Pipeline &pipeline) const
+{
+    render_system_->render(pipeline);
+
+    // as this window could be backed by either a metal or opengl RenderSystem we
+    // need to manually swap buffers in the latter case
+#if defined(IRIS_GRAPHICS_API_OPENGL)
+    ::glSwapAPPLE();
+#endif
+
 }
 
 std::optional<Event> Window::pump_event()
