@@ -10,7 +10,7 @@ endif()
 set(NETWORKING_SRCS
     ${NETWORKING_SRCS}
     ${PLATFORM_SRCS}
-    "${INCLUDE_ROOT}/accepting_socket.h"
+    "${INCLUDE_ROOT}/server_socket.h"
     "${INCLUDE_ROOT}/channel/channel.h"
     "${INCLUDE_ROOT}/channel/channel_type.h"
     "${INCLUDE_ROOT}/channel/reliable_ordered_channel.h"
@@ -23,10 +23,10 @@ set(NETWORKING_SRCS
     "${INCLUDE_ROOT}/packet.h"
     "${INCLUDE_ROOT}/packet_type.h"
     "${INCLUDE_ROOT}/server_connection_handler.h"
-    "${INCLUDE_ROOT}/simulated_accepting_socket.h"
+    "${INCLUDE_ROOT}/simulated_server_socket.h"
     "${INCLUDE_ROOT}/simulated_socket.h"
     "${INCLUDE_ROOT}/socket.h"
-    "${INCLUDE_ROOT}/udp_accepting_socket.h"
+    "${INCLUDE_ROOT}/udp_server_socket.h"
     "${INCLUDE_ROOT}/udp_socket.h"
     "${SOURCE_ROOT}/channel/channel.cpp"
     "${SOURCE_ROOT}/channel/reliable_ordered_channel.cpp"
