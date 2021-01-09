@@ -31,12 +31,16 @@ TEST(packet, construct_normal)
     ASSERT_EQ(std::memcmp(p.data(), &p, p.packet_size()), 0u);
 }
 
-TEST(packet, resize_too_large)
+TEST(packet, construct_raw_packet)
 {
-    iris::Packet p{
+    iris::Packet p1{
         iris::PacketType::DATA, iris::ChannelType::RELIABLE_ORDERED, test_data};
 
-    ASSERT_THROW(p.resize(sizeof(p) + 1u), iris::Exception);
+    iris::DataBuffer raw_packet{p1.data(), p1.data() + p1.packet_size()};
+
+    iris::Packet p2{raw_packet};
+
+    ASSERT_EQ(p1, p2);
 }
 
 TEST(packet, sequence)

@@ -1,5 +1,6 @@
 #include "networking/packet.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -29,6 +30,16 @@ Packet::Packet(PacketType type, ChannelType channel, const DataBuffer &body)
     }
 
     std::memcpy(body_, body.data(), body.size());
+}
+
+Packet::Packet(const DataBuffer &raw_packet)
+    : Packet()
+{
+    const auto size_to_copy = std::min<std::size_t>(128ul, raw_packet.size());
+
+    std::memcpy(this, raw_packet.data(), size_to_copy);
+
+    size_ = size_to_copy - sizeof(Header);
 }
 
 const std::byte *Packet::data() const
@@ -85,16 +96,6 @@ bool Packet::is_valid() const
     return header_.type != PacketType::INVAlID;
 }
 
-void Packet::resize(std::size_t size)
-{
-    if (size > sizeof(Packet))
-    {
-        throw Exception("new size too large");
-    }
-
-    size_ = size - sizeof(Header);
-}
-
 std::uint16_t Packet::sequence() const
 {
     return header_.sequence;
@@ -121,45 +122,27 @@ std::ostream &operator<<(std::ostream &out, const Packet &packet)
 {
     switch (packet.header_.type)
     {
-        case PacketType::INVAlID:
-            out << "INVALID";
-            break;
-        case PacketType::HELLO:
-            out << "HELLO";
-            break;
-        case PacketType::CONNECTED:
-            out << "CONNECTED";
-            break;
-        case PacketType::DATA:
-            out << "DATA";
-            break;
-        case PacketType::ACK:
-            out << "ACK";
-            break;
-        default:
-            out << "UNKNOWN";
-            break;
+        case PacketType::INVAlID: out << "INVALID"; break;
+        case PacketType::HELLO: out << "HELLO"; break;
+        case PacketType::CONNECTED: out << "CONNECTED"; break;
+        case PacketType::DATA: out << "DATA"; break;
+        case PacketType::ACK: out << "ACK"; break;
+        default: out << "UNKNOWN"; break;
     }
 
     out << ", ";
 
     switch (packet.header_.channel)
     {
-        case ChannelType::INVAlID:
-            out << "INVALID";
-            break;
+        case ChannelType::INVAlID: out << "INVALID"; break;
         case ChannelType::UNRELIABLE_UNORDERED:
             out << "UNRELIABLE_UNORDERED";
             break;
         case ChannelType::UNRELIABLE_SEQUENCED:
             out << "UNRELIABLE_SEQUENCED";
             break;
-        case ChannelType::RELIABLE_ORDERED:
-            out << "RELIABLE_ORDERED";
-            break;
-        default:
-            out << "UNKNOWN";
-            break;
+        case ChannelType::RELIABLE_ORDERED: out << "RELIABLE_ORDERED"; break;
+        default: out << "UNKNOWN"; break;
     }
 
     out << ", ";
@@ -171,7 +154,9 @@ std::ostream &operator<<(std::ostream &out, const Packet &packet)
 
     out << std::hex;
 
-    for (int i = 0; i < std::min(packet.size_, 8ul); ++i)
+    for (auto i = 0u;
+         i < std::min(static_cast<std::uint32_t>(packet.size_), 8u);
+         ++i)
     {
         out << static_cast<int>(packet.body_[i]) << " ";
     }
