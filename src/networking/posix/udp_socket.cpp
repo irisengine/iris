@@ -69,6 +69,17 @@ UdpSocket::UdpSocket(const std::string &address, std::uint16_t port)
     LOG_ENGINE_INFO("udp_socket", "connected!");
 }
 
+UdpSocket::UdpSocket(
+    struct sockaddr_in socket_address,
+    socklen_t socket_length,
+    SocketHandle socket)
+    : impl_(std::make_unique<implementation>())
+{
+    impl_->socket = {socket, nullptr};
+    impl_->address = socket_address;
+    impl_->address_length = socket_length;
+}
+
 UdpSocket::~UdpSocket() = default;
 UdpSocket::UdpSocket(UdpSocket &&) = default;
 UdpSocket &UdpSocket::operator=(UdpSocket &&) = default;

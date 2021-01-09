@@ -7,6 +7,7 @@
 #include <string>
 
 #include "core/data_buffer.h"
+#include "networking/networking.h"
 #include "networking/socket.h"
 
 namespace iris
@@ -29,6 +30,27 @@ class UdpSocket : public Socket
      *   Port on address to communicate with.
      */
     UdpSocket(const std::string &address, std::uint16_t port);
+
+    /**
+     * Construct a new UdpSocket from an existing BSD socket. This is non-owning
+     * and will not close the SocketHandle when it goes out of scope.
+     *
+     * This constructor annoyingly breaks the abstraction around the BSD socket
+     * primitives but is a necessary evil.
+     *
+     * @param socket_address
+     *   BSD socket struct.
+     *
+     * @param socket_length
+     *   Length (in bytes) of socket_address
+     *
+     * @param socket
+     *   SocketHandle to take a non-owning copy of.
+     */
+    UdpSocket(
+        struct sockaddr_in socket_address,
+        socklen_t socket_length,
+        SocketHandle socket);
 
     // disabled
     UdpSocket(const UdpSocket &) = delete;
