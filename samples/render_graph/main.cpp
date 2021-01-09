@@ -48,7 +48,7 @@ void go(int, char **)
         {iris::Key::E, iris::KeyState::UP},
     };
 
-    auto &rs = iris::Root::instance().render_system();
+    const auto &window = iris::Root::window();
     iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};
     iris::Camera screen_camera{iris::CameraType::ORTHOGRAPHIC, 800.0f, 800.0f};
 
@@ -181,7 +181,7 @@ void go(int, char **)
             light1->set_direction(light_transform.translation());
             light2->set_direction(light_transform.translation());
 
-            rs.render(pipeline);
+            window.render(pipeline);
 
             return true;
         }};

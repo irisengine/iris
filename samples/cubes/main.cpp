@@ -25,7 +25,8 @@ void go(int, char **)
         {iris::Key::E, iris::KeyState::UP},
     };
 
-    auto &rs = iris::Root::instance().render_system();
+    const auto &window = iris::Root::window();
+
     iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};
 
     auto scene = std::make_unique<iris::Scene>();
@@ -49,7 +50,7 @@ void go(int, char **)
     {
         if (auto evt = iris::Root::instance().window().pump_event(); evt)
         {
-            if (evt->is_key(iris::Key::ESCAPE))
+            if (evt->is_key(iris::Key::ESCAPE) || evt->is_quit())
             {
                 break;
             }
@@ -103,26 +104,14 @@ void go(int, char **)
 
         camera.translate(velocity);
 
-        rs.render(pipeline);
+        window.render(pipeline);
     }
     LOG_ERROR("cube_sample", "goodbye!");
 }
 
 int main(int argc, char **argv)
 {
-    try
-    {
-        iris::start_debug(argc, argv, go);
-    }
-    catch (iris::Exception &e)
-    {
-        LOG_ERROR("cube_sample", e.what());
-        LOG_ERROR("cube_sample", e.stack_trace());
-    }
-    catch (...)
-    {
-        LOG_ERROR("cube_sample", "unknown exception");
-    }
+    iris::start_debug(argc, argv, go);
 
     return 0;
 }

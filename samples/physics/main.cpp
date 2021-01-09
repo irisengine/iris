@@ -71,7 +71,7 @@ void go(int, char **)
         {iris::Key::SPACE, iris::KeyState::UP},
     };
 
-    auto &rs = iris::Root::render_system();
+    const auto &window = iris::Root::window();
     auto &ps = iris::Root::physics_system();
     iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};
 
@@ -124,8 +124,6 @@ void go(int, char **)
 
     auto *character_controller =
         ps.create_character_controller<iris::BasicCharacterController>();
-
-    rs.set_light_position({10.0f});
 
     auto frame_start = std::chrono::high_resolution_clock::now();
 
@@ -202,9 +200,7 @@ void go(int, char **)
 
                         break;
                     }
-                    case iris::TouchType::END:
-                        walk_direction = {};
-                        break;
+                    case iris::TouchType::END: walk_direction = {}; break;
                 }
             }
         }
@@ -256,7 +252,7 @@ void go(int, char **)
             g->set_orientation(p->orientation());
         }
 
-        rs.render(pipeline);
+        window.render(pipeline);
 
 #if !defined(PLATFORM_IOS)
         walk_direction = {};
@@ -267,19 +263,7 @@ void go(int, char **)
 
 int main(int argc, char **argv)
 {
-    try
-    {
-        iris::start_debug(argc, argv, go);
-    }
-    catch (iris::Exception &e)
-    {
-        LOG_ERROR("physics_sample", e.what());
-        LOG_ERROR("physics_sample", e.stack_trace());
-    }
-    catch (...)
-    {
-        LOG_ERROR("physics_sample", "unknown exception");
-    }
+    iris::start_debug(argc, argv, go);
 
     return 0;
 }

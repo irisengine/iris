@@ -37,7 +37,7 @@ void go(int, char **)
         {iris::Key::E, iris::KeyState::UP},
     };
 
-    auto &rs = iris::Root::instance().render_system();
+    const auto &window = iris::Root::window();
     auto &ps = iris::Root::instance().physics_system();
 
     iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};
@@ -247,7 +247,7 @@ void go(int, char **)
         }
 
         ps.step(std::chrono::milliseconds(33));
-        rs.render(pipeline);
+        window.render(pipeline);
     }
 
     LOG_ERROR("animation_sample", "goodbye!");

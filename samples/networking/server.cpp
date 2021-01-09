@@ -10,12 +10,6 @@
 #include <string>
 #include <thread>
 
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-
 #include "core/data_buffer.h"
 #include "core/exception.h"
 #include "core/looper.h"
@@ -24,11 +18,10 @@
 #include "log/log.h"
 #include "networking/data_buffer_deserialiser.h"
 #include "networking/data_buffer_serialiser.h"
+#include "networking/networking.h"
 #include "networking/packet.h"
-#include "networking/posix/auto_socket.h"
 #include "networking/server_connection_handler.h"
-#include "networking/simulated_accepting_socket.h"
-#include "networking/udp_accepting_socket.h"
+#include "networking/udp_server_socket.h"
 #include "physics/basic_character_controller.h"
 #include "physics/box_collision_shape.h"
 #include "physics/physics_system.h"
@@ -51,8 +44,7 @@ void go(int, char **)
     std::deque<ClientInput> inputs;
     auto tick = 0u;
 
-    auto socket = std::make_unique<iris::SimulatedAcceptingSocket>(
-        "2", "1", 0ms, 0ms, 0.0f);
+    auto socket = std::make_unique<iris::UdpServerSocket>("127.0.0.1", 8888);
 
     iris::ServerConnectionHandler connection_handler(
         std::move(socket),
@@ -176,19 +168,7 @@ void go(int, char **)
 
 int main(int argc, char **argv)
 {
-    try
-    {
-        go(argc, argv);
-    }
-    catch (iris::Exception &e)
-    {
-        LOG_ERROR("server", e.what());
-        LOG_ERROR("server", e.stack_trace());
-    }
-    catch (...)
-    {
-        LOG_ERROR("server", "unknown exception");
-    }
+    go(argc, argv);
 
     return 0;
 }

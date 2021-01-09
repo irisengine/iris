@@ -21,7 +21,7 @@ void go(int, char **)
 {
     LOG_DEBUG("sprite_sample", "hello world");
 
-    auto &rs = iris::Root::instance().render_system();
+    const auto &window = iris::Root::window();
 
     iris::Camera screen_camera{iris::CameraType::ORTHOGRAPHIC, 800.0f, 800.0f};
 
@@ -70,24 +70,12 @@ void go(int, char **)
         sprite3->set_orientation(rot);
         rot *= delta;
 
-        rs.render(pipeline);
+        window.render(pipeline);
     }
     LOG_ERROR("sprite_sample", "goodbye!");
 }
 
 int main(int argc, char **argv)
 {
-    try
-    {
-        iris::start_debug(argc, argv, go);
-    }
-    catch (iris::Exception &e)
-    {
-        LOG_ERROR("sprite_sample", e.what());
-        LOG_ERROR("sprite_sample", e.stack_trace());
-    }
-    catch (...)
-    {
-        LOG_ERROR("sprite_sample", "unknown exception");
-    }
+    iris::start_debug(argc, argv, go);
 }

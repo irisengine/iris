@@ -51,8 +51,8 @@ struct Sphere
     {
     }
 
-    std::tuple<float, iris::Vector3, iris::Vector3>
-    intersects(const Ray &ray) const
+    std::tuple<float, iris::Vector3, iris::Vector3> intersects(
+        const Ray &ray) const
     {
         auto L = origin - ray.origin;
         auto tca = L.dot(ray.direction);
@@ -264,19 +264,7 @@ void go(int, char **)
 
 int main(int argc, char **argv)
 {
-    try
-    {
-        iris::start(argc, argv, go);
-    }
-    catch (iris::Exception &e)
-    {
-        LOG_ERROR("jobs_sample", e.what());
-        LOG_ERROR("jobs_sample", e.stack_trace());
-    }
-    catch (...)
-    {
-        LOG_ERROR("jobs_sample", "unknown exception");
-    }
+    iris::start(argc, argv, go);
 
     return 0;
 }
