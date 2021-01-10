@@ -4,6 +4,7 @@
 
 #include "core/camera.h"
 #include "core/root.h"
+#include "core/global_config.h"
 #include "core/transform.h"
 #include "graphics/material.h"
 #include "graphics/mesh_factory.h"
@@ -37,7 +38,7 @@ void go(int, char **)
         {iris::Key::E, iris::KeyState::UP},
     };
 
-    const auto &window = iris::Root::window();
+    auto *window = iris::GlobalConfig::get<iris::Window*>("window");
     auto &ps = iris::Root::instance().physics_system();
 
     iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};
@@ -160,7 +161,7 @@ void go(int, char **)
 
     for (;;)
     {
-        if (auto evt = iris::Root::instance().window().pump_event(); evt)
+        if (auto evt = window->pump_event(); evt)
         {
             if (evt->is_key(iris::Key::ESCAPE))
             {
@@ -247,7 +248,7 @@ void go(int, char **)
         }
 
         ps.step(std::chrono::milliseconds(33));
-        window.render(pipeline);
+        window->render(pipeline);
     }
 
     LOG_ERROR("animation_sample", "goodbye!");

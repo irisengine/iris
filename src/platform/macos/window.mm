@@ -11,6 +11,7 @@
 #endif
 
 #include "core/exception.h"
+#include "core/global_config.h"
 #include "graphics/pipeline.h"
 #include "graphics/render_system.h"
 #include "log/log.h"
@@ -241,6 +242,8 @@ Window::Window(float width, float height)
 
     // we can now create a render system
     render_system_ = std::make_unique<RenderSystem>(width_, height_);
+
+    GlobalConfig::set("window", this);
 
     LOG_ENGINE_INFO("window", "macos window created {} {}", width_, height_);
 }
