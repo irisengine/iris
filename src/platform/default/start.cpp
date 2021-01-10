@@ -27,7 +27,7 @@ void start_debug(int argc, char **argv, std::function<void(int, char **)> entry)
     Root::instance().init();
 
     // enable engine logging
-    Root::logger().set_log_engine(true);
+    Logger::instance().set_log_engine(true);
 
     Root::job_system().set_stats_stream(&std::cout);
 

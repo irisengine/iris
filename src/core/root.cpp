@@ -15,9 +15,8 @@ namespace iris
 Root Root::instance_;
 
 Root::Root()
-    : logger_(std::make_unique<Logger>())
-    , job_system_(std::make_unique<JobSystem>())
     , physics_system_(std::make_unique<PhysicsSystem>())
+    : job_system_(std::make_unique<JobSystem>())
     , window_(nullptr)
     , screen_target_(nullptr)
 {
@@ -39,11 +38,6 @@ Root &Root::instance()
 JobSystem &Root::job_system()
 {
     return *instance_.job_system_;
-}
-
-Logger &Root::logger()
-{
-    return *instance_.logger_;
 }
 
 PhysicsSystem &Root::physics_system()

@@ -37,7 +37,7 @@ std::size_t player_id = std::numeric_limits<std::size_t>::max();
 
 void go(int, char **)
 {
-    iris::Root::logger().set_log_engine(true);
+    iris::Logger::instance().set_log_engine(true);
 
     LOG_DEBUG("server_sample", "hello world");
 

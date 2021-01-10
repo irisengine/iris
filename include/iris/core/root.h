@@ -47,14 +47,6 @@ class Root
     static JobSystem &job_system();
 
     /**
-     * Get single instance of logger.
-     *
-     * @returns
-     *   Logger single instance.
-     */
-    static Logger &logger();
-
-    /**
      * Get single instance of physics system.
      *
      * @returns
@@ -92,9 +84,6 @@ class Root
     // the order of the members is critical as we need to ensure destruction
     // happens in a fixed order due to dependencies between components
     // e.g. Logger must be destroyed last as other destructors use it
-
-    /** Logger. */
-    std::unique_ptr<Logger> logger_;
 
     /** Job system. */
     std::unique_ptr<JobSystem> job_system_;

@@ -48,7 +48,7 @@ void start_debug(int argc, char **argv, std::function<void(int, char**)> entry)
 {
     // enable engine logging
     Root::logger().set_Formatter<EmojiFormatter>();
-    Root::logger().set_log_engine(true);
+    Logger::instance().set_log_engine(true);
 
     LOG_ENGINE_INFO("start", "engine start (with debugging)");
 
