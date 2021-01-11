@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "core/camera.h"
+#include "core/root.h"
 #include "graphics/mesh_factory.h"
 #include "graphics/pipeline.h"
 #include "graphics/render_graph/render_graph.h"
@@ -72,7 +73,7 @@ void go(int, char **)
     };
 
     const auto &window = iris::Root::window();
-    auto &ps = iris::Root::physics_system();
+    iris::PhysicsSystem ps{};
     iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};
 
     std::vector<std::tuple<iris::RenderEntity *, iris::RigidBody *>> boxes;
@@ -123,7 +124,7 @@ void go(int, char **)
     pipeline.add_stage(std::move(scene), camera);
 
     auto *character_controller =
-        ps.create_character_controller<iris::BasicCharacterController>();
+        ps.create_character_controller<iris::BasicCharacterController>(&ps);
 
     auto frame_start = std::chrono::high_resolution_clock::now();
 

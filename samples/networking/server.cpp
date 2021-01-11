@@ -78,7 +78,7 @@ void go(int, char **)
 
     iris::PhysicsSystem ps{};
     character_controller =
-        ps.create_character_controller<iris::BasicCharacterController>();
+        ps.create_character_controller<iris::BasicCharacterController>(&ps);
     ps.create_rigid_body(
         iris::Vector3{0.0f, -50.0f, 0.0f},
         std::make_unique<iris::BoxCollisionShape>(

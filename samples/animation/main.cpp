@@ -4,7 +4,6 @@
 
 #include "core/camera.h"
 #include "core/root.h"
-#include "core/global_config.h"
 #include "core/transform.h"
 #include "graphics/material.h"
 #include "graphics/mesh_factory.h"
@@ -38,8 +37,8 @@ void go(int, char **)
         {iris::Key::E, iris::KeyState::UP},
     };
 
-    auto *window = iris::GlobalConfig::get<iris::Window*>("window");
-    auto &ps = iris::Root::instance().physics_system();
+    auto window = std::make_unique<iris::Window>(800.0f, 800.0f);
+    iris::PhysicsSystem ps{};
 
     iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};
     camera.set_position(camera.position() + iris::Vector3{0.0f, 5.0f, 0.0f});

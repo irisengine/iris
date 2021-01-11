@@ -47,14 +47,6 @@ class Root
     static JobSystem &job_system();
 
     /**
-     * Get single instance of physics system.
-     *
-     * @returns
-     *   Render system single instance.
-     */
-    static PhysicsSystem &physics_system();
-
-    /**
      * Get single instance of render window.
      *
      * @returns
@@ -87,9 +79,6 @@ class Root
 
     /** Job system. */
     std::unique_ptr<JobSystem> job_system_;
-
-    /** Physics system. */
-    std::unique_ptr<PhysicsSystem> physics_system_;
 
     /** Render window. */
     std::unique_ptr<Window> window_;

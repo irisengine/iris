@@ -10,6 +10,8 @@
 namespace iris
 {
 
+class PhysicsSystem;
+
 /**
  * Implementation of CharacterController for a basic FPS character controller.
  * Uses a capsule shape for character.
@@ -19,8 +21,11 @@ class BasicCharacterController : public CharacterController
   public:
     /**
      * Create a BasicCharacterController.
+     *
+     * @param physics_system
+     *   Pointer to physics_system that owns this controller.
      */
-    BasicCharacterController();
+    BasicCharacterController(PhysicsSystem *physics_system);
 
     /**
      * Destructor.
@@ -141,6 +146,9 @@ class BasicCharacterController : public CharacterController
      * Mass of character.
      */
     float mass_;
+
+    /** Physics system. */
+    PhysicsSystem *physics_system_;
 
     /**
      * Physics API implementation.
