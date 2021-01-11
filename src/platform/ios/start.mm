@@ -50,6 +50,8 @@ void start_debug(int argc, char **argv, std::function<void(int, char**)> entry)
     Root::logger().set_Formatter<EmojiFormatter>();
     Logger::instance().set_log_engine(true);
 
+    JobSystem::set_stats_stream(&std::cout);
+
     LOG_ENGINE_INFO("start", "engine start (with debugging)");
 
     start(argc, argv, entry);

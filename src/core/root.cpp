@@ -4,7 +4,6 @@
 
 #include "core/exception.h"
 #include "graphics/render_system.h"
-#include "jobs/job_system.h"
 #include "log/logger.h"
 #include "physics/physics_system.h"
 #include "platform/window.h"
@@ -15,8 +14,7 @@ namespace iris
 Root Root::instance_;
 
 Root::Root()
-    : job_system_(std::make_unique<JobSystem>())
-    , window_(nullptr)
+    : window_(nullptr)
     , screen_target_(nullptr)
 {
 }
@@ -32,11 +30,6 @@ void Root::init()
 Root &Root::instance()
 {
     return instance_;
-}
-
-JobSystem &Root::job_system()
-{
-    return *instance_.job_system_;
 }
 
 Window &Root::window()

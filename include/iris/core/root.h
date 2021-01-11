@@ -39,14 +39,6 @@ class Root
     static Root &instance();
 
     /**
-     * Get single instance of job system.
-     *
-     * @returns
-     *   Job system single instance.
-     */
-    static JobSystem &job_system();
-
-    /**
      * Get single instance of render window.
      *
      * @returns
@@ -76,9 +68,6 @@ class Root
     // the order of the members is critical as we need to ensure destruction
     // happens in a fixed order due to dependencies between components
     // e.g. Logger must be destroyed last as other destructors use it
-
-    /** Job system. */
-    std::unique_ptr<JobSystem> job_system_;
 
     /** Render window. */
     std::unique_ptr<Window> window_;

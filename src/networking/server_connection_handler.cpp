@@ -156,11 +156,10 @@ ServerConnectionHandler::ServerConnectionHandler(
 {
     // we want to always be accepting connections, so we do this in a background
     // job
-    Root::job_system().add_jobs({[this]() {
+    JobSystem::add_jobs({[this]() {
         for (;;)
         {
-            auto [client_socket, raw_packet, new_connection] =
-                socket_->read();
+            auto [client_socket, raw_packet, new_connection] = socket_->read();
 
             std::hash<Socket *> hash{};
 

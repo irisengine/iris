@@ -248,7 +248,7 @@ void go(int, char **)
         }
     }
 
-    iris::Root::job_system().wait_for_jobs(jobs);
+    iris::JobSystem::wait_for_jobs(jobs);
 
     auto end = std::chrono::high_resolution_clock::now();
 

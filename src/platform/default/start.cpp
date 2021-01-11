@@ -29,7 +29,7 @@ void start_debug(int argc, char **argv, std::function<void(int, char **)> entry)
     // enable engine logging
     Logger::instance().set_log_engine(true);
 
-    Root::job_system().set_stats_stream(&std::cout);
+    JobSystem::set_stats_stream(&std::cout);
 
     LOG_ENGINE_INFO("start", "engine start (with debugging)");
 
