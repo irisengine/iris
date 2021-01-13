@@ -13,7 +13,6 @@
 #include "core/data_buffer.h"
 #include "core/exception.h"
 #include "core/looper.h"
-#include "core/root.h"
 #include "core/vector3.h"
 #include "log/log.h"
 #include "networking/data_buffer_deserialiser.h"
@@ -37,7 +36,7 @@ std::size_t player_id = std::numeric_limits<std::size_t>::max();
 
 void go(int, char **)
 {
-    iris::Root::logger().set_log_engine(true);
+    iris::Logger::instance().set_log_engine(true);
 
     LOG_DEBUG("server_sample", "hello world");
 
@@ -78,7 +77,7 @@ void go(int, char **)
 
     iris::PhysicsSystem ps{};
     character_controller =
-        ps.create_character_controller<iris::BasicCharacterController>();
+        ps.create_character_controller<iris::BasicCharacterController>(&ps);
     ps.create_rigid_body(
         iris::Vector3{0.0f, -50.0f, 0.0f},
         std::make_unique<iris::BoxCollisionShape>(

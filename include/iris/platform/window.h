@@ -7,6 +7,7 @@
 #include "core/camera.h"
 #include "graphics/pipeline.h"
 #include "graphics/render_system.h"
+#include "graphics/render_target.h"
 #include "platform/event.h"
 
 namespace iris
@@ -68,6 +69,14 @@ class Window
      */
     float height() const;
 
+    /**
+     * Get a pointer to the screen render target.
+     *
+     * @returns
+     *   Screen render target.
+     */
+    RenderTarget *screen_target() const;
+
   private:
     /** Window width. */
     float width_;
@@ -77,6 +86,9 @@ class Window
 
     /** Render system for window. */
     std::unique_ptr<RenderSystem> render_system_;
+
+    /** Render target fro screen. */
+    std::unique_ptr<RenderTarget> screen_target_;
 
     /** Pointer to implementation. */
     struct implementation;

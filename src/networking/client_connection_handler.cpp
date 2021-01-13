@@ -15,7 +15,6 @@
 
 #include "core/data_buffer.h"
 #include "core/exception.h"
-#include "core/root.h"
 #include "jobs/concurrent_queue.h"
 #include "jobs/job_system.h"
 #include "log/log.h"
@@ -189,7 +188,7 @@ ClientConnectionHandler::ClientConnectionHandler(std::unique_ptr<Socket> socket)
     // a background job
     // this will handle any protocol packets and stick data into queues, which
     // can then be retrieved by calls to try_read
-    iris::Root::job_system().add_jobs({[this]() {
+    JobSystem::add_jobs({[this]() {
         for (;;)
         {
             // block and read the next Packet

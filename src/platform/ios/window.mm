@@ -5,7 +5,8 @@
 #import <UIKit/UIKit.h>
 
 #import "platform/ios/MetalViewController.h"
-#include "graphics/font.h"
+#include "graphics/render_system.h"
+#include "graphics/render_target.h"
 #include "log/log.h"
 
 namespace iris
@@ -19,6 +20,7 @@ Window::Window(float width, float height)
     : width_(width),
       height_(height),
       render_system_(nullptr),
+      screen_target_(nullptr),
       impl_(nullptr)
 {
     const auto bounds = [[UIScreen mainScreen] bounds];
@@ -26,6 +28,8 @@ Window::Window(float width, float height)
     height_ = bounds.size.height;
 
     // we can now create a render system
+    screen_target_ = std::make_unique<RenderTarget>(
+        static_cast<std::uint32_t>(width_), static_cast<std::uint32_t>(height_));
     render_system_ = std::make_unique<RenderSystem>(width_, height_);
 }
 

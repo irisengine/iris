@@ -3,7 +3,6 @@
 #include <memory>
 
 #include "core/camera.h"
-#include "core/root.h"
 #include "core/transform.h"
 #include "graphics/material.h"
 #include "graphics/mesh_factory.h"
@@ -37,8 +36,8 @@ void go(int, char **)
         {iris::Key::E, iris::KeyState::UP},
     };
 
-    const auto &window = iris::Root::window();
-    auto &ps = iris::Root::instance().physics_system();
+    iris::Window window{800.0f, 800.0f};
+    iris::PhysicsSystem ps{};
 
     iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};
     camera.set_position(camera.position() + iris::Vector3{0.0f, 5.0f, 0.0f});
@@ -160,7 +159,7 @@ void go(int, char **)
 
     for (;;)
     {
-        if (auto evt = iris::Root::instance().window().pump_event(); evt)
+        if (auto evt = window.pump_event(); evt)
         {
             if (evt->is_key(iris::Key::ESCAPE))
             {

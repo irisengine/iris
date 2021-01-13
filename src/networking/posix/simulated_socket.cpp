@@ -7,7 +7,6 @@
 #include <thread>
 
 #include "core/random.h"
-#include "core/root.h"
 #include "jobs/concurrent_queue.h"
 #include "jobs/job_system.h"
 #include "log/log.h"
@@ -30,7 +29,7 @@ SimulatedSocket::SimulatedSocket(
     // in order to facilitate message delay without blocking we have write()
     // enqueue data with a time point, this job then grabs them and can wait
     // until the delay has passed before sending
-    Root::job_system().add_jobs({[this]() {
+    JobSystem::add_jobs({[this]() {
         for (;;)
         {
             if (write_queue_.empty())

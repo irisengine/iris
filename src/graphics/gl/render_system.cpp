@@ -4,7 +4,6 @@
 #include <utility>
 
 #include "core/camera.h"
-#include "core/root.h"
 #include "core/vector3.h"
 #include "graphics/buffer.h"
 #include "graphics/gl/opengl.h"
@@ -143,8 +142,9 @@ struct RenderSystem::implementation
 {
 };
 
-RenderSystem::RenderSystem(float, float)
-    : impl_(nullptr)
+RenderSystem::RenderSystem(float, float, RenderTarget *screen_target)
+    : screen_target_(screen_target)
+    , impl_(nullptr)
 {
     // opengl setup
 
@@ -170,18 +170,24 @@ void RenderSystem::render(const Pipeline &pipeline)
     for (const auto &stage : pipeline.stages())
     {
         auto &camera = stage->camera();
-        auto &target = stage->target();
+        auto *target = stage->target();
+
+        // no target means use screen target
+        if (target == nullptr)
+        {
+            target = screen_target_;
+        }
 
         ::glViewport(
             0,
             0,
-            target.colour_texture()->width(),
-            target.colour_texture()->height());
+            target->colour_texture()->width(),
+            target->colour_texture()->height());
         check_opengl_error("could not set viewport");
 
         ::glBindFramebuffer(
             GL_FRAMEBUFFER,
-            std::any_cast<std::uint32_t>(target.native_handle()));
+            std::any_cast<std::uint32_t>(target->native_handle()));
         check_opengl_error("could not bind custom fbo");
 
         // clear current target
@@ -270,13 +276,12 @@ void RenderSystem::render(const Pipeline &pipeline)
     // final step is to blit the default screen target to the default frame
     // buffer so it gets displayed on the window
 
-    const auto &screen_target = Root::screen_target();
-    const auto *screen_texture = screen_target.colour_texture();
+    const auto *screen_texture = screen_target_->colour_texture();
 
     // bind screen target to "read"
     ::glBindFramebuffer(
         GL_READ_FRAMEBUFFER,
-        std::any_cast<std::uint32_t>(screen_target.native_handle()));
+        std::any_cast<std::uint32_t>(screen_target_->native_handle()));
     check_opengl_error("could not set read framebuffer");
 
     // bind default frame buffer to "draw"

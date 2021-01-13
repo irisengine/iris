@@ -134,14 +134,14 @@ void unpack(
  * Singleton class for logging. Formatting and outputting are controlled via
  * settable classes, by default uses colour formatting and outputs to stdout.
  *
- * fine grained control over what is logged. The supported log levels are:
+ * The supported log levels are:
  *   DEBUG,
  *   INFO,
  *   WARN,
- *   ERROR
+ *   ERR
  *
  * It us up to you what to use each for however it is suggested that INFO be
- * used for the majority of logging, with WARN and ERROR for warnings and errors
+ * used for the majority of logging, with WARN and ERR for warnings and errors
  * respectively (feel free to decide what constitutes as a warning and error).
  * Debug should be used for the log messages you use to diagnose a bug and will
  * probably later delete.
@@ -150,17 +150,17 @@ class Logger
 {
   public:
     /**
-     * Construct a new logger.
+     * Get single instance of Logger.
+     *
+     * @returns
+     *   Logger single instance.
      */
-    Logger()
-        : formatter_(std::make_unique<ColourFormatter>())
-        , outputter_(std::make_unique<StdoutFormatter>())
-        , ignore_()
-        , min_level_(LogLevel::DEBUG)
-        , log_engine_(false)
-        , mutex_(){};
+    static Logger &instance()
+    {
+        static Logger logger{};
+        return logger;
+    }
 
-    /** Disabled */
     Logger(const Logger &) = delete;
     Logger &operator=(const Logger &) = delete;
     Logger(Logger &&) = delete;
@@ -348,6 +348,17 @@ class Logger
     }
 
   private:
+    /**
+     * Construct a new logger.
+     */
+    Logger()
+        : formatter_(std::make_unique<ColourFormatter>())
+        , outputter_(std::make_unique<StdoutFormatter>())
+        , ignore_()
+        , min_level_(LogLevel::DEBUG)
+        , log_engine_(false)
+        , mutex_(){};
+
     /** Formatter object. */
     std::unique_ptr<Formatter> formatter_;
 

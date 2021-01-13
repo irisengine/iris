@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "core/camera.h"
-#include "core/root.h"
 #include "graphics/light.h"
 #include "graphics/material.h"
 #include "graphics/render_entity.h"
@@ -16,11 +15,11 @@ namespace iris
 {
 
 Stage::Stage(Scene *scene, Camera &camera)
-    : Stage(scene, camera, Root::screen_target())
+    : Stage(scene, camera, nullptr)
 {
 }
 
-Stage::Stage(Scene *scene, Camera &camera, RenderTarget &target)
+Stage::Stage(Scene *scene, Camera &camera, RenderTarget *target)
     : scene_(scene)
     , camera_(camera)
     , target_(target)
@@ -55,7 +54,7 @@ Camera &Stage::camera()
     return camera_;
 }
 
-RenderTarget &Stage::target()
+RenderTarget *Stage::target()
 {
     return target_;
 }

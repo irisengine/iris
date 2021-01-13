@@ -5,7 +5,6 @@
 #import <UIKit/UIKit.h>
 
 #import "platform/ios/AppDelegate.h"
-#include "core/root.h"
 #include "log/emoji_formatter.h"
 #include "log/log.h"
 
@@ -22,7 +21,7 @@ void start(int argc, char **argv, std::function<void(int, char**)> entry)
 {
     // xcode doesn't support ANSI colour codes so we default to the emoji
     // formatter
-    Root::logger().set_Formatter<EmojiFormatter>();
+    Logger::instance().set_Formatter<EmojiFormatter>();
 
     LOG_ENGINE_INFO("start", "engine start");
 
@@ -47,8 +46,10 @@ void start(int argc, char **argv, std::function<void(int, char**)> entry)
 void start_debug(int argc, char **argv, std::function<void(int, char**)> entry)
 {
     // enable engine logging
-    Root::logger().set_Formatter<EmojiFormatter>();
-    Root::logger().set_log_engine(true);
+    Logger::instance().set_Formatter<EmojiFormatter>();
+    Logger::instance().set_log_engine(true);
+
+    JobSystem::set_stats_stream(&std::cout);
 
     LOG_ENGINE_INFO("start", "engine start (with debugging)");
 

@@ -3,7 +3,6 @@
 #include <btBulletDynamicsCommon.h>
 
 #include "core/exception.h"
-#include "core/root.h"
 #include "core/vector3.h"
 #include "graphics/mesh_factory.h"
 #include "graphics/render_system.h"

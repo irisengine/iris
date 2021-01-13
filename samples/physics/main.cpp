@@ -71,8 +71,8 @@ void go(int, char **)
         {iris::Key::SPACE, iris::KeyState::UP},
     };
 
-    const auto &window = iris::Root::window();
-    auto &ps = iris::Root::physics_system();
+    iris::Window window{800.0f, 800.0f};
+    iris::PhysicsSystem ps{};
     iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};
 
     std::vector<std::tuple<iris::RenderEntity *, iris::RigidBody *>> boxes;
@@ -123,7 +123,7 @@ void go(int, char **)
     pipeline.add_stage(std::move(scene), camera);
 
     auto *character_controller =
-        ps.create_character_controller<iris::BasicCharacterController>();
+        ps.create_character_controller<iris::BasicCharacterController>(&ps);
 
     auto frame_start = std::chrono::high_resolution_clock::now();
 
@@ -137,7 +137,7 @@ void go(int, char **)
 
     for (;;)
     {
-        if (auto evt = iris::Root::instance().window().pump_event(); evt)
+        if (auto evt = window.pump_event(); evt)
         {
             if (evt->is_key(iris::Key::ESCAPE))
             {
@@ -162,7 +162,7 @@ void go(int, char **)
                 switch (touch.type)
                 {
                     case iris::TouchType::BEGIN:
-                        if (touch.x < iris::Root::window().width() / 2.0f)
+                        if (touch.x < window.width() / 2.0f)
                         {
                             left_touch_origin = {touch.x, touch.y, 0.0f};
                             left_touch_id = touch.id;

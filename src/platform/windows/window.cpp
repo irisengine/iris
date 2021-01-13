@@ -14,6 +14,8 @@
                                       // opengl functions
 #include "graphics/gl/opengl.h"
 #include "graphics/pipeline.h"
+#include "graphics/render_system.h"
+#include "graphics/render_target.h"
 #include "platform/event.h"
 #include "platform/quit_event.h"
 
@@ -468,6 +470,7 @@ Window::Window(float width, float height)
     : width_(width)
     , height_(height)
     , render_system_(nullptr)
+    , screen_target_(nullptr)
     , impl_(std::make_unique<implementation>())
 {
     const auto instance = ::GetModuleHandleA(NULL);
@@ -550,7 +553,11 @@ Window::Window(float width, float height)
     {
     }
 
-    render_system_ = std::make_unique<RenderSystem>(width_, height_);
+    screen_target_ = std::make_unique<RenderTarget>(
+        static_cast<std::uint32_t>(width_),
+        static_cast<std::uint32_t>(height_));
+    render_system_ =
+        std::make_unique<RenderSystem>(width_, height_, screen_target_.get());
 }
 
 Window::~Window() = default;

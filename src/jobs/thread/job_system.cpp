@@ -32,7 +32,7 @@ JobSystem::~JobSystem()
     }
 }
 
-void JobSystem::add_jobs(const std::vector<Job> &jobs)
+void JobSystem::add_jobs_impl(const std::vector<Job> &jobs)
 {
     for (const auto &job : jobs)
     {
@@ -49,7 +49,7 @@ void JobSystem::add_jobs(const std::vector<Job> &jobs)
     }
 }
 
-void JobSystem::wait_for_jobs(const std::vector<Job> &jobs)
+void JobSystem::wait_for_jobs_impl(const std::vector<Job> &jobs)
 {
     std::vector<std::future<void>> waiting_jobs{};
 
@@ -65,7 +65,7 @@ void JobSystem::wait_for_jobs(const std::vector<Job> &jobs)
     }
 }
 
-void JobSystem::set_stats_stream(std::ostream *stats_stream)
+void JobSystem::set_stats_stream_impl(std::ostream *stats_stream)
 {
     stats_stream_ = stats_stream;
 }

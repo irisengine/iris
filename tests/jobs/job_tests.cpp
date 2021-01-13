@@ -7,10 +7,9 @@
 
 TEST(jobs, add_jobs_single)
 {
-    iris::JobSystem js;
     std::atomic<bool> done = false;
 
-    js.add_jobs({[&done]() { done = true; }});
+    iris::JobSystem::add_jobs({[&done]() { done = true; }});
 
     while (!done)
     {
@@ -21,10 +20,9 @@ TEST(jobs, add_jobs_single)
 
 TEST(jobs, add_jobs_multiple)
 {
-    iris::JobSystem js;
     std::atomic<int> counter = 0;
 
-    js.add_jobs(
+    iris::JobSystem::add_jobs(
         {[&counter]() { ++counter; },
          [&counter]() { ++counter; },
          [&counter]() { ++counter; },
@@ -39,20 +37,18 @@ TEST(jobs, add_jobs_multiple)
 
 TEST(jobs, wait_for_jobs_single)
 {
-    iris::JobSystem js;
     std::atomic<bool> done = false;
 
-    js.wait_for_jobs({[&done]() { done = true; }});
+    iris::JobSystem::wait_for_jobs({[&done]() { done = true; }});
 
     ASSERT_TRUE(done);
 }
 
 TEST(jobs, wait_for_jobs_multiple)
 {
-    iris::JobSystem js;
     std::atomic<int> counter = 0;
 
-    js.wait_for_jobs(
+    iris::JobSystem::wait_for_jobs(
         {[&counter]() { ++counter; },
          [&counter]() { ++counter; },
          [&counter]() { ++counter; },
@@ -63,12 +59,11 @@ TEST(jobs, wait_for_jobs_multiple)
 
 TEST(jobs, wait_for_jobs_nested)
 {
-    iris::JobSystem js;
     std::atomic<int> counter = 0;
 
-    js.wait_for_jobs({[&js, &counter]() {
-        js.wait_for_jobs({[&js, &counter]() {
-            js.wait_for_jobs({[&counter]() { ++counter; }});
+    iris::JobSystem::wait_for_jobs({[&counter]() {
+        iris::JobSystem::wait_for_jobs({[&counter]() {
+            iris::JobSystem::wait_for_jobs({[&counter]() { ++counter; }});
             ++counter;
         }});
         ++counter;
@@ -79,9 +74,7 @@ TEST(jobs, wait_for_jobs_nested)
 
 TEST(jobs, exceptions_propogate)
 {
-    iris::JobSystem js;
-
     const auto throws = []() { throw std::runtime_error(""); };
 
-    ASSERT_THROW(js.wait_for_jobs({throws}), std::runtime_error);
+    ASSERT_THROW(iris::JobSystem::wait_for_jobs({throws}), std::runtime_error);
 }

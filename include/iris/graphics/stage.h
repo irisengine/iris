@@ -67,7 +67,7 @@ class Stage
      * @param target
      *   Target to be rendered to.
      */
-    Stage(Scene *scene, Camera &camera, RenderTarget &target);
+    Stage(Scene *scene, Camera &camera, RenderTarget *target);
 
     /**
      * Get a collection of RenderEntity's and associated Materials.
@@ -89,9 +89,9 @@ class Stage
      * Get reference to render target.
      *
      * @returns
-     *   RenderTarget reference.
+     *   RenderTarget pointer.
      */
-    RenderTarget &target();
+    RenderTarget *target();
 
   private:
     /** Scene to be rendered. */
@@ -101,7 +101,7 @@ class Stage
     Camera &camera_;
 
     /** Target to render scene to. */
-    RenderTarget &target_;
+    RenderTarget *target_;
 
     /** Collection of RenderEntity's and associated Materials. */
     std::vector<RenderItem> render_items_;

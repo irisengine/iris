@@ -66,7 +66,8 @@ bool handle_input(
     std::deque<ClientInput> &inputs,
     iris::Camera &camera,
     std::uint32_t tick,
-    iris::ClientConnectionHandler &client)
+    iris::ClientConnectionHandler &client,
+    iris::Window &window)
 {
     auto quit = false;
 
@@ -79,7 +80,7 @@ bool handle_input(
     // consume all inputs
     for (;;)
     {
-        auto evt = iris::Root::instance().window().pump_event();
+        auto evt = window.pump_event();
         if (!evt)
         {
             break;
@@ -251,6 +252,9 @@ process_server_update(
  *
  * @param inputs
  *   Collection of stored user inputs.
+ *
+ * @param physics_system
+ *   Physics system.
  */
 void client_prediciton(
     std::uint32_t last_acked,
@@ -263,10 +267,9 @@ void client_prediciton(
     const iris::Vector3 &linear_velocity,
     const iris::Vector3 &angular_velocity,
     iris::CharacterController *character_controller,
-    std::deque<ClientInput> &inputs)
+    std::deque<ClientInput> &inputs,
+    iris::PhysicsSystem *physics_system)
 {
-    auto &ps = iris::Root::physics_system();
-
     const auto &[tck_num, pos, state] = history.front();
 
     // as we periodically purge acked history if we have an entry for the last
@@ -283,7 +286,7 @@ void client_prediciton(
         if (diff >= threshold)
         {
             // reset to the stored state
-            ps.load(state.get());
+            physics_system->load(state.get());
 
             // update the player with the server supplied data
             character_controller->reposition(
@@ -293,7 +296,9 @@ void client_prediciton(
 
             // update the history entry
             history[0] = std::make_tuple(
-                tck_num, character_controller->position(), ps.save());
+                tck_num,
+                character_controller->position(),
+                physics_system->save());
 
             // update every other history entry by replaying user inputs
             for (auto i = 1u; i < history.size(); ++i)
@@ -314,11 +319,13 @@ void client_prediciton(
                 }
 
                 // step physics
-                ps.step(std::chrono::milliseconds(33));
+                physics_system->step(std::chrono::milliseconds(33));
 
                 // update history
                 history[i] = std::make_tuple(
-                    current_tick, character_controller->position(), ps.save());
+                    current_tick,
+                    character_controller->position(),
+                    physics_system->save());
             }
         }
     }
@@ -387,7 +394,7 @@ void go(int, char **)
 
     iris::ClientConnectionHandler client{std::move(socket)};
 
-    auto &window = iris::Root::window();
+    iris::Window window{800.0f, 800.0f};
     iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};
 
     auto scene = std::make_unique<iris::Scene>();
@@ -414,9 +421,9 @@ void go(int, char **)
         snapshots;
     std::deque<ClientInput> inputs;
 
-    auto &ps = iris::Root::physics_system();
+    iris::PhysicsSystem ps{};
     auto *character_controller =
-        ps.create_character_controller<iris::BasicCharacterController>();
+        ps.create_character_controller<iris::BasicCharacterController>(&ps);
     ps.create_rigid_body(
         iris::Vector3{0.0f, -50.0f, 0.0f},
         std::make_unique<iris::BoxCollisionShape>(
@@ -466,7 +473,7 @@ void go(int, char **)
             auto keep_looping = false;
 
             // process user inputs
-            if (!handle_input(inputs, camera, tick, client))
+            if (!handle_input(inputs, camera, tick, client, window))
             {
                 // apply inputs to physics simulation
                 for (const auto &input : inputs)
@@ -532,7 +539,8 @@ void go(int, char **)
                         linear_velocity,
                         angular_velocity,
                         character_controller,
-                        inputs);
+                        inputs,
+                        &ps);
                 }
             }
 

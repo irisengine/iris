@@ -1,7 +1,6 @@
 #include <map>
 
 #include "core/camera.h"
-#include "core/root.h"
 #include "graphics/mesh_factory.h"
 #include "graphics/pipeline.h"
 #include "graphics/render_entity.h"

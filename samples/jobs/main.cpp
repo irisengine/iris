@@ -9,7 +9,6 @@
 #include <stb/stb_image_write.h>
 
 #include "core/exception.h"
-#include "core/root.h"
 #include "core/vector3.h"
 #include "jobs/job_system.h"
 #include "log/log.h"
@@ -248,7 +247,7 @@ void go(int, char **)
         }
     }
 
-    iris::Root::job_system().wait_for_jobs(jobs);
+    iris::JobSystem::wait_for_jobs(jobs);
 
     auto end = std::chrono::high_resolution_clock::now();
 

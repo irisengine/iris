@@ -2,7 +2,6 @@
 
 #include <btBulletDynamicsCommon.h>
 
-#include "core/root.h"
 #include "core/vector3.h"
 #include "log/log.h"
 #include "physics/capsule_collision_shape.h"
@@ -18,9 +17,11 @@ struct BasicCharacterController::implementation
     ::btRigidBody *bullet_rigid_body;
 };
 
-BasicCharacterController::BasicCharacterController()
+BasicCharacterController::BasicCharacterController(
+    PhysicsSystem *physics_system)
     : speed_(12.0f)
     , mass_(62.0f)
+    , physics_system_(physics_system)
     , impl_(std::make_unique<implementation>())
 {
     // use capsule shape for character
@@ -110,8 +111,7 @@ bool BasicCharacterController::on_ground() const
     auto ground = false;
 
     // cast a ray downwards to see if what is below us
-    const auto hit =
-        Root::physics_system().ray_cast(position(), {0.0f, -1.0f, 0.0f});
+    const auto hit = physics_system_->ray_cast(position(), {0.0f, -1.0f, 0.0f});
 
     if (hit)
     {
