@@ -16,8 +16,6 @@ set(CORE_SRCS
     "${INCLUDE_ROOT}/quaternion.h"
     "${SOURCE_ROOT}/random.cpp"
     "${INCLUDE_ROOT}/random.h"
-    "${SOURCE_ROOT}/root.cpp"
-    "${INCLUDE_ROOT}/root.h"
     "${SOURCE_ROOT}/transform.cpp"
     "${INCLUDE_ROOT}/transform.h"
     "${SOURCE_ROOT}/utils.cpp"

@@ -2,7 +2,6 @@
 
 #include <btBulletDynamicsCommon.h>
 
-#include "core/root.h"
 #include "core/vector3.h"
 #include "log/log.h"
 #include "physics/capsule_collision_shape.h"

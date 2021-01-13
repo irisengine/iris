@@ -7,7 +7,6 @@
 #include <thread>
 
 #include "core/random.h"
-#include "core/root.h"
 #include "jobs/concurrent_queue.h"
 #include "jobs/job_system.h"
 #include "log/log.h"

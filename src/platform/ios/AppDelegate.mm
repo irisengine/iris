@@ -8,7 +8,6 @@
 #import <MetalKit/MetalKit.h>
 #import <QuartzCore/QuartzCore.h>
 
-#include "core/root.h"
 #include "log/log.h"
 #include "platform/ios/MetalViewController.h"
 
@@ -55,10 +54,6 @@ extern char **g_argv;
 - (void)callEntry {    
     LOG_ENGINE_INFO("AppDelegate", "calling main");
 
-    // safe to initialise root now
-    // ignore the fact that we've been using Root via LOG up until now!
-    iris::Root::instance().init();
-    
     iris::g_entry(iris::g_argc, iris::g_argv);
 
     LOG_ENGINE_INFO("AppDelegate", "main done");

@@ -15,7 +15,6 @@
 
 #include "core/data_buffer.h"
 #include "core/exception.h"
-#include "core/root.h"
 #include "jobs/concurrent_queue.h"
 #include "jobs/job_system.h"
 #include "log/log.h"
