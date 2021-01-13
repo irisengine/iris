@@ -6,7 +6,6 @@
 
 #include "core/camera.h"
 #include "core/matrix4.h"
-#include "core/root.h"
 #include "graphics/render_graph/texture_node.h"
 #include "graphics/render_target.h"
 #include "graphics/stage.h"
@@ -16,13 +15,13 @@ namespace iris
 
 void Pipeline::add_stage(std::unique_ptr<Scene> scene, Camera &camera)
 {
-    add_stage(std::move(scene), camera, Root::screen_target());
+    add_stage(std::move(scene), camera, nullptr);
 }
 
 void Pipeline::add_stage(
     std::unique_ptr<Scene> scene,
     Camera &camera,
-    RenderTarget &target)
+    RenderTarget *target)
 {
     scenes_.emplace_back(std::move(scene));
 
@@ -62,7 +61,7 @@ void Pipeline::add_stage(
                 if (entity->receive_shadow())
                 {
                     auto *texture = graph.create<TextureNode>(
-                        light->shadow_target().depth_texture());
+                        light->shadow_target()->depth_texture());
                     graph.render_node()->add_shadow_map_input(texture);
                 }
             }

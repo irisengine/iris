@@ -132,8 +132,9 @@ struct RenderSystem::implementation
     id<MTLDepthStencilState> depth_stencil_state;
 };
 
-RenderSystem::RenderSystem(float width, float height)
-    : impl_(nullptr)
+RenderSystem::RenderSystem(float width, float height, RenderTarget *screen_target)
+    : screen_target_(screen_target)
+    , impl_(nullptr)
 {
     // get metal device handle
     const auto *device = iris::platform::utility::metal_device();
@@ -195,25 +196,29 @@ void RenderSystem::render(const Pipeline &pipeline)
     auto *drawable = [impl_->layer nextDrawable];
     auto *command_buffer = [impl_->command_queue commandBuffer];
 
-    const auto &screen_target = Root::screen_target();
-
     for (const auto &stage : pipeline.stages())
     {
         auto &camera = stage->camera();
-        auto &target = stage->target();
+        auto *target = stage->target();
 
-        const auto texture_handle = std::any_cast<id<MTLTexture>>(target.colour_texture()->native_handle());
+        // no target means use screen target
+        if (target == nullptr)
+        {
+            target = screen_target_;
+        }
+
+        const auto texture_handle = std::any_cast<id<MTLTexture>>(target->colour_texture()->native_handle());
         impl_->descriptor.colorAttachments[0].texture = texture_handle;
         format = texture_handle.pixelFormat;
 
-        const auto depth_handle = std::any_cast<id<MTLTexture>>(target.depth_texture()->native_handle());
+        const auto depth_handle = std::any_cast<id<MTLTexture>>(target->depth_texture()->native_handle());
         impl_->descriptor.depthAttachment.texture = depth_handle;
 
         MTLViewport view_port{
             0.0,
             0.0,
-            static_cast<double>(target.colour_texture()->width()),
-            static_cast<double>(target.colour_texture()->height()),
+            static_cast<double>(target->colour_texture()->width()),
+            static_cast<double>(target->colour_texture()->height()),
             0.0,
             1.0 };
 
@@ -290,7 +295,7 @@ void RenderSystem::render(const Pipeline &pipeline)
                         backgroundColor:nullptr
                         conversionInfo:conversionInfo];
     
-    const auto screen_texture_handle = std::any_cast<id<MTLTexture>>(screen_target.colour_texture()->native_handle());
+    const auto screen_texture_handle = std::any_cast<id<MTLTexture>>(screen_target_->colour_texture()->native_handle());
     [convert_function encodeToCommandBuffer:command_buffer sourceTexture:screen_texture_handle destinationTexture: drawable.texture];
 
     [command_buffer presentDrawable:drawable];

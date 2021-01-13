@@ -13,6 +13,7 @@
 #include "core/exception.h"
 #include "graphics/pipeline.h"
 #include "graphics/render_system.h"
+#include "graphics/render_target.h"
 #include "log/log.h"
 #include "platform/keyboard_event.h"
 #include "platform/macos/AppDelegate.h"
@@ -207,6 +208,7 @@ Window::Window(float width, float height)
     : width_(width),
       height_(height),
       render_system_(nullptr),
+      screen_target_(nullptr),
       impl_(nullptr)
 {
     // get and/or create the application singleton
@@ -239,8 +241,10 @@ Window::Window(float width, float height)
     // doesn't matter if we are using opengl or metal
     pump_event();
 
-    // we can now create a render system
-    render_system_ = std::make_unique<RenderSystem>(width_, height_);
+    // we can now create a render system and render target
+    screen_target_ = std::make_unique<RenderTarget>(
+        static_cast<std::uint32_t>(width_), static_cast<std::uint32_t>(height_));
+    render_system_ = std::make_unique<RenderSystem>(width_, height_, screen_target_.get());
 
     LOG_ENGINE_INFO("window", "macos window created {} {}", width_, height_);
 }
@@ -316,6 +320,11 @@ float Window::width() const
 float Window::height() const
 {
     return height_;
+}
+
+RenderTarget *Window::screen_target() const
+{
+    return screen_target_.get();
 }
 
 }

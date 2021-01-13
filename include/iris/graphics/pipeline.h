@@ -55,7 +55,7 @@ class Pipeline
     void add_stage(
         std::unique_ptr<Scene> scene,
         Camera &camera,
-        RenderTarget &target);
+        RenderTarget *target);
 
     /**
      * Get a reference to the stages.

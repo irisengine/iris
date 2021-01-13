@@ -8,6 +8,7 @@
 #include "core/camera_type.h"
 #include "core/vector3.h"
 #include "graphics/pipeline.h"
+#include "graphics/render_target.h"
 
 namespace iris
 {
@@ -28,8 +29,11 @@ class RenderSystem
      *
      * @param height
      *   Height of window.
+     *
+     * @param screen_target
+     *   Render target to present to the window after rendering.
      */
-    RenderSystem(float width, float height);
+    RenderSystem(float width, float height, RenderTarget *screen_target);
 
     ~RenderSystem();
     RenderSystem(RenderSystem &&);
@@ -44,6 +48,9 @@ class RenderSystem
     void render(const Pipeline &pipeline);
 
   private:
+    /** Render target for screen. */
+    RenderTarget *screen_target_;
+
     /** Pointer to implementation. */
     struct implementation;
     std::unique_ptr<implementation> impl_;

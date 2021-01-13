@@ -39,9 +39,9 @@ Camera &Light::shadow_camera()
     return shadow_camera_;
 }
 
-RenderTarget &Light::shadow_target()
+RenderTarget *Light::shadow_target()
 {
-    return shadow_target_;
+    return &shadow_target_;
 }
 
 }

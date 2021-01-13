@@ -66,7 +66,7 @@ class Light
      * @returns
      *   Shadow map render target.
      */
-    RenderTarget &shadow_target();
+    RenderTarget *shadow_target();
 
   private:
     /** Light direction. */
