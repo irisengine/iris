@@ -15,6 +15,7 @@
 static iris::Winsock ws_init;
 #else
 #include <arpa/inet.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
 #include <netinet/in.h>
