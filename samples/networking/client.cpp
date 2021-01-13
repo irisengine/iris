@@ -401,7 +401,7 @@ void go(int, char **)
 
     scene->create_entity(
         iris::RenderGraph{},
-        iris::mesh_factory::cube({1.0f}),
+        iris::mesh_factory::cube({1.0f, 1.0f, 1.0f}),
         iris::Vector3{0.0f, -50.0f, 0.0f},
         iris::Vector3{500.0f, 50.0f, 500.0f});
 
