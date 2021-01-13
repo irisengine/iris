@@ -2,6 +2,7 @@
 
 #include <btBulletDynamicsCommon.h>
 
+#include "core/colour.h"
 #include "core/exception.h"
 #include "core/vector3.h"
 #include "graphics/mesh_factory.h"
@@ -25,9 +26,9 @@ void DebugDraw::drawLine(
 {
     verticies_.emplace_back(
         Vector3{from.x(), from.y(), from.z()},
-        Vector3{colour.x(), colour.y(), colour.z()},
+        Colour{colour.x(), colour.y(), colour.z()},
         Vector3{to.x(), to.y(), to.z()},
-        Vector3{colour.x(), colour.y(), colour.z()});
+        Colour{colour.x(), colour.y(), colour.z()});
 }
 
 void DebugDraw::render()

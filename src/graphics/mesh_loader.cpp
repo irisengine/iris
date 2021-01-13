@@ -9,6 +9,7 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
+#include "core/colour.h"
 #include "core/exception.h"
 #include "core/matrix4.h"
 #include "core/quaternion.h"
@@ -298,7 +299,7 @@ std::vector<iris::vertex_data> process_vertices(
     {
         const auto &vertex = mesh->mVertices[i];
         const auto &normal = mesh->mNormals[i];
-        iris::Vector3 colour{1.0f, 1.0f, 1.0f};
+        iris::Colour colour{1.0f, 1.0f, 1.0f};
         iris::Vector3 texture_coords{};
         iris::Vector3 tangent{};
         iris::Vector3 bitangent{};
@@ -321,9 +322,9 @@ std::vector<iris::vertex_data> process_vertices(
         // only support diffuse colour
         ::aiColor3D c(0.f, 0.f, 0.f);
         material->Get(AI_MATKEY_COLOR_DIFFUSE, c);
-        colour.x = c.r;
-        colour.y = c.g;
-        colour.z = c.b;
+        colour.r = c.r;
+        colour.g = c.g;
+        colour.b = c.b;
 
         vertices.emplace_back(
             iris::Vector3(vertex.x, vertex.y, vertex.z),

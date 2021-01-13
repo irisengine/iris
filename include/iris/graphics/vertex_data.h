@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/colour.h"
 #include "core/vector3.h"
 #include "graphics/bone.h"
 #include "graphics/vertex_attributes.h"
@@ -33,7 +34,7 @@ struct vertex_data
     vertex_data(
         const Vector3 &position,
         const Vector3 &normal,
-        const Vector3 &colour,
+        const Colour &colour,
         const Vector3 &texture_coords)
         : vertex_data(
               position,
@@ -49,7 +50,7 @@ struct vertex_data
     vertex_data(
         const Vector3 &position,
         const Vector3 &normal,
-        const Vector3 &colour,
+        const Colour &colour,
         const Vector3 &texture_coords,
         const Vector3 &tangent,
         const Vector3 &bitangent)
@@ -67,7 +68,7 @@ struct vertex_data
     vertex_data(
         const Vector3 &position,
         const Vector3 &normal,
-        const Vector3 &colour,
+        const Colour &colour,
         const Vector3 &texture_coords,
         const Vector3 &tangent,
         const Vector3 &bitangent,
@@ -77,7 +78,6 @@ struct vertex_data
         , normal(normal)
         , normal_w(0.0f)
         , colour(colour)
-        , colour_a(1.0f)
         , texture_coords(texture_coords)
         , padding(1.0f)
         , tangent(tangent)
@@ -107,10 +107,7 @@ struct vertex_data
     float normal_w;
 
     /** Vertex colour. */
-    Vector3 colour;
-
-    /** Alpha component so we can pass normal as 4 floats. */
-    float colour_a;
+    Colour colour;
 
     /** Texture coordinates. */
     Vector3 texture_coords;

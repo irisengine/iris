@@ -10,6 +10,7 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
+#include "core/colour.h"
 #include "core/exception.h"
 #include "core/transform.h"
 #include "core/vector3.h"
@@ -36,7 +37,7 @@ BufferDescriptor empty()
         vertex_attributes};
 }
 
-BufferDescriptor sprite(const Vector3 &colour)
+BufferDescriptor sprite(const Colour &colour)
 {
     std::vector<vertex_data> verticies{
         {{-1.0, 1.0, 0.0f}, {}, colour, {0.0f, 1.0f, 0.0f}},
@@ -52,7 +53,7 @@ BufferDescriptor sprite(const Vector3 &colour)
         vertex_attributes};
 }
 
-BufferDescriptor cube(const Vector3 &colour)
+BufferDescriptor cube(const Colour &colour)
 {
     std::vector<vertex_data> verticies{
         {{1.0f, -1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, colour, {}},
@@ -91,7 +92,7 @@ BufferDescriptor cube(const Vector3 &colour)
         vertex_attributes};
 }
 
-BufferDescriptor plane(const Vector3 &colour, std::uint32_t divisions)
+BufferDescriptor plane(const Colour &colour, std::uint32_t divisions)
 {
     if (divisions == 0)
     {
@@ -143,7 +144,7 @@ BufferDescriptor plane(const Vector3 &colour, std::uint32_t divisions)
 }
 
 BufferDescriptor quad(
-    const Vector3 &colour,
+    const Colour &colour,
     const Vector3 &lower_left,
     const Vector3 &lower_right,
     const Vector3 &upper_left,
@@ -165,9 +166,9 @@ BufferDescriptor quad(
 
 BufferDescriptor lines(
     const std::vector<Vector3> &line_data,
-    const Vector3 &colour)
+    const Colour &colour)
 {
-    std::vector<std::tuple<Vector3, Vector3, Vector3, Vector3>> data{};
+    std::vector<std::tuple<Vector3, Colour, Vector3, Colour>> data{};
 
     for (auto i = 0u; i < line_data.size() - 1u; ++i)
     {
@@ -178,8 +179,7 @@ BufferDescriptor lines(
 }
 
 BufferDescriptor lines(
-    const std::vector<std::tuple<Vector3, Vector3, Vector3, Vector3>>
-        &line_data)
+    const std::vector<std::tuple<Vector3, Colour, Vector3, Colour>> &line_data)
 {
     std::vector<vertex_data> verticies{};
     std::vector<std::uint32_t> indicies;
