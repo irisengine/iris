@@ -2,6 +2,7 @@
 
 #include <tuple>
 
+#include "core/colour.h"
 #include "core/vector3.h"
 #include "graphics/buffer_descriptor.h"
 #include "graphics/skeleton.h"
@@ -27,7 +28,7 @@ BufferDescriptor empty();
  * @returns
  *   BufferDescriptor for sprite.
  */
-BufferDescriptor sprite(const Vector3 &colour);
+BufferDescriptor sprite(const Colour &colour);
 
 /**
  * Create a cube mesh.
@@ -38,7 +39,7 @@ BufferDescriptor sprite(const Vector3 &colour);
  * @returns
  *   BufferDescriptor for cube.
  */
-BufferDescriptor cube(const Vector3 &colour);
+BufferDescriptor cube(const Colour &colour);
 
 /**
  * Create a plane mesh.
@@ -52,7 +53,7 @@ BufferDescriptor cube(const Vector3 &colour);
  * @returns
  *   BufferDescriptor for cube.
  */
-BufferDescriptor plane(const Vector3 &colour, std::uint32_t divisions);
+BufferDescriptor plane(const Colour &colour, std::uint32_t divisions);
 
 /**
  * Create a Quad mesh.
@@ -76,7 +77,7 @@ BufferDescriptor plane(const Vector3 &colour, std::uint32_t divisions);
  *   BufferDescriptor for sprite.
  */
 BufferDescriptor quad(
-    const Vector3 &colour,
+    const Colour &colour,
     const Vector3 &lower_left,
     const Vector3 &lower_right,
     const Vector3 &upper_left,
@@ -96,7 +97,7 @@ BufferDescriptor quad(
  */
 BufferDescriptor lines(
     const std::vector<Vector3> &line_data,
-    const Vector3 &colour);
+    const Colour &colour);
 
 /**
  * Create a mesh for a collection of lines.
@@ -110,8 +111,7 @@ BufferDescriptor lines(
  *   BufferDescriptor for lines.
  */
 BufferDescriptor lines(
-    const std::vector<std::tuple<Vector3, Vector3, Vector3, Vector3>>
-        &line_data);
+    const std::vector<std::tuple<Vector3, Colour, Vector3, Colour>> &line_data);
 
 /**
  * Load a mesh from file.

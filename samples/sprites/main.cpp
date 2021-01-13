@@ -45,7 +45,7 @@ void go(int, char **)
 
     auto *sprite3 = scene->create_entity(
         std::move(graph),
-        iris::mesh_factory::sprite({1.0f}),
+        iris::mesh_factory::sprite({1.0f, 1.0f, 1.0f}),
         iris::Vector3{0.0f, -300.0f, 0.0f},
         iris::Vector3{100.0f});
 

@@ -5,6 +5,7 @@
 #include <LinearMath/btIDebugDraw.h>
 #include <LinearMath/btVector3.h>
 
+#include "core/colour.h"
 #include "core/vector3.h"
 #include "graphics/render_entity.h"
 
@@ -64,7 +65,7 @@ class DebugDraw : public ::btIDebugDraw
 
   private:
     /** Collection of vertices to render. */
-    std::vector<std::tuple<Vector3, Vector3, Vector3, Vector3>> verticies_;
+    std::vector<std::tuple<Vector3, Colour, Vector3, Colour>> verticies_;
 
     /** A render entity for all debug shapes. */
     RenderEntity *entity_;

@@ -185,7 +185,7 @@ std::unique_ptr<Scene> create(
     auto scene = std::make_unique<Scene>();
     scene->create_entity(
         std::move(render_graph),
-        mesh_factory::sprite({1.0f}),
+        mesh_factory::sprite({1.0f, 1.0f, 1.0f}),
         Vector3{1.0f},
         Vector3{ static_cast<float>(width), static_cast<float>(height), 1.0f });
 
