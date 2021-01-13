@@ -4,7 +4,6 @@
 
 #include "core/camera.h"
 #include "core/looper.h"
-#include "core/root.h"
 #include "core/transform.h"
 #include "graphics/material.h"
 #include "graphics/mesh_factory.h"
@@ -49,7 +48,7 @@ void go(int, char **)
         {iris::Key::E, iris::KeyState::UP},
     };
 
-    const auto &window = iris::Root::window();
+    iris::Window window{800.0f, 800.0f};
     iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};
     iris::Camera screen_camera{iris::CameraType::ORTHOGRAPHIC, 800.0f, 800.0f};
 
@@ -109,8 +108,8 @@ void go(int, char **)
 
     iris::Pipeline pipeline{};
 
-    pipeline.add_stage(std::move(scene1), camera, sphere1_rt);
-    pipeline.add_stage(std::move(scene2), camera, sphere2_rt);
+    pipeline.add_stage(std::move(scene1), camera, &sphere1_rt);
+    pipeline.add_stage(std::move(scene2), camera, &sphere2_rt);
     pipeline.add_stage(std::move(scene3), screen_camera);
 
     iris::Transform light_transform{light1->direction(), {}, {1.0f}};
@@ -120,7 +119,7 @@ void go(int, char **)
         33ms,
         [](auto, auto) { return true; },
         [&](auto, auto) {
-            if (auto evt = iris::Root::instance().window().pump_event(); evt)
+            if (auto evt = window.pump_event(); evt)
             {
                 if (evt->is_key(iris::Key::ESCAPE))
                 {

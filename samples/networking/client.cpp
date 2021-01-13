@@ -18,7 +18,6 @@
 #include "core/exception.h"
 #include "core/looper.h"
 #include "core/quaternion.h"
-#include "core/root.h"
 #include "core/vector3.h"
 #include "graphics/mesh_factory.h"
 #include "graphics/pipeline.h"
@@ -67,7 +66,8 @@ bool handle_input(
     std::deque<ClientInput> &inputs,
     iris::Camera &camera,
     std::uint32_t tick,
-    iris::ClientConnectionHandler &client)
+    iris::ClientConnectionHandler &client,
+    iris::Window &window)
 {
     auto quit = false;
 
@@ -80,7 +80,7 @@ bool handle_input(
     // consume all inputs
     for (;;)
     {
-        auto evt = iris::Root::instance().window().pump_event();
+        auto evt = window.pump_event();
         if (!evt)
         {
             break;
@@ -394,7 +394,7 @@ void go(int, char **)
 
     iris::ClientConnectionHandler client{std::move(socket)};
 
-    auto &window = iris::Root::window();
+    iris::Window window{800.0f, 800.0f};
     iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};
 
     auto scene = std::make_unique<iris::Scene>();
@@ -473,7 +473,7 @@ void go(int, char **)
             auto keep_looping = false;
 
             // process user inputs
-            if (!handle_input(inputs, camera, tick, client))
+            if (!handle_input(inputs, camera, tick, client, window))
             {
                 // apply inputs to physics simulation
                 for (const auto &input : inputs)

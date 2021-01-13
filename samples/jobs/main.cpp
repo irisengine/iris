@@ -9,7 +9,6 @@
 #include <stb/stb_image_write.h>
 
 #include "core/exception.h"
-#include "core/root.h"
 #include "core/vector3.h"
 #include "jobs/job_system.h"
 #include "log/log.h"

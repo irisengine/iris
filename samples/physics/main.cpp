@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "core/camera.h"
-#include "core/root.h"
 #include "graphics/mesh_factory.h"
 #include "graphics/pipeline.h"
 #include "graphics/render_graph/render_graph.h"
@@ -72,7 +71,7 @@ void go(int, char **)
         {iris::Key::SPACE, iris::KeyState::UP},
     };
 
-    const auto &window = iris::Root::window();
+    iris::Window window{800.0f, 800.0f};
     iris::PhysicsSystem ps{};
     iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};
 
@@ -138,7 +137,7 @@ void go(int, char **)
 
     for (;;)
     {
-        if (auto evt = iris::Root::instance().window().pump_event(); evt)
+        if (auto evt = window.pump_event(); evt)
         {
             if (evt->is_key(iris::Key::ESCAPE))
             {
@@ -163,7 +162,7 @@ void go(int, char **)
                 switch (touch.type)
                 {
                     case iris::TouchType::BEGIN:
-                        if (touch.x < iris::Root::window().width() / 2.0f)
+                        if (touch.x < window.width() / 2.0f)
                         {
                             left_touch_origin = {touch.x, touch.y, 0.0f};
                             left_touch_id = touch.id;

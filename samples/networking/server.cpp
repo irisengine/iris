@@ -13,7 +13,6 @@
 #include "core/data_buffer.h"
 #include "core/exception.h"
 #include "core/looper.h"
-#include "core/root.h"
 #include "core/vector3.h"
 #include "log/log.h"
 #include "networking/data_buffer_deserialiser.h"

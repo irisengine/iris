@@ -2,7 +2,6 @@
 #include <memory>
 
 #include "core/camera.h"
-#include "core/root.h"
 #include "core/vector3.h"
 #include "graphics/pipeline.h"
 #include "graphics/render_system.h"
@@ -17,7 +16,7 @@ int go(int, char **)
 {
     LOG_DEBUG("text_rendering_sample", "hello world");
 
-    const auto &window = iris::Root::window();
+    iris::Window window{800.0f, 800.0f};
 
     iris::Camera screen_camera{iris::CameraType::ORTHOGRAPHIC, 800.0f, 800.0f};
 
@@ -29,7 +28,7 @@ int go(int, char **)
 
     for (;;)
     {
-        if (auto evt = iris::Root::window().pump_event(); evt)
+        if (auto evt = window.pump_event(); evt)
         {
             if (evt->is_key(iris::Key::Q))
             {

@@ -2,7 +2,7 @@
 
 #include "core/camera.h"
 #include "core/quaternion.h"
-#include "core/root.h"
+
 #include "graphics/mesh_factory.h"
 #include "graphics/pipeline.h"
 #include "graphics/render_graph/render_graph.h"
@@ -21,7 +21,7 @@ void go(int, char **)
 {
     LOG_DEBUG("sprite_sample", "hello world");
 
-    const auto &window = iris::Root::window();
+    iris::Window window{800.0f, 800.0f};
 
     iris::Camera screen_camera{iris::CameraType::ORTHOGRAPHIC, 800.0f, 800.0f};
 
@@ -57,7 +57,7 @@ void go(int, char **)
 
     for (;;)
     {
-        if (auto evt = iris::Root::window().pump_event(); evt)
+        if (auto evt = window.pump_event(); evt)
         {
             if (evt->is_key(iris::Key::Q))
             {

@@ -1,7 +1,6 @@
 #include <map>
 
 #include "core/camera.h"
-#include "core/root.h"
 #include "graphics/mesh_factory.h"
 #include "graphics/pipeline.h"
 #include "graphics/render_entity.h"
@@ -25,7 +24,7 @@ void go(int, char **)
         {iris::Key::E, iris::KeyState::UP},
     };
 
-    const auto &window = iris::Root::window();
+    iris::Window window{800.0f, 800.0f};
 
     iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};
 
@@ -48,7 +47,7 @@ void go(int, char **)
 
     for (;;)
     {
-        if (auto evt = iris::Root::instance().window().pump_event(); evt)
+        if (auto evt = window.pump_event(); evt)
         {
             if (evt->is_key(iris::Key::ESCAPE) || evt->is_quit())
             {
