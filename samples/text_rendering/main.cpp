@@ -2,6 +2,7 @@
 #include <memory>
 
 #include "core/camera.h"
+#include "core/colour.h"
 #include "core/vector3.h"
 #include "graphics/pipeline.h"
 #include "graphics/render_system.h"
@@ -23,7 +24,7 @@ int go(int, char **)
     iris::Pipeline pipeline{};
     pipeline.add_stage(
         iris::text_factory::create(
-            "Helvetica", 12, "hello world", iris::Vector3{1.0f, 1.0f, 1.0f}),
+            "Helvetica", 12, "hello world", iris::Colour{1.0f, 1.0f, 1.0f}),
         screen_camera);
 
     for (;;)

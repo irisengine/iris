@@ -8,6 +8,7 @@
 #import <CoreGraphics/CoreGraphics.h>
 #import <CoreText/CoreText.h>
 
+#include "core/colour.h"
 #include "core/exception.h"
 #include "graphics/material.h"
 #include "graphics/mesh_factory.h"
@@ -28,7 +29,7 @@ std::unique_ptr<Scene> create(
     const std::string &font_name,
     const std::uint32_t size,
     const std::string &text,
-    const Vector3 &colour)
+    const Colour &colour)
 {
     // create a CoreFoundation string object from supplied Font name
     const auto font_name_cf = CfPtr<CFStringRef>(::CFStringCreateWithCString(
@@ -61,7 +62,7 @@ std::unique_ptr<Scene> create(
     }
 
     // create a CoreFoundation colour object from supplied colour
-    const CGFloat components[] = { colour.x, colour.y, colour.z, 1.0f };
+    const CGFloat components[] = { colour.r, colour.g, colour.b, colour.a };
     CfPtr<CGColorRef> font_colour = CfPtr<CGColorRef>(::CGColorCreate(
         colour_space.get(),
         components));

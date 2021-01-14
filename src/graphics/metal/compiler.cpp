@@ -285,8 +285,8 @@ void Compiler::visit(const RenderNode &node)
 void Compiler::visit(const ColourNode &node)
 {
     const auto colour = node.colour();
-    *current_stream_ << "float4(" << colour.x << ", " << colour.y << ", "
-                     << colour.z << ", 1.0)";
+    *current_stream_ << "float4(" << colour.r << ", " << colour.g << ", "
+                     << colour.b << ", " << colour.a << ")";
 }
 
 void Compiler::visit(const TextureNode &node)
@@ -420,18 +420,10 @@ void Compiler::visit(const ArithmeticNode &node)
     node.value1()->accept(*this);
     switch (node.arithmetic_operator())
     {
-        case ArithmeticOperator::ADD:
-            *current_stream_ << " + ";
-            break;
-        case ArithmeticOperator::SUBTRACT:
-            *current_stream_ << " - ";
-            break;
-        case ArithmeticOperator::MULTIPLY:
-            *current_stream_ << " * ";
-            break;
-        case ArithmeticOperator::DIVIDE:
-            *current_stream_ << " / ";
-            break;
+        case ArithmeticOperator::ADD: *current_stream_ << " + "; break;
+        case ArithmeticOperator::SUBTRACT: *current_stream_ << " - "; break;
+        case ArithmeticOperator::MULTIPLY: *current_stream_ << " * "; break;
+        case ArithmeticOperator::DIVIDE: *current_stream_ << " / "; break;
     }
     node.value2()->accept(*this);
     *current_stream_ << ")";

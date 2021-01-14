@@ -8,6 +8,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
 
+#include "core/colour.h"
 #include "core/exception.h"
 #include "core/vector3.h"
 #include "jobs/job_system.h"
@@ -44,7 +45,7 @@ struct Sphere
     Sphere(
         const iris::Vector3 &origin,
         float radius,
-        const iris::Vector3 &colour)
+        const iris::Colour &colour)
         : origin(origin)
         , radius(radius)
         , colour(colour)
@@ -81,7 +82,7 @@ struct Sphere
 
     iris::Vector3 origin;
     float radius;
-    iris::Vector3 colour;
+    iris::Colour colour;
     bool is_metal = false;
 
     float rougness = 0.0f;
@@ -116,7 +117,7 @@ iris::Vector3 random_in_unit_sphere()
 /**
  * Recursively trace a ray through a scene, to a max depth.
  */
-iris::Vector3 trace(const Ray &ray, int depth)
+iris::Colour trace(const Ray &ray, int depth)
 {
     const Sphere *hit = nullptr;
     auto distance = std::numeric_limits<float>::max();
@@ -139,7 +140,7 @@ iris::Vector3 trace(const Ray &ray, int depth)
     // return sky colour if we don't hit anything
     if (hit == nullptr)
     {
-        return {0.9, 0.9, 0.9};
+        return {0.9f, 0.9f, 0.9f};
     }
 
     const auto emittance = hit->colour;
@@ -147,7 +148,7 @@ iris::Vector3 trace(const Ray &ray, int depth)
     // return black if we hit max depth
     if (depth > 4)
     {
-        return {0.0, 0.0, 0.0};
+        return {0.0f, 0.0f, 0.0f};
     }
 
     Ray newRay{{}, {}};
@@ -179,19 +180,19 @@ void go(int, char **)
     scene.emplace_back(
         iris::Vector3{150.0f, 0.0f, -600.0f},
         100.0f,
-        iris::Vector3{0.58, 0.49, 0.67});
+        iris::Colour{0.58f, 0.49f, 0.67f});
     scene.emplace_back(
         iris::Vector3{-150.0f, 0.0f, -600.0f},
         100.0f,
-        iris::Vector3{0.99, 0.78, 0.84});
+        iris::Colour{0.99f, 0.78f, 0.84f});
     scene.emplace_back(
         iris::Vector3{00.0f, 0.0f, -750.0f},
         100.0f,
-        iris::Vector3{1.0, 0.87, 0.82});
+        iris::Colour{1.0f, 0.87f, 0.82f});
     scene.emplace_back(
         iris::Vector3{0.0f, -10100.0f, -600.0f},
         10000.0f,
-        iris::Vector3{1, 1, 1});
+        iris::Colour{1.0f, 1.0f, 1.0f});
 
     scene[2].is_metal = true;
     scene[2].rougness = 0.9;
@@ -217,7 +218,7 @@ void go(int, char **)
                 const auto dir_y = -(j + 0.5f) + height / 2.0f;
                 const auto dir_z = -height / (2.0f * tan(fov / 2.0f));
 
-                iris::Vector3 pixel;
+                iris::Colour pixel;
 
                 auto samples = 100;
 
@@ -236,11 +237,11 @@ void go(int, char **)
 
                 // clamp colours
                 pixels[counter + 0u] = static_cast<std::uint8_t>(
-                    (255.0f * std::max(0.0f, std::min(1.0f, (float)pixel.x))));
+                    (255.0f * std::max(0.0f, std::min(1.0f, (float)pixel.r))));
                 pixels[counter + 1u] = static_cast<std::uint8_t>(
-                    (255.0f * std::max(0.0f, std::min(1.0f, (float)pixel.y))));
+                    (255.0f * std::max(0.0f, std::min(1.0f, (float)pixel.g))));
                 pixels[counter + 2u] = static_cast<std::uint8_t>(
-                    (255.0f * std::max(0.0f, std::min(1.0f, (float)pixel.z))));
+                    (255.0f * std::max(0.0f, std::min(1.0f, (float)pixel.b))));
             });
 
             counter += 3u;
