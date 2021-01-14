@@ -16,7 +16,6 @@ set(PLATFORM_SRCS
     "${DEFAULT_ROOT}/resource_loader.cpp"
     "${DEFAULT_ROOT}/start.cpp"
     "${INCLUDE_ROOT}/AppDelegate.h"
-    "${INCLUDE_ROOT}/cf_ptr.h"
     "${INCLUDE_ROOT}/macos_ios_utility.h"
     "${INCLUDE_ROOT}/utility.h"
     "${SOURCE_ROOT}/macos_ios_utility.mm"

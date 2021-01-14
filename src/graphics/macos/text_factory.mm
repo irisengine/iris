@@ -8,6 +8,7 @@
 #import <CoreGraphics/CoreGraphics.h>
 #import <CoreText/CoreText.h>
 
+#include "core/auto_release.h"
 #include "core/colour.h"
 #include "core/exception.h"
 #include "graphics/material.h"
@@ -19,7 +20,6 @@
 #include "graphics/texture.h"
 #include "graphics/texture_factory.h"
 #include "log/log.h"
-#include "platform/macos/cf_ptr.h"
 #include "platform/macos/macos_ios_utility.h"
 
 namespace iris::text_factory
@@ -32,10 +32,10 @@ std::unique_ptr<Scene> create(
     const Colour &colour)
 {
     // create a CoreFoundation string object from supplied Font name
-    const auto font_name_cf = CfPtr<CFStringRef>(::CFStringCreateWithCString(
+    const auto font_name_cf = AutoRelease<CFStringRef, nullptr>{::CFStringCreateWithCString(
         kCFAllocatorDefault,
         font_name.c_str(),
-        kCFStringEncodingASCII));
+        kCFStringEncodingASCII), ::CFRelease};
 
     if(!font_name_cf)
     {
@@ -43,10 +43,10 @@ std::unique_ptr<Scene> create(
     }
 
     // create Font object
-    CfPtr<CTFontRef> font = CfPtr<CTFontRef>(::CTFontCreateWithName(
+    AutoRelease<CTFontRef, nullptr> font = {::CTFontCreateWithName(
         font_name_cf.get(),
         size,
-        nullptr));
+        nullptr), ::CFRelease};
 
     if(!font)
     {
@@ -54,7 +54,7 @@ std::unique_ptr<Scene> create(
     }
 
     // create a device dependant colour space
-    CfPtr<CGColorSpaceRef> colour_space = CfPtr<CGColorSpaceRef>(::CGColorSpaceCreateDeviceRGB());
+    AutoRelease<CGColorSpaceRef, nullptr> colour_space = {::CGColorSpaceCreateDeviceRGB(), ::CFRelease};
 
     if(!colour_space)
     {
@@ -63,9 +63,9 @@ std::unique_ptr<Scene> create(
 
     // create a CoreFoundation colour object from supplied colour
     const CGFloat components[] = { colour.r, colour.g, colour.b, colour.a };
-    CfPtr<CGColorRef> font_colour = CfPtr<CGColorRef>(::CGColorCreate(
+    AutoRelease<CGColorRef, nullptr> font_colour = {::CGColorCreate(
         colour_space.get(),
-        components));
+        components), ::CFRelease};
 
     if(!font_colour)
     {
@@ -76,13 +76,13 @@ std::unique_ptr<Scene> create(
     std::array<CFTypeRef, 2> values = {{ font.get(), font_colour.get() }};
 
     // create string attributes dictionary, containing Font name and colour
-    CfPtr<CFDictionaryRef> attributes = CfPtr<CFDictionaryRef>(::CFDictionaryCreate(
+    AutoRelease<CFDictionaryRef, nullptr> attributes = {::CFDictionaryCreate(
         kCFAllocatorDefault,
         reinterpret_cast<const void**>(keys.data()),
         reinterpret_cast<const void**>(values.data()),
         keys.size(),
         &kCFTypeDictionaryKeyCallBacks,
-        &kCFTypeDictionaryValueCallBacks));
+        &kCFTypeDictionaryValueCallBacks), ::CFRelease};
 
     if(!attributes)
     {
@@ -92,19 +92,19 @@ std::unique_ptr<Scene> create(
     LOG_DEBUG("font", "creating sprites for string: {}", text);
 
     // create CoreFoundation string object from supplied text
-    const auto text_cf = CfPtr<CFStringRef>(::CFStringCreateWithCString(
+    const auto text_cf = AutoRelease<CFStringRef, nullptr>{::CFStringCreateWithCString(
         kCFAllocatorDefault,
         text.c_str(),
-        kCFStringEncodingASCII));
+        kCFStringEncodingASCII), ::CFRelease};
 
     // create a CoreFoundation attributed string object
-    const auto attr_string = CfPtr<CFAttributedStringRef>(::CFAttributedStringCreate(
+    const auto attr_string = AutoRelease<CFAttributedStringRef, nullptr>{::CFAttributedStringCreate(
         kCFAllocatorDefault,
         text_cf.get(),
-        attributes.get()));
+        attributes.get()), ::CFRelease};
 
-    const auto frame_setter = CfPtr<CTFramesetterRef>(
-        ::CTFramesetterCreateWithAttributedString(attr_string.get()));
+    const auto frame_setter = AutoRelease<CTFramesetterRef, nullptr>{
+        ::CTFramesetterCreateWithAttributedString(attr_string.get()), ::CFRelease};
 
     // calculate minimal size required to render text
     CFRange range;
@@ -116,9 +116,9 @@ std::unique_ptr<Scene> create(
         &range);
 
     // create a path object to render text
-    const auto path = CfPtr<CGPathRef>(::CGPathCreateWithRect(
+    const auto path = AutoRelease<CGPathRef, nullptr>{::CGPathCreateWithRect(
         CGRectMake(0, 0, std::ceil(rect.width), std::ceil(rect.height)),
-        nullptr));
+        nullptr), nullptr};
 
     if(!path)
     {
@@ -126,11 +126,11 @@ std::unique_ptr<Scene> create(
     }
 
     // create a frame to render text
-    const auto frame = CfPtr<CTFrameRef>(::CTFramesetterCreateFrame(
+    const auto frame = AutoRelease<CTFrameRef, nullptr>{::CTFramesetterCreateFrame(
         frame_setter.get(),
         range,
         path.get(),
-        nullptr));
+        nullptr), ::CFRelease};
 
     if(!frame)
     {
@@ -149,7 +149,7 @@ std::unique_ptr<Scene> create(
     const auto bytes_per_row = width * 4u;
 
     // create a context for rendering text
-    const auto context = CfPtr<CGContextRef>(::CGBitmapContextCreateWithData(
+    const auto context = AutoRelease<CGContextRef, nullptr>{::CGBitmapContextCreateWithData(
         pixel_data.data(),
         width,
         height,
@@ -158,7 +158,7 @@ std::unique_ptr<Scene> create(
         colour_space.get(),
         kCGImageAlphaPremultipliedLast,
         nullptr,
-        nullptr));
+        nullptr), nullptr};
 
     if(!context)
     {
