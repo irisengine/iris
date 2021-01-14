@@ -26,7 +26,7 @@
 #include "graphics/scene.h"
 #include "graphics/texture_factory.h"
 #include "log/log.h"
-#include "platform/keyboard_event.h"
+#include "events/keyboard_event.h"
 #include "platform/resource_loader.h"
 #include "platform/start.h"
 #include "platform/window.h"

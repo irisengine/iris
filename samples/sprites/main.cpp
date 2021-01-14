@@ -13,7 +13,7 @@
 #include "graphics/texture.h"
 #include "graphics/texture_factory.h"
 #include "log/log.h"
-#include "platform/event.h"
+#include "events/event.h"
 #include "platform/start.h"
 #include "platform/window.h"
 

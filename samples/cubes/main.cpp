@@ -7,7 +7,7 @@
 #include "graphics/scene.h"
 #include "graphics/stage.h"
 #include "log/log.h"
-#include "platform/keyboard_event.h"
+#include "events/keyboard_event.h"
 #include "platform/start.h"
 #include "platform/window.h"
 

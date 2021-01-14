@@ -16,7 +16,7 @@
 #include "log/log.h"
 #include "physics/box_collision_shape.h"
 #include "physics/physics_system.h"
-#include "platform/keyboard_event.h"
+#include "events/keyboard_event.h"
 #include "platform/resource_loader.h"
 #include "platform/start.h"
 #include "platform/window.h"

@@ -12,12 +12,12 @@
 #include "core/exception.h"
 #define DONT_MAKE_GL_FUNCTIONS_EXTERN // get concrete function pointers for all
                                       // opengl functions
+#include "events/event.h"
+#include "events/quit_event.h"
 #include "graphics/gl/opengl.h"
 #include "graphics/pipeline.h"
 #include "graphics/render_system.h"
 #include "graphics/render_target.h"
-#include "platform/event.h"
-#include "platform/quit_event.h"
 
 // additional functions we don't want to make public
 HGLRC (*wglCreateContextAttribsARB)(HDC, HGLRC, const int *);

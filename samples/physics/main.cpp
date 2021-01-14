@@ -6,6 +6,7 @@
 
 #include "core/camera.h"
 #include "core/colour.h"
+#include "events/keyboard_event.h"
 #include "graphics/mesh_factory.h"
 #include "graphics/pipeline.h"
 #include "graphics/render_graph/render_graph.h"
@@ -16,7 +17,6 @@
 #include "physics/box_collision_shape.h"
 #include "physics/physics_system.h"
 #include "physics/rigid_body.h"
-#include "platform/keyboard_event.h"
 #include "platform/start.h"
 #include "platform/window.h"
 

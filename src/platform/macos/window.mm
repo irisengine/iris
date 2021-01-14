@@ -15,10 +15,10 @@
 #include "graphics/render_system.h"
 #include "graphics/render_target.h"
 #include "log/log.h"
-#include "platform/keyboard_event.h"
+#include "events/keyboard_event.h"
 #include "platform/macos/AppDelegate.h"
-#include "platform/mouse_button_event.h"
-#include "platform/mouse_event.h"
+#include "events/mouse_button_event.h"
+#include "events/mouse_event.h"
 
 namespace
 {

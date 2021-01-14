@@ -24,4 +24,7 @@ set(CORE_SRCS
     "${SOURCE_ROOT}/transform.cpp"
     "${SOURCE_ROOT}/utils.cpp"
     "${SOURCE_ROOT}/vector3.cpp"
+    # "${INCLUDE_ROOT}/resource_loader.h" "${INCLUDE_ROOT}/start.h"
+    # "${INCLUDE_ROOT}/static_buffer.h" "${INCLUDE_ROOT}/thread.h"
+    # "${INCLUDE_ROOT}/window.h"
     PARENT_SCOPE)

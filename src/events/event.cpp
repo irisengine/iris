@@ -1,11 +1,11 @@
-#include "platform/event.h"
+#include "events/event.h"
 
-#include "platform/event_type.h"
-#include "platform/keyboard_event.h"
-#include "platform/mouse_button_event.h"
-#include "platform/mouse_event.h"
-#include "platform/quit_event.h"
-#include "platform/touch_event.h"
+#include "events/event_type.h"
+#include "events/keyboard_event.h"
+#include "events/mouse_button_event.h"
+#include "events/mouse_event.h"
+#include "events/quit_event.h"
+#include "events/touch_event.h"
 
 namespace iris
 {

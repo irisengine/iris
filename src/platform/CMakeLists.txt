@@ -10,16 +10,7 @@ elseif(IRIS_PLATFORM MATCHES "WINDOWS")
 endif()
 
 set(PLATFORM_SRCS
-    ${PLATFORM_SRCS}
-    "${INCLUDE_ROOT}/keyboard_event.h"
-    "${INCLUDE_ROOT}/mouse_event.h"
-    "${INCLUDE_ROOT}/quit_event.h"
-    "${INCLUDE_ROOT}/resource_loader.h"
-    "${INCLUDE_ROOT}/start.h"
-    "${INCLUDE_ROOT}/static_buffer.h"
-    "${INCLUDE_ROOT}/thread.h"
-    "${INCLUDE_ROOT}/touch_event.h"
-    "${INCLUDE_ROOT}/window.h"
-    "${SOURCE_ROOT}/event.cpp"
-    "${INCLUDE_ROOT}/event.h"
+    ${PLATFORM_SRCS} "${INCLUDE_ROOT}/resource_loader.h"
+    "${INCLUDE_ROOT}/start.h" "${INCLUDE_ROOT}/static_buffer.h"
+    "${INCLUDE_ROOT}/thread.h" "${INCLUDE_ROOT}/window.h"
     PARENT_SCOPE)

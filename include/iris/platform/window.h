@@ -5,10 +5,10 @@
 #include <queue>
 
 #include "core/camera.h"
+#include "events/event.h"
 #include "graphics/pipeline.h"
 #include "graphics/render_system.h"
 #include "graphics/render_target.h"
-#include "platform/event.h"
 
 namespace iris
 {
