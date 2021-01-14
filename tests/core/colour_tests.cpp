@@ -36,6 +36,70 @@ TEST(colour, byte_ctor_no_alpha)
     ASSERT_EQ(c, iris::Colour(0.0f, 0.498039216f, 1.0f, 1.0f));
 }
 
+TEST(colour, scale)
+{
+    iris::Colour c1{1.1f, 2.2f, 3.3f};
+    auto c2 = c1 * 2.0f;
+
+    ASSERT_EQ(c2, iris::Colour(2.2f, 4.4f, 6.6f, 2.0f));
+}
+
+TEST(colour, scale_assignment)
+{
+    iris::Colour c{1.1f, 2.2f, 3.3f};
+    c *= 2.0f;
+
+    ASSERT_EQ(c, iris::Colour(2.2f, 4.4f, 6.6f, 2.0f));
+}
+
+TEST(colour, add)
+{
+    iris::Colour c1{1.1f, 2.2f, 3.3f};
+    auto c2 = c1 + iris::Colour{1.0f, 2.0f, 3.0f};
+
+    ASSERT_EQ(c2, iris::Colour(2.1f, 4.2f, 6.3f, 2.0f));
+}
+
+TEST(colour, add_assignment)
+{
+    iris::Colour c{1.1f, 2.2f, 3.3f};
+    c += iris::Colour{1.0f, 2.0f, 3.0f};
+
+    ASSERT_EQ(c, iris::Colour(2.1f, 4.2f, 6.3f, 2.0f));
+}
+
+TEST(colour, subtract)
+{
+    iris::Colour c1{1.1f, 2.2f, 3.3f};
+    auto c2 = c1 - iris::Colour{1.0f, 2.0f, 3.0f};
+
+    ASSERT_EQ(c2, iris::Colour(0.1f, 0.2f, 0.3f, 0.0f));
+}
+
+TEST(colour, subtract_assignment)
+{
+    iris::Colour c{1.1f, 2.2f, 3.3f};
+    c -= iris::Colour{1.0f, 2.0f, 3.0f};
+
+    ASSERT_EQ(c, iris::Colour(0.1f, 0.2f, 0.3f, 0.0f));
+}
+
+TEST(colour, multiply)
+{
+    iris::Colour c1{1.1f, 2.2f, 3.3f};
+    auto c2 = c1 * iris::Colour{1.0f, 2.0f, 3.0f};
+
+    ASSERT_EQ(c2, iris::Colour(1.1f, 4.4f, 9.9f, 1.0f));
+}
+
+TEST(colour, multiply_assignment)
+{
+    iris::Colour c{1.1f, 2.2f, 3.3f};
+    c *= iris::Colour{1.0f, 2.0f, 3.0f};
+
+    ASSERT_EQ(c, iris::Colour(1.1f, 4.4f, 9.9f, 1.0f));
+}
+
 TEST(colour, equality)
 {
     const iris::Colour c1{0.1f, 0.2f, 0.3f, 0.4f};
