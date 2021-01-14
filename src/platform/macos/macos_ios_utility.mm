@@ -17,8 +17,8 @@ NSString* string_to_nsstring(const std::string &str)
 
 // platform specific implementations
 
-#if defined(PLATFORM_MACOS)
+#if defined(IRIS_PLATFORM_MACOS)
 #include "platform/macos/utility.h"
-#elif defined(PLATFORM_IOS)
+#elif defined(IRIS_PLATFORM_IOS)
 #include "platform/ios/utility.h"
 #endif

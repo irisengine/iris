@@ -255,7 +255,7 @@ void go(int, char **)
 
         window.render(pipeline);
 
-#if !defined(PLATFORM_IOS)
+#if !defined(IRIS_PLATFORM_IOS)
         walk_direction = {};
 #endif
     }

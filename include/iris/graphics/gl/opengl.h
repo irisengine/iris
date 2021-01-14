@@ -4,10 +4,10 @@
 
 // platform specific opengl includes
 
-#if defined(PLATFORM_MACOS)
+#if defined(IRIS_PLATFORM_MACOS)
 #include <OpenGL/gl3.h>
 #include <OpenGL/gl3ext.h>
-#elif defined(PLATFORM_WINDOWS)
+#elif defined(IRIS_PLATFORM_WINDOWS)
 // clang-format off
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>

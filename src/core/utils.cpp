@@ -26,7 +26,7 @@ bool compare(float a, float b)
 
 std::uint32_t screen_scale()
 {
-#if defined(PLATFORM_MACOS) || defined(PLATFORM_IOS)
+#if defined(IRIS_PLATFORM_MACOS) || defined(IRIS_PLATFORM_IOS)
     return 2u;
 #else
     return 1u;

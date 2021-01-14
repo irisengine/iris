@@ -6,7 +6,7 @@
 
 #include <functional>
 
-#if defined(PLATFORM_WINDOWS)
+#if defined(IRIS_PLATFORM_WINDOWS)
 #define NOMINMAX
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -29,7 +29,7 @@ static iris::Winsock ws_init;
 namespace iris
 {
 
-#if defined(PLATFORM_WINDOWS)
+#if defined(IRIS_PLATFORM_WINDOWS)
 
 using SocketHandle = SOCKET;
 static std::function<int(SocketHandle)> CloseSocket = ::closesocket;
