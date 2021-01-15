@@ -15,11 +15,11 @@ namespace iris
  *   - vertex data attributes
  *   - indices (render order of vertices)
  */
-class BufferDescriptor
+class Mesh
 {
   public:
     /**
-     * Construct new BufferDescriptor.
+     * Construct new Mesh.
      *
      * @param vertex_buffer
      *   Vertex data.
@@ -30,14 +30,14 @@ class BufferDescriptor
      * @param attributes
      *   Attributes for vertex.
      */
-    BufferDescriptor(
+    Mesh(
         Buffer vertex_buffer,
         Buffer index_buffer,
         const VertexAttributes &attributes);
 
-    ~BufferDescriptor();
-    BufferDescriptor(BufferDescriptor &&);
-    BufferDescriptor &operator=(BufferDescriptor &&);
+    ~Mesh();
+    Mesh(Mesh &&);
+    Mesh &operator=(Mesh &&);
 
     /**
      * Get a reference to the vertex data buffer.

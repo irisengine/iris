@@ -240,14 +240,14 @@ void RenderSystem::render(const Pipeline &pipeline)
                 [render_encoder setTriangleFillMode:MTLTriangleFillModeLines];
             }
 
-            for(const auto &buffer_descriptor : entity->buffer_descriptors())
+            for(const auto &mesh : entity->meshes())
             {
                 // get vertex Buffer handle
-                const auto &vertex_buffer = buffer_descriptor.vertex_buffer();
+                const auto &vertex_buffer = mesh.vertex_buffer();
                 const auto vertex_buffer_native = std::any_cast<id<MTLBuffer>>(vertex_buffer.native_handle());
 
                 // get index Buffer handle
-                const auto &index_buffer = buffer_descriptor.index_buffer();
+                const auto &index_buffer = mesh.index_buffer();
                 const auto index_buffer_native = std::any_cast<id<MTLBuffer>>(index_buffer.native_handle());
 
                 set_uniforms(render_encoder, camera, entity, lights);

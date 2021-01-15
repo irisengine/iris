@@ -1,4 +1,4 @@
-#include "graphics/buffer_descriptor.h"
+#include "graphics/mesh.h"
 
 #import <Metal/Metal.h>
 
@@ -46,12 +46,12 @@ MTLVertexFormat to_metal_format(iris::VertexAttributeType type)
 namespace iris
 {
 
-struct BufferDescriptor::implementation
+struct Mesh::implementation
 {
     MTLVertexDescriptor *descriptor;
 };
 
-BufferDescriptor::BufferDescriptor( 
+Mesh::Mesh( 
     Buffer vertex_buffer,
     Buffer index_buffer,
     const VertexAttributes &attributes)
@@ -76,21 +76,21 @@ BufferDescriptor::BufferDescriptor(
     impl_->descriptor.layouts[0u].stride = attributes.size();
 }
 
-BufferDescriptor::~BufferDescriptor() = default;
-BufferDescriptor::BufferDescriptor(BufferDescriptor&&) = default;
-BufferDescriptor& BufferDescriptor::operator=(BufferDescriptor&&) = default;
+Mesh::~Mesh() = default;
+Mesh::Mesh(Mesh&&) = default;
+Mesh& Mesh::operator=(Mesh&&) = default;
 
-const Buffer &BufferDescriptor::vertex_buffer() const
+const Buffer &Mesh::vertex_buffer() const
 {
     return vertex_buffer_;
 }
 
-const Buffer &BufferDescriptor::index_buffer() const
+const Buffer &Mesh::index_buffer() const
 {
     return index_buffer_;
 }
 
-std::any BufferDescriptor::native_handle() const
+std::any Mesh::native_handle() const
 {
     return { impl_->descriptor };
 }

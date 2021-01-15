@@ -1,4 +1,4 @@
-#include "graphics/buffer_descriptor.h"
+#include "graphics/mesh.h"
 
 #include <memory>
 #include <tuple>
@@ -18,16 +18,13 @@ std::tuple<GLenum, bool> to_opengl_format(iris::VertexAttributeType type)
     switch (type)
     {
         case iris::VertexAttributeType::FLOAT_3:
-        case iris::VertexAttributeType::FLOAT_4:
-            format = GL_FLOAT;
-            break;
+        case iris::VertexAttributeType::FLOAT_4: format = GL_FLOAT; break;
         case iris::VertexAttributeType::UINT32_1:
         case iris::VertexAttributeType::UINT32_4:
             format = GL_UNSIGNED_INT;
             is_float = false;
             break;
-        default:
-            throw iris::Exception("unknown vertex attribute type");
+        default: throw iris::Exception("unknown vertex attribute type");
     }
 
     return {format, is_float};
@@ -54,8 +51,7 @@ std::uint32_t type_to_gl_type(const iris::BufferType type)
         case iris::BufferType::VERTEX_INDICES:
             gl_type = GL_ELEMENT_ARRAY_BUFFER;
             break;
-        default:
-            throw iris::Exception("unknown Buffer type");
+        default: throw iris::Exception("unknown Buffer type");
     }
 
     return gl_type;
@@ -80,12 +76,12 @@ void bind_buffer(const iris::Buffer &buffer)
 namespace iris
 {
 
-struct BufferDescriptor::implementation
+struct Mesh::implementation
 {
     GLuint vao;
 };
 
-BufferDescriptor::BufferDescriptor(
+Mesh::Mesh(
     Buffer vertex_buffer,
     Buffer index_buffer,
     const VertexAttributes &attributes)
@@ -146,21 +142,21 @@ BufferDescriptor::BufferDescriptor(
     check_opengl_error("could not unbind vao");
 }
 
-BufferDescriptor::~BufferDescriptor() = default;
-BufferDescriptor::BufferDescriptor(BufferDescriptor &&) = default;
-BufferDescriptor &BufferDescriptor::operator=(BufferDescriptor &&) = default;
+Mesh::~Mesh() = default;
+Mesh::Mesh(Mesh &&) = default;
+Mesh &Mesh::operator=(Mesh &&) = default;
 
-const Buffer &BufferDescriptor::vertex_buffer() const
+const Buffer &Mesh::vertex_buffer() const
 {
     return vertex_buffer_;
 }
 
-const Buffer &BufferDescriptor::index_buffer() const
+const Buffer &Mesh::index_buffer() const
 {
     return index_buffer_;
 }
 
-std::any BufferDescriptor::native_handle() const
+std::any Mesh::native_handle() const
 {
     return {impl_->vao};
 }

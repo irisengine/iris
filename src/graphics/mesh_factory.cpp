@@ -12,21 +12,21 @@
 
 #include "core/colour.h"
 #include "core/exception.h"
+#include "core/resource_loader.h"
 #include "core/transform.h"
 #include "core/vector3.h"
 #include "graphics/bone.h"
-#include "graphics/buffer_descriptor.h"
+#include "graphics/mesh.h"
 #include "graphics/mesh_loader.h"
 #include "graphics/skeleton.h"
 #include "graphics/texture.h"
 #include "graphics/vertex_data.h"
 #include "log/log.h"
-#include "core/resource_loader.h"
 
 namespace iris::mesh_factory
 {
 
-BufferDescriptor empty()
+Mesh empty()
 {
     std::vector<vertex_data> verticies{};
     std::vector<std::uint32_t> indices{};
@@ -37,7 +37,7 @@ BufferDescriptor empty()
         vertex_attributes};
 }
 
-BufferDescriptor sprite(const Colour &colour)
+Mesh sprite(const Colour &colour)
 {
     std::vector<vertex_data> verticies{
         {{-1.0, 1.0, 0.0f}, {}, colour, {0.0f, 1.0f, 0.0f}},
@@ -53,7 +53,7 @@ BufferDescriptor sprite(const Colour &colour)
         vertex_attributes};
 }
 
-BufferDescriptor cube(const Colour &colour)
+Mesh cube(const Colour &colour)
 {
     std::vector<vertex_data> verticies{
         {{1.0f, -1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, colour, {}},
@@ -92,7 +92,7 @@ BufferDescriptor cube(const Colour &colour)
         vertex_attributes};
 }
 
-BufferDescriptor plane(const Colour &colour, std::uint32_t divisions)
+Mesh plane(const Colour &colour, std::uint32_t divisions)
 {
     if (divisions == 0)
     {
@@ -143,7 +143,7 @@ BufferDescriptor plane(const Colour &colour, std::uint32_t divisions)
         vertex_attributes};
 }
 
-BufferDescriptor quad(
+Mesh quad(
     const Colour &colour,
     const Vector3 &lower_left,
     const Vector3 &lower_right,
@@ -164,9 +164,7 @@ BufferDescriptor quad(
         vertex_attributes};
 }
 
-BufferDescriptor lines(
-    const std::vector<Vector3> &line_data,
-    const Colour &colour)
+Mesh lines(const std::vector<Vector3> &line_data, const Colour &colour)
 {
     std::vector<std::tuple<Vector3, Colour, Vector3, Colour>> data{};
 
@@ -178,7 +176,7 @@ BufferDescriptor lines(
     return lines(data);
 }
 
-BufferDescriptor lines(
+Mesh lines(
     const std::vector<std::tuple<Vector3, Colour, Vector3, Colour>> &line_data)
 {
     std::vector<vertex_data> verticies{};
@@ -204,8 +202,7 @@ BufferDescriptor lines(
         vertex_attributes};
 }
 
-std::tuple<std::vector<BufferDescriptor>, Skeleton> load(
-    const std::string &mesh_file)
+std::tuple<std::vector<Mesh>, Skeleton> load(const std::string &mesh_file)
 {
     struct Cache
     {
@@ -217,7 +214,7 @@ std::tuple<std::vector<BufferDescriptor>, Skeleton> load(
 
     static std::map<std::string, Cache> cache{};
 
-    std::vector<BufferDescriptor> meshes;
+    std::vector<Mesh> meshes;
     Skeleton *skeleton = nullptr;
 
     if (cache.count(mesh_file) == 0)
@@ -229,7 +226,7 @@ std::tuple<std::vector<BufferDescriptor>, Skeleton> load(
         for (auto i = 0u; i < c.vertices.size(); ++i)
         {
             // we can use the default attributes
-            meshes.emplace_back(BufferDescriptor(
+            meshes.emplace_back(Mesh(
                 Buffer(c.vertices[i], BufferType::VERTEX_ATTRIBUTES),
                 Buffer(c.indices[i], BufferType::VERTEX_INDICES),
                 vertex_attributes));
@@ -245,7 +242,7 @@ std::tuple<std::vector<BufferDescriptor>, Skeleton> load(
         for (auto i = 0u; i < c.vertices.size(); ++i)
         {
             // we can use the default attributes
-            meshes.emplace_back(BufferDescriptor(
+            meshes.emplace_back(Mesh(
                 Buffer(c.vertices[i], BufferType::VERTEX_ATTRIBUTES),
                 Buffer(c.indices[i], BufferType::VERTEX_INDICES),
                 vertex_attributes));

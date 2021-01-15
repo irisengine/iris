@@ -8,7 +8,7 @@
 #import <Metal/Metal.h>
 
 #include "core/exception.h"
-#include "graphics/buffer_descriptor.h"
+#include "graphics/mesh.h"
 #include "graphics/light.h"
 #include "graphics/render_graph/compiler.h"
 #include "graphics/render_graph/render_graph.h"
@@ -67,7 +67,7 @@ struct Material::implementation
 
 Material::Material(
     const RenderGraph &render_graph,
-    const BufferDescriptor &vertex_descriptor,
+    const Mesh &mesh,
     const std::vector<Light *> &lights)
     : textures_(),
       impl_(std::make_unique<implementation>())
@@ -77,7 +77,7 @@ Material::Material(
     const auto vertex_program = load_function(compiler.vertex_shader(), "vertex_main");
     const auto fragment_program = load_function(compiler.fragment_shader(), "fragment_main");
 
-    const auto vertex_descriptor_handle = std::any_cast<MTLVertexDescriptor*>(vertex_descriptor.native_handle());
+    const auto mesh_handle = std::any_cast<MTLVertexDescriptor*>(mesh.native_handle());
 
     auto *device = core::utility::metal_device();
 
@@ -87,7 +87,7 @@ Material::Material(
     [pipeline_state_descriptor setFragmentFunction:fragment_program];
     pipeline_state_descriptor.colorAttachments[0].pixelFormat = MTLPixelFormatRGBA8Unorm;
     [pipeline_state_descriptor setDepthAttachmentPixelFormat:MTLPixelFormatDepth32Float];
-    [pipeline_state_descriptor setVertexDescriptor:vertex_descriptor_handle];
+    [pipeline_state_descriptor setVertexDescriptor:mesh_handle];
 
     impl_->state = [device newRenderPipelineStateWithDescriptor:pipeline_state_descriptor error:nullptr];
 

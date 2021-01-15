@@ -36,7 +36,7 @@ Stage::Stage(Scene *scene, Camera &camera, RenderTarget *target)
     for (const auto &[render_graph, entity] : scene_->entities())
     {
         auto material = std::make_unique<Material>(
-            render_graph, entity->buffer_descriptors().front(), lights);
+            render_graph, entity->meshes().front(), lights);
 
         materials_.emplace_back(std::move(material));
         render_items_.emplace_back(

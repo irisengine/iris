@@ -96,7 +96,7 @@ struct Material::implementation
 
 Material::Material(
     const RenderGraph &render_graph,
-    const BufferDescriptor &,
+    const Mesh &,
     const std::vector<Light *> &lights)
     : textures_()
     , impl_(std::make_unique<implementation>())

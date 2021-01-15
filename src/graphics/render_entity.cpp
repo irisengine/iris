@@ -37,34 +37,29 @@ iris::Matrix4 create_normal_transform(const iris::Matrix4 &model)
 namespace iris
 {
 RenderEntity::RenderEntity(
-    BufferDescriptor buffer_descriptor,
+    Mesh mesh,
     const Vector3 &position,
     const Vector3 &scale)
-    : RenderEntity(std::move(buffer_descriptor), position, {}, scale)
+    : RenderEntity(std::move(mesh), position, {}, scale)
 {
 }
 
 RenderEntity::RenderEntity(
-    BufferDescriptor buffer_descriptor,
+    Mesh mesh,
     const Vector3 &position,
     const Quaternion &orientation,
     const Vector3 &scale)
-    : RenderEntity(
-          std::move(buffer_descriptor),
-          position,
-          orientation,
-          scale,
-          Skeleton{})
+    : RenderEntity(std::move(mesh), position, orientation, scale, Skeleton{})
 {
 }
 
 RenderEntity::RenderEntity(
-    BufferDescriptor buffer_descriptor,
+    Mesh mesh,
     const Vector3 &position,
     const Quaternion &orientation,
     const Vector3 &scale,
     Skeleton skeleton)
-    : buffer_descriptors_()
+    : meshes_()
     , position_(position)
     , orientation_(orientation)
     , scale_(scale)
@@ -75,19 +70,19 @@ RenderEntity::RenderEntity(
     , skeleton_(std::move(skeleton))
     , receive_shadow_(true)
 {
-    buffer_descriptors_.emplace_back(std::move(buffer_descriptor));
+    meshes_.emplace_back(std::move(mesh));
     model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) *
              Matrix4::make_scale(scale_);
     normal_ = create_normal_transform(model_);
 }
 
 RenderEntity::RenderEntity(
-    std::vector<BufferDescriptor> buffer_descriptors,
+    std::vector<Mesh> meshes,
     const Vector3 &position,
     const Quaternion &orientation,
     const Vector3 &scale,
     Skeleton skeleton)
-    : buffer_descriptors_(std::move(buffer_descriptors))
+    : meshes_(std::move(meshes))
     , position_(position)
     , orientation_(orientation)
     , scale_(scale)
@@ -148,22 +143,21 @@ Matrix4 RenderEntity::normal_transform() const
     return normal_;
 }
 
-const std::vector<BufferDescriptor> &RenderEntity::buffer_descriptors() const
+const std::vector<Mesh> &RenderEntity::meshes() const
 {
-    return buffer_descriptors_;
+    return meshes_;
 }
 
-void RenderEntity::set_buffer_descriptors(BufferDescriptor buffer_descriptor)
+void RenderEntity::set_mesh(Mesh mesh)
 {
-    std::vector<BufferDescriptor> descriptors;
-    descriptors.emplace_back(std::move(buffer_descriptor));
-    set_buffer_descriptors(std::move(descriptors));
+    std::vector<Mesh> descriptors;
+    descriptors.emplace_back(std::move(mesh));
+    set_meshes(std::move(descriptors));
 }
 
-void RenderEntity::set_buffer_descriptors(
-    std::vector<BufferDescriptor> buffer_descriptors)
+void RenderEntity::set_meshes(std::vector<Mesh> meshes)
 {
-    buffer_descriptors_ = std::move(buffer_descriptors);
+    meshes_ = std::move(meshes);
 }
 
 bool RenderEntity::should_render_wireframe() const

@@ -233,11 +233,11 @@ void RenderSystem::render(const Pipeline &pipeline)
             }
 
             // render entities
-            for (const auto &buffer_descriptor : entity->buffer_descriptors())
+            for (const auto &mesh : entity->meshes())
             {
                 // bind vao so the final draw call renders it
-                const auto vao = std::any_cast<std::uint32_t>(
-                    buffer_descriptor.native_handle());
+                const auto vao =
+                    std::any_cast<std::uint32_t>(mesh.native_handle());
 
                 // bind the vao
                 ::glBindVertexArray(vao);
@@ -251,8 +251,7 @@ void RenderSystem::render(const Pipeline &pipeline)
                 // draw!
                 ::glDrawElements(
                     type,
-                    static_cast<GLsizei>(
-                        buffer_descriptor.index_buffer().element_count()),
+                    static_cast<GLsizei>(mesh.index_buffer().element_count()),
                     GL_UNSIGNED_INT,
                     0);
                 check_opengl_error("could not draw triangles");

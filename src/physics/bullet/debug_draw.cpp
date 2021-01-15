@@ -36,7 +36,7 @@ void DebugDraw::render()
     if (!verticies_.empty())
     {
         auto mesh = mesh_factory::lines(verticies_);
-        entity_->set_buffer_descriptors(std::move(mesh));
+        entity_->set_mesh(std::move(mesh));
 
         verticies_.clear();
     }
