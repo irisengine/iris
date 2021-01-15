@@ -1,13 +1,10 @@
-#import "platform/macos/AppDelegate.h"
+#import "core/macos/AppDelegate.h"
 
 #import <Appkit/Appkit.h>
 #import <CoreGraphics/CoreGraphics.h>
 #import <Foundation/Foundation.h>
-#import <Metal/Metal.h>
-#import <MetalKit/MetalKit.h>
-#import <QuartzCore/QuartzCore.h>
 
-#include "platform/macos/MetalView.h"
+#import "core/macos/OpenGLView.h"
 
 @implementation AppDelegate
 
@@ -19,8 +16,6 @@
         [self setWidth:rect.size.width];
         [self setHeight:rect.size.height];
 
-        MTLCreateSystemDefaultDevice();
-
         // create our window. It should have a title and render all content
         // to a buffer before being flushed, do not defer the creation of the
         // window
@@ -30,11 +25,30 @@
             backing:NSBackingStoreBuffered
             defer:NO];
 
-        // create and setup a metal view
-        MetalView* view = [[MetalView alloc] initWithFrame:rect device:MTLCreateSystemDefaultDevice()];
-        [view setClearColor:MTLClearColorMake(0, 0, 0, 1)];
-        [view setColorPixelFormat:MTLPixelFormatBGRA8Unorm];
-        [view setDepthStencilPixelFormat:MTLPixelFormatDepth32Float];
+        // here we specify the attributes of the OpenGl view.
+        NSOpenGLPixelFormatAttribute pixelFormatAttributes[] =
+        {
+            NSOpenGLPFAOpenGLProfile,
+            NSOpenGLProfileVersion3_2Core, // use at least OpenGl 3.2
+            NSOpenGLPFAColorSize, 32,      // 32 bit colour
+            NSOpenGLPFAAlphaSize, 8,       // 8 bit alpha
+            NSOpenGLPFADepthSize, 32,      // 32 bit depth buffer
+            NSOpenGLPFADoubleBuffer,       // use double buffering
+            NSOpenGLPFAAccelerated,        // use hardware acceleration
+            0                              // array termination
+        };
+
+        // create the pixel format object with the above attributes
+        NSOpenGLPixelFormat *pixel_format =
+            [[NSOpenGLPixelFormat alloc] initWithAttributes:pixelFormatAttributes];
+
+        // create our OpenGl view, make it the same size as the window
+        OpenGLView *view = [[OpenGLView alloc]
+            initWithFrame:rect
+            pixelFormat:pixel_format];
+
+        // ensure OpenGL fully utilises retina displays
+        [view setWantsBestResolutionOpenGLSurface:YES];
 
         // add the view to the window
         [window setContentView:view];
@@ -48,17 +62,13 @@
         // show the window
         [window makeKeyAndOrderFront:self];
 
-        [window makeFirstResponder:view];
+        // make this the current OpenGl context
+        [[view openGLContext] makeCurrentContext];
 
         // redraw the view before displaying
         [view setNeedsDisplay:YES];
 
-        // create and setup a metal layer
-        CAMetalLayer *layer = [[CAMetalLayer alloc] init];
-        [layer setDevice:[view device]];
-        [layer setPixelFormat:MTLPixelFormatBGRA8Unorm];
-        [layer setFrame:[view bounds]];
-        [view.layer addSublayer:layer];
+        [window makeFirstResponder:view];
 
         // create a tracking area the size of the screen
         NSTrackingArea *tracking = [[NSTrackingArea alloc]
@@ -70,7 +80,7 @@
         // add the tracking area
         [view addTrackingArea:tracking];
 
-        // hide and lock the cursor
+        // hide the cursor
         CGDisplayHideCursor(kCGDirectMainDisplay);
         CGAssociateMouseAndMouseCursorPosition(NO);
     }

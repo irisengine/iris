@@ -3,6 +3,9 @@
 #include "core/camera.h"
 #include "core/quaternion.h"
 
+#include "core/start.h"
+#include "core/window.h"
+#include "events/event.h"
 #include "graphics/mesh_factory.h"
 #include "graphics/pipeline.h"
 #include "graphics/render_graph/render_graph.h"
@@ -13,9 +16,6 @@
 #include "graphics/texture.h"
 #include "graphics/texture_factory.h"
 #include "log/log.h"
-#include "events/event.h"
-#include "platform/start.h"
-#include "platform/window.h"
 
 void go(int, char **)
 {

@@ -12,7 +12,7 @@
 #include "graphics/light.h"
 #include "graphics/render_graph/compiler.h"
 #include "graphics/render_graph/render_graph.h"
-#include "platform/macos/macos_ios_utility.h"
+#include "core/macos/macos_ios_utility.h"
 
 namespace
 {
@@ -33,12 +33,12 @@ id<MTLFunction> load_function(
     const std::string &source,
     const std::string &function_name)
 {
-    auto *device = iris::platform::utility::metal_device();
+    auto *device = iris::core::utility::metal_device();
 
     NSError *error = nullptr;
 
     // load source
-    const auto *library = [device newLibraryWithSource:iris::platform::utility::string_to_nsstring(source)
+    const auto *library = [device newLibraryWithSource:iris::core::utility::string_to_nsstring(source)
                                                options:nullptr
                                                  error:&error];
 
@@ -49,7 +49,7 @@ id<MTLFunction> load_function(
         throw iris::Exception("failed to load shader: " + error_message);
     }
 
-    return [library newFunctionWithName:iris::platform::utility::string_to_nsstring(function_name)];
+    return [library newFunctionWithName:iris::core::utility::string_to_nsstring(function_name)];
 }
 
 }
@@ -79,7 +79,7 @@ Material::Material(
 
     const auto vertex_descriptor_handle = std::any_cast<MTLVertexDescriptor*>(vertex_descriptor.native_handle());
 
-    auto *device = platform::utility::metal_device();
+    auto *device = core::utility::metal_device();
 
     // get pipeline state handle
     auto *pipeline_state_descriptor = [[MTLRenderPipelineDescriptor alloc] init];

@@ -1,4 +1,4 @@
-#import "platform/ios/AppDelegate.h"
+#import "core/ios/AppDelegate.h"
 
 #include <functional>
 
@@ -9,7 +9,7 @@
 #import <QuartzCore/QuartzCore.h>
 
 #include "log/log.h"
-#include "platform/ios/MetalViewController.h"
+#include "core/ios/MetalViewController.h"
 
 namespace iris
 {

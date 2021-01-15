@@ -10,7 +10,7 @@
 #include "graphics/gl/opengl.h"
 #include "graphics/pixel_format.h"
 #include "log/log.h"
-#include "platform/resource_loader.h"
+#include "core/resource_loader.h"
 
 namespace
 {

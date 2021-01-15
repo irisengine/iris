@@ -6,7 +6,7 @@
 #include "jobs/fiber/counter.h"
 #include "jobs/fiber/fiber_state.h"
 #include "jobs/job.h"
-#include "platform/static_buffer.h"
+#include "core/static_buffer.h"
 
 namespace iris
 {

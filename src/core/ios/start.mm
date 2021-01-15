@@ -1,10 +1,10 @@
-#include "platform/start.h"
+#include "core/start.h"
 
 #include <functional>
 
 #import <UIKit/UIKit.h>
 
-#import "platform/ios/AppDelegate.h"
+#import "core/ios/AppDelegate.h"
 #include "log/emoji_formatter.h"
 #include "log/log.h"
 

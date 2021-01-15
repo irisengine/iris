@@ -11,7 +11,7 @@
 #include "jobs/fiber/fiber_state.h"
 #include "jobs/job.h"
 #include "log/log.h"
-#include "platform/static_buffer.h"
+#include "core/static_buffer.h"
 
 extern "C"
 {

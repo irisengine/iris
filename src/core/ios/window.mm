@@ -1,10 +1,10 @@
-#include "platform/window.h"
+#include "core/window.h"
 
 #include <memory>
 
 #import <UIKit/UIKit.h>
 
-#import "platform/ios/MetalViewController.h"
+#import "core/ios/MetalViewController.h"
 #include "graphics/render_system.h"
 #include "graphics/render_target.h"
 #include "log/log.h"

@@ -1,4 +1,4 @@
-#include "platform/start.h"
+#include "core/start.h"
 
 #include <functional>
 #include <iostream>

@@ -10,10 +10,10 @@
 
 #include "core/colour.h"
 #include "core/exception.h"
+#include "core/start.h"
 #include "core/vector3.h"
 #include "jobs/job_system.h"
 #include "log/log.h"
-#include "platform/start.h"
 
 struct Sphere;
 

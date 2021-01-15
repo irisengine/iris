@@ -1,9 +1,9 @@
-#import "platform/ios/MetalViewController.h"
+#import "core/ios/MetalViewController.h"
 
 #include <queue>
 #include <tuple>
 
-#import "platform/ios/MetalView.h"
+#import "core/ios/MetalView.h"
 
 @interface MetalViewController ()
 @end

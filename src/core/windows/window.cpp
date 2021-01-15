@@ -1,4 +1,4 @@
-#include "platform/window.h"
+#include "core/window.h"
 
 #include <optional>
 #include <queue>

@@ -1,6 +1,6 @@
-#import "platform/macos/OpenGLView.h"
+#import "core/macos/MetalView.h"
 
-@implementation OpenGLView
+@implementation MetalView
 {
 }
 
@@ -18,4 +18,5 @@
 }
 
 @end
+
 

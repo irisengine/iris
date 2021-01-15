@@ -17,9 +17,9 @@
 #include "physics/box_collision_shape.h"
 #include "physics/physics_system.h"
 #include "events/keyboard_event.h"
-#include "platform/resource_loader.h"
-#include "platform/start.h"
-#include "platform/window.h"
+#include "core/resource_loader.h"
+#include "core/start.h"
+#include "core/window.h"
 
 void go(int, char **)
 {

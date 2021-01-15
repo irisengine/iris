@@ -13,7 +13,7 @@
 #include "jobs/fiber/fiber_pool.h"
 #include "jobs/job.h"
 #include "log/log.h"
-#include "platform/thread.h"
+#include "core/thread.h"
 
 namespace
 {

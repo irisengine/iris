@@ -1,4 +1,4 @@
-#include "platform/resource_loader.h"
+#include "core/resource_loader.h"
 
 #include <filesystem>
 #include <fstream>

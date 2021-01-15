@@ -1,9 +1,9 @@
-#include "platform/macos/macos_ios_utility.h"
+#include "core/macos/macos_ios_utility.h"
 
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
 
-namespace iris::platform::utility
+namespace iris::core::utility
 {
 
 // common utilities
@@ -18,7 +18,7 @@ NSString* string_to_nsstring(const std::string &str)
 // platform specific implementations
 
 #if defined(IRIS_PLATFORM_MACOS)
-#include "platform/macos/utility.h"
+#include "core/macos/utility.h"
 #elif defined(IRIS_PLATFORM_IOS)
-#include "platform/ios/utility.h"
+#include "core/ios/utility.h"
 #endif

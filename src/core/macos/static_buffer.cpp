@@ -1,4 +1,4 @@
-#include "platform/static_buffer.h"
+#include "core/static_buffer.h"
 
 #include <cstddef>
 #include <cstdint>

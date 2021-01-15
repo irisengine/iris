@@ -1,4 +1,4 @@
-#include "platform/resource_loader.h"
+#include "core/resource_loader.h"
 
 #include <fstream>
 #include <sstream>
@@ -6,7 +6,7 @@
 #import <UIKit/UIKit.h>
 
 #include "core/exception.h"
-#include "platform/macos/macos_ios_utility.h"
+#include "core/macos/macos_ios_utility.h"
 
 namespace iris
 {
@@ -42,7 +42,7 @@ const std::vector<std::uint8_t>& ResourceLoader::load(const std::string &resourc
             throw Exception("could not resolve path to resouce path");
         }
 
-        const auto *resource_ns = platform::utility::string_to_nsstring(resource);
+        const auto *resource_ns = core::utility::string_to_nsstring(resource);
         auto *parts = [NSArray arrayWithObjects: dir, resource_ns, (void *)nil];
         const auto *path = [NSString pathWithComponents:parts];
         const auto *cpath = [path fileSystemRepresentation];

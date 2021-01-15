@@ -1,4 +1,4 @@
-#include "platform/window.h"
+#include "core/window.h"
 
 #include <memory>
 
@@ -16,7 +16,7 @@
 #include "graphics/render_target.h"
 #include "log/log.h"
 #include "events/keyboard_event.h"
-#include "platform/macos/AppDelegate.h"
+#include "core/macos/AppDelegate.h"
 #include "events/mouse_button_event.h"
 #include "events/mouse_event.h"
 

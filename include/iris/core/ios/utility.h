@@ -9,7 +9,7 @@
 #import <UIKit/UIKit.h>
 
 #include "core/exception.h"
-#include "platform/ios/MetalView.h"
+#include "core/ios/MetalView.h"
 
 namespace
 {
@@ -34,7 +34,7 @@ MetalView *get_view()
 
 }
 
-namespace iris::platform::utility
+namespace iris::core::utility
 {
 
 id<MTLDevice> metal_device()

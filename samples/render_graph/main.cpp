@@ -27,9 +27,9 @@
 #include "graphics/texture_factory.h"
 #include "log/log.h"
 #include "events/keyboard_event.h"
-#include "platform/resource_loader.h"
-#include "platform/start.h"
-#include "platform/window.h"
+#include "core/resource_loader.h"
+#include "core/start.h"
+#include "core/window.h"
 
 using namespace std::chrono_literals;
 

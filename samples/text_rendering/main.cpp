@@ -3,15 +3,15 @@
 
 #include "core/camera.h"
 #include "core/colour.h"
+#include "core/start.h"
 #include "core/vector3.h"
+#include "core/window.h"
+#include "events/event.h"
 #include "graphics/pipeline.h"
 #include "graphics/render_system.h"
 #include "graphics/stage.h"
 #include "graphics/text_factory.h"
 #include "log/log.h"
-#include "events/event.h"
-#include "platform/start.h"
-#include "platform/window.h"
 
 int go(int, char **)
 {

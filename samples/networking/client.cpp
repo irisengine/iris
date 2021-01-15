@@ -36,8 +36,8 @@
 #include "physics/box_collision_shape.h"
 #include "physics/physics_system.h"
 #include "physics/rigid_body.h"
-#include "platform/start.h"
-#include "platform/window.h"
+#include "core/start.h"
+#include "core/window.h"
 
 #include "client_input.h"
 

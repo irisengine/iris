@@ -13,7 +13,7 @@
 #include "graphics/render_entity.h"
 #include "graphics/render_target.h"
 #include "log/log.h"
-#include "platform/macos/macos_ios_utility.h"
+#include "core/macos/macos_ios_utility.h"
 
 namespace
 {
@@ -137,7 +137,7 @@ RenderSystem::RenderSystem(float width, float height, RenderTarget *screen_targe
     , impl_(nullptr)
 {
     // get metal device handle
-    const auto *device = iris::platform::utility::metal_device();
+    const auto *device = iris::core::utility::metal_device();
 
     const auto command_queue = [device newCommandQueue];
     if(command_queue == nullptr)
@@ -145,7 +145,7 @@ RenderSystem::RenderSystem(float width, float height, RenderTarget *screen_targe
         throw iris::Exception("could not creare command queue");
     }
 
-    const auto scale = platform::utility::screen_scale();
+    const auto scale = core::utility::screen_scale();
 
     // create and setup descriptor for depth texture
     auto *texture_description =
@@ -177,7 +177,7 @@ RenderSystem::RenderSystem(float width, float height, RenderTarget *screen_targe
     
     // create implementation struct
     impl_ = std::make_unique<implementation>(
-        platform::utility::metal_layer(),
+        core::utility::metal_layer(),
         command_queue,
         render_pass_descriptor,
         depth_stencil_state);
@@ -190,7 +190,7 @@ RenderSystem& RenderSystem::operator=(RenderSystem&&) = default;
 
 void RenderSystem::render(const Pipeline &pipeline)
 {
-    auto *device = iris::platform::utility::metal_device();
+    auto *device = iris::core::utility::metal_device();
     auto format = MTLPixelFormatRGBA8Unorm;
 
     auto *drawable = [impl_->layer nextDrawable];

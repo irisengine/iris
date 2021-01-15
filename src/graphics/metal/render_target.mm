@@ -10,7 +10,7 @@
 #include "core/exception.h"
 #include "graphics/pixel_format.h"
 #include "graphics/texture.h"
-#include "platform/macos/macos_ios_utility.h"
+#include "core/macos/macos_ios_utility.h"
 
 namespace iris
 {
@@ -26,7 +26,7 @@ RenderTarget::RenderTarget(
     , depth_texture_(nullptr)
     , impl_(std::make_unique<implementation>())
 {
-    const auto scale = platform::utility::screen_scale();
+    const auto scale = core::utility::screen_scale();
 
     std::vector<std::uint8_t> image_data(width * height * scale * scale * 4u);
 

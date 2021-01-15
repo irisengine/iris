@@ -6,6 +6,8 @@
 
 #include "core/camera.h"
 #include "core/colour.h"
+#include "core/start.h"
+#include "core/window.h"
 #include "events/keyboard_event.h"
 #include "graphics/mesh_factory.h"
 #include "graphics/pipeline.h"
@@ -17,8 +19,6 @@
 #include "physics/box_collision_shape.h"
 #include "physics/physics_system.h"
 #include "physics/rigid_body.h"
-#include "platform/start.h"
-#include "platform/window.h"
 
 void handle_left_touch(
     iris::Vector3 &walk_direction,

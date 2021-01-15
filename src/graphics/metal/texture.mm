@@ -12,8 +12,8 @@
 #include "core/vector3.h"
 #include "graphics/pixel_format.h"
 #include "log/log.h"
-#include "platform/macos/macos_ios_utility.h"
-#include "platform/resource_loader.h"
+#include "core/macos/macos_ios_utility.h"
+#include "core/resource_loader.h"
 
 namespace
 {
@@ -123,7 +123,7 @@ std::tuple<id<MTLTexture>, std::uint32_t> create_texture(
     }
     
     // get metal device handle
-    auto *device = iris::platform::utility::metal_device();
+    auto *device = iris::core::utility::metal_device();
 
     // create new texture
     auto texture = [device newTextureWithDescriptor:texture_descriptor];

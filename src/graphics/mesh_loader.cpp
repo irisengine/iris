@@ -22,7 +22,7 @@
 #include "graphics/texture_factory.h"
 #include "graphics/vertex_data.h"
 #include "log/log.h"
-#include "platform/resource_loader.h"
+#include "core/resource_loader.h"
 
 namespace
 {

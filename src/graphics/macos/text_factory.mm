@@ -20,7 +20,7 @@
 #include "graphics/texture.h"
 #include "graphics/texture_factory.h"
 #include "log/log.h"
-#include "platform/macos/macos_ios_utility.h"
+#include "core/macos/macos_ios_utility.h"
 
 namespace iris::text_factory
 {
@@ -165,7 +165,7 @@ std::unique_ptr<Scene> create(
         throw Exception("failed to create context");
     }
 
-    const auto scale = platform::utility::screen_scale();
+    const auto scale = core::utility::screen_scale();
     LOG_ENGINE_DEBUG("font", "{}", scale);
 
     // ensure letters are rotated correct way and scaled for screen

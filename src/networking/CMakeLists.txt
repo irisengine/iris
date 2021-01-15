@@ -9,7 +9,7 @@ endif()
 
 set(NETWORKING_SRCS
     ${NETWORKING_SRCS}
-    ${PLATFORM_SRCS}
+    ${CORE_SRCS}
     "${INCLUDE_ROOT}/server_socket.h"
     "${INCLUDE_ROOT}/channel/channel.h"
     "${INCLUDE_ROOT}/channel/channel_type.h"
