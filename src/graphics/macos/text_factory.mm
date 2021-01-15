@@ -9,6 +9,7 @@
 #import <CoreText/CoreText.h>
 
 #include "core/auto_release.h"
+#include "core/data_buffer.h"
 #include "core/colour.h"
 #include "core/exception.h"
 #include "graphics/material.h"
@@ -143,7 +144,7 @@ std::unique_ptr<Scene> create(
     const auto height = static_cast<std::uint32_t>(rect.height) * 2u;
 
     // allocate enough space to store RGBA tuples for each pixel
-    std::vector<std::uint8_t> pixel_data(width * height * 4);
+    DataBuffer pixel_data(width * height * 4);
 
     const auto bits_per_pixel = 8u;
     const auto bytes_per_row = width * 4u;

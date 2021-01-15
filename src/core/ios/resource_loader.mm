@@ -21,7 +21,7 @@ ResourceLoader& ResourceLoader::instance()
     return loader;
 }
 
-const std::vector<std::uint8_t>& ResourceLoader::load(const std::string &resource)
+const DataBuffer& ResourceLoader::load(const std::string &resource)
 {
     // lookup resource
     auto loaded_resource = resources_.find(resource);

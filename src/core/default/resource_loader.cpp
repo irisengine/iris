@@ -18,8 +18,7 @@ ResourceLoader &ResourceLoader::instance()
     return loader;
 }
 
-const std::vector<std::uint8_t> &ResourceLoader::load(
-    const std::string &resource)
+const DataBuffer &ResourceLoader::load(const std::string &resource)
 {
     // lookup resource
     auto loaded_resource = resources_.find(resource);
@@ -35,9 +34,10 @@ const std::vector<std::uint8_t> &ResourceLoader::load(
         strm << f.rdbuf();
 
         const auto str = strm.str();
+        const auto *str_ptr = reinterpret_cast<const std::byte *>(str.data());
 
         const auto [iter, _] =
-            resources_.insert({resource, {std::cbegin(str), std::cend(str)}});
+            resources_.insert({resource, {str_ptr, str_ptr + str.length()}});
         loaded_resource = iter;
     }
 
@@ -48,5 +48,4 @@ void ResourceLoader::set_root_directory(const std::filesystem::path &root)
 {
     root_ = root;
 }
-
 }

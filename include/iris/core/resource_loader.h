@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "core/data_buffer.h"
+
 namespace iris
 {
 
@@ -34,7 +36,7 @@ class ResourceLoader
      * @returns
      *   Const reference to loaded data.
      */
-    const std::vector<std::uint8_t> &load(const std::string &resource);
+    const DataBuffer &load(const std::string &resource);
 
     /**
      * Set root resource location.
@@ -52,7 +54,7 @@ class ResourceLoader
     ResourceLoader();
 
     /** Cache of loaded resources. */
-    std::map<std::string, std::vector<std::uint8_t>> resources_;
+    std::map<std::string, DataBuffer> resources_;
 
     /** Resource root. */
     std::filesystem::path root_;

@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "core/data_buffer.h"
 #include "graphics/pixel_format.h"
 #include "graphics/texture.h"
 
@@ -40,7 +41,7 @@ Texture *load(const std::string &resource);
  *   Format of pixel data.
  */
 Texture *create(
-    const std::vector<std::uint8_t> &data,
+    const DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
     PixelFormat pixel_foramt);

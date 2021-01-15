@@ -7,6 +7,7 @@
 
 #import <Metal/Metal.h>
 
+#include "core/data_buffer.h"
 #include "core/exception.h"
 #include "graphics/pixel_format.h"
 #include "graphics/texture.h"
@@ -28,7 +29,7 @@ RenderTarget::RenderTarget(
 {
     const auto scale = core::utility::screen_scale();
 
-    std::vector<std::uint8_t> image_data(width * height * scale * scale * 4u);
+    DataBuffer image_data(width * height * scale * scale * 4u);
 
     // create textures for colour and depth
 

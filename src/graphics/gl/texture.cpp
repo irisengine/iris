@@ -6,11 +6,12 @@
 #include <memory>
 #include <vector>
 
+#include "core/data_buffer.h"
 #include "core/exception.h"
+#include "core/resource_loader.h"
 #include "graphics/gl/opengl.h"
 #include "graphics/pixel_format.h"
 #include "log/log.h"
-#include "core/resource_loader.h"
 
 namespace
 {
@@ -30,20 +31,13 @@ std::uint32_t format_to_opengl(iris::PixelFormat pixel_format)
 
     switch (pixel_format)
     {
-        case iris::PixelFormat::R:
-            opengl_format = GL_RED;
-            break;
-        case iris::PixelFormat::RGB:
-            opengl_format = GL_RGB;
-            break;
-        case iris::PixelFormat::RGBA:
-            opengl_format = GL_RGBA;
-            break;
+        case iris::PixelFormat::R: opengl_format = GL_RED; break;
+        case iris::PixelFormat::RGB: opengl_format = GL_RGB; break;
+        case iris::PixelFormat::RGBA: opengl_format = GL_RGBA; break;
         case iris::PixelFormat::DEPTH:
             opengl_format = GL_DEPTH_COMPONENT;
             break;
-        default:
-            throw std::runtime_error("incorrect number of channels");
+        default: throw std::runtime_error("incorrect number of channels");
     }
 
     return opengl_format;
@@ -68,7 +62,7 @@ std::uint32_t format_to_opengl(iris::PixelFormat pixel_format)
  *   Handle to texture.
  */
 std::tuple<std::uint32_t, std::uint32_t> create_texture(
-    const std::vector<std::uint8_t> &data,
+    const iris::DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
     iris::PixelFormat pixel_format)
@@ -142,7 +136,7 @@ Texture::Texture(
 }
 
 Texture::Texture(
-    const std::vector<std::uint8_t> &data,
+    const DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
     PixelFormat pixel_format)
@@ -170,7 +164,7 @@ Texture::~Texture()
 Texture::Texture(Texture &&) = default;
 Texture &Texture::operator=(Texture &&) = default;
 
-std::vector<std::uint8_t> Texture::data() const
+DataBuffer Texture::data() const
 {
     return data_;
 }
@@ -197,7 +191,8 @@ std::uint32_t Texture::texture_id() const
 
 Texture Texture::blank()
 {
-    return {{0xFF, 0xFF, 0xFF, 0xFF}, 1u, 1u, PixelFormat::RGBA};
+    const std::byte value = static_cast<std::byte>(0xFF);
+    return{ { value, value, value, value }, 1u, 1u, PixelFormat::RGBA };
 }
 
 bool Texture::flip() const

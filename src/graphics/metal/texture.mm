@@ -8,6 +8,7 @@
 
 #import <Metal/Metal.h>
 
+#include "core/data_buffer.h"
 #include "core/exception.h"
 #include "core/vector3.h"
 #include "graphics/pixel_format.h"
@@ -65,14 +66,14 @@ MTLPixelFormat forma_to_metal(iris::PixelFormat pixel_format)
  *   Handle to texture.
  */
 std::tuple<id<MTLTexture>, std::uint32_t> create_texture(
-    const std::vector<std::uint8_t> &data,
+    const iris::DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
     iris::PixelFormat pixel_format)
 {
     auto *data_ptr = data.data();
 
-    std::vector<std::uint8_t> padded{};
+    iris::DataBuffer padded{};
 
     MTLTextureDescriptor *texture_descriptor = nullptr;
 
@@ -92,9 +93,8 @@ std::tuple<id<MTLTexture>, std::uint32_t> create_texture(
         // a fouth component (alpha - always 1)
         if (pixel_format == iris::PixelFormat::RGB)
         {
-            LOG_DEBUG("tex", "here");
             pixel_format = iris::PixelFormat::RGBA;
-            padded = std::vector<std::uint8_t>(width * height * 4u, 255);
+            padded = iris::DataBuffer(width * height * 4u, static_cast<std::byte>(0xFF));
             data_ptr = padded.data();
 
             auto *dst = padded.data();
@@ -163,7 +163,7 @@ Texture::Texture(
 }
 
 Texture::Texture(
-    const std::vector<std::uint8_t> &data,
+    const DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
     PixelFormat pixel_format)
@@ -184,7 +184,7 @@ Texture::~Texture() = default;
 Texture::Texture(Texture&&) = default;
 Texture& Texture::operator=(Texture&&) = default;
 
-std::vector<std::uint8_t> Texture::data() const
+DataBuffer Texture::data() const
 {
     return data_;
 }
@@ -211,7 +211,8 @@ std::uint32_t Texture::texture_id() const
 
 Texture Texture::blank()
 {
-    return{ { 0xFF, 0xFF, 0xFF, 0xFF }, 1u, 1u, PixelFormat::RGBA };
+    const std::byte value = static_cast<std::byte>(0xFF);
+    return{ { value, value, value, value }, 1u, 1u, PixelFormat::RGBA };
 }
 
 bool Texture::flip() const

@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "core/data_buffer.h"
 #include "graphics/pixel_format.h"
 
 namespace iris
@@ -51,7 +52,7 @@ class Texture
      *   Number of channels.
      */
     Texture(
-        const std::vector<std::uint8_t> &data,
+        const DataBuffer &data,
         std::uint32_t width,
         std::uint32_t height,
         PixelFormat pixel_format);
@@ -67,7 +68,7 @@ class Texture
      * @returns
      *   Raw image data.
      */
-    std::vector<std::uint8_t> data() const;
+    DataBuffer data() const;
 
     /**
      * Get the width of the image.
@@ -132,7 +133,7 @@ class Texture
 
   private:
     /** Raw image data. */
-    std::vector<std::uint8_t> data_;
+    DataBuffer data_;
 
     /** Image width. */
     std::uint32_t width_;
