@@ -5,7 +5,7 @@
 #import <Metal/Metal.h>
 #import <QuartzCore/CAMetalLayer.h>
 
-#include "core/macos/macos_ios_utility.h"
+#include "core/window.h"
 
 @implementation MetalView
 
@@ -25,7 +25,7 @@ CADisplayLink *_displayLink;
         _metalLayer.device = _device;
         _metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
         _metalLayer.frame = self.layer.frame;
-        self.contentScaleFactor = iris::core::utility::screen_scale();
+        self.contentScaleFactor = iris::Window::screen_scale();
         [self setUserInteractionEnabled:YES];
         [super setUserInteractionEnabled:YES];
         [self setBackgroundColor:[UIColor redColor]];

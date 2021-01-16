@@ -9,9 +9,10 @@
 #import <CoreText/CoreText.h>
 
 #include "core/auto_release.h"
-#include "core/data_buffer.h"
 #include "core/colour.h"
+#include "core/data_buffer.h"
 #include "core/exception.h"
+#include "core/window.h"
 #include "graphics/material.h"
 #include "graphics/mesh_factory.h"
 #include "graphics/render_entity.h"
@@ -21,7 +22,6 @@
 #include "graphics/texture.h"
 #include "graphics/texture_factory.h"
 #include "log/log.h"
-#include "core/macos/macos_ios_utility.h"
 
 namespace iris::text_factory
 {
@@ -166,7 +166,7 @@ std::unique_ptr<Scene> create(
         throw Exception("failed to create context");
     }
 
-    const auto scale = core::utility::screen_scale();
+    const auto scale = Window::screen_scale();
     LOG_ENGINE_DEBUG("font", "{}", scale);
 
     // ensure letters are rotated correct way and scaled for screen

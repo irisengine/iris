@@ -34,14 +34,4 @@ id<MTLDevice> metal_device();
  */
 CAMetalLayer *metal_layer();
 
-/**
- * Get the natural scale for the screen. This value reflects the scale factor
- * needed to convert from the default logical coordinate space into the device
- * coordinate space of this screen.
- *
- * @returns
- *   Screen scale factor.
- */
-CGFloat screen_scale();
-
 }

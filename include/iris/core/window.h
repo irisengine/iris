@@ -77,6 +77,16 @@ class Window
      */
     RenderTarget *screen_target() const;
 
+    /**
+     * Get the natural scale for the screen. This value reflects the scale
+     * factor needed to convert from the default logical coordinate space into
+     * the device coordinate space of this screen.
+     *
+     * @returns
+     *   Screen scale factor.
+     */
+    static std::uint32_t screen_scale();
+
   private:
     /** Window width. */
     float width_;

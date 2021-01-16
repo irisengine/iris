@@ -6,14 +6,15 @@
 #import <MetalPerformanceShaders/MetalPerformanceShaders.h>
 
 #include "core/exception.h"
+#include "core/macos/macos_ios_utility.h"
 #include "core/matrix4.h"
 #include "core/vector3.h"
+#include "core/window.h"
 #include "graphics/buffer.h"
 #include "graphics/pipeline.h"
 #include "graphics/render_entity.h"
 #include "graphics/render_target.h"
 #include "log/log.h"
-#include "core/macos/macos_ios_utility.h"
 
 namespace
 {
@@ -145,7 +146,7 @@ RenderSystem::RenderSystem(float width, float height, RenderTarget *screen_targe
         throw iris::Exception("could not creare command queue");
     }
 
-    const auto scale = core::utility::screen_scale();
+    const auto scale = Window::screen_scale();;
 
     // create and setup descriptor for depth texture
     auto *texture_description =

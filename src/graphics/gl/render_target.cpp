@@ -7,6 +7,7 @@
 
 #include "core/exception.h"
 #include "core/utils.h"
+#include "core/window.h"
 #include "graphics/gl/opengl.h"
 #include "graphics/pixel_format.h"
 
@@ -31,7 +32,7 @@ RenderTarget::RenderTarget(std::uint32_t width, std::uint32_t height)
     ::glBindFramebuffer(GL_FRAMEBUFFER, impl_->fbo);
     check_opengl_error("could not bind fbo");
 
-    static const auto scale = screen_scale();
+    static const auto scale = Window::screen_scale();
 
     // create backing textures for colour and depth
     colour_texture_ = std::make_unique<Texture>(

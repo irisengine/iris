@@ -327,5 +327,18 @@ RenderTarget *Window::screen_target() const
     return screen_target_.get();
 }
 
+std::uint32_t Window::screen_scale()
+{
+    static std::uint32_t scale = 0u;
+
+    if (scale == 0u)
+    {
+        auto *window = [[NSApp windows] firstObject];
+        scale = static_cast<std::uint32_t>([[window screen] backingScaleFactor]);
+    }
+
+    return scale;
+}
+
 }
 

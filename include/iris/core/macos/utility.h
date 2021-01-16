@@ -36,10 +36,4 @@ CAMetalLayer *metal_layer()
     return layer;
 }
 
-CGFloat screen_scale()
-{
-    auto *window = [[NSApp windows] firstObject];
-    return [[window screen] backingScaleFactor];
-}
-
 }

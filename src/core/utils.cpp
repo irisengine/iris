@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstdint>
 #include <limits>
 
 namespace iris
@@ -22,15 +21,6 @@ bool compare(float a, float b)
 
     // compare using a relative epsilon
     return diff <= (largest * epsilon);
-}
-
-std::uint32_t screen_scale()
-{
-#if defined(IRIS_PLATFORM_MACOS) || defined(IRIS_PLATFORM_IOS)
-    return 2u;
-#else
-    return 1u;
-#endif
 }
 
 }

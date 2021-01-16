@@ -69,9 +69,4 @@ CAMetalLayer *metal_layer()
     return (CAMetalLayer *)layer;
 }
 
-CGFloat screen_scale()
-{
-    return [[UIScreen mainScreen] scale];
-}
-
 }
