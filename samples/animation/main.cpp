@@ -3,7 +3,11 @@
 #include <memory>
 
 #include "core/camera.h"
+#include "core/resource_loader.h"
+#include "core/start.h"
 #include "core/transform.h"
+#include "core/window.h"
+#include "events/keyboard_event.h"
 #include "graphics/material.h"
 #include "graphics/mesh_factory.h"
 #include "graphics/pipeline.h"
@@ -16,10 +20,6 @@
 #include "log/log.h"
 #include "physics/box_collision_shape.h"
 #include "physics/physics_system.h"
-#include "events/keyboard_event.h"
-#include "core/resource_loader.h"
-#include "core/start.h"
-#include "core/window.h"
 
 void go(int, char **)
 {
@@ -36,7 +36,7 @@ void go(int, char **)
         {iris::Key::E, iris::KeyState::UP},
     };
 
-    iris::Window window{800.0f, 800.0f};
+    iris::Window window{800u, 800u};
     iris::PhysicsSystem ps{};
 
     iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};

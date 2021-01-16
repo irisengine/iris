@@ -204,7 +204,7 @@ struct Window::implementation
 {
 };
 
-Window::Window(float width, float height)
+Window::Window(std::uint32_t width, std::uint32_t height)
     : width_(width),
       height_(height),
       render_system_(nullptr),
@@ -312,12 +312,12 @@ std::optional<Event> Window::pump_event()
     return evt;
 }
 
-float Window::width() const
+std::uint32_t Window::width() const
 {
     return width_;
 }
 
-float Window::height() const
+std::uint32_t Window::height() const
 {
     return height_;
 }

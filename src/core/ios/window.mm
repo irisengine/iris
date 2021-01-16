@@ -16,7 +16,7 @@ struct Window::implementation
 {
 };
 
-Window::Window(float width, float height)
+Window::Window(std::uint32_t width, std::uint32_t height)
     : width_(width),
       height_(height),
       render_system_(nullptr),
@@ -67,12 +67,12 @@ void Window::render(const Pipeline &pipeline) const
     render_system_->render(pipeline);
 }
 
-float Window::width() const
+std::uint32_t Window::width() const
 {
     return width_;
 }
 
-float Window::height() const
+std::uint32_t Window::height() const
 {
     return height_;
 }

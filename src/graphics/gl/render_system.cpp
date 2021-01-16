@@ -142,7 +142,10 @@ struct RenderSystem::implementation
 {
 };
 
-RenderSystem::RenderSystem(float, float, RenderTarget *screen_target)
+RenderSystem::RenderSystem(
+    std::uint32_t,
+    std::uint32_t,
+    RenderTarget *screen_target)
     : screen_target_(screen_target)
     , impl_(nullptr)
 {

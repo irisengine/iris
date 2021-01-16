@@ -24,7 +24,7 @@ void go(int, char **)
         {iris::Key::E, iris::KeyState::UP},
     };
 
-    iris::Window window{800.0f, 800.0f};
+    iris::Window window{800u, 800u};
 
     iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};
 

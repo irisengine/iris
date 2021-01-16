@@ -17,7 +17,7 @@ int go(int, char **)
 {
     LOG_DEBUG("text_rendering_sample", "hello world");
 
-    iris::Window window{800.0f, 800.0f};
+    iris::Window window{800u, 800u};
 
     iris::Camera screen_camera{iris::CameraType::ORTHOGRAPHIC, 800.0f, 800.0f};
 

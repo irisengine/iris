@@ -394,7 +394,7 @@ void go(int, char **)
 
     iris::ClientConnectionHandler client{std::move(socket)};
 
-    iris::Window window{800.0f, 800.0f};
+    iris::Window window{800u, 800u};
     iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};
 
     auto scene = std::make_unique<iris::Scene>();

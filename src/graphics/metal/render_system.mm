@@ -133,7 +133,7 @@ struct RenderSystem::implementation
     id<MTLDepthStencilState> depth_stencil_state;
 };
 
-RenderSystem::RenderSystem(float width, float height, RenderTarget *screen_target)
+RenderSystem::RenderSystem(std::uint32_t width, std::uint32_t height, RenderTarget *screen_target)
     : screen_target_(screen_target)
     , impl_(nullptr)
 {

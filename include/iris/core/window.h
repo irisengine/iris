@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <queue>
@@ -28,7 +29,7 @@ class Window
      * @param height
      *   Height of the window.
      */
-    Window(float with, float height);
+    Window(std::uint32_t with, std::uint32_t height);
 
     ~Window();
 
@@ -59,7 +60,7 @@ class Window
      * @returns
      *   Window width.
      */
-    float width() const;
+    std::uint32_t width() const;
 
     /**
      * Get the height of the window.
@@ -67,7 +68,7 @@ class Window
      * @returns
      *   Window height.
      */
-    float height() const;
+    std::uint32_t height() const;
 
     /**
      * Get a pointer to the screen render target.
@@ -89,10 +90,10 @@ class Window
 
   private:
     /** Window width. */
-    float width_;
+    std::uint32_t width_;
 
     /** Window height. */
-    float height_;
+    std::uint32_t height_;
 
     /** Render system for window. */
     std::unique_ptr<RenderSystem> render_system_;
