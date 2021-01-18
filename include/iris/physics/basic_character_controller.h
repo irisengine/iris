@@ -25,7 +25,7 @@ class BasicCharacterController : public CharacterController
      * @param physics_system
      *   Pointer to physics_system that owns this controller.
      */
-    BasicCharacterController(PhysicsSystem *physics_system);
+    explicit BasicCharacterController(PhysicsSystem *physics_system);
 
     /**
      * Destructor.

@@ -18,7 +18,7 @@ class Exception : public std::runtime_error
      * @param what
      *   Exception message.
      */
-    Exception(const std::string &what);
+    explicit Exception(const std::string &what);
 };
 
 }

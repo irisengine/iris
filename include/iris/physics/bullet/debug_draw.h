@@ -28,7 +28,7 @@ class DebugDraw : public ::btIDebugDraw
     /**
      * Construct a new DebugDraw.
      */
-    DebugDraw(RenderEntity *entity);
+    explicit DebugDraw(RenderEntity *entity);
 
     // default
     ~DebugDraw() override = default;

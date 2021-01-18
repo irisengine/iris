@@ -27,7 +27,7 @@ class DataBufferDeserialiser
      * @param buffer
      *   DataBuffer of serialised data.
      */
-    DataBufferDeserialiser(DataBuffer buffer)
+    explicit DataBufferDeserialiser(DataBuffer buffer)
         : buffer_(std::move(buffer))
         , cursor_(std::cbegin(buffer_))
     {

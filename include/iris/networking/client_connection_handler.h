@@ -35,7 +35,7 @@ class ClientConnectionHandler
      * @param socker
      *   The underlying socket to use.
      */
-    ClientConnectionHandler(std::unique_ptr<Socket> socket);
+    explicit ClientConnectionHandler(std::unique_ptr<Socket> socket);
 
     /**
      * Try and read data from the supplied channel.
