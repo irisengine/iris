@@ -7,6 +7,7 @@
 #include "core/camera.h"
 #include "core/colour.h"
 #include "core/start.h"
+#include "core/transform.h"
 #include "core/window.h"
 #include "events/keyboard_event.h"
 #include "graphics/mesh_factory.h"
@@ -82,8 +83,10 @@ void go(int, char **)
     scene->create_entity(
         iris::RenderGraph{},
         iris::mesh_factory::cube({1.0f, 1.0f, 1.0f}),
-        iris::Vector3{0.0f, -50.0f, 0.0f},
-        iris::Vector3{500.0f, 50.0f, 500.0f});
+        iris::Transform{
+            iris::Vector3{0.0f, -50.0f, 0.0f},
+            {},
+            iris::Vector3{500.0f, 50.0f, 500.0f}});
 
     scene->create_light(iris::Vector3{0.0f, -1.0f, -1.0f}, true);
 
@@ -111,8 +114,7 @@ void go(int, char **)
                 scene->create_entity(
                     iris::RenderGraph{},
                     iris::mesh_factory::cube(colour),
-                    pos,
-                    half_size),
+                    iris::Transform{pos, {}, half_size}),
                 ps.create_rigid_body(
                     pos,
                     std::make_unique<iris::BoxCollisionShape>(half_size),

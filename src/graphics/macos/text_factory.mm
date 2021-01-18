@@ -12,6 +12,7 @@
 #include "core/colour.h"
 #include "core/data_buffer.h"
 #include "core/exception.h"
+#include "core/transform.h"
 #include "core/window.h"
 #include "graphics/material.h"
 #include "graphics/mesh_factory.h"
@@ -188,8 +189,10 @@ std::unique_ptr<Scene> create(
     scene->create_entity(
         std::move(render_graph),
         mesh_factory::sprite({1.0f, 1.0f, 1.0f}),
-        Vector3{1.0f},
-        Vector3{ static_cast<float>(width), static_cast<float>(height), 1.0f });
+        Transform{
+            Vector3{1.0f},
+            {},
+            Vector3{ static_cast<float>(width), static_cast<float>(height), 1.0f }});
 
     return scene;
 }

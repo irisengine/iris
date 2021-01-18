@@ -18,7 +18,9 @@
 #include "core/exception.h"
 #include "core/looper.h"
 #include "core/quaternion.h"
+#include "core/start.h"
 #include "core/vector3.h"
+#include "core/window.h"
 #include "events/keyboard_event.h"
 #include "graphics/mesh_factory.h"
 #include "graphics/pipeline.h"
@@ -36,8 +38,6 @@
 #include "physics/box_collision_shape.h"
 #include "physics/physics_system.h"
 #include "physics/rigid_body.h"
-#include "core/start.h"
-#include "core/window.h"
 
 #include "client_input.h"
 
@@ -402,14 +402,18 @@ void go(int, char **)
     scene->create_entity(
         iris::RenderGraph{},
         iris::mesh_factory::cube({1.0f, 1.0f, 1.0f}),
-        iris::Vector3{0.0f, -50.0f, 0.0f},
-        iris::Vector3{500.0f, 50.0f, 500.0f});
+        iris::Transform{
+            iris::Vector3{0.0f, -50.0f, 0.0f},
+            {},
+            iris::Vector3{500.0f, 50.0f, 500.0f}});
 
     auto *box = scene->create_entity(
         iris::RenderGraph{},
         iris::mesh_factory::cube({1.0f, 0.0f, 0.0f}),
-        iris::Vector3{0.0f, 1.0f, 0.0f},
-        iris::Vector3{0.5f, 0.5f, 0.5f});
+        iris::Transform{
+            iris::Vector3{0.0f, 1.0f, 0.0f},
+            {},
+            iris::Vector3{0.5f, 0.5f, 0.5f}});
 
     iris::Pipeline pipeline{};
     pipeline.add_stage(std::move(scene), camera);

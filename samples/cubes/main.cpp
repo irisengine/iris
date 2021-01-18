@@ -1,15 +1,16 @@
 #include <map>
 
 #include "core/camera.h"
+#include "core/start.h"
+#include "core/transform.h"
+#include "core/window.h"
+#include "events/keyboard_event.h"
 #include "graphics/mesh_factory.h"
 #include "graphics/pipeline.h"
 #include "graphics/render_entity.h"
 #include "graphics/scene.h"
 #include "graphics/stage.h"
 #include "log/log.h"
-#include "events/keyboard_event.h"
-#include "core/start.h"
-#include "core/window.h"
 
 void go(int, char **)
 {
@@ -33,14 +34,14 @@ void go(int, char **)
     scene->create_entity(
         iris::RenderGraph(),
         iris::mesh_factory::cube({1.0f, 0.0f, 0.0f}),
-        iris::Vector3{-20.0f, 0.0f, 0.0f},
-        iris::Vector3{10.0f});
+        iris::Transform{
+            iris::Vector3{-20.0f, 0.0f, 0.0f}, {}, iris::Vector3{10.0f}});
 
     scene->create_entity(
         iris::RenderGraph(),
         iris::mesh_factory::cube({0.0f, 0.0f, 1.0f}),
-        iris::Vector3{20.0f, 0.0f, 0.0f},
-        iris::Vector3{10.0f});
+        iris::Transform{
+            iris::Vector3{20.0f, 0.0f, 0.0f}, {}, iris::Vector3{10.0f}});
 
     iris::Pipeline pipeline{};
     pipeline.add_stage(std::move(scene), camera);

@@ -3,6 +3,7 @@
 #include "core/camera_type.h"
 #include "core/matrix4.h"
 #include "core/quaternion.h"
+#include "core/transform.h"
 #include "core/vector3.h"
 #include "graphics/mesh_factory.h"
 #include "graphics/skeleton.h"
@@ -36,34 +37,22 @@ iris::Matrix4 create_normal_transform(const iris::Matrix4 &model)
 
 namespace iris
 {
-RenderEntity::RenderEntity(
-    Mesh mesh,
-    const Vector3 &position,
-    const Vector3 &scale)
-    : RenderEntity(std::move(mesh), position, {}, scale)
+RenderEntity::RenderEntity(Mesh mesh, const Vector3 &position)
+    : RenderEntity(std::move(mesh), {position, {}, {1.0f}})
+{
+}
+
+RenderEntity::RenderEntity(Mesh mesh, const Transform &transform)
+    : RenderEntity(std::move(mesh), transform, Skeleton{})
 {
 }
 
 RenderEntity::RenderEntity(
     Mesh mesh,
-    const Vector3 &position,
-    const Quaternion &orientation,
-    const Vector3 &scale)
-    : RenderEntity(std::move(mesh), position, orientation, scale, Skeleton{})
-{
-}
-
-RenderEntity::RenderEntity(
-    Mesh mesh,
-    const Vector3 &position,
-    const Quaternion &orientation,
-    const Vector3 &scale,
+    const Transform &transform,
     Skeleton skeleton)
     : meshes_()
-    , position_(position)
-    , orientation_(orientation)
-    , scale_(scale)
-    , model_()
+    , transform_(transform)
     , normal_()
     , wireframe_(false)
     , primitive_type_(PrimitiveType::TRIANGLES)
@@ -71,71 +60,55 @@ RenderEntity::RenderEntity(
     , receive_shadow_(true)
 {
     meshes_.emplace_back(std::move(mesh));
-    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) *
-             Matrix4::make_scale(scale_);
-    normal_ = create_normal_transform(model_);
+    normal_ = create_normal_transform(transform_.matrix());
 }
 
 RenderEntity::RenderEntity(
     std::vector<Mesh> meshes,
-    const Vector3 &position,
-    const Quaternion &orientation,
-    const Vector3 &scale,
+    const Transform &transform,
     Skeleton skeleton)
     : meshes_(std::move(meshes))
-    , position_(position)
-    , orientation_(orientation)
-    , scale_(scale)
-    , model_()
+    , transform_(transform)
     , normal_()
     , wireframe_(false)
     , primitive_type_(PrimitiveType::TRIANGLES)
     , skeleton_(std::move(skeleton))
     , receive_shadow_(true)
 {
-    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) *
-             Matrix4::make_scale(scale_);
-    normal_ = create_normal_transform(model_);
+    normal_ = create_normal_transform(transform_.matrix());
 }
 
 Vector3 RenderEntity::position() const
 {
-    return position_;
+    return transform_.translation();
 }
 
 void RenderEntity::set_position(const Vector3 &position)
 {
-    position_ = position;
-
-    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) *
-             Matrix4::make_scale(scale_);
-    normal_ = create_normal_transform(model_);
+    transform_.set_translation(position);
+    normal_ = create_normal_transform(transform_.matrix());
 }
 
 Quaternion RenderEntity::orientation() const
 {
-    return orientation_;
+    return transform_.rotation();
 }
 
 void RenderEntity::set_orientation(const Quaternion &orientation)
 {
-    orientation_ = orientation;
-    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) *
-             Matrix4::make_scale(scale_);
-    normal_ = create_normal_transform(model_);
+    transform_.set_rotation(orientation);
+    normal_ = create_normal_transform(transform_.matrix());
 }
 
 void RenderEntity::set_scale(const Vector3 &scale)
 {
-    scale_ = scale;
-    model_ = Matrix4::make_translate(position_) * Matrix4(orientation_) *
-             Matrix4::make_scale(scale_);
-    normal_ = create_normal_transform(model_);
+    transform_.set_scale(scale);
+    normal_ = create_normal_transform(transform_.matrix());
 }
 
 Matrix4 RenderEntity::transform() const
 {
-    return model_;
+    return transform_.matrix();
 }
 
 Matrix4 RenderEntity::normal_transform() const

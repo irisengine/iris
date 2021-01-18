@@ -4,7 +4,11 @@
 
 #include "core/camera.h"
 #include "core/looper.h"
+#include "core/resource_loader.h"
+#include "core/start.h"
 #include "core/transform.h"
+#include "core/window.h"
+#include "events/keyboard_event.h"
 #include "graphics/material.h"
 #include "graphics/mesh_factory.h"
 #include "graphics/pipeline.h"
@@ -26,10 +30,6 @@
 #include "graphics/scene.h"
 #include "graphics/texture_factory.h"
 #include "log/log.h"
-#include "events/keyboard_event.h"
-#include "core/resource_loader.h"
-#include "core/start.h"
-#include "core/window.h"
 
 using namespace std::chrono_literals;
 
@@ -68,9 +68,10 @@ void go(int, char **)
     auto *sphere1 = scene1->create_entity(
         std::move(graph1),
         std::move(mesh1),
-        iris::Vector3{-20.0f, 0.0f, 0.0f},
-        iris::Quaternion({1.0f, 0.0f, 0.0f}, M_PI_2),
-        iris::Vector3{10.0f},
+        iris::Transform{
+            iris::Vector3{-20.0f, 0.0f, 0.0f},
+            iris::Quaternion({1.0f, 0.0f, 0.0f}, M_PI_2),
+            iris::Vector3{10.0f}},
         skl1);
     auto *light1 = scene1->create_light(iris::Vector3{-1.0f, -1.0f, 0.0f});
 
@@ -84,9 +85,10 @@ void go(int, char **)
     auto *sphere2 = scene2->create_entity(
         std::move(graph2),
         std::move(mesh2),
-        iris::Vector3{20.0f, 0.0f, 0.0f},
-        iris::Quaternion({1.0f, 0.0f, 0.0f}, M_PI_2),
-        iris::Vector3{10.0f},
+        iris::Transform{
+            iris::Vector3{20.0f, 0.0f, 0.0f},
+            iris::Quaternion({1.0f, 0.0f, 0.0f}, M_PI_2),
+            iris::Vector3{10.0f}},
         skl2);
     auto *light2 = scene2->create_light(iris::Vector3{-1.0f, -1.0f, 0.0f});
 
@@ -103,8 +105,8 @@ void go(int, char **)
     scene3->create_entity(
         std::move(graph3),
         iris::mesh_factory::sprite({}),
-        iris::Vector3{},
-        iris::Vector3{800.0f, 800.0f, 1.0f});
+        iris::Transform{
+            iris::Vector3{}, {}, iris::Vector3{800.0f, 800.0f, 1.0f}});
 
     iris::Pipeline pipeline{};
 

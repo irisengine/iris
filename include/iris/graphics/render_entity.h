@@ -6,6 +6,7 @@
 #include "core/camera_type.h"
 #include "core/matrix4.h"
 #include "core/quaternion.h"
+#include "core/transform.h"
 #include "graphics/material.h"
 #include "graphics/mesh.h"
 #include "graphics/primitive_type.h"
@@ -30,11 +31,8 @@ class RenderEntity
      *
      * @param position
      *   Centre of mesh in world space.
-     *
-     * @param scale
-     *   Scale of mesh.
      */
-    RenderEntity(Mesh mesh, const Vector3 &position, const Vector3 &scale);
+    RenderEntity(Mesh mesh, const Vector3 &position);
 
     /**
      * Construct a RenderEntity.
@@ -42,20 +40,10 @@ class RenderEntity
      * @param mesh
      *   Mesh to render.
      *
-     * @param position
-     *   Centre of mesh in world space.
-     *
-     * @param orientation
-     *   Orientation of mesh.
-     *
-     * @param scale
-     *   Scale of mesh.
+     * @param transform
+     *   Transform of entity in world space.
      */
-    RenderEntity(
-        Mesh mesh,
-        const Vector3 &position,
-        const Quaternion &orientation,
-        const Vector3 &scale);
+    RenderEntity(Mesh mesh, const Transform &transform);
 
     /**
      * Construct a RenderEntity.
@@ -63,24 +51,13 @@ class RenderEntity
      * @param mesh
      *   Mesh to render.
      *
-     * @param position
-     *   Centre of mesh in world space.
-     *
-     * @param orientation
-     *   Orientation of mesh.
-     *
-     * @param scale
-     *   Scale of mesh.
+     * @param transform
+     *   Transform of entity in world space.
      *
      * @param skeleton
      *   Skeleton.
      */
-    RenderEntity(
-        Mesh mesh,
-        const Vector3 &position,
-        const Quaternion &orientation,
-        const Vector3 &scale,
-        Skeleton skeleton);
+    RenderEntity(Mesh mesh, const Transform &transform, Skeleton skeleton);
 
     /**
      * Construct a RenderEntity.
@@ -88,23 +65,15 @@ class RenderEntity
      * @param meshes
      *   Collection of meshes to render.
      *
-     * @param position
-     *   Centre of mesh in world space.
-     *
-     * @param orientation
-     *   Orientation of mesh.
-     *
-     * @param scale
-     *   Scale of mesh.
+     * @param transform
+     *   Transform of entity in world space.
      *
      * @param skeleton
      *   Skeleton.
      */
     RenderEntity(
         std::vector<Mesh> meshes,
-        const Vector3 &position,
-        const Quaternion &orientation,
-        const Vector3 &scale,
+        const Transform &transform,
         Skeleton skeleton);
 
     RenderEntity(const RenderEntity &) = delete;
@@ -260,17 +229,8 @@ class RenderEntity
     /** Meshes to render. */
     std::vector<Mesh> meshes_;
 
-    /** The position of the RenderEntity. */
-    Vector3 position_;
-
-    /** The orientation of the RenderEntity. */
-    Quaternion orientation_;
-
-    /** The scale of the RenderEntity. */
-    Vector3 scale_;
-
-    /** Model transformation matrix4. */
-    Matrix4 model_;
+    /** World space transform. */
+    Transform transform_;
 
     /** Normal transformation matrix. */
     Matrix4 normal_;
