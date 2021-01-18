@@ -123,7 +123,7 @@ Texture *create(
 
 Texture *blank()
 {
-    static auto texture = Texture::blank();
+    static Texture texture{};
     return &texture;
 }
 

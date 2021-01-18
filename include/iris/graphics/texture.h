@@ -19,6 +19,12 @@ namespace iris
 class Texture
 {
   public:
+
+    /**
+     * Create a 1x1 pixel white texture.
+     */
+  Texture();
+
     /**
      * Creates a new empty Texture.
      *
@@ -106,14 +112,6 @@ class Texture
      *   Unique id.
      */
     std::uint32_t texture_id() const;
-
-    /**
-     * Return a 1x1 pixel white texture.
-     *
-     * @returns
-     *   Blank texture.
-     */
-    static Texture blank();
 
     /**
      * Should a texture be flipped vertically.

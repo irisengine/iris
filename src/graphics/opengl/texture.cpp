@@ -127,6 +127,17 @@ struct Texture::implementation
     std::uint32_t id;
 };
 
+Texture::Texture()
+    : Texture(
+          DataBuffer(4, static_cast<std::byte>(0xFF)),
+          1u,
+          1u,
+          PixelFormat::RGBA)
+{
+    static constexpr auto value = static_cast<std::byte>(0xFF);
+    data_ = DataBuffer(4, value);
+}
+
 Texture::Texture(
     std::uint32_t width,
     std::uint32_t height,
@@ -187,12 +198,6 @@ std::any Texture::native_handle() const
 std::uint32_t Texture::texture_id() const
 {
     return impl_->id;
-}
-
-Texture Texture::blank()
-{
-    const std::byte value = static_cast<std::byte>(0xFF);
-    return{ { value, value, value, value }, 1u, 1u, PixelFormat::RGBA };
 }
 
 bool Texture::flip() const
