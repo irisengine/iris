@@ -13,6 +13,7 @@
 #include "core/exception.h"
 #include "core/matrix4.h"
 #include "core/quaternion.h"
+#include "core/resource_loader.h"
 #include "core/transform.h"
 #include "core/vector3.h"
 #include "graphics/animation.h"
@@ -22,7 +23,6 @@
 #include "graphics/texture_factory.h"
 #include "graphics/vertex_data.h"
 #include "log/log.h"
-#include "core/resource_loader.h"
 
 namespace
 {
@@ -289,11 +289,11 @@ std::vector<std::uint32_t> process_indices(const ::aiMesh *mesh)
  * @returns
  *   Vertex data.
  */
-std::vector<iris::vertex_data> process_vertices(
+std::vector<iris::VertexData> process_vertices(
     const ::aiMesh *mesh,
     const ::aiMaterial *material)
 {
-    std::vector<iris::vertex_data> vertices{};
+    std::vector<iris::VertexData> vertices{};
 
     for (auto i = 0u; i < mesh->mNumVertices; ++i)
     {
@@ -344,7 +344,7 @@ namespace iris
 
 void load_mesh(
     const std::string &mesh_name,
-    std::vector<std::vector<vertex_data>> *vertices,
+    std::vector<std::vector<VertexData>> *vertices,
     std::vector<std::vector<std::uint32_t>> *indices,
     std::vector<Texture *> *textures,
     Skeleton *skeleton)

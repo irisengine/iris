@@ -8,10 +8,10 @@
 #include <vector>
 
 #include "core/exception.h"
+#include "graphics/light.h"
 #include "graphics/opengl/opengl.h"
 #include "graphics/opengl/shader.h"
 #include "graphics/opengl/shader_type.h"
-#include "graphics/light.h"
 #include "graphics/render_graph/compiler.h"
 #include "graphics/render_graph/render_graph.h"
 
@@ -37,10 +37,10 @@ std::uint32_t create_program(
     const auto program = ::glCreateProgram();
     iris::check_opengl_error("could not create new program");
 
-    const iris::shader vertex_shader{
-        vertex_shader_source, iris::shader_type::VERTEX};
-    const iris::shader fragment_shader{
-        fragment_shader_source, iris::shader_type::FRAGMENT};
+    const iris::Shader vertex_shader{
+        vertex_shader_source, iris::ShaderType::VERTEX};
+    const iris::Shader fragment_shader{
+        fragment_shader_source, iris::ShaderType::FRAGMENT};
 
     ::glAttachShader(program, vertex_shader.native_handle());
     iris::check_opengl_error("could not attach vertex shader");

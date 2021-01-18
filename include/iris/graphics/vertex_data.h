@@ -12,12 +12,12 @@ namespace iris
  * Struct encapsulating all data needed to render a vertex. This automatically
  * pads fields required by some graphics APIs.
  */
-struct vertex_data
+struct VertexData
 {
-    vertex_data() = default;
+    VertexData() = default;
 
     /**
-     * Create a new vertex_data.
+     * Create a new VertexData.
      *
      * @param position
      *   The position of the vertex.
@@ -31,12 +31,12 @@ struct vertex_data
      * @param texture_coords
      *   Coordinates of texture.
      */
-    vertex_data(
+    VertexData(
         const Vector3 &position,
         const Vector3 &normal,
         const Colour &colour,
         const Vector3 &texture_coords)
-        : vertex_data(
+        : VertexData(
               position,
               normal,
               colour,
@@ -47,14 +47,14 @@ struct vertex_data
     {
     }
 
-    vertex_data(
+    VertexData(
         const Vector3 &position,
         const Vector3 &normal,
         const Colour &colour,
         const Vector3 &texture_coords,
         const Vector3 &tangent,
         const Vector3 &bitangent)
-        : vertex_data(
+        : VertexData(
               position,
               normal,
               colour,
@@ -65,7 +65,7 @@ struct vertex_data
     {
     }
 
-    vertex_data(
+    VertexData(
         const Vector3 &position,
         const Vector3 &normal,
         const Colour &colour,
@@ -115,12 +115,16 @@ struct vertex_data
     /** Padding so we can pass normal as 4 floats. */
     float padding;
 
+    /** Normal tangent. */
     Vector3 tangent;
 
+    /** Padding so we can pass normal as 4 floats. */
     float tangent_w;
 
+    /** Normal bitangent tangent. */
     Vector3 bitangent;
 
+    /** Padding so we can pass normal as 4 floats. */
     float bitangent_w;
 
     /** Array of bone ids. */
@@ -133,7 +137,7 @@ struct vertex_data
 /**
  * VertexAttributes for above struct.
  */
-static VertexAttributes vertex_attributes{
+static VertexAttributes DefaultVertexAttributes{
     {VertexAttributeType::FLOAT_4,
      VertexAttributeType::FLOAT_4,
      VertexAttributeType::FLOAT_4,

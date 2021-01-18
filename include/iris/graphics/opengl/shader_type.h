@@ -8,7 +8,7 @@ namespace iris
 /**
  * Enumeration of shader types.
  */
-enum shader_type : std::uint32_t
+enum ShaderType : std::uint32_t
 {
     VERTEX,
     FRAGMENT

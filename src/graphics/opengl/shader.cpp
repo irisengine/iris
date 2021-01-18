@@ -12,11 +12,11 @@
 namespace iris
 {
 
-shader::shader(const std::string &source, shader_type type)
+Shader::Shader(const std::string &source, ShaderType type)
     : shader_(0u)
 {
     const auto native_type =
-        (type == shader_type::VERTEX) ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER;
+        (type == ShaderType::VERTEX) ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER;
 
     shader_ = ::glCreateShader(native_type);
     check_opengl_error("could not create vertex shader");
@@ -63,30 +63,30 @@ shader::shader(const std::string &source, shader_type type)
     }
 }
 
-shader::~shader()
+Shader::~Shader()
 {
     ::glDeleteShader(shader_);
 }
 
-shader::shader(shader &&other)
+Shader::Shader(Shader &&other)
     : shader_(0u)
 {
     std::swap(shader_, other.shader_);
 }
 
-shader &shader::operator=(shader &&other)
+Shader &Shader::operator=(Shader &&other)
 {
     // create a new shader object to 'steal' the internal state of the supplied
     // object then swap
     // this ensures that the current shader is correctly deleted at the end
     // of this call
-    shader new_shader{std::move(other)};
+    Shader new_shader{std::move(other)};
     std::swap(shader_, new_shader.shader_);
 
     return *this;
 }
 
-std::uint32_t shader::native_handle() const
+std::uint32_t Shader::native_handle() const
 {
     return shader_;
 }

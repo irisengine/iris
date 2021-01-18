@@ -10,7 +10,7 @@ namespace iris
 /**
  * Class encapsulating an opengl shader.
  */
-class shader
+class Shader
 {
   public:
     /**
@@ -22,12 +22,12 @@ class shader
      * @param type
      *   The type of shader.
      */
-    shader(const std::string &source, shader_type type);
+    Shader(const std::string &source, ShaderType type);
 
     /**
      * Destructor, performs opengl cleanup.
      */
-    ~shader();
+    ~Shader();
 
     /**
      * Move constructor, steals the state from the moved-in object.
@@ -35,7 +35,7 @@ class shader
      * @param other
      *   Object to take state from. Do not use after this call.
      */
-    shader(shader &&other);
+    Shader(Shader &&other);
 
     /**
      * Move operator, steals the state from the moved-in object.
@@ -43,11 +43,11 @@ class shader
      * @param other
      *   Object to take state from. Do not use after this call.
      */
-    shader &operator=(shader &&);
+    Shader &operator=(Shader &&);
 
     /** Disabled */
-    shader(const shader &) = delete;
-    shader &operator=(const shader &) = delete;
+    Shader(const Shader &) = delete;
+    Shader &operator=(const Shader &) = delete;
 
     /**
      * Get the native opengl handle.
