@@ -5,6 +5,7 @@
 
 #include "core/exception.h"
 #include "graphics/light.h"
+#include "graphics/metal/compiler_strings.h"
 #include "graphics/render_graph/arithmetic_node.h"
 #include "graphics/render_graph/blur_node.h"
 #include "graphics/render_graph/colour_node.h"
@@ -15,6 +16,7 @@
 #include "graphics/render_graph/render_node.h"
 #include "graphics/render_graph/sin_node.h"
 #include "graphics/render_graph/texture_node.h"
+#include "graphics/render_graph/utils.h"
 #include "graphics/render_graph/value_node.h"
 #include "graphics/render_graph/vertex_position_node.h"
 #include "graphics/texture.h"
@@ -22,48 +24,20 @@
 
 namespace
 {
-static constexpr auto preamble = R"(
-#include <metal_relational>
-#include <metal_stdlib>
-#include <simd/simd.h>
-using namespace metal;
-)";
 
-static constexpr auto vertex_in = R"(
-typedef struct
-{
-    float4 position;
-    float4 normal;
-    float4 color;
-    float4 tex;
-    float4 tangent;
-    float4 bitangent;
-    int4 bone_ids;
-    float4 bone_weights;
-} VertexIn;
-)";
-
-static constexpr auto default_uniform = R"(
-typedef struct
-{
-    float4x4 projection;
-    float4x4 view;
-    float4x4 model;
-    float4x4 normal_matrix;
-    float4x4 bones[100];
-    float time;
-} DefaultUniform;
-)";
-
-static constexpr auto light_uniform = R"(
-typedef struct
-{
-    float4 position;
-    float4x4 proj;
-    float4x4 view;
-} LightUniform;
-)";
-
+/**
+ * Helper function to create a variable name for a texture. Always returns the
+ * same name for the same texture.
+ *
+ * @param texture
+ *   Texture to generate name for.
+ *
+ * @param textures
+ *   Collection of textures, texture will be inserted if it does not exist.
+ *
+ * @returns
+ *   Unique variable name for the texture.
+ */
 std::string texture_name(
     iris::Texture *texture,
     std::vector<iris::Texture *> &textures)
@@ -104,11 +78,11 @@ void Compiler::visit(const RenderNode &node)
     current_stream_ = &vertex_stream_;
     current_functions_ = &vertex_functions_;
 
+    current_functions_->emplace(bone_transform_function);
+    current_functions_->emplace(tbn_function);
+
     vertex_stream_ << R"(
-    float4x4 bone_transform = uniform->bones[vertices[vid].bone_ids.x] * vertices[vid].bone_weights.x;
-    bone_transform += uniform->bones[vertices[vid].bone_ids.y] * vertices[vid].bone_weights.y;
-    bone_transform += uniform->bones[vertices[vid].bone_ids.z] * vertices[vid].bone_weights.z;
-    bone_transform += uniform->bones[vertices[vid].bone_ids.w] * vertices[vid].bone_weights.w;
+    float4x4 bone_transform = calculate_bone_transform(uniform, vid, vertices);
 
     float2 uv = vertices[vid].tex.xy;
 )";
@@ -133,18 +107,18 @@ void Compiler::visit(const RenderNode &node)
     out.color = vertices[vid].color;
     out.tex = vertices[vid].tex;
 
-    float3 T = normalize(float3(uniform->normal_matrix * bone_transform * vertices[vid].tangent));
-    float3 B = normalize(float3(uniform->normal_matrix * bone_transform * vertices[vid].bitangent));
-    float3 N = normalize(float3(uniform->normal_matrix * bone_transform * vertices[vid].normal));
-    float3x3 tbn = transpose(float3x3(T, B, N));
+    const float3x3 tbn = calculate_tbn(uniform, bone_transform, vid, vertices);
+
 )";
 
     for (auto i = 0u; i < lights_.size(); ++i)
     {
-        vertex_stream_ << "out.frag_pos_light_space" << i << " = light[" << i
-                       << "].proj * light[" << i << "].view * out.pos;\n";
-        vertex_stream_ << "out.tangent_light_pos" << i
-                       << " = tbn * float3(light[" << i << "].position);\n";
+        vertex_stream_ << replace_index(
+            R"(
+            out.frag_pos_light_space{} = light[{}].proj * light[{}].view * out.pos;
+            out.tangent_light_pos{} = tbn * float3(light[{}].position);
+            )",
+            i);
     }
 
     vertex_stream_ << R"(
@@ -156,6 +130,8 @@ void Compiler::visit(const RenderNode &node)
 
     current_stream_ = &fragment_stream_;
     current_functions_ = &fragment_functions_;
+
+    current_functions_->emplace(shadow_function);
 
     if (!node.is_depth_only())
     {
@@ -182,9 +158,11 @@ void Compiler::visit(const RenderNode &node)
 
             for (auto i = 0u; i < lights_.size(); ++i)
             {
-                fragment_stream_ << "float3 light_dir" << i
-                                 << " = normalize(-(light[" << i
-                                 << "].position.xyz));\n";
+                fragment_stream_ << replace_index(
+                    R"(
+                    float3 light_dir{} = normalize(-(light[{}].position.xyz));
+                    )",
+                    i);
             }
         }
         else
@@ -194,9 +172,11 @@ void Compiler::visit(const RenderNode &node)
             fragment_stream_ << "n4 = normalize(n4 * 2.0 - 1.0);\n";
             for (auto i = 0u; i < lights_.size(); ++i)
             {
-                fragment_stream_ << "float3 light_dir" << i
-                                 << " = normalize(-in.tangent_light_pos" << i
-                                 << ");\n";
+                fragment_stream_ << replace_index(
+                    R"(
+                    float3 light_dir{} = normalize(-in.tangent_light_pos{});
+                    )",
+                    i);
             }
         }
 
@@ -219,51 +199,25 @@ void Compiler::visit(const RenderNode &node)
             fragment_stream_ << "float shadow" << i << " = 0.0;\n";
             if (node.shadow_map_input(i) != nullptr)
             {
-                auto *shadow_texture =
-                    static_cast<TextureNode *>(node.shadow_map_input(i))
-                        ->texture();
-                fragment_stream_ << "constexpr sampler s" << i
-                                 << "(coord::normalized, filter::linear, "
-                                    "address::clamp_to_edge, "
-                                    "compare_func::less);\n";
                 fragment_stream_
-                    << "float3 proj_coord" << i << " = in.frag_pos_light_space"
-                    << i << ".xyz / in.frag_pos_light_space" << i << ".w;\n";
-
-                fragment_stream_ << "float2 proj_uv" << i << " = float2(";
-                if (shadow_texture->flip())
-                {
-                    fragment_stream_ << "proj_coord" << i << ".x, -proj_coord"
-                                     << i << ".y);\n";
-                }
-                else
-                {
-                    fragment_stream_ << "proj_coord" << i << ".xy);\n";
-                }
-                fragment_stream_ << "proj_uv" << i << "= proj_uv" << i
-                                 << " * 0.5 + 0.5;\n";
-
-                fragment_stream_ << "float closest_depth" << i << " = "
-                                 << texture_name(shadow_texture, textures_)
-                                 << ".sample(s" << i << ", proj_uv" << i
-                                 << ").r;\n";
-                fragment_stream_ << "float current_depth" << i
-                                 << " = proj_coord" << i << ".z;\n";
-                fragment_stream_ << "float bias" << i
-                                 << " = max(0.05 * (1.0 - dot(n, light_dir" << i
-                                 << ")), 0.005);\n";
-                fragment_stream_ << "shadow" << i << " = current_depth" << i
-                                 << " - bias" << i << " > closest_depth" << i
-                                 << " ? 1.0 : 0.0;\n";
-                fragment_stream_ << "if(proj_coord" << i << ".z > 1.0) {shadow"
-                                 << i << " = 0.0;}\n";
+                    << replace_index(
+                           R"(
+                           shadow{} = calculate_shadow(n, in.frag_pos_light_space{}, light_dir{}, )",
+                           i)
+                    << texture_name(
+                           static_cast<TextureNode *>(node.shadow_map_input(i))
+                               ->texture(),
+                           textures_)
+                    << ");\n";
             }
 
-            fragment_stream_ << "float diff" << i << " = max(dot(n, light_dir"
-                             << i << "), 0.0);\n";
-            fragment_stream_ << "float3 diffuse" << i << " = (1.0  - shadow"
-                             << i << ") * diff" << i << " * float3(1);\n";
-            fragment_stream_ << "diffuse += diffuse" << i << ";\n";
+            fragment_stream_ << replace_index(
+                R"(
+                float diff{} = max(dot(n, light_dir{}), 0.0);
+                float3 diffuse{} = (1.0  - shadow{}) * float3(diff{});
+                diffuse += diffuse{};
+                )",
+                i);
         }
 
         fragment_stream_ << R"(
@@ -314,11 +268,7 @@ float4 sample_texture(texture2d<float> texture, float2 coord)
 
 void Compiler::visit(const InvertNode &node)
 {
-    current_functions_->emplace(R"(
-float4 invert(float4 colour)
-{
-    return float4(float3(1.0 - colour), 1.0);
-})");
+    current_functions_->emplace(invert_function);
 
     *current_stream_ << "invert(";
     node.input_node()->accept(*this);
@@ -327,42 +277,7 @@ float4 invert(float4 colour)
 
 void Compiler::visit(const BlurNode &node)
 {
-    current_functions_->emplace(R"(
-float4 blur(texture2d<float> texture, float2 tex_coords)
-{
-    constexpr sampler s(coord::normalized, address::repeat, filter::linear);
-
-    const float offset = 1.0 / 100.0;  
-    float2 offsets[9] = {
-        float2(-offset,  offset), // top-left
-        float2( 0.0f,    offset), // top-center
-        float2( offset,  offset), // top-right
-        float2(-offset,  0.0f),   // center-left
-        float2( 0.0f,    0.0f),   // center-center
-        float2( offset,  0.0f),   // center-right
-        float2(-offset, -offset), // bottom-left
-        float2( 0.0f,   -offset), // bottom-center
-        float2( offset, -offset)  // bottom-right    
-    };
-
-    float k[9] = {
-        1.0 / 16.0, 2.0 / 16.0, 1.0 / 16.0,
-        2.0 / 16.0, 4.0 / 16.0, 2.0 / 16.0,
-        1.0 / 16.0, 2.0 / 16.0, 1.0 / 16.0  
-    };
-
-    float3 sampleTex[9];
-    for(int i = 0; i < 9; i++)
-    {
-        sampleTex[i] = float3(texture.sample(s, tex_coords + offsets[i]));
-    }
-    float3 col = float3(0.0);
-    for(int i = 0; i < 9; i++)
-    {
-        col += sampleTex[i] * k[i];
-    }
-    return float4(col, 1.0);
-})");
+    current_functions_->emplace(blur_function);
 
     *current_stream_ << "blur("
                      << texture_name(node.input_node()->texture(), textures_);
@@ -379,19 +294,7 @@ float4 blur(texture2d<float> texture, float2 tex_coords)
 
 void Compiler::visit(const CompositeNode &node)
 {
-    current_functions_->emplace(R"(
-float4 composite(float4 colour1, float4 colour2, float4 depth1, float4 depth2, float2 tex_coord)
-{
-    float4 colour = colour2;
-
-    if(depth1.r < depth2.r)
-    {
-        colour = colour1;
-    }
-
-    return colour;
-}
-)");
+    current_functions_->emplace(composite_function);
 
     *current_stream_ << "composite(";
     node.colour1()->accept(*this);
