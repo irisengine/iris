@@ -1,4 +1,4 @@
-#include "graphics/gl/opengl.h"
+#include "graphics/opengl/opengl.h"
 
 #include <string>
 

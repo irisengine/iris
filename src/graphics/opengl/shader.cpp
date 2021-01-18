@@ -1,4 +1,4 @@
-#include "graphics/gl/shader.h"
+#include "graphics/opengl/shader.h"
 
 #include <cstdint>
 #include <string>
@@ -6,8 +6,8 @@
 #include <vector>
 
 #include "core/exception.h"
-#include "graphics/gl/opengl.h"
-#include "graphics/gl/shader_type.h"
+#include "graphics/opengl/opengl.h"
+#include "graphics/opengl/shader_type.h"
 
 namespace iris
 {

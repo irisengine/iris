@@ -2,7 +2,7 @@ set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/graphics")
 
 if(IRIS_GRAPHICS_API MATCHES "OPENGL")
-  add_subdirectory("gl")
+  add_subdirectory("opengl")
 elseif(IRIS_GRAPHICS_API MATCHES "METAL")
   add_subdirectory("metal")
 endif()

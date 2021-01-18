@@ -8,9 +8,9 @@
 #include <vector>
 
 #include "core/exception.h"
-#include "graphics/gl/opengl.h"
-#include "graphics/gl/shader.h"
-#include "graphics/gl/shader_type.h"
+#include "graphics/opengl/opengl.h"
+#include "graphics/opengl/shader.h"
+#include "graphics/opengl/shader_type.h"
 #include "graphics/light.h"
 #include "graphics/render_graph/compiler.h"
 #include "graphics/render_graph/render_graph.h"

@@ -6,7 +6,7 @@
 #include "core/camera.h"
 #include "core/vector3.h"
 #include "graphics/buffer.h"
-#include "graphics/gl/opengl.h"
+#include "graphics/opengl/opengl.h"
 #include "graphics/light.h"
 #include "graphics/material.h"
 #include "graphics/pipeline.h"

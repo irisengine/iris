@@ -22,7 +22,7 @@
 #else
 #define EXTERN extern
 #endif
-#include "graphics/gl/opengl_windows.h"
+#include "graphics/opengl/opengl_windows.h"
 #pragma comment(lib, "opengl32.lib")
 // clang-format on
 #else

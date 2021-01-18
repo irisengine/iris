@@ -8,7 +8,7 @@
 #include "core/exception.h"
 #include "core/utils.h"
 #include "core/window.h"
-#include "graphics/gl/opengl.h"
+#include "graphics/opengl/opengl.h"
 #include "graphics/pixel_format.h"
 
 namespace iris

@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "graphics/gl/shader_type.h"
+#include "graphics/opengl/shader_type.h"
 
 namespace iris
 {

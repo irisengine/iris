@@ -7,7 +7,7 @@
 
 #include "core/exception.h"
 #include "graphics/buffer_type.h"
-#include "graphics/gl/opengl.h"
+#include "graphics/opengl/opengl.h"
 #include "graphics/vertex_data.h"
 
 namespace

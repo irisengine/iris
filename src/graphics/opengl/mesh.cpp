@@ -4,7 +4,7 @@
 #include <tuple>
 
 #include "core/exception.h"
-#include "graphics/gl/opengl.h"
+#include "graphics/opengl/opengl.h"
 #include "graphics/vertex_attributes.h"
 
 namespace

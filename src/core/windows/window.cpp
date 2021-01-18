@@ -14,7 +14,7 @@
                                       // opengl functions
 #include "events/event.h"
 #include "events/quit_event.h"
-#include "graphics/gl/opengl.h"
+#include "graphics/opengl/opengl.h"
 #include "graphics/pipeline.h"
 #include "graphics/render_system.h"
 #include "graphics/render_target.h"

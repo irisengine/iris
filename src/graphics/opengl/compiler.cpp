@@ -4,7 +4,7 @@
 #include <string>
 
 #include "core/exception.h"
-#include "graphics/gl/compiler_strings.h"
+#include "graphics/opengl/compiler_strings.h"
 #include "graphics/light.h"
 #include "graphics/render_graph/arithmetic_node.h"
 #include "graphics/render_graph/blur_node.h"

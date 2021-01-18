@@ -9,7 +9,7 @@
 #include "core/data_buffer.h"
 #include "core/exception.h"
 #include "core/resource_loader.h"
-#include "graphics/gl/opengl.h"
+#include "graphics/opengl/opengl.h"
 #include "graphics/pixel_format.h"
 #include "log/log.h"
 
