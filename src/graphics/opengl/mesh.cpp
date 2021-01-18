@@ -39,7 +39,7 @@ std::tuple<GLenum, bool> to_opengl_format(iris::VertexAttributeType type)
  * @returns
  *   Supplied type as opengl type.
  */
-std::uint32_t type_to_gl_type(const iris::BufferType type)
+GLenum type_to_gl_type(const iris::BufferType type)
 {
     auto gl_type = GL_ARRAY_BUFFER;
 
@@ -65,7 +65,7 @@ std::uint32_t type_to_gl_type(const iris::BufferType type)
  */
 void bind_buffer(const iris::Buffer &buffer)
 {
-    const auto handle = std::any_cast<std::uint32_t>(buffer.native_handle());
+    const auto handle = std::any_cast<GLuint>(buffer.native_handle());
 
     ::glBindBuffer(type_to_gl_type(buffer.type()), handle);
     iris::check_opengl_error("could not bind buffer");

@@ -22,7 +22,7 @@ namespace
  * @returns
  *   Supplied type as opengl type.
  */
-std::uint32_t type_to_gl_type(const iris::BufferType type)
+GLenum type_to_gl_type(const iris::BufferType type)
 {
     auto gl_type = GL_ARRAY_BUFFER;
 
@@ -34,8 +34,7 @@ std::uint32_t type_to_gl_type(const iris::BufferType type)
         case iris::BufferType::VERTEX_INDICES:
             gl_type = GL_ELEMENT_ARRAY_BUFFER;
             break;
-        default:
-            throw iris::Exception("unknown Buffer type");
+        default: throw iris::Exception("unknown Buffer type");
     }
 
     return gl_type;
@@ -51,11 +50,9 @@ std::uint32_t type_to_gl_type(const iris::BufferType type)
  *   Handle to opengl buffer.
  */
 template <class T>
-std::uint32_t create_buffer(
-    const std::vector<T> &data,
-    const iris::BufferType type)
+GLuint create_buffer(const std::vector<T> &data, const iris::BufferType type)
 {
-    std::uint32_t handle = 0u;
+    GLuint handle = 0u;
 
     ::glGenBuffers(1, &handle);
     iris::check_opengl_error("could not generate opengl buffer");
@@ -83,30 +80,21 @@ std::uint32_t create_buffer(
 namespace iris
 {
 
-/**
- * Struct containing implementation specific data.
- */
 struct Buffer::implementation final
 {
-    /** Simple constructor which takes a value for each member. */
-    implementation(std::uint32_t handle)
-        : handle(handle)
-    {
-    }
-
-    /** Opengl handle for buffer. */
-    std::uint32_t handle;
+    GLuint handle;
 };
 
 Buffer::Buffer(
     const DataBuffer &data,
     const BufferType type,
     std::size_t element_count)
-    : impl_(std::make_unique<implementation>(create_buffer(data, type)))
+    : impl_(std::make_unique<implementation>())
     , type_(type)
     , element_count_(element_count)
     , data_(data)
 {
+    impl_->handle = create_buffer(data, type);
 }
 
 Buffer::~Buffer()
@@ -117,7 +105,6 @@ Buffer::~Buffer()
     }
 }
 
-/** Default. */
 Buffer::Buffer(Buffer &&other) = default;
 Buffer &Buffer::operator=(Buffer &&other) = default;
 

@@ -16,7 +16,7 @@ namespace iris
 
 struct RenderTarget::implementation
 {
-    std::uint32_t fbo;
+    GLuint fbo;
 };
 
 RenderTarget::RenderTarget(std::uint32_t width, std::uint32_t height)

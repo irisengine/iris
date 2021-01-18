@@ -30,7 +30,7 @@ namespace
  * @returns
  *   Opengl program object.
  */
-std::uint32_t create_program(
+GLuint create_program(
     const std::string &vertex_shader_source,
     const std::string &fragment_shader_source)
 {
@@ -50,7 +50,7 @@ std::uint32_t create_program(
 
     ::glLinkProgram(program);
 
-    std::int32_t programparam = 0;
+    GLint programparam = 0;
     ::glGetProgramiv(program, GL_LINK_STATUS, &programparam);
 
     // if program failed to link then get the opengl error
@@ -68,7 +68,7 @@ std::uint32_t create_program(
             std::vector<char> error_log(programparam);
 
             // get opengl error log
-            std::int32_t log_length = 0;
+            GLsizei log_length = 0;
             ::glGetProgramInfoLog(
                 program,
                 static_cast<std::int32_t>(error_log.size()),
@@ -91,7 +91,7 @@ namespace iris
 
 struct Material::implementation
 {
-    std::uint32_t program;
+    GLuint program;
 };
 
 Material::Material(

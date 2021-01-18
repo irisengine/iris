@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include "graphics/opengl/opengl.h"
 #include "graphics/opengl/shader_type.h"
 
 namespace iris
@@ -54,11 +55,11 @@ class Shader
      *
      * @returns native opengl handle.
      */
-    std::uint32_t native_handle() const;
+    GLuint native_handle() const;
 
   private:
     /** Opengl shader object. */
-    std::uint32_t shader_;
+    GLuint shader_;
 };
 
 }

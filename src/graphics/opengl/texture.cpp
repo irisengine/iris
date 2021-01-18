@@ -25,7 +25,7 @@ namespace
  * @returns
  *   An opengl enum representing the pixel format.
  */
-std::uint32_t format_to_opengl(iris::PixelFormat pixel_format)
+GLenum format_to_opengl(iris::PixelFormat pixel_format)
 {
     auto opengl_format = 0u;
 
@@ -59,9 +59,9 @@ std::uint32_t format_to_opengl(iris::PixelFormat pixel_format)
  *   Format of texture data.
  *
  * @returns
- *   Handle to texture.
+ *   Handle to texture and unique id.
  */
-std::tuple<std::uint32_t, std::uint32_t> create_texture(
+std::tuple<GLuint, std::uint32_t> create_texture(
     const iris::DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
@@ -123,7 +123,7 @@ namespace iris
  */
 struct Texture::implementation
 {
-    std::uint32_t texture;
+    GLuint texture;
     std::uint32_t id;
 };
 

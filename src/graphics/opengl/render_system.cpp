@@ -6,9 +6,9 @@
 #include "core/camera.h"
 #include "core/vector3.h"
 #include "graphics/buffer.h"
-#include "graphics/opengl/opengl.h"
 #include "graphics/light.h"
 #include "graphics/material.h"
+#include "graphics/opengl/opengl.h"
 #include "graphics/pipeline.h"
 #include "graphics/render_entity.h"
 #include "log/log.h"
@@ -189,8 +189,7 @@ void RenderSystem::render(const Pipeline &pipeline)
         check_opengl_error("could not set viewport");
 
         ::glBindFramebuffer(
-            GL_FRAMEBUFFER,
-            std::any_cast<std::uint32_t>(target->native_handle()));
+            GL_FRAMEBUFFER, std::any_cast<GLuint>(target->native_handle()));
         check_opengl_error("could not bind custom fbo");
 
         // clear current target
@@ -216,7 +215,8 @@ void RenderSystem::render(const Pipeline &pipeline)
             for (const auto *texture : textures)
             {
                 const auto tex_handle =
-                    std::any_cast<std::uint32_t>(texture->native_handle());
+                    std::any_cast<GLuint>(
+                        texture->native_handle());
                 const auto id = texture->texture_id();
 
                 // use default Texture unit
@@ -239,8 +239,7 @@ void RenderSystem::render(const Pipeline &pipeline)
             for (const auto &mesh : entity->meshes())
             {
                 // bind vao so the final draw call renders it
-                const auto vao =
-                    std::any_cast<std::uint32_t>(mesh.native_handle());
+                const auto vao = std::any_cast<GLuint>(mesh.native_handle());
 
                 // bind the vao
                 ::glBindVertexArray(vao);
@@ -283,7 +282,7 @@ void RenderSystem::render(const Pipeline &pipeline)
     // bind screen target to "read"
     ::glBindFramebuffer(
         GL_READ_FRAMEBUFFER,
-        std::any_cast<std::uint32_t>(screen_target_->native_handle()));
+        std::any_cast<GLuint>(screen_target_->native_handle()));
     check_opengl_error("could not set read framebuffer");
 
     // bind default frame buffer to "draw"

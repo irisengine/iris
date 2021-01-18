@@ -28,7 +28,7 @@ Shader::Shader(const std::string &source, ShaderType type)
 
     ::glCompileShader(shader_);
 
-    std::int32_t shader_param = 0;
+    GLint shader_param = 0;
 
     ::glGetShaderiv(shader_, GL_COMPILE_STATUS, &shader_param);
     iris::check_opengl_error("could not get shader parameter");
@@ -48,7 +48,7 @@ Shader::Shader(const std::string &source, ShaderType type)
             std::vector<char> error_log(shader_param);
 
             // get opengl error log
-            std::int32_t log_length = 0;
+            GLsizei log_length = 0;
             ::glGetShaderInfoLog(
                 shader_,
                 static_cast<std::int32_t>(error_log.size()),
@@ -86,7 +86,7 @@ Shader &Shader::operator=(Shader &&other)
     return *this;
 }
 
-std::uint32_t Shader::native_handle() const
+GLuint Shader::native_handle() const
 {
     return shader_;
 }
