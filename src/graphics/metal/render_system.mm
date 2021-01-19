@@ -37,6 +37,54 @@ struct LightUniform
 };
 
 /**
+ * Helper function to create a render encoder for render pass.
+ *
+ * @param target
+ *   RenderTarget for render pass.
+ *
+ * @param descriptor
+ *   Descriptor for render pass.
+ *
+ * @param depth_stencil_state
+ *   State for depth/stencil.
+ *
+ * @param commands_buffer
+ *   Command container.
+ *
+ * @returns
+ *   RenderCommandEncoder object for a render pass.
+ */
+id<MTLRenderCommandEncoder> create_render_encoder(
+    const iris::RenderTarget *target,
+    MTLRenderPassDescriptor *descriptor,
+    const id<MTLDepthStencilState> depth_stencil_state,
+    id<MTLCommandBuffer> command_buffer)
+{
+    const auto texture_handle = std::any_cast<id<MTLTexture>>(target->colour_texture()->native_handle());
+    descriptor.colorAttachments[0].texture = texture_handle;
+
+    const auto depth_handle = std::any_cast<id<MTLTexture>>(target->depth_texture()->native_handle());
+    descriptor.depthAttachment.texture = depth_handle;
+
+    MTLViewport view_port{
+        0.0,
+        0.0,
+        static_cast<double>(target->colour_texture()->width()),
+        static_cast<double>(target->colour_texture()->height()),
+        0.0,
+        1.0 };
+
+    const auto render_encoder = [command_buffer renderCommandEncoderWithDescriptor:descriptor];
+    [render_encoder setDepthStencilState:depth_stencil_state];
+    [render_encoder setFrontFacingWinding:MTLWindingCounterClockwise];
+    [render_encoder setCullMode:MTLCullModeBack];
+    [render_encoder setViewport: view_port];
+    [render_encoder setTriangleFillMode:MTLTriangleFillModeFill];
+
+    return render_encoder;
+}
+
+/**
  * Helper function to set uniforms for a render pass.
  *
  * @param render_encoder
@@ -103,6 +151,113 @@ void set_uniforms(
     [render_encoder setFragmentBytes:static_cast<const void*>(light_data.data()) length:light_data.size() * sizeof(LightUniform) atIndex:0];
 }
 
+/**
+ * Helper function to bind all textures for a material.
+ *
+ * @param render_encoder
+ *   Encoder for current render pass.
+ *
+ * @param material
+ *   Material to bind textures for.
+ */
+void bind_textures(
+    id<MTLRenderCommandEncoder> render_encoder,
+    const iris::Material *material)
+{
+    const auto textures = material->textures();
+    for(const auto *texture : textures)
+    {
+        const auto tex_handle = std::any_cast<id<MTLTexture>>(
+            texture->native_handle());
+        [render_encoder setVertexTexture:tex_handle atIndex:texture->texture_id()];
+        [render_encoder setFragmentTexture:tex_handle atIndex:texture->texture_id()];
+    }
+}
+
+/**
+ * Helper function to encode draw commands for all meshes in an entity.
+ *
+ * @param render_encoder
+ *   Encoder for current render pass.
+ *
+ * @param entity
+ *   RenderEntity to draw
+ *
+ * @param material
+ *   Material to bind textures for.
+ */
+void encode_draw_meshes(
+    id<MTLRenderCommandEncoder> render_encoder,
+    const iris::RenderEntity *entity,
+    const iris::Material *material)
+{
+    auto *pipeline_state = std::any_cast<id<MTLRenderPipelineState>>(material->native_handle());
+
+    for(const auto &mesh : entity->meshes())
+    {
+        // get vertex Buffer handle
+        const auto &vertex_buffer = mesh.vertex_buffer();
+        const auto vertex_buffer_native = std::any_cast<id<MTLBuffer>>(vertex_buffer.native_handle());
+
+        // get index Buffer handle
+        const auto &index_buffer = mesh.index_buffer();
+        const auto index_buffer_native = std::any_cast<id<MTLBuffer>>(index_buffer.native_handle());
+
+        // encode render commands
+        [render_encoder setRenderPipelineState:pipeline_state];
+        [render_encoder setVertexBuffer:vertex_buffer_native offset:0 atIndex:0];
+        [render_encoder setCullMode:MTLCullModeNone];
+
+        const auto type = entity->primitive_type() == iris::PrimitiveType::TRIANGLES
+            ? MTLPrimitiveTypeTriangle
+            : MTLPrimitiveTypeLine;
+
+        // draw command
+        [render_encoder
+            drawIndexedPrimitives:type
+            indexCount:index_buffer.element_count()
+            indexType:MTLIndexTypeUInt32
+            indexBuffer:index_buffer_native
+            indexBufferOffset:0];
+    }
+}
+
+/**
+ * Helper function to blit a RenderTarget to the screen buffer.
+ *
+ * @param screen_target
+ *   RenderTargtet to blit.
+ *
+ * @param commands_buffer
+ *   Command container.
+ *
+ * @param drawable
+ *   A metal drawable.
+ */
+void blit_to_screen(
+    const iris::RenderTarget *screen_target,
+    id<MTLCommandBuffer> command_buffer,
+    id<CAMetalDrawable> drawable)
+{
+    auto *device = iris::core::utility::metal_device();
+
+    // note that we don't use the blit function directly, rather we use the
+    // metal performance shader image converter as this automatically handles the
+    // case where the screen buffer and device buffer have different formats
+    auto conversionInfo = CGColorConversionInfoCreate(CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB), CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB));
+    auto convert_function = [[MPSImageConversion alloc] initWithDevice:device
+                        srcAlpha:MPSAlphaTypeAlphaIsOne
+                        destAlpha:MPSAlphaTypeAlphaIsOne
+                        backgroundColor:nullptr
+                        conversionInfo:conversionInfo];
+    
+    const auto screen_texture_handle = std::any_cast<id<MTLTexture>>(screen_target->colour_texture()->native_handle());
+    [convert_function encodeToCommandBuffer:command_buffer sourceTexture:screen_texture_handle destinationTexture: drawable.texture];
+
+    [command_buffer presentDrawable:drawable];
+    [command_buffer commit];
+}
+
 }
 
 namespace iris
@@ -146,7 +301,7 @@ RenderSystem::RenderSystem(std::uint32_t width, std::uint32_t height, RenderTarg
         throw iris::Exception("could not creare command queue");
     }
 
-    const auto scale = Window::screen_scale();;
+    const auto scale = Window::screen_scale();
 
     // create and setup descriptor for depth texture
     auto *texture_description =
@@ -191,9 +346,6 @@ RenderSystem& RenderSystem::operator=(RenderSystem&&) = default;
 
 void RenderSystem::render(const Pipeline &pipeline)
 {
-    auto *device = iris::core::utility::metal_device();
-    auto format = MTLPixelFormatRGBA8Unorm;
-
     auto *drawable = [impl_->layer nextDrawable];
     auto *command_buffer = [impl_->command_queue commandBuffer];
 
@@ -208,99 +360,29 @@ void RenderSystem::render(const Pipeline &pipeline)
             target = screen_target_;
         }
 
-        const auto texture_handle = std::any_cast<id<MTLTexture>>(target->colour_texture()->native_handle());
-        impl_->descriptor.colorAttachments[0].texture = texture_handle;
-        format = texture_handle.pixelFormat;
-
-        const auto depth_handle = std::any_cast<id<MTLTexture>>(target->depth_texture()->native_handle());
-        impl_->descriptor.depthAttachment.texture = depth_handle;
-
-        MTLViewport view_port{
-            0.0,
-            0.0,
-            static_cast<double>(target->colour_texture()->width()),
-            static_cast<double>(target->colour_texture()->height()),
-            0.0,
-            1.0 };
-
-        const auto render_encoder = [command_buffer renderCommandEncoderWithDescriptor:impl_->descriptor];
-        [render_encoder setDepthStencilState:impl_->depth_stencil_state];
-        [render_encoder setFrontFacingWinding:MTLWindingCounterClockwise];
-        [render_encoder setCullMode:MTLCullModeBack];
-        [render_encoder setViewport: view_port];
+        const auto render_encoder = create_render_encoder(
+            target,
+            impl_->descriptor,
+            impl_->depth_stencil_state,
+            command_buffer);
 
         for(const auto &[entity, material, lights] : stage->render_items())
         {
-            auto *pipeline_state = std::any_cast<id<MTLRenderPipelineState>>(material->native_handle());
-
-            [render_encoder setTriangleFillMode:MTLTriangleFillModeFill];
-
             // set wireframe if needed
             if(entity->should_render_wireframe())
             {
                 [render_encoder setTriangleFillMode:MTLTriangleFillModeLines];
             }
 
-            for(const auto &mesh : entity->meshes())
-            {
-                // get vertex Buffer handle
-                const auto &vertex_buffer = mesh.vertex_buffer();
-                const auto vertex_buffer_native = std::any_cast<id<MTLBuffer>>(vertex_buffer.native_handle());
-
-                // get index Buffer handle
-                const auto &index_buffer = mesh.index_buffer();
-                const auto index_buffer_native = std::any_cast<id<MTLBuffer>>(index_buffer.native_handle());
-
-                set_uniforms(render_encoder, camera, entity, lights);
-
-                // encode render commands
-                [render_encoder setRenderPipelineState:pipeline_state];
-                [render_encoder setVertexBuffer:vertex_buffer_native offset:0 atIndex:0];
-                [render_encoder setCullMode:MTLCullModeNone];
-
-                const auto textures = material->textures();
-                for(const auto *texture : textures)
-                {
-                    const auto tex_handle = std::any_cast<id<MTLTexture>>(
-                        texture->native_handle());
-                    [render_encoder setVertexTexture:tex_handle atIndex:texture->texture_id()];
-                    [render_encoder setFragmentTexture:tex_handle atIndex:texture->texture_id()];
-                }
-
-                const auto type = entity->primitive_type() == PrimitiveType::TRIANGLES
-                    ? MTLPrimitiveTypeTriangle
-                    : MTLPrimitiveTypeLine;
-
-                // draw command
-                [render_encoder
-                    drawIndexedPrimitives:type
-                    indexCount:index_buffer.element_count()
-                    indexType:MTLIndexTypeUInt32
-                    indexBuffer:index_buffer_native
-                    indexBufferOffset:0];
-            }
+            set_uniforms(render_encoder, camera, entity, lights);
+            bind_textures(render_encoder, material);
+            encode_draw_meshes(render_encoder, entity, material);
         }
 
         [render_encoder endEncoding];
-
     }
 
-    // final step is to blit the default screen targte to the device
-    // note that we don't use the blit function directly, rather we use the
-    // metal performance shader image converter as this automatically handles the
-    // case where the screen buffer and device buffer have different formats
-    auto conversionInfo = CGColorConversionInfoCreate(CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB), CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB));
-    auto convert_function = [[MPSImageConversion alloc] initWithDevice:device
-                        srcAlpha:MPSAlphaTypeAlphaIsOne
-                        destAlpha:MPSAlphaTypeAlphaIsOne
-                        backgroundColor:nullptr
-                        conversionInfo:conversionInfo];
-    
-    const auto screen_texture_handle = std::any_cast<id<MTLTexture>>(screen_target_->colour_texture()->native_handle());
-    [convert_function encodeToCommandBuffer:command_buffer sourceTexture:screen_texture_handle destinationTexture: drawable.texture];
-
-    [command_buffer presentDrawable:drawable];
-    [command_buffer commit];
+    blit_to_screen(screen_target_, command_buffer, drawable);
 }
 
 }
