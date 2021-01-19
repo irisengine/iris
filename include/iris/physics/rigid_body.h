@@ -157,6 +157,14 @@ class RigidBody
      */
     void set_collision_shape(std::unique_ptr<CollisionShape> collision_shape);
 
+    /**
+     * Apply an impulse (at the centre of mass).
+     *
+     * @param impulse
+     *   Impulse to apply.
+     */
+    void apply_impulse(const Vector3 &impulse);
+
   private:
     /** Name of rigid body.*/
     std::string name_;

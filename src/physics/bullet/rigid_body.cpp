@@ -232,4 +232,18 @@ void RigidBody::set_collision_shape(
     impl_->body->setCollisionShape(shape);
 }
 
+void RigidBody::apply_impulse(const Vector3 &impulse)
+{
+    if (type_ != RigidBodyType::GHOST)
+    {
+        static_cast<::btRigidBody *>(impl_->body.get())
+            ->applyImpulse(
+                ::btVector3{impulse.x, impulse.y, impulse.z}, ::btVector3{});
+    }
+    else
+    {
+        LOG_ENGINE_WARN("physics", "calling apply_impulse on ghost object");
+    }
+}
+
 }

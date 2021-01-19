@@ -6,6 +6,7 @@
 #include "core/quaternion.h"
 #include "core/vector3.h"
 #include "physics/character_controller.h"
+#include "physics/rigid_body.h"
 
 namespace iris
 {
@@ -115,15 +116,6 @@ class BasicCharacterController : public CharacterController
     void jump() override;
 
     /**
-     * Get native handle for physics engine implementation of internal rigid
-     * body.
-     *
-     * @returns
-     *   Physics engine native handle.
-     */
-    std::any native_handle() const override;
-
-    /**
      * Check if character is standing on the ground.
      *
      * @returns
@@ -131,30 +123,35 @@ class BasicCharacterController : public CharacterController
      */
     bool on_ground() const override;
 
+    /**
+     * Get the underlying RigidBody.
+     *
+     * @returns
+     *   Underlying RigidBody.
+     */
     RigidBody *rigid_body() const override;
 
+    /**
+     * Set the collision shape for the controller.
+     *
+     * @param collision_shape
+     *   New collision shape.
+     */
     void set_collision_shape(
         std::unique_ptr<CollisionShape> collision_shape) override;
 
   private:
-    /**
-     * Speed of character.
-     */
+    /** Speed of character. */
     float speed_;
 
-    /**
-     * Mass of character.
-     */
+    /* Mass of character. */
     float mass_;
 
     /** Physics system. */
     PhysicsSystem *physics_system_;
 
-    /**
-     * Physics API implementation.
-     */
-    struct implementation;
-    std::unique_ptr<implementation> impl_;
+    /** Underlying rigid body, */
+    std::unique_ptr<RigidBody> body_;
 };
 
 }

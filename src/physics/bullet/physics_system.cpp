@@ -187,7 +187,7 @@ CharacterController *PhysicsSystem::add(
     impl_->character_controllers.emplace_back(std::move(character));
 
     auto *bullet_body = std::any_cast<::btRigidBody *>(
-        impl_->character_controllers.back()->native_handle());
+        impl_->character_controllers.back()->rigid_body()->native_handle());
     impl_->world->addRigidBody(bullet_body);
 
     return impl_->character_controllers.back().get();
@@ -298,8 +298,8 @@ std::unique_ptr<PhysicsState, PhysicsStateDeleter> PhysicsSystem::save()
     // save data for all character controllers
     for (const auto &character : impl_->character_controllers)
     {
-        auto *bullet_body =
-            std::any_cast<::btRigidBody *>(character->native_handle());
+        auto *bullet_body = std::any_cast<::btRigidBody *>(
+            character->rigid_body()->native_handle());
 
         state->bodies.try_emplace(
             bullet_body,

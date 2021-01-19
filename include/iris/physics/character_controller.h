@@ -104,15 +104,6 @@ class CharacterController
     virtual void jump() = 0;
 
     /**
-     * Get native handle for physics engine implementation of internal rigid
-     * body.
-     *
-     * @returns
-     *   Physics engine native handle.
-     */
-    virtual std::any native_handle() const = 0;
-
-    /**
      * Check if character is standing on the ground.
      *
      * @returns
@@ -120,8 +111,20 @@ class CharacterController
      */
     virtual bool on_ground() const = 0;
 
+    /**
+     * Get the underlying RigidBody.
+     *
+     * @returns
+     *   Underlying RigidBody.
+     */
     virtual RigidBody *rigid_body() const = 0;
 
+    /**
+     * Set the collision shape for the controller.
+     *
+     * @param collision_shape
+     *   New collision shape.
+     */
     virtual void set_collision_shape(
         std::unique_ptr<CollisionShape> collision_shape) = 0;
 };

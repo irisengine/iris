@@ -11,77 +11,69 @@
 namespace iris
 {
 
-struct BasicCharacterController::implementation
-{
-    std::unique_ptr<RigidBody> body;
-    ::btRigidBody *bullet_rigid_body;
-};
-
 BasicCharacterController::BasicCharacterController(
     PhysicsSystem *physics_system)
     : speed_(12.0f)
     , mass_(62.0f)
     , physics_system_(physics_system)
-    , impl_(std::make_unique<implementation>())
+    , body_(nullptr)
 {
     // use capsule shape for character
-    impl_->body = std::make_unique<RigidBody>(
+    body_ = std::make_unique<RigidBody>(
         Vector3{0.0f, 0.0f, 10.0f},
         std::make_unique<CapsuleCollisionShape>(0.5f, 1.7f),
         RigidBodyType::NORMAL);
 
     // store a copy of the bullet rigid body pointer
-    impl_->bullet_rigid_body =
-        std::any_cast<::btRigidBody *>(impl_->body->native_handle());
+    auto *bullet_body = std::any_cast<::btRigidBody *>(body_->native_handle());
 
     // prevent capsule from falling over
-    impl_->bullet_rigid_body->setAngularFactor(::btVector3(0.0f, 0.0f, 0.0f));
+    bullet_body->setAngularFactor(::btVector3(0.0f, 0.0f, 0.0f));
 
     // prevent bullet sleeping the rigid body
-    impl_->bullet_rigid_body->setActivationState(DISABLE_DEACTIVATION);
+    bullet_body->setActivationState(DISABLE_DEACTIVATION);
 }
 
 BasicCharacterController::~BasicCharacterController() = default;
 
 void BasicCharacterController::set_walk_direction(const Vector3 &direction)
 {
-    const auto current_velocity = impl_->bullet_rigid_body->getLinearVelocity();
+    const auto current_velocity = body_->linear_velocity();
     const auto velocity = direction * speed_;
 
-    impl_->bullet_rigid_body->setLinearVelocity(
-        ::btVector3{velocity.x, current_velocity.y(), velocity.z});
+    body_->set_linear_velocity({velocity.x, current_velocity.y, velocity.z});
 }
 
 Vector3 BasicCharacterController::position() const
 {
-    return impl_->body->position();
+    return body_->position();
 }
 
 Quaternion BasicCharacterController::orientation() const
 {
-    return impl_->body->orientation();
+    return body_->orientation();
 }
 
 Vector3 BasicCharacterController::linear_velocity() const
 {
-    return impl_->body->linear_velocity();
+    return body_->linear_velocity();
 }
 
 Vector3 BasicCharacterController::angular_velocity() const
 {
-    return impl_->body->angular_velocity();
+    return body_->angular_velocity();
 }
 
 void BasicCharacterController::set_linear_velocity(
     const Vector3 &linear_velocity)
 {
-    impl_->body->set_linear_velocity(linear_velocity);
+    body_->set_linear_velocity(linear_velocity);
 }
 
 void BasicCharacterController::set_angular_velocity(
     const Vector3 &angular_velocity)
 {
-    impl_->body->set_angular_velocity(angular_velocity);
+    body_->set_angular_velocity(angular_velocity);
 }
 
 void BasicCharacterController::set_speed(float speed)
@@ -93,7 +85,7 @@ void BasicCharacterController::reposition(
     const Vector3 &position,
     const Quaternion &orientation)
 {
-    impl_->body->reposition(position, orientation);
+    body_->reposition(position, orientation);
 }
 
 void BasicCharacterController::jump()
@@ -101,8 +93,7 @@ void BasicCharacterController::jump()
     // if we are on the ground then jump by applying an upwards impulse
     if (on_ground())
     {
-        impl_->bullet_rigid_body->applyImpulse(
-            ::btVector3{0.0f, mass_, 0.0f}, ::btVector3{});
+        body_->apply_impulse({0.0f, mass_ / 10.0f, 0.0f});
     }
 }
 
@@ -122,20 +113,15 @@ bool BasicCharacterController::on_ground() const
     return ground;
 }
 
-std::any BasicCharacterController::native_handle() const
-{
-    return impl_->bullet_rigid_body;
-}
-
 RigidBody *BasicCharacterController::rigid_body() const
 {
-    return impl_->body.get();
+    return body_.get();
 }
 
 void BasicCharacterController::set_collision_shape(
     std::unique_ptr<CollisionShape> collision_shape)
 {
-    impl_->body->set_collision_shape(std::move(collision_shape));
+    body_->set_collision_shape(std::move(collision_shape));
 }
 
 }
