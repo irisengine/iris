@@ -12,7 +12,7 @@ std::string replace_index(const std::string &input, std::size_t index)
     std::stringstream strm;
 
     static const std::string delimiter = "{}";
-    auto start = 0u;
+    std::size_t start = 0u;
     auto end = input.find(delimiter);
 
     while (end != std::string::npos)

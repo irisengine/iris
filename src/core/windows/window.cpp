@@ -601,4 +601,9 @@ std::uint32_t Window::height() const
     return height_;
 }
 
+std::uint32_t Window::screen_scale()
+{
+    return 1u;
+}
+
 }
