@@ -212,6 +212,8 @@ std::tuple<std::vector<Mesh>, Skeleton> load(const std::string &mesh_file)
         Skeleton skeleton;
     };
 
+    // quick and dirty cache which allows is to quickly return mesh data if its
+    // been previously loaded
     static std::map<std::string, Cache> cache{};
 
     std::vector<Mesh> meshes;
@@ -219,6 +221,8 @@ std::tuple<std::vector<Mesh>, Skeleton> load(const std::string &mesh_file)
 
     if (cache.count(mesh_file) == 0)
     {
+        // not in cache - so load it
+
         Cache c;
 
         load_mesh(mesh_file, &c.vertices, &c.indices, &c.textures, &c.skeleton);
@@ -237,6 +241,8 @@ std::tuple<std::vector<Mesh>, Skeleton> load(const std::string &mesh_file)
     }
     else
     {
+        // in cache - so retrieve it
+
         auto c = cache[mesh_file];
 
         for (auto i = 0u; i < c.vertices.size(); ++i)
