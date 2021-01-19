@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "core/vector3.h"
+#include "core/colour.h"
 #include "graphics/scene.h"
 
 namespace iris::text_factory
@@ -32,6 +32,6 @@ std::unique_ptr<Scene> create(
     const std::string &font_name,
     std::uint32_t size,
     const std::string &text,
-    const Vector3 &colour);
+    const Colour &colour);
 
 }

@@ -1,9 +1,5 @@
 set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 
-set(PLATFORM_SRCS
+set(CORE_SRCS
     "${SOURCE_ROOT}/text_factory.mm"
-
-    PARENT_SCOPE
-)
-
-
+    PARENT_SCOPE)

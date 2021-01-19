@@ -12,34 +12,34 @@
 
 #include "core/colour.h"
 #include "core/exception.h"
+#include "core/resource_loader.h"
 #include "core/transform.h"
 #include "core/vector3.h"
 #include "graphics/bone.h"
-#include "graphics/buffer_descriptor.h"
+#include "graphics/mesh.h"
 #include "graphics/mesh_loader.h"
 #include "graphics/skeleton.h"
 #include "graphics/texture.h"
 #include "graphics/vertex_data.h"
 #include "log/log.h"
-#include "platform/resource_loader.h"
 
 namespace iris::mesh_factory
 {
 
-BufferDescriptor empty()
+Mesh empty()
 {
-    std::vector<vertex_data> verticies{};
+    std::vector<VertexData> verticies{};
     std::vector<std::uint32_t> indices{};
 
     return {
         Buffer(verticies, BufferType::VERTEX_ATTRIBUTES),
         Buffer(indices, BufferType::VERTEX_INDICES),
-        vertex_attributes};
+        DefaultVertexAttributes};
 }
 
-BufferDescriptor sprite(const Colour &colour)
+Mesh sprite(const Colour &colour)
 {
-    std::vector<vertex_data> verticies{
+    std::vector<VertexData> verticies{
         {{-1.0, 1.0, 0.0f}, {}, colour, {0.0f, 1.0f, 0.0f}},
         {{1.0, 1.0, 0.0f}, {}, colour, {1.0f, 1.0f, 0.0f}},
         {{1.0, -1.0, 0.0f}, {}, colour, {1.0f, 0.0f, 0.0f}},
@@ -50,12 +50,12 @@ BufferDescriptor sprite(const Colour &colour)
     return {
         Buffer(verticies, BufferType::VERTEX_ATTRIBUTES),
         Buffer(indices, BufferType::VERTEX_INDICES),
-        vertex_attributes};
+        DefaultVertexAttributes};
 }
 
-BufferDescriptor cube(const Colour &colour)
+Mesh cube(const Colour &colour)
 {
-    std::vector<vertex_data> verticies{
+    std::vector<VertexData> verticies{
         {{1.0f, -1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, colour, {}},
         {{-1.0f, -1.0f, -1.0f}, {0.0f, -1.0f, 0.0f}, colour, {}},
         {{1.0f, -1.0f, -1.0f}, {0.0f, -1.0f, 0.0f}, colour, {}},
@@ -89,17 +89,17 @@ BufferDescriptor cube(const Colour &colour)
     return {
         Buffer(verticies, BufferType::VERTEX_ATTRIBUTES),
         Buffer(indices, BufferType::VERTEX_INDICES),
-        vertex_attributes};
+        DefaultVertexAttributes};
 }
 
-BufferDescriptor plane(const Colour &colour, std::uint32_t divisions)
+Mesh plane(const Colour &colour, std::uint32_t divisions)
 {
     if (divisions == 0)
     {
         throw Exception("divisions must be >= 0");
     }
 
-    std::vector<vertex_data> verticies(
+    std::vector<VertexData> verticies(
         static_cast<std::size_t>(std::pow(divisions + 1u, 2u)));
 
     const Vector3 normal{0.0f, 0.0f, 1.0f};
@@ -140,17 +140,17 @@ BufferDescriptor plane(const Colour &colour, std::uint32_t divisions)
     return {
         Buffer(verticies, BufferType::VERTEX_ATTRIBUTES),
         Buffer(indices, BufferType::VERTEX_INDICES),
-        vertex_attributes};
+        DefaultVertexAttributes};
 }
 
-BufferDescriptor quad(
+Mesh quad(
     const Colour &colour,
     const Vector3 &lower_left,
     const Vector3 &lower_right,
     const Vector3 &upper_left,
     const Vector3 &upper_right)
 {
-    std::vector<vertex_data> verticies{
+    std::vector<VertexData> verticies{
         {upper_left, {}, colour, {0.0f, 1.0f, 0.0f}},
         {upper_right, {}, colour, {1.0f, 1.0f, 0.0f}},
         {lower_right, {}, colour, {1.0f, 0.0f, 0.0f}},
@@ -161,12 +161,10 @@ BufferDescriptor quad(
     return {
         Buffer(verticies, BufferType::VERTEX_ATTRIBUTES),
         Buffer(indices, BufferType::VERTEX_INDICES),
-        vertex_attributes};
+        DefaultVertexAttributes};
 }
 
-BufferDescriptor lines(
-    const std::vector<Vector3> &line_data,
-    const Colour &colour)
+Mesh lines(const std::vector<Vector3> &line_data, const Colour &colour)
 {
     std::vector<std::tuple<Vector3, Colour, Vector3, Colour>> data{};
 
@@ -178,10 +176,10 @@ BufferDescriptor lines(
     return lines(data);
 }
 
-BufferDescriptor lines(
+Mesh lines(
     const std::vector<std::tuple<Vector3, Colour, Vector3, Colour>> &line_data)
 {
-    std::vector<vertex_data> verticies{};
+    std::vector<VertexData> verticies{};
     std::vector<std::uint32_t> indicies;
 
     for (const auto &[from_position, from_colour, to_position, to_colour] :
@@ -201,27 +199,30 @@ BufferDescriptor lines(
     return {
         Buffer(verticies, BufferType::VERTEX_ATTRIBUTES),
         Buffer(indicies, BufferType::VERTEX_INDICES),
-        vertex_attributes};
+        DefaultVertexAttributes};
 }
 
-std::tuple<std::vector<BufferDescriptor>, Skeleton> load(
-    const std::string &mesh_file)
+std::tuple<std::vector<Mesh>, Skeleton> load(const std::string &mesh_file)
 {
     struct Cache
     {
-        std::vector<std::vector<vertex_data>> vertices;
+        std::vector<std::vector<VertexData>> vertices;
         std::vector<std::vector<std::uint32_t>> indices;
         std::vector<Texture *> textures;
         Skeleton skeleton;
     };
 
+    // quick and dirty cache which allows is to quickly return mesh data if its
+    // been previously loaded
     static std::map<std::string, Cache> cache{};
 
-    std::vector<BufferDescriptor> meshes;
+    std::vector<Mesh> meshes;
     Skeleton *skeleton = nullptr;
 
     if (cache.count(mesh_file) == 0)
     {
+        // not in cache - so load it
+
         Cache c;
 
         load_mesh(mesh_file, &c.vertices, &c.indices, &c.textures, &c.skeleton);
@@ -229,10 +230,10 @@ std::tuple<std::vector<BufferDescriptor>, Skeleton> load(
         for (auto i = 0u; i < c.vertices.size(); ++i)
         {
             // we can use the default attributes
-            meshes.emplace_back(BufferDescriptor(
+            meshes.emplace_back(Mesh(
                 Buffer(c.vertices[i], BufferType::VERTEX_ATTRIBUTES),
                 Buffer(c.indices[i], BufferType::VERTEX_INDICES),
-                vertex_attributes));
+                DefaultVertexAttributes));
         }
 
         cache[mesh_file] = c;
@@ -240,15 +241,17 @@ std::tuple<std::vector<BufferDescriptor>, Skeleton> load(
     }
     else
     {
+        // in cache - so retrieve it
+
         auto c = cache[mesh_file];
 
         for (auto i = 0u; i < c.vertices.size(); ++i)
         {
             // we can use the default attributes
-            meshes.emplace_back(BufferDescriptor(
+            meshes.emplace_back(Mesh(
                 Buffer(c.vertices[i], BufferType::VERTEX_ATTRIBUTES),
                 Buffer(c.indices[i], BufferType::VERTEX_INDICES),
-                vertex_attributes));
+                DefaultVertexAttributes));
         }
         skeleton = &cache[mesh_file].skeleton;
     }

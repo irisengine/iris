@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/vector3.h"
+#include "core/colour.h"
 #include "graphics/render_graph/node.h"
 
 namespace iris
@@ -19,7 +19,7 @@ class ColourNode : public Node
      * @param colour
      *   The colour to represent.
      */
-    ColourNode(const Vector3 &colour);
+    ColourNode(const Colour &colour);
 
     ~ColourNode() override = default;
 
@@ -37,10 +37,10 @@ class ColourNode : public Node
      * @returns
      *   Colour.
      */
-    Vector3 colour() const;
+    Colour colour() const;
 
   private:
     /** Colour. */
-    Vector3 colour_;
+    Colour colour_;
 };
 }

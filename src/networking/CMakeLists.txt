@@ -1,15 +1,12 @@
 set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/networking")
 
-add_subdirectory("posix")
-
 if(IRIS_PLATFORM MATCHES "WINDOWS")
   add_subdirectory("windows")
 endif()
 
 set(NETWORKING_SRCS
     ${NETWORKING_SRCS}
-    ${PLATFORM_SRCS}
     "${INCLUDE_ROOT}/server_socket.h"
     "${INCLUDE_ROOT}/channel/channel.h"
     "${INCLUDE_ROOT}/channel/channel_type.h"
@@ -35,4 +32,8 @@ set(NETWORKING_SRCS
     "${SOURCE_ROOT}/client_connection_handler.cpp"
     "${SOURCE_ROOT}/packet.cpp"
     "${SOURCE_ROOT}/server_connection_handler.cpp"
+    "${SOURCE_ROOT}/simulated_server_socket.cpp"
+    "${SOURCE_ROOT}/simulated_socket.cpp"
+    "${SOURCE_ROOT}/udp_server_socket.cpp"
+    "${SOURCE_ROOT}/udp_socket.cpp"
     PARENT_SCOPE)

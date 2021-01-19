@@ -1,20 +1,20 @@
 add_subdirectory("core")
+add_subdirectory("events")
 add_subdirectory("graphics")
 add_subdirectory("jobs")
 add_subdirectory("log")
 add_subdirectory("networking")
 add_subdirectory("physics")
-add_subdirectory("platform")
 
 add_library(
   iris STATIC
   ${CORE_SRCS}
+  ${EVENTS_SRCS}
   ${GRAPHICS_SRCS}
   ${JOB_SRCS}
   ${LOG_SRCS}
   ${NETWORKING_SRCS}
-  ${PHYSICS_SRCS}
-  ${PLATFORM_SRCS})
+  ${PHYSICS_SRCS})
 
 add_library(iris::iris ALIAS iris)
 
@@ -50,7 +50,7 @@ endif()
 
 # handle platform specific setup including setting default graphics apis
 if(IRIS_PLATFORM MATCHES "MACOS")
-  target_compile_definitions(iris PUBLIC PLATFORM_MACOS)
+  target_compile_definitions(iris PUBLIC IRIS_PLATFORM_MACOS)
   target_compile_definitions(iris PRIVATE IRIS_ARCH_X86_64)
   set(IRIS_ARCH "X86_64")
   if(NOT IRIS_GRAPHICS_API)
@@ -60,7 +60,7 @@ if(IRIS_PLATFORM MATCHES "MACOS")
     set(IRIS_JOBS_API "FIBERS")
   endif()
 elseif(IRIS_PLATFORM MATCHES "IOS")
-  target_compile_definitions(iris PUBLIC PLATFORM_IOS)
+  target_compile_definitions(iris PUBLIC IRIS_PLATFORM_IOS)
   target_compile_definitions(iris PRIVATE IRIS_ARCH_ARM64)
   set(IRIS_ARCH "ARM64")
   if(NOT IRIS_GRAPHICS_API)
@@ -70,7 +70,7 @@ elseif(IRIS_PLATFORM MATCHES "IOS")
     set(IRIS_JOBS_API "THREADS")
   endif()
 elseif(IRIS_PLATFORM MATCHES "WINDOWS")
-  target_compile_definitions(iris PUBLIC PLATFORM_WINDOWS)
+  target_compile_definitions(iris PUBLIC IRIS_PLATFORM_WINDOWS)
   target_compile_definitions(iris PRIVATE IRIS_ARCH_X86_64)
   set(IRIS_GRAPHICS_API "OPENGL")
   set(IRIS_JOBS_API "THREADS")

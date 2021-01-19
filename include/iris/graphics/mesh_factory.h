@@ -4,7 +4,7 @@
 
 #include "core/colour.h"
 #include "core/vector3.h"
-#include "graphics/buffer_descriptor.h"
+#include "graphics/mesh.h"
 #include "graphics/skeleton.h"
 #include "graphics/texture.h"
 
@@ -15,9 +15,9 @@ namespace iris::mesh_factory
  * Create an empty mesh.
  *
  * @returns
- *   BufferDescriptor for empty object.
+ *   Mesh for empty object.
  */
-BufferDescriptor empty();
+Mesh empty();
 
 /**
  * Create a Sprite mesh.
@@ -26,9 +26,9 @@ BufferDescriptor empty();
  *   Colour of sprite.
  *
  * @returns
- *   BufferDescriptor for sprite.
+ *   Mesh for sprite.
  */
-BufferDescriptor sprite(const Colour &colour);
+Mesh sprite(const Colour &colour);
 
 /**
  * Create a cube mesh.
@@ -37,9 +37,9 @@ BufferDescriptor sprite(const Colour &colour);
  *   Colour of cube.
  *
  * @returns
- *   BufferDescriptor for cube.
+ *   Mesh for cube.
  */
-BufferDescriptor cube(const Colour &colour);
+Mesh cube(const Colour &colour);
 
 /**
  * Create a plane mesh.
@@ -51,9 +51,9 @@ BufferDescriptor cube(const Colour &colour);
  *   Number of divisions (both horizontal and vertical).
  *
  * @returns
- *   BufferDescriptor for cube.
+ *   Mesh for cube.
  */
-BufferDescriptor plane(const Colour &colour, std::uint32_t divisions);
+Mesh plane(const Colour &colour, std::uint32_t divisions);
 
 /**
  * Create a Quad mesh.
@@ -74,9 +74,9 @@ BufferDescriptor plane(const Colour &colour, std::uint32_t divisions);
  *   World coords of upper right of quad.
  *
  * @returns
- *   BufferDescriptor for sprite.
+ *   Mesh for sprite.
  */
-BufferDescriptor quad(
+Mesh quad(
     const Colour &colour,
     const Vector3 &lower_left,
     const Vector3 &lower_right,
@@ -93,11 +93,9 @@ BufferDescriptor quad(
  *   Colour of lines.
  *
  * @returns
- *   BufferDescriptor for lines.
+ *   Mesh for lines.
  */
-BufferDescriptor lines(
-    const std::vector<Vector3> &line_data,
-    const Colour &colour);
+Mesh lines(const std::vector<Vector3> &line_data, const Colour &colour);
 
 /**
  * Create a mesh for a collection of lines.
@@ -108,9 +106,9 @@ BufferDescriptor lines(
  *   [start_position, start_colour, end_position, end_colour]
  *
  * @returns
- *   BufferDescriptor for lines.
+ *   Mesh for lines.
  */
-BufferDescriptor lines(
+Mesh lines(
     const std::vector<std::tuple<Vector3, Colour, Vector3, Colour>> &line_data);
 
 /**
@@ -124,7 +122,6 @@ BufferDescriptor lines(
  *   file did not contain skeletal data then the skeleton object will be a
  *   default one.
  */
-std::tuple<std::vector<BufferDescriptor>, Skeleton> load(
-    const std::string &mesh_file);
+std::tuple<std::vector<Mesh>, Skeleton> load(const std::string &mesh_file);
 
 }

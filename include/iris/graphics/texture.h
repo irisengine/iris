@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "core/data_buffer.h"
 #include "graphics/pixel_format.h"
 
 namespace iris
@@ -18,6 +19,12 @@ namespace iris
 class Texture
 {
   public:
+
+    /**
+     * Create a 1x1 pixel white texture.
+     */
+  Texture();
+
     /**
      * Creates a new empty Texture.
      *
@@ -51,7 +58,7 @@ class Texture
      *   Number of channels.
      */
     Texture(
-        const std::vector<std::uint8_t> &data,
+        const DataBuffer &data,
         std::uint32_t width,
         std::uint32_t height,
         PixelFormat pixel_format);
@@ -67,7 +74,7 @@ class Texture
      * @returns
      *   Raw image data.
      */
-    std::vector<std::uint8_t> data() const;
+    DataBuffer data() const;
 
     /**
      * Get the width of the image.
@@ -107,14 +114,6 @@ class Texture
     std::uint32_t texture_id() const;
 
     /**
-     * Return a 1x1 pixel white texture.
-     *
-     * @returns
-     *   Blank texture.
-     */
-    static Texture blank();
-
-    /**
      * Should a texture be flipped vertically.
      *
      * @returns
@@ -132,7 +131,7 @@ class Texture
 
   private:
     /** Raw image data. */
-    std::vector<std::uint8_t> data_;
+    DataBuffer data_;
 
     /** Image width. */
     std::uint32_t width_;

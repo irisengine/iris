@@ -7,10 +7,11 @@
 
 #import <Metal/Metal.h>
 
+#include "core/data_buffer.h"
 #include "core/exception.h"
+#include "core/window.h"
 #include "graphics/pixel_format.h"
 #include "graphics/texture.h"
-#include "platform/macos/macos_ios_utility.h"
 
 namespace iris
 {
@@ -26,9 +27,9 @@ RenderTarget::RenderTarget(
     , depth_texture_(nullptr)
     , impl_(std::make_unique<implementation>())
 {
-    const auto scale = platform::utility::screen_scale();
+    const auto scale = Window::screen_scale();
 
-    std::vector<std::uint8_t> image_data(width * height * scale * scale * 4u);
+    DataBuffer image_data(width * height * scale * scale * 4u);
 
     // create textures for colour and depth
 

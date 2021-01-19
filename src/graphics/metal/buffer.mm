@@ -7,7 +7,7 @@
 
 #include "graphics/buffer_type.h"
 #include "graphics/vertex_data.h"
-#include "platform/macos/macos_ios_utility.h"
+#include "core/macos/macos_ios_utility.h"
 
 namespace
 {
@@ -24,7 +24,7 @@ namespace
 template<class T>
 id<MTLBuffer> create_Buffer(const std::vector<T> &data)
 {
-    auto *device = iris::platform::utility::metal_device();
+    auto *device = iris::core::utility::metal_device();
 
     // create Buffer with data
     return [device newBufferWithBytes:static_cast<const void*>(data.data())

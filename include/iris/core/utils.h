@@ -19,14 +19,4 @@ namespace iris
  */
 bool compare(float a, float b);
 
-/**
- * Get the natural scale for the screen. This value reflects the scale factor
- * needed to convert from the default logical coordinate space into the device
- * coordinate space of this screen.
- *
- * @returns
- *   Screen scale factor.
- */
-std::uint32_t screen_scale();
-
 }

@@ -1,12 +1,12 @@
 #include "graphics/render_graph/colour_node.h"
 
-#include "core/vector3.h"
+#include "core/colour.h"
 #include "graphics/render_graph/compiler.h"
 
 namespace iris
 {
 
-ColourNode::ColourNode(const Vector3 &colour)
+ColourNode::ColourNode(const Colour &colour)
     : colour_(colour)
 {
 }
@@ -16,7 +16,7 @@ void ColourNode::accept(Compiler &compiler) const
     compiler.visit(*this);
 }
 
-Vector3 ColourNode::colour() const
+Colour ColourNode::colour() const
 {
     return colour_;
 }

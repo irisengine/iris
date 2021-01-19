@@ -6,8 +6,9 @@
 #include "core/camera_type.h"
 #include "core/matrix4.h"
 #include "core/quaternion.h"
-#include "graphics/buffer_descriptor.h"
+#include "core/transform.h"
 #include "graphics/material.h"
+#include "graphics/mesh.h"
 #include "graphics/primitive_type.h"
 #include "graphics/render_graph/render_node.h"
 #include "graphics/skeleton.h"
@@ -17,8 +18,7 @@ namespace iris
 {
 
 /**
- * A base class for a renderable entity, i.e. one that can be added to a
- * render system. It encapsulates a mesh, material and world translation.
+ * A renderable entity.
  */
 class RenderEntity
 {
@@ -26,89 +26,54 @@ class RenderEntity
     /**
      * Construct a RenderEntity.
      *
-     * @param buffer_descriptor
-     *   BufferDescriptor for mesh to render.
+     * @param mesh
+     *   Mesh to render.
      *
      * @param position
      *   Centre of mesh in world space.
-     *
-     * @param scale
-     *   Scale of mesh.
      */
-    RenderEntity(
-        BufferDescriptor buffer_descriptor,
-        const Vector3 &position,
-        const Vector3 &scale);
+    RenderEntity(Mesh mesh, const Vector3 &position);
 
     /**
      * Construct a RenderEntity.
      *
-     * @param buffer_descriptor
-     *   BufferDescriptor for mesh to render.
+     * @param mesh
+     *   Mesh to render.
      *
-     * @param position
-     *   Centre of mesh in world space.
-     *
-     * @param orientation
-     *   Orientation of mesh.
-     *
-     * @param scale
-     *   Scale of mesh.
+     * @param transform
+     *   Transform of entity in world space.
      */
-    RenderEntity(
-        BufferDescriptor buffer_descriptor,
-        const Vector3 &position,
-        const Quaternion &orientation,
-        const Vector3 &scale);
+    RenderEntity(Mesh mesh, const Transform &transform);
 
     /**
      * Construct a RenderEntity.
      *
-     * @param buffer_descriptor
-     *   BufferDescriptor for mesh to render.
+     * @param mesh
+     *   Mesh to render.
      *
-     * @param position
-     *   Centre of mesh in world space.
+     * @param transform
+     *   Transform of entity in world space.
      *
-     * @param orientation
-     *   Orientation of mesh.
+     * @param skeleton
+     *   Skeleton.
+     */
+    RenderEntity(Mesh mesh, const Transform &transform, Skeleton skeleton);
+
+    /**
+     * Construct a RenderEntity.
      *
-     * @param scale
-     *   Scale of mesh.
+     * @param meshes
+     *   Collection of meshes to render.
+     *
+     * @param transform
+     *   Transform of entity in world space.
      *
      * @param skeleton
      *   Skeleton.
      */
     RenderEntity(
-        BufferDescriptor buffer_descriptor,
-        const Vector3 &position,
-        const Quaternion &orientation,
-        const Vector3 &scale,
-        Skeleton skeleton);
-
-    /**
-     * Construct a RenderEntity.
-     *
-     * @param buffer_descriptors
-     *   Collection of BufferDescriptors for meshes to render.
-     *
-     * @param position
-     *   Centre of mesh in world space.
-     *
-     * @param orientation
-     *   Orientation of mesh.
-     *
-     * @param scale
-     *   Scale of mesh.
-     *
-     * @param skeleton
-     *   Skeleton.
-     */
-    RenderEntity(
-        std::vector<BufferDescriptor> buffer_descriptor,
-        const Vector3 &position,
-        const Quaternion &orientation,
-        const Vector3 &scale,
+        std::vector<Mesh> meshes,
+        const Transform &transform,
         Skeleton skeleton);
 
     RenderEntity(const RenderEntity &) = delete;
@@ -181,29 +146,28 @@ class RenderEntity
     Matrix4 normal_transform() const;
 
     /**
-     * Get all BufferDescriptors for this entity.
+     * Get all meshes for this entity.
      *
      * @returns
-     *   Collection of buffer descriptors.
+     *   Collection of meshes.
      */
-    const std::vector<BufferDescriptor> &buffer_descriptors() const;
+    const std::vector<Mesh> &meshes() const;
 
     /**
-     * Set buffer descriptor.
+     * Set mesh.
      *
-     * @param buffer_descriptor.
-     *   New (single) buffer descriptor.
+     * @param mesh.
+     *   New (single) mesh.
      */
-    void set_buffer_descriptors(BufferDescriptor buffer_descriptor);
+    void set_mesh(Mesh mesh);
 
     /**
-     * Set buffer descriptors.
+     * Set meshes.
      *
-     * @param buffer_descriptor.
-     *   New buffer descriptors.
+     * @param meshes.
+     *   New meshes
      */
-    void set_buffer_descriptors(
-        std::vector<BufferDescriptor> buffer_descriptors);
+    void set_meshes(std::vector<Mesh> meshes);
 
     /**
      * Returns whether the object should be rendered as a wireframe.
@@ -262,20 +226,11 @@ class RenderEntity
     void set_receive_shadow(bool receive_shadow);
 
   private:
-    /** BufferDescriptors to render. */
-    std::vector<BufferDescriptor> buffer_descriptors_;
+    /** Meshes to render. */
+    std::vector<Mesh> meshes_;
 
-    /** The position of the RenderEntity. */
-    Vector3 position_;
-
-    /** The orientation of the RenderEntity. */
-    Quaternion orientation_;
-
-    /** The scale of the RenderEntity. */
-    Vector3 scale_;
-
-    /** Model transformation matrix4. */
-    Matrix4 model_;
+    /** World space transform. */
+    Transform transform_;
 
     /** Normal transformation matrix. */
     Matrix4 normal_;

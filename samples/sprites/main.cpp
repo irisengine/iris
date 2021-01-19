@@ -3,6 +3,10 @@
 #include "core/camera.h"
 #include "core/quaternion.h"
 
+#include "core/start.h"
+#include "core/transform.h"
+#include "core/window.h"
+#include "events/event.h"
 #include "graphics/mesh_factory.h"
 #include "graphics/pipeline.h"
 #include "graphics/render_graph/render_graph.h"
@@ -13,15 +17,12 @@
 #include "graphics/texture.h"
 #include "graphics/texture_factory.h"
 #include "log/log.h"
-#include "platform/event.h"
-#include "platform/start.h"
-#include "platform/window.h"
 
 void go(int, char **)
 {
     LOG_DEBUG("sprite_sample", "hello world");
 
-    iris::Window window{800.0f, 800.0f};
+    iris::Window window{800u, 800u};
 
     iris::Camera screen_camera{iris::CameraType::ORTHOGRAPHIC, 800.0f, 800.0f};
 
@@ -30,14 +31,13 @@ void go(int, char **)
     auto *sprite1 = scene->create_entity(
         iris::RenderGraph{},
         iris::mesh_factory::sprite({0.39f, 0.58f, 0.92f}),
-        iris::Vector3{0.0f},
-        iris::Vector3{100.0f});
+        iris::Transform{iris::Vector3{0.0f}, {}, iris::Vector3{100.0f}});
 
     auto *sprite2 = scene->create_entity(
         iris::RenderGraph{},
         iris::mesh_factory::sprite({0.86f, 0.08f, 0.23f}),
-        iris::Vector3{0.0f, 300.0f, 0.0f},
-        iris::Vector3{100.0f});
+        iris::Transform{
+            iris::Vector3{0.0f, 300.0f, 0.0f}, {}, iris::Vector3{100.0f}});
 
     iris::RenderGraph graph{};
     auto *texture_node = graph.create<iris::TextureNode>("circle.png");
@@ -46,8 +46,8 @@ void go(int, char **)
     auto *sprite3 = scene->create_entity(
         std::move(graph),
         iris::mesh_factory::sprite({1.0f, 1.0f, 1.0f}),
-        iris::Vector3{0.0f, -300.0f, 0.0f},
-        iris::Vector3{100.0f});
+        iris::Transform{
+            iris::Vector3{0.0f, -300.0f, 0.0f}, {}, iris::Vector3{100.0f}});
 
     iris::Quaternion rot{{0.0f, 0.0f, 1.0f}, 0.0f};
     iris::Quaternion delta{{0.0f, 0.0f, 1.0f}, 0.02f};

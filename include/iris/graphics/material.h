@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
-#include "graphics/buffer_descriptor.h"
 #include "graphics/light.h"
+#include "graphics/mesh.h"
 #include "graphics/render_graph/render_graph.h"
 #include "graphics/texture.h"
 
@@ -26,14 +26,14 @@ class Material
          * @param render_graph
          *   RenderGraph describing material.
          *
-         * @param vertex_descriptor
-         *   BufferDescriptor for vertex data.
+         * @param mesh
+         *   Mesh.
          *
          * @param lights
          *   Collection of lights that will effect this material.
          */
         const RenderGraph &render_graph,
-        const BufferDescriptor &vertex_desciptor,
+        const Mesh &mesh,
         const std::vector<Light *> &lights);
 
     ~Material();

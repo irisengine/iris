@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <type_traits>
 #include <vector>
@@ -33,7 +34,10 @@ class RenderSystem
      * @param screen_target
      *   Render target to present to the window after rendering.
      */
-    RenderSystem(float width, float height, RenderTarget *screen_target);
+    RenderSystem(
+        std::uint32_t width,
+        std::uint32_t height,
+        RenderTarget *screen_target);
 
     ~RenderSystem();
     RenderSystem(RenderSystem &&);

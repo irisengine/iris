@@ -27,7 +27,7 @@ class Transform
      * @param matrix
      *   Matrix representing transform.
      */
-    Transform(const Matrix4 &matrix);
+    explicit Transform(const Matrix4 &matrix);
 
     /**
      * Construct a transform from component parts.

@@ -25,7 +25,7 @@
 #include "physics/box_collision_shape.h"
 #include "physics/physics_system.h"
 #include "physics/rigid_body.h"
-#include "platform/keyboard_event.h"
+#include "events/keyboard_event.h"
 
 #include "client_input.h"
 

@@ -21,7 +21,7 @@ class BoxCollisionShape : public CollisionShape
      * @param half_size
      *   The extends from the center of the box which define its size.
      */
-    BoxCollisionShape(const Vector3 &half_size);
+    explicit BoxCollisionShape(const Vector3 &half_size);
 
     ~BoxCollisionShape() override;
 

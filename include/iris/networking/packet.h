@@ -73,7 +73,7 @@ class Packet
      * @param raw_data
      *   Raw Packet data
      */
-    Packet(const DataBuffer &raw_packet);
+    explicit Packet(const DataBuffer &raw_packet);
 
     /**
      * Get a pointer to the start of the packet.

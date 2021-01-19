@@ -3,7 +3,11 @@
 #include <memory>
 
 #include "core/camera.h"
+#include "core/resource_loader.h"
+#include "core/start.h"
 #include "core/transform.h"
+#include "core/window.h"
+#include "events/keyboard_event.h"
 #include "graphics/material.h"
 #include "graphics/mesh_factory.h"
 #include "graphics/pipeline.h"
@@ -16,10 +20,6 @@
 #include "log/log.h"
 #include "physics/box_collision_shape.h"
 #include "physics/physics_system.h"
-#include "platform/keyboard_event.h"
-#include "platform/resource_loader.h"
-#include "platform/start.h"
-#include "platform/window.h"
 
 void go(int, char **)
 {
@@ -36,7 +36,7 @@ void go(int, char **)
         {iris::Key::E, iris::KeyState::UP},
     };
 
-    iris::Window window{800.0f, 800.0f};
+    iris::Window window{800u, 800u};
     iris::PhysicsSystem ps{};
 
     iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};
@@ -47,8 +47,8 @@ void go(int, char **)
     scene->create_entity(
         iris::RenderGraph(),
         iris::mesh_factory::cube({1.0f, 1.0f, 1.0f}),
-        iris::Vector3{0.0f, -500.0f, 0.0f},
-        iris::Vector3{500.0f});
+        iris::Transform{
+            iris::Vector3{0.0f, -500.0f, 0.0f}, {}, iris::Vector3{500.0f}});
 
     iris::RenderGraph render_graph{};
 
@@ -61,18 +61,14 @@ void go(int, char **)
     auto *zombie = scene->create_entity(
         std::move(render_graph),
         std::move(mesh),
-        iris::Vector3{0.0f, 0.0f, 0.0f},
-        iris::Quaternion{},
-        iris::Vector3{0.035f},
+        iris::Transform{
+            iris::Vector3{0.0f, 0.0f, 0.0f}, {}, iris::Vector3{0.035f}},
         skeleton);
 
     zombie->set_receive_shadow(false);
 
     auto *debug_draw = scene->create_entity(
-        iris::RenderGraph{},
-        iris::mesh_factory::empty(),
-        iris::Vector3{},
-        iris::Vector3{1.0f});
+        iris::RenderGraph{}, iris::mesh_factory::empty(), iris::Vector3{});
 
     auto *light = scene->create_light(iris::Vector3{-1.0f, -1.0f, 0.0f}, true);
     iris::Transform light_transform{light->direction(), {}, {1.0f}};
