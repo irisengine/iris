@@ -18,8 +18,6 @@ set(JOB_SRCS
     "${INCLUDE_ROOT}/concurrent_queue.h"
     "${INCLUDE_ROOT}/context.h"
     "${INCLUDE_ROOT}/job.h"
+    "${SOURCE_ROOT}/job.cpp"
     "${INCLUDE_ROOT}/job_system.h"
-
-    PARENT_SCOPE
-)
-
+    PARENT_SCOPE)
