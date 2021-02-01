@@ -76,7 +76,7 @@ class ConcurrentQueue
 
         if (!empty_ && lock.owns_lock())
         {
-            element = container_.front();
+            element = std::move(container_.front());
             container_.pop_front();
 
             empty_ = container_.empty();
