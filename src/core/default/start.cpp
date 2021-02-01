@@ -1,9 +1,7 @@
 #include "core/start.h"
 
-#include <functional>
-#include <iostream>
+#include <memory>
 
-#include "jobs/job_system.h"
 #include "log/log.h"
 #include "log/logger.h"
 
@@ -21,8 +19,6 @@ void start_debug(int argc, char **argv, std::function<void(int, char **)> entry)
 {
     // enable engine logging
     Logger::instance().set_log_engine(true);
-
-    JobSystem::set_stats_stream(&std::cout);
 
     LOG_ENGINE_INFO("start", "engine start (with debugging)");
 

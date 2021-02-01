@@ -2,7 +2,6 @@
 
 #include <atomic>
 #include <memory>
-#include <ostream>
 #include <vector>
 
 #include "jobs/job.h"
@@ -16,11 +15,10 @@ namespace iris
 class JobSystem
 {
   public:
-    static JobSystem &instance()
-    {
-        static JobSystem job_system;
-        return job_system;
-    }
+    /**
+     * Create a new job system.
+     */
+    JobSystem();
 
     ~JobSystem();
     JobSystem(const JobSystem &) = delete;
@@ -36,11 +34,7 @@ class JobSystem
      * @param jobs
      *   Jobs to execute.
      */
-    static void add_jobs(const std::vector<Job> &jobs)
-    {
-        auto &js = JobSystem::instance();
-        js.add_jobs_impl(jobs);
-    }
+    void add_jobs(const std::vector<Job> &jobs);
 
     /**
      * Add a collection of jobs. Once added this call blocks until all
@@ -49,53 +43,15 @@ class JobSystem
      * @param jobs
      *   Jobs to execute.
      */
-    static void wait_for_jobs(const std::vector<Job> &jobs)
-    {
-        auto &js = JobSystem::instance();
-        js.wait_for_jobs_impl(jobs);
-    }
-
-    /**
-     * Set a stream the job system should write statistics to. If set stats
-     * will be written on destruction.
-     *
-     * What stats are written are dependent on the implementation.
-     *
-     * @param stats_stream
-     *   Pointer to stream to write to.
-     */
-    static void set_stats_stream(std::ostream *stats_stream)
-    {
-        auto &js = JobSystem::instance();
-        js.set_stats_stream_impl(stats_stream);
-    }
+    void wait_for_jobs(const std::vector<Job> &jobs);
 
   private:
-    /**
-     * Create a new job system.
-     */
-    JobSystem();
-
-    // helper method, see cpp file for documentation
-    void bootstrap_first_job(const std::vector<Job> &jobs);
-
-    // implementation for static functions, see above for documentation
-
-    void add_jobs_impl(const std::vector<Job> &jobs);
-
-    void wait_for_jobs_impl(const std::vector<Job> &jobs);
-
-    void set_stats_stream_impl(std::ostream *stats_stream);
+    /** Flag indicating of system is running. */
+    std::atomic<bool> running_;
 
     /** Pointer to implementation. */
     struct implementation;
     std::unique_ptr<implementation> impl_;
-
-    /** Flag indicating of system is running. */
-    std::atomic<bool> running_;
-
-    /** Optional stream to write stats to. */
-    std::ostream *stats_stream_;
 };
 
 }

@@ -2,17 +2,14 @@
 
 #include <atomic>
 #include <cstddef>
+#include <memory>
 
-#include "jobs/fiber/counter.h"
-#include "jobs/fiber/fiber_state.h"
-#include "jobs/job.h"
 #include "core/static_buffer.h"
+#include "jobs/fiber/counter.h"
+#include "jobs/job.h"
 
 namespace iris
 {
-
-// forward declaration, will be arch specific
-struct Context;
 
 /*
  * A Fiber is a user-land thread. It maintains it's own stack and can be
@@ -25,54 +22,35 @@ class Fiber
 {
   public:
     /**
-     * Construct an empty Fiber which does not represent a job. In this
-     * state the only defined behaviour is to call reset.
+     * Construct a Fiber with a job to run.
+     *
+     * @param job
+     *   Job to run.
      */
-    Fiber();
+    explicit Fiber(Job job);
 
     /**
-     * Construct a Fiber with a job to run.
+     * Construct a Fiber with a job and a counter.
+     *
+     * @param job
+     *   Job to run.
+     *
+     * @param counter
+     *   Counter to decrement when job is done.
      */
-    explicit Fiber(const Job &job);
+    Fiber(Job job, Counter *counter);
 
-    // default
-    ~Fiber() = default;
+    ~Fiber();
 
-    // disable copying/moving
     Fiber(const Fiber &) = delete;
     Fiber &operator=(const Fiber &) = delete;
     Fiber(Fiber &&other) = delete;
     Fiber &operator=(Fiber &&other) = delete;
 
     /**
-     * Reset this fiber to represent a new job, with an optional counter.
-     *
-     * This will reuse the existing stack, for efficiency it is not zeroed.
-     *
-     * It is undefined behaviour to reset a Fiber if it has already started
-     * but not finished.
-     *
-     * @param job
-     *   New job to run.
-     *
-     * @param counter
-     *   Optional counter. If not nullptr will be decremented when fiber
-     *   is reset.
-     */
-    void reset(const Job &job, Counter *counter);
-
-    /**
      * Start the fiber.
      */
     void start();
-
-    /**
-     * To be called when a fiber has completed, but is not going to be
-     * destructed.
-     *
-     * It is undefined behaviour to call this when a fiber is still running.
-     */
-    void finish();
 
     /**
      * Suspends a Fibers execution, execution will continue from where
@@ -82,12 +60,47 @@ class Fiber
 
     /**
      * Resume a suspended Fiber. Execution will continue from where suspend
-     * was called. If the running job threw an uncaught exception it is
-     * rethrown here.
+     * was called.
      *
-     * It is undefined behaviour to resume a non-suspended Fiber.
+     * It is undefined behavior to resume a non-suspended Fiber.
      */
     void resume();
+
+    /**
+     * Check if a Fiber is safe to call methods on. It is only not safe when it
+     * has been suspended but not yet restored its original context.
+     *
+     * @returns
+     *   True if this Fiber is safe false otherwise.
+     */
+    bool is_safe() const;
+
+    /**
+     * Set fiber to be unsafe.
+     */
+    void set_unsafe();
+
+    /**
+     * Check if another fiber is waiting for this to finish.
+     *
+     * @returns
+     *   True if another fiber is waiting on this, otherwise false.
+     */
+    bool is_being_waited_on() const;
+
+    /**
+     * Get any exception thrown during the execution of this fiber.
+     *
+     * @returns
+     *   exception_ptr to throw exception, nullptr of none were thrown.
+     */
+    std::exception_ptr exception() const;
+
+    /**
+     * Convert current thread to fiber. This must be called once (and only once)
+     * on each thread that wants to execute fibers.
+     */
+    static void thread_to_fiber();
 
     /**
      * Gets a pointer to the current fiber running on the calling thread.
@@ -99,54 +112,9 @@ class Fiber
      */
     static Fiber **this_fiber();
 
-    /**
-     * Get counter, maybe nullptr.
-     *
-     * @returns
-     *   Fiber counter.
-     */
-    Counter *counter();
-
-    /**
-     * Get the state of the Fiber.
-     *
-     * @returns
-     *   Fiber state.
-     */
-    FiberState state();
-
-    /**
-     * Set state of Fiber.
-     *
-     * @param state
-     *   New Fiber state.
-     */
-    void set_state(FiberState state);
-
   private:
-    // helper methods, see cpp file for documentation
-    // no-inline as the implementation relies on calling these as functions
-
-    __attribute__((noinline)) void do_start();
-
-    __attribute__((noinline)) void do_suspend();
-
-    __attribute__((noinline)) int do_resume();
-
-    /** Managed buffer for stack. */
-    StaticBuffer stack_buffer_;
-
-    /** Pointer to top of stack. */
-    std::byte *stack_;
-
     /** Job to run in Fiber. */
     Job job_;
-
-    /** Saved context from start(). */
-    Context *context_;
-
-    /** Saved context from suspend(). */
-    Context *suspended_context_;
 
     /** optional counter. */
     Counter *counter_;
@@ -157,11 +125,12 @@ class Fiber
     /** Pointer storing job exception. */
     std::exception_ptr exception_;
 
-    /** Flag indicating we have an exception. */
-    std::atomic<bool> has_exception_;
+    /** Flag if fiber is not safe to operator on. */
+    std::atomic<bool> safe_;
 
-    /** State of Fiber. */
-    std::atomic<FiberState> state_;
+    /** Pointer to implementation. */
+    struct implementation;
+    std::unique_ptr<implementation> impl_;
 };
 
 }

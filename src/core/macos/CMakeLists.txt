@@ -18,6 +18,7 @@ set(CORE_SRCS
     "${INCLUDE_ROOT}/macos_ios_utility.h"
     "${INCLUDE_ROOT}/utility.h"
     "${SOURCE_ROOT}/macos_ios_utility.mm"
+    "${SOURCE_ROOT}/semaphore.cpp"
     "${SOURCE_ROOT}/static_buffer.cpp"
     "${SOURCE_ROOT}/thread.cpp"
     "${SOURCE_ROOT}/window.mm"

@@ -16,7 +16,7 @@
 #include "core/data_buffer.h"
 #include "core/exception.h"
 #include "jobs/concurrent_queue.h"
-#include "jobs/job_system.h"
+#include "jobs/job.h"
 #include "log/log.h"
 #include "networking/channel/channel.h"
 #include "networking/channel/reliable_ordered_channel.h"
@@ -188,7 +188,7 @@ ClientConnectionHandler::ClientConnectionHandler(std::unique_ptr<Socket> socket)
     // a background job
     // this will handle any protocol packets and stick data into queues, which
     // can then be retrieved by calls to try_read
-    JobSystem::add_jobs({[this]() {
+    job::add({[this]() {
         for (;;)
         {
             // block and read the next Packet
