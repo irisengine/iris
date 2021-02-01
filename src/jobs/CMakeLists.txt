@@ -2,16 +2,14 @@ set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/jobs")
 
 if(IRIS_ARCH MATCHES "X86_64")
-    set(ARCH_SRCS
-        "${INCLUDE_ROOT}/arch/x86_64/context.h"
-        "${INCLUDE_ROOT}/arch/x86_64/functions.S"
-    )
+  set(ARCH_SRCS "${INCLUDE_ROOT}/arch/x86_64/context.h"
+                "${INCLUDE_ROOT}/arch/x86_64/functions.S")
 endif()
 
 if(IRIS_JOBS_API MATCHES "FIBERS")
-    add_subdirectory("fiber")
+  add_subdirectory("fiber")
 elseif(IRIS_JOBS_API MATCHES "THREADS")
-    add_subdirectory("thread")
+  add_subdirectory("thread")
 endif()
 
 set(JOB_SRCS

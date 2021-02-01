@@ -1,0 +1,5 @@
+set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
+
+set(JOBS_IMPL_SRCS
+    "${SOURCE_ROOT}/fiber.cpp"
+    PARENT_SCOPE)

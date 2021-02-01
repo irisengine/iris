@@ -49,8 +49,8 @@ ret
  * @param context
  *   Pointer to struct to save registers.
  */
-.globl _get_context
-_get_context:
+.globl _save_context
+_save_context:
 mov [rdi], rbx
 mov [rdi + 8], rbp
 mov [rdi + 16], rsp
@@ -69,8 +69,8 @@ ret
  * @param context
  *   Pointer to struct with registers to restore.
  */
-.globl _set_context
-_set_context:
+.globl _restore_context
+_restore_context:
 mov rbx, [rdi]
 mov rbp, [rdi + 8]
 mov rsp, [rdi + 16]
