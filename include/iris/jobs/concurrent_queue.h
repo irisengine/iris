@@ -11,7 +11,8 @@ namespace iris
 /**
  * A container adaptor for a thread-safe FIFO queue.
  */
-template <class T, class Container = std::deque<T>> class ConcurrentQueue
+template <class T, class Container = std::deque<T>>
+class ConcurrentQueue
 {
   public:
     // member types
@@ -48,7 +49,8 @@ template <class T, class Container = std::deque<T>> class ConcurrentQueue
      *   Arguments for object being places in queue, will be
      *   perfectly forwarded.
      */
-    template <class... Args> void enqueue(Args &&... args)
+    template <class... Args>
+    void enqueue(Args &&... args)
     {
         std::unique_lock lock(mutex_);
 
