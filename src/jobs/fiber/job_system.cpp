@@ -1,43 +1,28 @@
 #include "jobs/job_system.h"
 
 #include <atomic>
+#include <cassert>
 #include <condition_variable>
+#include <exception>
 #include <memory>
 #include <mutex>
 #include <sstream>
 #include <string>
+#include <tuple>
+#include <vector>
 
+#include "core/auto_release.h"
+#include "core/exception.h"
+#include "core/semaphore.h"
+#include "core/thread.h"
 #include "jobs/concurrent_queue.h"
 #include "jobs/fiber/counter.h"
 #include "jobs/fiber/fiber.h"
-#include "jobs/fiber/fiber_pool.h"
 #include "jobs/job.h"
 #include "log/log.h"
-#include "core/thread.h"
 
 namespace
 {
-
-/**
- * Struct for tracking stats about the job system.
- */
-struct Stats
-{
-    Stats()
-        : id(-1)
-        , jobs_started(0)
-        , jobs_ended(0)
-        , wait_time(0)
-        , run_time(0)
-    {
-    }
-
-    int id;
-    std::uint32_t jobs_started;
-    std::uint32_t jobs_ended;
-    std::chrono::duration<int, std::milli> wait_time;
-    std::chrono::duration<int, std::milli> run_time;
-};
 
 /**
  * This is the main function for the worker threads. It's responsible for
@@ -47,204 +32,94 @@ struct Stats
  * @param id
  *   Unique id for thread.
  *
- * @param fibers
- *   Queue of fibers to pop from.
- *
- * @param signal_mutex
- *   Mutex for signalling when new fibers are available.
- *
- * @param signal_condition
- *   Condition variable for signalling when new fibers are available.
+ * @param jobs_semaphore
+ *   Semaphore signaling how many fibers are available to run.
  *
  * @param running
  *   Flag to indicate if this thread should keep running.
  *
- * @param stats
- *   Pointer to a struct to populate with stats.
- *
- * @param fiber_pool
- *   A pool from which to allocate/release new fibers.
+ * @param fibers
+ *   Queue of fibers to pop from.
  */
 void job_thread(
     int id,
-    iris::ConcurrentQueue<std::tuple<iris::Fiber *, iris::Counter *>> &fibers,
-    std::mutex &signal_mutex,
-    std::condition_variable &signal_condition,
+    iris::Semaphore &jobs_semaphore,
     std::atomic<bool> &running,
-    Stats *stats,
-    iris::DefaultFiberPool &fiber_pool)
+    iris::ConcurrentQueue<std::tuple<iris::Fiber *, iris::Counter *>> &fibers)
 {
-    LOG_ENGINE_INFO("job_system", "starting thread: {}", id);
+    iris::Fiber::thread_to_fiber();
 
-    const auto start = std::chrono::high_resolution_clock::now();
+    LOG_DEBUG(
+        "job_system",
+        "{} thread start [{}]",
+        id,
+        (void *)*iris::Fiber::this_fiber());
 
     while (running)
     {
-        iris::Fiber *f = nullptr;
-
-        const auto wait_start = std::chrono::high_resolution_clock::now();
-
-        // if there are no fibers then wait wait to be signaled
-        // we don't wait on the queue itself as we want it to have minimal
-        // contention
-        if (fibers.empty())
-        {
-            std::unique_lock lock(signal_mutex);
-            signal_condition.wait(lock, [&fibers, &running]() {
-                return !running || !fibers.empty();
-            });
-        }
+        // wait for jobs to become available
+        jobs_semaphore.acquire();
 
         if (!running)
         {
             break;
         }
 
-        std::tuple<iris::Fiber *, iris::Counter *> element;
+        // block and wait for fiber from queue, this should be low contention
+        // as most of the waiting is handled by the semaphore
+        auto [fiber, wait_counter] = fibers.dequeue();
 
-        // try and get next fiber from queue
-        // this may not be the thread that started the fiber!
-        if (fibers.try_dequeue(element))
+        // we cannot safely use a fiber whilst it is resuming
+        // as a fiber should never be in the resuming state for long (the time
+        // it takes to suspend and return to previous context) we use a
+        // primitive spin lock
+        while (!fiber->is_safe())
         {
-            f = std::get<0>(element);
-            auto *counter = std::get<1>(element);
-
-            // if we have a counter then this is a fiber that is waiting on
-            // other fibers to complete
-            if (counter != nullptr)
-            {
-                if (f->state() == iris::FiberState::RESUMABLE)
-                {
-                    // if a fiber is resumable then we need to check if its
-                    // counter has finished, if it hasn't then put it back on
-                    // the queue
-                    if (*counter != 0)
-                    {
-                        fibers.enqueue(f, counter);
-                        f = nullptr;
-                    }
-                }
-                else if (f->state() == iris::FiberState::PAUSING)
-                {
-                    // a fiber is not instantly read to be resumed after it has
-                    // been suspended (it has a certain amount of internal
-                    // work to do)
-                    // if we are in the special pausing state the only safe
-                    // thing we can do is put it back on the queue to try again
-                    // later
-                    fibers.enqueue(f, counter);
-                    f = nullptr;
-                }
-            }
         }
 
-        // calculate time spent waiting for a fiber and store it in stats
-        const auto wait_end = std::chrono::high_resolution_clock::now();
-        stats->wait_time +=
-            std::chrono::duration_cast<std::chrono::milliseconds>(
-                wait_end - wait_start);
-
-        LOG_ENGINE_INFO("job_system", "{} waking up with {}", id, f);
-
-        // signal other worker threads to try and get a fiber
-        signal_condition.notify_all();
-
-        if (f != nullptr)
+        if (wait_counter == nullptr)
         {
-            if (f->state() == iris::FiberState::RESUMABLE)
-            {
-                // a paused fiber should be resumed
-                f->resume();
+            // if we have no wait counter then this is the first time we are
+            // seeing this fibre - so start it
+            fiber->start();
+        }
+        else
+        {
+            // if we have a wait counter then this is a suspended fiber thats
+            // been put back on the queue
 
-                fiber_pool.release(f);
-                stats->jobs_ended++;
+            if (*wait_counter == 0)
+            {
+                // wait counter of zero means all its children jobs have
+                // finished so we can resume
+                fiber->resume();
+
+                // if nothing is waiting on us then we were a fire-and-forget
+                // job so need to cleanup
+                if (!fiber->is_being_waited_on())
+                {
+                    delete fiber;
+                }
             }
             else
             {
-                stats->jobs_started++;
-
-                // a new fiber should be started
-                f->start();
-
-                // if after the fiber has run we are not paused then safe
-                // to release
-                if (f->state() == iris::FiberState::READY)
-                {
-                    fiber_pool.release(f);
-
-                    stats->jobs_ended++;
-                }
+                // we are still waiting on at least one child job to finish so
+                // put the fiber back on the queue
+                fibers.enqueue(fiber, wait_counter);
+                jobs_semaphore.release();
             }
         }
     }
 
-    const auto end = std::chrono::high_resolution_clock::now();
+    LOG_DEBUG(
+        "job_system",
+        "{} thread end [{}]",
+        id,
+        (void *)*iris::Fiber::this_fiber());
 
-    stats->run_time =
-        std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-}
-
-/**
- * Calculate stats about the job system execution.
- *
- * @param stream
- *   Stream to write stats to.
- *
- * @param stats
- *   Collection of thread stats.
- *
- * @param fiber_pool
- *   The fiber pool used during execution.
- */
-void calculate_stats(
-    std::ostream &stream,
-    const std::vector<Stats> &stats,
-    iris::DefaultFiberPool &fiber_pool)
-{
-    auto total_jobs_started = 0u;
-    auto total_jobs_ended = 0u;
-    auto average_wait_time = 0u;
-    auto average_run_time = 0u;
-    auto average_blocked_percentage = 0.0f;
-
-    for (const auto &stat : stats)
-    {
-        auto percent_blocked =
-            100.0f * (static_cast<float>(stat.wait_time.count()) /
-                      static_cast<float>(stat.run_time.count()));
-
-        stream << "thread: " << stat.id << std::endl;
-        stream << "\t"
-               << "jobs started: " << stat.jobs_started << std::endl;
-        stream << "\t"
-               << "jobs ended: " << stat.jobs_ended << std::endl;
-        stream << "\t"
-               << "wait time: " << stat.wait_time.count() << "ms" << std::endl;
-        stream << "\t"
-               << "run time: " << stat.run_time.count() << "ms" << std::endl;
-        stream << "\t"
-               << "percent blocked: " << percent_blocked << "%" << std::endl;
-
-        total_jobs_started += stat.jobs_started;
-        total_jobs_ended += stat.jobs_ended;
-        average_wait_time += stat.wait_time.count();
-        average_run_time += stat.run_time.count();
-        average_blocked_percentage += percent_blocked;
-    }
-
-    stream << "======================" << std::endl;
-    stream << "total jobs started: " << total_jobs_started << std::endl;
-    stream << "total jobs ended: " << total_jobs_ended << std::endl;
-    stream << "average wait time: "
-           << average_wait_time / static_cast<float>(stats.size()) << "ms"
-           << std::endl;
-    stream << "average run time: "
-           << average_run_time / static_cast<float>(stats.size()) << "ms"
-           << std::endl;
-    stream << "average percent blocked: "
-           << average_blocked_percentage / static_cast<float>(stats.size())
-           << "%" << std::endl;
-    stream << "allocated " << fiber_pool.capacity() << " fibers" << std::endl;
+    // safe to cleanup fiber we created for thread
+    delete *iris::Fiber::this_fiber();
+    *iris::Fiber::this_fiber() = nullptr;
 }
 
 }
@@ -254,36 +129,81 @@ namespace iris
 
 struct JobSystem::implementation
 {
-    ConcurrentQueue<std::tuple<Fiber *, Counter *>> fibers;
-    std::mutex signal_mutex;
-    std::condition_variable signal_condition;
+    Semaphore jobs_semaphore;
     std::vector<Thread> workers;
-    std::vector<Stats> stats;
-    DefaultFiberPool fiber_pool;
+    ConcurrentQueue<std::tuple<Fiber *, Counter *>> fibers;
+
+    /**
+     * If the main thread (which is not a fiber) wants to wait on a job then it
+     * cannot. We bootstrap that by using traditional signaling primitives.
+     *
+     * @param jobs
+     *   Jobs to wait on
+     *
+     * @param js
+     *   Pointer to JoSystem.
+     */
+    static void bootstrap_first_job(const std::vector<Job> &jobs, JobSystem *js)
+    {
+        std::mutex m;
+        std::condition_variable cv;
+        std::atomic<bool> done = false;
+        std::exception_ptr exception;
+
+        // wrap everything up in a fire-and-forget job
+        js->add_jobs({{[&cv, &done, &jobs, &exception, js]() {
+            LOG_ENGINE_INFO("job_system", "bootstrap started");
+
+            try
+            {
+                // we can now call wait for jobs because we are within another
+                // fiber
+                js->wait_for_jobs(jobs);
+            }
+            catch (...)
+            {
+                // capture any exception
+                exception = std::current_exception();
+            }
+
+            // signal calling thread we are finished
+            done = true;
+            cv.notify_one();
+            LOG_ENGINE_INFO("job_system", "bootstrap lambda done");
+        }}});
+
+        // block and wait for wrapping fiber to finish
+        if (!done)
+        {
+            std::unique_lock lock(m);
+            cv.wait(lock, [&done]() { return done.load(); });
+        }
+
+        LOG_ENGINE_INFO("job_system", "non-fiber wait complete");
+
+        // rethrow any exception
+        if (exception)
+        {
+            std::rethrow_exception(exception);
+        }
+    }
 };
 
 JobSystem::JobSystem()
-    : impl_(std::make_unique<implementation>())
-    , running_(true)
-    , stats_stream_(nullptr)
+    : running_(true)
+    , impl_(std::make_unique<implementation>())
 {
-    auto thread_count = std::thread::hardware_concurrency();
-
-    impl_->stats.resize(thread_count);
+    auto thread_count = std::max(1u, std::thread::hardware_concurrency() - 1u);
 
     LOG_ENGINE_INFO("job_system", "creating {} threads", thread_count);
     for (auto i = 0u; i < thread_count; ++i)
     {
-        impl_->stats[i].id = i + 1;
         impl_->workers.emplace_back(
             job_thread,
             i + 1,
-            std::ref(impl_->fibers),
-            std::ref(impl_->signal_mutex),
-            std::ref(impl_->signal_condition),
+            std::ref(impl_->jobs_semaphore),
             std::ref(running_),
-            std::addressof(impl_->stats[i]),
-            std::ref(impl_->fiber_pool));
+            std::ref(impl_->fibers));
     }
 }
 
@@ -291,131 +211,78 @@ JobSystem::~JobSystem()
 {
     running_ = false;
 
-    // signal all threads to wakeup and stop
     for (auto i = 0u; i < impl_->workers.size() + 1u; i++)
     {
-        impl_->signal_condition.notify_all();
+        impl_->jobs_semaphore.release();
     }
 
     for (auto &worker : impl_->workers)
     {
         worker.join();
     }
-
-    if (stats_stream_ != nullptr)
-    {
-        calculate_stats(*stats_stream_, impl_->stats, impl_->fiber_pool);
-    }
 }
 
-void JobSystem::add_jobs_impl(const std::vector<Job> &jobs)
+void JobSystem::add_jobs(const std::vector<Job> &jobs)
 {
     for (const auto &job : jobs)
     {
-        // create new fiber for job
-        auto *f = impl_->fiber_pool.next();
-        f->reset(job, nullptr);
+        // we rely on the worker thread to clean up after us
+        auto *f = new Fiber{job};
 
         impl_->fibers.enqueue(f, nullptr);
-
-        // signal workers that a new fiber is available
-        impl_->signal_condition.notify_all();
+        impl_->jobs_semaphore.release();
     }
 }
 
-void JobSystem::wait_for_jobs_impl(const std::vector<Job> &jobs)
+void JobSystem::wait_for_jobs(const std::vector<Job> &jobs)
 {
     if (*Fiber::this_fiber() == nullptr)
     {
-        // special case when there is no current fiber i.e. this is being
-        // called from the main thread
-        bootstrap_first_job(jobs);
+        implementation::bootstrap_first_job(jobs, this);
     }
     else
     {
-        // create new atomic counter
         auto counter = std::make_unique<Counter>(static_cast<int>(jobs.size()));
+        std::vector<std::unique_ptr<Fiber>> fibers{};
 
-        // put fiber in pausing state, this will prevent it from being
-        // prematurely resumed
-        (*Fiber::this_fiber())->set_state(FiberState::PAUSING);
-
-        for (auto &j : jobs)
+        // create fibers and add to the queue
+        for (const auto &job : jobs)
         {
-            // create new fiber for job
-            auto *f = impl_->fiber_pool.next();
-            f->reset(j, counter.get());
+            fibers.emplace_back(std::make_unique<Fiber>(job, counter.get()));
 
-            // add fiber to queue
-            impl_->fibers.enqueue(f, nullptr);
+            impl_->fibers.enqueue(fibers.back().get(), nullptr);
+            impl_->jobs_semaphore.release();
         }
 
-        // add this fiber back to the queue with the new counter
+        // mark current fiber as unsafe (so another thread doesn't preemptively
+        // try to resume it), stick it on the queue
+        (*Fiber::this_fiber())->set_unsafe();
         impl_->fibers.enqueue(*Fiber::this_fiber(), counter.get());
+        impl_->jobs_semaphore.release();
 
-        impl_->signal_condition.notify_all();
-
-        // suspend current fiber
+        // suspend current thread - this will internally mark the fiber as safe
         (*Fiber::this_fiber())->suspend();
-    }
-}
 
-void JobSystem::set_stats_stream_impl(std::ostream *stats_stream)
-{
-    stats_stream_ = stats_stream;
-}
+        // the above line will not return
+        // if we get there then all children jobs have finished and resume has
+        // been called
 
-/**
- * If a fiber is started from the main thread (i.e. not from another fiber)
- * then we run into problems when trying to wait for it as we have nothing to
- * suspend. This function wraps up the wait job in a fire-and-forget job but
- * then manually blocks the calling thread until it has finished.
- *
- * @param jobs
- *   Jobs to execute.
- */
-void JobSystem::bootstrap_first_job(const std::vector<Job> &jobs)
-{
-    std::mutex m;
-    std::condition_variable cv;
-    std::atomic<bool> done = false;
-    std::exception_ptr exception;
+        std::exception_ptr job_exception;
 
-    // wrap everything up in a fire-and-forget job
-    add_jobs({{[&cv, &done, &jobs, &exception, this]() {
-        LOG_ENGINE_INFO("job_system", "bootstrap started");
-
-        try
+        for (const auto &fiber : fibers)
         {
-            // we can now call wait for jobs because we are within another
-            // fiber
-            wait_for_jobs(jobs);
-        }
-        catch (...)
-        {
-            // capture any exception
-            exception = std::current_exception();
+            // find first exception that was throw, first come first served
+            if ((fiber->exception() != nullptr) && !job_exception)
+            {
+                job_exception = fiber->exception();
+                break;
+            }
         }
 
-        // signal calling thread we are finished
-        done = true;
-        cv.notify_one();
-        LOG_ENGINE_INFO("job_system", "bootstrap lambda done");
-    }}});
-
-    // block and wait for wrapping fiber to finish
-    if (!done)
-    {
-        std::unique_lock lock(m);
-        cv.wait(lock, [&done]() { return done.load(); });
-    }
-
-    LOG_ENGINE_INFO("job_system", "non-fiber wait complete");
-
-    // rethrow any exception
-    if (exception)
-    {
-        std::rethrow_exception(exception);
+        if (job_exception)
+        {
+            std::rethrow_exception(job_exception);
+        }
     }
 }
 
