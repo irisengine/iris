@@ -12,7 +12,7 @@
 #include "core/exception.h"
 #include "core/start.h"
 #include "core/vector3.h"
-#include "jobs/job_system.h"
+#include "jobs/job.h"
 #include "log/log.h"
 
 struct Sphere;
@@ -177,6 +177,8 @@ iris::Colour trace(const Ray &ray, int depth)
 
 void go(int, char **)
 {
+    iris::Logger::instance().ignore_tag("js");
+
     scene.emplace_back(
         iris::Vector3{150.0f, 0.0f, -600.0f},
         100.0f,
@@ -207,6 +209,7 @@ void go(int, char **)
 
     std::vector<iris::Job> jobs;
 
+    LOG_INFO("job_system", "starting");
     auto start = std::chrono::high_resolution_clock::now();
 
     for (std::size_t j = 0; j < height; j++)
@@ -248,7 +251,15 @@ void go(int, char **)
         }
     }
 
-    iris::JobSystem::wait_for_jobs(jobs);
+    do
+    {
+        const auto count = std::min((std::size_t)900ul, jobs.size());
+        std::vector<iris::Job> batch(std::cend(jobs) - count, std::cend(jobs));
+        jobs.erase(std::cend(jobs) - count, std::cend(jobs));
+
+        iris::job::wait(batch);
+
+    } while (!jobs.empty());
 
     auto end = std::chrono::high_resolution_clock::now();
 
