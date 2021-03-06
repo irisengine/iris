@@ -6,13 +6,20 @@
 
 #include "core/camera.h"
 #include "core/colour.h"
+#include "core/resource_loader.h"
 #include "core/start.h"
 #include "core/transform.h"
 #include "core/window.h"
 #include "events/keyboard_event.h"
+#include "graphics/lights/lighting_rig.h"
 #include "graphics/mesh_factory.h"
 #include "graphics/pipeline.h"
+#include "graphics/render_graph/arithmetic_node.h"
+#include "graphics/render_graph/colour_node.h"
+#include "graphics/render_graph/component_node.h"
 #include "graphics/render_graph/render_graph.h"
+#include "graphics/render_graph/texture_node.h"
+#include "graphics/render_graph/value_node.h"
 #include "graphics/scene.h"
 #include "graphics/stage.h"
 #include "log/log.h"
@@ -63,6 +70,8 @@ void go(int, char **)
 {
     LOG_DEBUG("physics_sample", "hello world");
 
+    iris::ResourceLoader::instance().set_root_directory("assets");
+
     std::map<iris::Key, iris::KeyState> key_map{
         {iris::Key::W, iris::KeyState::UP},
         {iris::Key::A, iris::KeyState::UP},
@@ -79,22 +88,37 @@ void go(int, char **)
 
     std::vector<std::tuple<iris::RenderEntity *, iris::RigidBody *>> boxes;
 
+    iris::RenderGraph floor_graph{};
+    floor_graph.render_node()->set_specular_amount_input(
+        floor_graph.create<iris::ValueNode<float>>(0.0f));
+
     auto scene = std::make_unique<iris::Scene>();
     scene->create_entity(
-        iris::RenderGraph{},
+        &floor_graph,
         iris::mesh_factory::cube({1.0f, 1.0f, 1.0f}),
         iris::Transform{
             iris::Vector3{0.0f, -50.0f, 0.0f},
             {},
             iris::Vector3{500.0f, 50.0f, 500.0f}});
 
-    scene->create_light(iris::Vector3{0.0f, -1.0f, -1.0f}, true);
+    scene->set_ambient_light({0.01f, 0.01f, 0.01f});
+    scene->create_light<iris::DirectionalLight>(
+        iris::Vector3{0.0f, -1.0f, -1.0f}, true);
+    auto *light = scene->create_light<iris::PointLight>(
+        iris::Vector3{0.0f, 1.0f, -10.0f});
 
     ps.create_rigid_body(
         iris::Vector3{0.0f, -50.0f, 0.0f},
         std::make_unique<iris::BoxCollisionShape>(
             iris::Vector3{500.0f, 50.0f, 500.0f}),
         iris::RigidBodyType::STATIC);
+
+    iris::RenderGraph graph{};
+    graph.render_node()->set_colour_input(
+        graph.create<iris::TextureNode>("crate.png"));
+    graph.render_node()->set_specular_amount_input(
+        graph.create<iris::ComponentNode>(
+            graph.create<iris::TextureNode>("crate_specular.png"), "r"));
 
     auto width = 21u;
     auto height = 10u;
@@ -112,8 +136,8 @@ void go(int, char **)
 
             boxes.emplace_back(
                 scene->create_entity(
-                    iris::RenderGraph{},
-                    iris::mesh_factory::cube(colour),
+                    &graph,
+                    iris::mesh_factory::cube({1.0f, 1.0f, 1.0f}),
                     iris::Transform{pos, {}, half_size}),
                 ps.create_rigid_body(
                     pos,
@@ -137,6 +161,8 @@ void go(int, char **)
     iris::Vector3 walk_direction{};
     auto delta_x = 0.0f;
     auto delta_y = 0.0f;
+
+    iris::Transform light_transform{light->position(), {}, {1.0f}};
 
     for (;;)
     {
@@ -248,6 +274,11 @@ void go(int, char **)
 
         camera.translate(
             cam_pos - camera.position() + iris::Vector3{0.0f, 0.5f, 0.0f});
+
+        light_transform.set_matrix(
+            iris::Matrix4(iris::Quaternion{{0.0f, 1.0f, 0.0f}, -0.01f}) *
+            light_transform.matrix());
+        light->set_position(light_transform.translation());
 
         for (const auto &[g, p] : boxes)
         {

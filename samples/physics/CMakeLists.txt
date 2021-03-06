@@ -20,4 +20,6 @@ else()
   add_executable(physics ${SAMPLE_SRCS})
 endif()
 
+file(COPY assets DESTINATION ${CMAKE_BINARY_DIR}/samples/physics)
+
 target_link_libraries(physics iris)

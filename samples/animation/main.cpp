@@ -15,6 +15,7 @@
 #include "graphics/render_graph/render_graph.h"
 #include "graphics/render_graph/render_node.h"
 #include "graphics/render_graph/texture_node.h"
+#include "graphics/render_graph/value_node.h"
 #include "graphics/scene.h"
 #include "graphics/stage.h"
 #include "log/log.h"
@@ -43,9 +44,14 @@ void go(int, char **)
     camera.set_position(camera.position() + iris::Vector3{0.0f, 5.0f, 0.0f});
 
     auto scene = std::make_unique<iris::Scene>();
+    scene->set_ambient_light({0.01f, 0.01f, 0.01f});
+
+    iris::RenderGraph floor_graph{};
+    floor_graph.render_node()->set_specular_amount_input(
+        floor_graph.create<iris::ValueNode<float>>(0.0f));
 
     scene->create_entity(
-        iris::RenderGraph(),
+        &floor_graph,
         iris::mesh_factory::cube({1.0f, 1.0f, 1.0f}),
         iris::Transform{
             iris::Vector3{0.0f, -500.0f, 0.0f}, {}, iris::Vector3{500.0f}});
@@ -59,7 +65,7 @@ void go(int, char **)
     auto [mesh, skeleton] = iris::mesh_factory::load("Zombie.fbx");
 
     auto *zombie = scene->create_entity(
-        std::move(render_graph),
+        &render_graph,
         std::move(mesh),
         iris::Transform{
             iris::Vector3{0.0f, 0.0f, 0.0f}, {}, iris::Vector3{0.035f}},
@@ -68,9 +74,10 @@ void go(int, char **)
     zombie->set_receive_shadow(false);
 
     auto *debug_draw = scene->create_entity(
-        iris::RenderGraph{}, iris::mesh_factory::empty(), iris::Vector3{});
+        nullptr, iris::mesh_factory::empty(), iris::Vector3{});
 
-    auto *light = scene->create_light(iris::Vector3{-1.0f, -1.0f, 0.0f}, true);
+    auto *light = scene->create_light<iris::DirectionalLight>(
+        iris::Vector3{-1.0f, -1.0f, 0.0f}, true);
     iris::Transform light_transform{light->direction(), {}, {1.0f}};
 
     ps.enable_debug_draw(debug_draw);

@@ -9,6 +9,7 @@
 #include "core/transform.h"
 #include "core/window.h"
 #include "events/keyboard_event.h"
+#include "graphics/lights/lighting_rig.h"
 #include "graphics/material.h"
 #include "graphics/mesh_factory.h"
 #include "graphics/pipeline.h"
@@ -65,15 +66,19 @@ void go(int, char **)
     auto [mesh1, skl1] = iris::mesh_factory::load("sphere.fbx");
 
     auto scene1 = std::make_unique<iris::Scene>();
+
+    scene1->set_ambient_light({0.15f, 0.15f, 0.15f});
+    auto *light1 = scene1->create_light<iris::PointLight>(
+        iris::Vector3{0.0f, 100.0f, -100.0f});
+
     auto *sphere1 = scene1->create_entity(
-        std::move(graph1),
+        &graph1,
         std::move(mesh1),
         iris::Transform{
             iris::Vector3{-20.0f, 0.0f, 0.0f},
             iris::Quaternion({1.0f, 0.0f, 0.0f}, M_PI_2),
             iris::Vector3{10.0f}},
         skl1);
-    auto *light1 = scene1->create_light(iris::Vector3{-1.0f, -1.0f, 0.0f});
 
     auto [mesh2, skl2] = iris::mesh_factory::load("sphere.fbx");
 
@@ -82,15 +87,19 @@ void go(int, char **)
         graph2.create<iris::TextureNode>("brickwall.jpg"));
 
     auto scene2 = std::make_unique<iris::Scene>();
+
+    scene2->set_ambient_light({0.15f, 0.15f, 0.15f});
+    auto *light2 = scene2->create_light<iris::PointLight>(
+        iris::Vector3{0.0f, 100.0f, -100.0f});
+
     auto *sphere2 = scene2->create_entity(
-        std::move(graph2),
+        &graph2,
         std::move(mesh2),
         iris::Transform{
             iris::Vector3{20.0f, 0.0f, 0.0f},
             iris::Quaternion({1.0f, 0.0f, 0.0f}, M_PI_2),
             iris::Vector3{10.0f}},
         skl2);
-    auto *light2 = scene2->create_light(iris::Vector3{-1.0f, -1.0f, 0.0f});
 
     iris::RenderGraph graph3{};
 
@@ -103,7 +112,7 @@ void go(int, char **)
 
     auto scene3 = std::make_unique<iris::Scene>();
     scene3->create_entity(
-        std::move(graph3),
+        &graph3,
         iris::mesh_factory::sprite({}),
         iris::Transform{
             iris::Vector3{}, {}, iris::Vector3{800.0f, 800.0f, 1.0f}});
@@ -114,7 +123,7 @@ void go(int, char **)
     pipeline.add_stage(std::move(scene2), camera, &sphere2_rt);
     pipeline.add_stage(std::move(scene3), screen_camera);
 
-    iris::Transform light_transform{light1->direction(), {}, {1.0f}};
+    iris::Transform light_transform{light1->position(), {}, {1.0f}};
 
     iris::Looper looper{
         0ms,
@@ -180,8 +189,8 @@ void go(int, char **)
             light_transform.set_matrix(
                 iris::Matrix4(iris::Quaternion{{0.0f, 1.0f, 0.0f}, -0.01f}) *
                 light_transform.matrix());
-            light1->set_direction(light_transform.translation());
-            light2->set_direction(light_transform.translation());
+            light1->set_position(light_transform.translation());
+            light2->set_position(light_transform.translation());
 
             window.render(pipeline);
 
