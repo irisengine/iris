@@ -4,7 +4,7 @@
 #include <string>
 
 #include "core/exception.h"
-#include "graphics/light.h"
+#include "graphics/lights/lighting_rig.h"
 #include "graphics/metal/compiler_strings.h"
 #include "graphics/render_graph/arithmetic_node.h"
 #include "graphics/render_graph/blur_node.h"
@@ -53,14 +53,291 @@ std::string texture_name(
     return "tex" + std::to_string(texture->texture_id());
 }
 
+/**
+ * Visit a node if it exists or write out a default value to a stream.
+ *
+ * This helper function is a little bit brittle as it assumes the visitor will
+ * write to the same stream as the one supplied.
+ *
+ * @param strm
+ *   Stream to write to.
+ *
+ * @param node
+ *   Node to visit, if nullptr then default value will be written to stream.
+ *
+ * @param visitor
+ *   Visitor to visit node if not null.
+ *
+ * @param default_value
+ *   Value to write to stream if node not null.
+ *
+ * @param add_semi_colon
+ *   If true write semi colon after visit/value, else do nothing.
+ */
+void visit_or_default(
+    std::stringstream &strm,
+    const iris::Node *node,
+    iris::Compiler *visitor,
+    const std::string &default_value,
+    bool add_semi_colon = true)
+{
+    if (node == nullptr)
+    {
+        strm << default_value;
+    }
+    else
+    {
+        node->accept(*visitor);
+    }
+
+    if (add_semi_colon)
+    {
+        strm << ";\n";
+    }
+}
+
+/**
+ * Write shader code for generating tangent values to a stream.
+ *
+ * @param strm
+ *   Stream to write to.
+ *
+ * @param lighting_rig
+ *   Lights used in shader.
+ */
+void build_tangent_values(
+    std::stringstream &strm,
+    const iris::LightingRig *lighting_rig)
+{
+    const auto directional_light_count =
+        lighting_rig->directional_lights.size();
+    const auto point_light_count = lighting_rig->point_lights.size();
+
+    for (auto i = 0u; i < directional_light_count; ++i)
+    {
+        strm << iris::replace_index(
+            R"(
+            out.frag_pos_light_space{} = directional_lights[{}].proj * directional_lights[{}].view * out.pos;
+            out.tangent_light_pos{} = tbn * directional_lights[{}].position.xyz;
+            )",
+            i);
+    }
+
+    for (auto i = 0u; i < point_light_count; ++i)
+    {
+        strm << iris::replace_index(
+            R"(
+            out.tangent_light_pos{} = tbn * point_light[<>].position.xyz;
+            )",
+            i + directional_light_count,
+            i);
+    }
+
+    strm << R"(
+        out.tangent_view_pos = tbn * uniform->camera.xyz;
+        out.tangent_frag_pos = tbn * out.pos.xyz;
+        return out;
+    })";
+}
+
+/**
+ * Write shader code for generating fragment colour.
+ *
+ * @param strm
+ *   Stream to write to.
+ *
+ * @param colour
+ *   Node for colour (maybe nullptr).
+ *
+ * @param visitor
+ *   Visitor for node.
+ */
+void build_fragment_colour(
+    std::stringstream &strm,
+    const iris::Node *colour,
+    iris::Compiler *visitor)
+{
+    strm << "float4 fragment_colour = ";
+    visit_or_default(strm, colour, visitor, "in.color");
+}
+
+/**
+ * Write shader code for generating specular values.
+ *
+ * @param strm
+ *   Stream to write to.
+ *
+ * @param specular_power
+ *   Node for specular power (maybe nullptr).
+ *
+ * @param specular_amount
+ *   Node for specular amount (maybe nullptr).
+ *
+ * @param visitor
+ *   Visitor for node.
+ */
+void build_specular_values(
+    std::stringstream &strm,
+    const iris::Node *specular_power,
+    const iris::Node *specular_amount,
+    iris::Compiler *visitor)
+{
+    strm << "float specular_power =";
+    visit_or_default(strm, specular_power, visitor, "32.0");
+
+    strm << "float specular_amount = ";
+    visit_or_default(strm, specular_amount, visitor, "1.0");
+}
+
+/**
+ * Write shader code for generating fragment normal.
+ *
+ * @param strm
+ *   Stream to write to.
+ *
+ * @param normal
+ *   Node for normal (maybe nullptr).
+ *
+ * @param visitor
+ *   Visitor for node.
+ */
+void build_normal(
+    std::stringstream &strm,
+    const iris::Node *normal,
+    iris::Compiler *visitor)
+{
+    strm << "float3 n = ";
+    if (normal == nullptr)
+    {
+        strm << "normalize(in.normal.xyz);\n";
+    }
+    else
+    {
+        strm << "float3(";
+        normal->accept(*visitor);
+        strm << ");\n";
+        strm << "n = normalize(n * 2.0 - 1.0);\n";
+    }
+}
+
+/**
+ * Write shader code for generating light directional values.
+ *
+ * @param strm
+ *   Stream to write to.
+ *
+ * @param has_normal_input
+ *   True if material has a normal input node, otherwise false.
+ *
+ * @param lighting_rig
+ *   Lights used in shader.
+ */
+void build_direction_values(
+    std::stringstream &strm,
+    bool has_normal_input,
+    const iris::LightingRig *lighting_rig)
+{
+    for (auto i = 0u; i < lighting_rig->directional_lights.size(); ++i)
+    {
+        strm << iris::replace_index(
+            (!has_normal_input
+                 ? "float3 light_dir{} = "
+                   "normalize(-(directional_lights[{}].position.xyz));\n"
+                 : "float3 light_dir{} = "
+                   "normalize(-in.tangent_light_pos{});\n"),
+            i);
+    }
+
+    for (auto i = 0u; i < lighting_rig->point_lights.size(); ++i)
+    {
+        strm << iris::replace_index(
+            (!has_normal_input
+                 ? "float3 light_dir{} = "
+                   "normalize(point_light[<>].position.xyz - in.pos.xyz);\n"
+                 : "float3 light_dir{} = normalize(in.tangent_light_pos{} - "
+                   "in.tangent_frag_pos.xyz);\n"),
+            i + lighting_rig->directional_lights.size(),
+            i);
+    }
+
+    strm
+        << (!has_normal_input
+                ? "float3 view_dir = normalize(uniform->camera.xyz - "
+                  "in.pos.xyz);\n"
+                : "float3 view_dir = normalize(in.tangent_view_pos.xyz - "
+                  "in.tangent_frag_pos.xyz);\n");
+}
+
+/**
+ * Write shader code for generating light calculations.
+ *
+ * @param strm
+ *   Stream to write to.
+ *
+ * @param node
+ *   Root node for render graph.
+ *
+ * @param lighting_rig
+ *   Lights used in shader.
+ *
+ * @param textures
+ *   Collection of textures.
+ */
+void build_lighting_calculations(
+    std::stringstream &strm,
+    const iris::RenderNode &node,
+    const iris::LightingRig *lighting_rig,
+    std::vector<iris::Texture *> &textures)
+{
+    const auto directional_light_count =
+        lighting_rig->directional_lights.size();
+    const auto point_light_count = lighting_rig->point_lights.size();
+
+    for (auto i = 0u; i < directional_light_count + point_light_count; ++i)
+    {
+        strm << "float shadow" << i << " = 0.0;\n";
+        if (i < directional_light_count && node.shadow_map_input(i) != nullptr)
+        {
+            strm
+                << iris::replace_index(
+                       R"(shadow{} = calculate_shadow(n, in.frag_pos_light_space{}, light_dir{}, )",
+                       i)
+                << texture_name(
+                       static_cast<iris::TextureNode *>(
+                           node.shadow_map_input(i))
+                           ->texture(),
+                       textures)
+                << ");\n";
+        }
+
+        strm << iris::replace_index(
+            R"(
+                float diff{} = max(dot(n, light_dir{}), 0.0);
+                float3 diffuse{} = (1.0  - shadow{}) * float3(diff{});
+                diffuse += diffuse{};
+                )",
+            i);
+
+        if (i >= directional_light_count)
+        {
+            strm << iris::replace_index(
+                R"(
+             float3 reflect_dir{} = reflect(-light_dir{}, n);
+             float specular{} = pow(max(dot(view_dir, reflect_dir{}), 0.0), specular_power);
+             specular += float3(specular{});)",
+                i);
+        }
+    }
+}
+
 }
 
 namespace iris
 {
 
 Compiler::Compiler(
-    const RenderGraph &render_graph,
-    const std::vector<Light *> &lights)
+    const RenderGraph *render_graph,
+    const LightingRig *lighting_rig)
     : vertex_stream_()
     , fragment_stream_()
     , current_stream_(nullptr)
@@ -68,9 +345,9 @@ Compiler::Compiler(
     , fragment_functions_()
     , current_functions_(nullptr)
     , textures_()
-    , lights_(lights)
+    , lighting_rig_(lighting_rig)
 {
-    render_graph.render_node()->accept(*this);
+    render_graph->render_node()->accept(*this);
 }
 
 void Compiler::visit(const RenderNode &node)
@@ -81,52 +358,8 @@ void Compiler::visit(const RenderNode &node)
     current_functions_->emplace(bone_transform_function);
     current_functions_->emplace(tbn_function);
 
-    vertex_stream_ << R"(
-    float4x4 bone_transform = calculate_bone_transform(uniform, vid, vertices);
-
-    float2 uv = vertices[vid].tex.xy;
-)";
-
-    vertex_stream_ << "   float4 position = ";
-    auto position_input = node.position_input();
-    if (position_input == nullptr)
-    {
-        vertex_stream_ << "vertices[vid].position;\n";
-    }
-    else
-    {
-        position_input->accept(*this);
-        vertex_stream_ << ";\n";
-    }
-
-    vertex_stream_ << R"(
-    VertexOut out;
-    out.pos = uniform->model * bone_transform * position;
-    out.position = uniform->projection * uniform->view * out.pos;
-    out.normal = uniform->normal_matrix * bone_transform * vertices[vid].normal;
-    out.color = vertices[vid].color;
-    out.tex = vertices[vid].tex;
-
-    const float3x3 tbn = calculate_tbn(uniform, bone_transform, vid, vertices);
-
-)";
-
-    for (auto i = 0u; i < lights_.size(); ++i)
-    {
-        vertex_stream_ << replace_index(
-            R"(
-            out.frag_pos_light_space{} = light[{}].proj * light[{}].view * out.pos;
-            out.tangent_light_pos{} = tbn * float3(light[{}].position);
-            )",
-            i);
-    }
-
-    vertex_stream_ << R"(
-    out.tangent_frag_pos = tbn * float3(out.pos);
-
-    return out;
-}
-)";
+    vertex_stream_ << vertex_begin;
+    build_tangent_values(vertex_stream_, lighting_rig_);
 
     current_stream_ = &fragment_stream_;
     current_functions_ = &fragment_functions_;
@@ -135,90 +368,28 @@ void Compiler::visit(const RenderNode &node)
 
     if (!node.is_depth_only())
     {
-        fragment_stream_ << "float2 uv = in.tex.xy;\n";
-        fragment_stream_ << "float4 fragment_colour = ";
-
-        auto colour_input = node.colour_input();
-        if (colour_input == nullptr)
-        {
-            fragment_stream_ << "in.color;\n";
-        }
-        else
-        {
-            colour_input->accept(*this);
-            fragment_stream_ << ";\n";
-        }
-
-        fragment_stream_ << "float4 n4 = ";
-
-        auto normal_input = node.normal_input();
-        if (normal_input == nullptr)
-        {
-            fragment_stream_ << "in.normal;\n";
-
-            for (auto i = 0u; i < lights_.size(); ++i)
-            {
-                fragment_stream_ << replace_index(
-                    R"(
-                    float3 light_dir{} = normalize(-(light[{}].position.xyz));
-                    )",
-                    i);
-            }
-        }
-        else
-        {
-            normal_input->accept(*this);
-            fragment_stream_ << ";\n";
-            fragment_stream_ << "n4 = normalize(n4 * 2.0 - 1.0);\n";
-            for (auto i = 0u; i < lights_.size(); ++i)
-            {
-                fragment_stream_ << replace_index(
-                    R"(
-                    float3 light_dir{} = normalize(-in.tangent_light_pos{});
-                    )",
-                    i);
-            }
-        }
-
-        if (lights_.empty())
-        {
-            fragment_stream_ << "float3 amb = float3(1.0);\n";
-        }
-        else
-        {
-            fragment_stream_ << "float3 amb = float3(0.15);\n";
-        }
+        fragment_stream_ << "float3 amb = float3("
+                         << lighting_rig_->ambient_light.r << ", "
+                         << lighting_rig_->ambient_light.g << ", "
+                         << lighting_rig_->ambient_light.b << ");";
 
         fragment_stream_ << R"(
-    float3 n = normalize(float3(n4));
-    float3 diffuse = 0.0;
+    float3 diffuse = float3(0);
+    float3 specular = float3(0);
+    float2 uv = in.tex.xy;
 )";
 
-        for (auto i = 0u; i < lights_.size(); ++i)
-        {
-            fragment_stream_ << "float shadow" << i << " = 0.0;\n";
-            if (node.shadow_map_input(i) != nullptr)
-            {
-                fragment_stream_
-                    << replace_index(
-                           R"(
-                           shadow{} = calculate_shadow(n, in.frag_pos_light_space{}, light_dir{}, )",
-                           i)
-                    << texture_name(
-                           static_cast<TextureNode *>(node.shadow_map_input(i))
-                               ->texture(),
-                           textures_)
-                    << ");\n";
-            }
-
-            fragment_stream_ << replace_index(
-                R"(
-                float diff{} = max(dot(n, light_dir{}), 0.0);
-                float3 diffuse{} = (1.0  - shadow{}) * float3(diff{});
-                diffuse += diffuse{};
-                )",
-                i);
-        }
+        build_fragment_colour(fragment_stream_, node.colour_input(), this);
+        build_specular_values(
+            fragment_stream_,
+            node.specular_power_input(),
+            node.specular_amount_input(),
+            this);
+        build_normal(fragment_stream_, node.normal_input(), this);
+        build_direction_values(
+            fragment_stream_, node.normal_input() != nullptr, lighting_rig_);
+        build_lighting_calculations(
+            fragment_stream_, node, lighting_rig_, textures_);
 
         fragment_stream_ << R"(
     if (fragment_colour.a < 0.01)
@@ -226,7 +397,7 @@ void Compiler::visit(const RenderNode &node)
         discard_fragment();
     }
 
-    return float4((amb + diffuse) * fragment_colour.rgb, 1.0);
+    return float4((amb + diffuse + (specular * specular_amount)) * fragment_colour.rgb, 1.0);
 }
 )";
     }
@@ -360,6 +531,10 @@ void Compiler::visit(const SinNode &node)
 
 std::string Compiler::vertex_shader() const
 {
+    const auto directional_light_count =
+        lighting_rig_->directional_lights.size();
+    const auto point_light_count = lighting_rig_->point_lights.size();
+
     std::stringstream stream{};
 
     stream << preamble << '\n';
@@ -372,17 +547,19 @@ typedef struct {
     float4 tex;
     float4 pos;
     )";
-    for (auto i = 0u; i < lights_.size(); ++i)
+    for (auto i = 0u; i < directional_light_count + point_light_count; ++i)
     {
         stream << "float3 tangent_light_pos" << i << ";\n";
         stream << "float4 frag_pos_light_space" << i << ";\n";
     }
     stream << R"(
+    float3 tangent_view_pos;
     float3 tangent_frag_pos;
 } VertexOut;
 )";
     stream << default_uniform << '\n';
-    stream << light_uniform << '\n';
+    stream << directional_light_uniform << '\n';
+    stream << point_light_uniform << '\n';
 
     for (const auto &function : vertex_functions_)
     {
@@ -393,7 +570,8 @@ typedef struct {
  vertex VertexOut vertex_main(
     device VertexIn *vertices [[buffer(0)]],
     constant DefaultUniform *uniform [[buffer(1)]],
-    constant LightUniform *light [[buffer(2)]],
+    constant DirectionalLightUniform *directional_lights [[buffer(2)]],
+    constant PointLightUniform *point_light [[buffer(3)]],
     uint vid [[vertex_id]])";
     for (auto *texture : textures_)
     {
@@ -414,6 +592,10 @@ typedef struct {
 
 std::string Compiler::fragment_shader() const
 {
+    const auto directional_light_count =
+        lighting_rig_->directional_lights.size();
+    const auto point_light_count = lighting_rig_->point_lights.size();
+
     std::stringstream stream{};
 
     stream << preamble << '\n';
@@ -426,17 +608,19 @@ typedef struct {
     float4 tex;
     float4 pos;
     )";
-    for (auto i = 0u; i < lights_.size(); ++i)
+    for (auto i = 0u; i < directional_light_count + point_light_count; ++i)
     {
         stream << "float3 tangent_light_pos" << i << ";\n";
         stream << "float4 frag_pos_light_space" << i << ";\n";
     }
     stream << R"(
+    float3 tangent_view_pos;
     float3 tangent_frag_pos;
 } VertexOut;
 )";
     stream << default_uniform << '\n';
-    stream << light_uniform << '\n';
+    stream << directional_light_uniform << '\n';
+    stream << point_light_uniform << '\n';
 
     for (const auto &function : fragment_functions_)
     {
@@ -446,7 +630,9 @@ typedef struct {
     stream << R"(
 fragment float4 fragment_main(
     VertexOut in [[stage_in]],
-    constant LightUniform *light [[buffer(0)]])";
+    constant DefaultUniform *uniform [[buffer(0)]],
+    constant DirectionalLightUniform *directional_lights [[buffer(1)]],
+    constant PointLightUniform *point_light [[buffer(2)]])";
 
     for (auto *texture : textures_)
     {

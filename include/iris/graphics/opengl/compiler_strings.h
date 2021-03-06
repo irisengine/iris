@@ -28,6 +28,7 @@ uniform mat4 view;
 uniform mat4 model;
 uniform mat4 normal_matrix;
 uniform mat4 bones[100];
+uniform vec3 camera;
 )";
 
 static constexpr auto vertex_out = R"(
@@ -35,6 +36,7 @@ out vec4 frag_pos;
 out vec2 tex_coord;
 out vec4 col;
 out vec4 norm;
+out vec3 tangent_view_pos;
 out vec3 tangent_frag_pos;
 )";
 
@@ -43,11 +45,24 @@ in vec2 tex_coord;
 in vec4 col;
 in vec4 norm;
 in vec4 frag_pos;
+in vec3 tangent_view_pos;
 in vec3 tangent_frag_pos;
 )";
 
 static constexpr auto fragment_out = R"(
 out vec4 outColor;
+)";
+
+static constexpr auto vertex_begin = R"(
+    mat4 bone_transform = calculate_bone_transform(bone_ids, bone_weights);
+    mat3 tbn = calculate_tbn(bone_transform);
+
+    col = colour;
+    norm = normal_matrix * bone_transform * normal;
+    tex_coord = vec2(tex.x, tex.y);
+    frag_pos = model * bone_transform * position;
+    gl_Position = projection * view * frag_pos;
+
 )";
 
 static constexpr auto blur_function = R"(
@@ -124,7 +139,7 @@ mat3 calculate_tbn(mat4 bone_transform)
     vec3 B = normalize(vec3(normal_matrix * bone_transform * bitangent));
     vec3 N = normalize(vec3(normal_matrix * bone_transform * normal));
 
-    return mat3(T, B, N);
+    return transpose(mat3(T, B, N));
 })";
 
 static constexpr auto shadow_function = R"(

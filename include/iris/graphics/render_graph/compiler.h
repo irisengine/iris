@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "graphics/light.h"
+#include "graphics/lights/lighting_rig.h"
 #include "graphics/render_graph/render_graph.h"
 #include "graphics/texture.h"
 #include "graphics/vertex_attributes.h"
@@ -44,9 +44,7 @@ class Compiler
      * @param lights
      *   Collection of lights.
      */
-    Compiler(
-        const RenderGraph &render_graph,
-        const std::vector<Light *> &lights);
+    Compiler(const RenderGraph *render_graph, const LightingRig *lighting_rig);
 
     // visitor methods
     void visit(const RenderNode &node);
@@ -115,6 +113,6 @@ class Compiler
     std::vector<Texture *> textures_;
 
     /** Collection of lights. */
-    std::vector<Light *> lights_;
+    const LightingRig *lighting_rig_;
 };
 }
