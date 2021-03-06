@@ -4,7 +4,7 @@
 #include <tuple>
 #include <vector>
 
-#include "graphics/light.h"
+#include "graphics/lights/lighting_rig.h"
 #include "graphics/material.h"
 #include "graphics/render_entity.h"
 #include "graphics/render_graph/render_graph.h"
@@ -19,6 +19,8 @@ namespace iris
 class Scene
 {
   public:
+    Scene();
+
     /**
      * Create a RenderEntity and add it to the scene. Uses perfect forwarding to
      * pass along all arguments.
@@ -33,30 +35,12 @@ class Scene
      *   Pointer to the newly created RenderEntity.
      */
     template <class... Args>
-    RenderEntity *create_entity(RenderGraph render_graph, Args &&... args)
+    RenderEntity *create_entity(RenderGraph *render_graph, Args &&... args)
     {
         auto element =
             std::make_unique<RenderEntity>(std::forward<Args>(args)...);
 
         return add(std::move(render_graph), std::move(element));
-    }
-
-    /**
-     * Create a Light and add it to the scene. Uses perfect forwarding to pass
-     * along all arguments.
-     *
-     * @param args
-     *   Arguments for Light.
-     *
-     * @returns
-     *   Pointer to the newly created Light.
-     */
-    template <class... Args>
-    Light *create_light(Args &&... args)
-    {
-        auto light = std::make_unique<Light>(std::forward<Args>(args)...);
-
-        return add(std::move(light));
     }
 
     /**
@@ -72,19 +56,63 @@ class Scene
      *   Pointer to the added RenderEntity.
      */
     RenderEntity *add(
-        RenderGraph render_graph,
+        RenderGraph *render_graph,
         std::unique_ptr<RenderEntity> entity);
 
     /**
-     * Add a Light to the scene.
+     * Create a Light and add it to the scene. Uses perfect forwarding to pass
+     * along all arguments.
      *
-     * @param light
-     *   Light to add to scene.
+     * @param args
+     *   Args for light.
      *
      * @returns
-     *   Pointer to added Light.
+     *   Pointer to newly created light.
      */
-    Light *add(std::unique_ptr<Light> light);
+    template <class T, class... Args>
+    T *create_light(Args &&... args)
+    {
+        auto light = std::make_unique<T>(std::forward<Args>(args)...);
+        return add(std::move(light));
+    }
+
+    /**
+     * Add a point light to the scene.
+     *
+     * @param light
+     *   Light to add to scene
+     *
+     * @returns
+     *   Pointer to the added light.
+     */
+    PointLight *add(std::unique_ptr<PointLight> light);
+
+    /**
+     * Add a directional light to the scene.
+     *
+     * @param light
+     *   Light to add to scene
+     *
+     * @returns
+     *   Pointer to the added light.
+     */
+    DirectionalLight *add(std::unique_ptr<DirectionalLight> light);
+
+    /**
+     * Get ambient light colour.
+     *
+     * @returns
+     *   Ambient light colour.
+     */
+    Colour ambient_light() const;
+
+    /**
+     * Set ambient light colour.
+     *
+     * @param colour
+     *   New ambient light colour.
+     */
+    void set_ambient_light(const Colour &colour);
 
     /**
      * Get a reference to all entities in the scene.
@@ -92,24 +120,18 @@ class Scene
      * @returns
      *   Collection of <RenderGraph, RenderEntity> tuples.
      */
-    std::vector<std::tuple<RenderGraph, std::unique_ptr<RenderEntity>>>
+    std::vector<std::tuple<RenderGraph *, std::unique_ptr<RenderEntity>>>
         &entities();
 
-    /**
-     * Get a const reference to all the lights in the scene.
-     *
-     * @returns
-     *   const reference to light collection.
-     */
-    const std::vector<std::unique_ptr<Light>> &lights() const;
+    const LightingRig *lighting_rig();
 
   private:
     /** Collection of <RenderGraph, RenderEntity> tuples. */
-    std::vector<std::tuple<RenderGraph, std::unique_ptr<RenderEntity>>>
+    std::vector<std::tuple<RenderGraph *, std::unique_ptr<RenderEntity>>>
         entities_;
 
-    /** Collection of lights. */
-    std::vector<std::unique_ptr<Light>> lights_;
+    /** Lighting rig for scene. */
+    LightingRig lighting_rig_;
 };
 
 }
