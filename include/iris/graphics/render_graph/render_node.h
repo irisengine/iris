@@ -52,6 +52,39 @@ class RenderNode : public Node
     void set_colour_input(Node *input);
 
     /**
+     * Set specular power input i.e. how shiny an object is.
+     *
+     * @returns
+     *   Specular power input.
+     */
+    Node *specular_power_input() const;
+
+    /**
+     * Set specular power input.
+     *
+     * @param input
+     *   New input.
+     */
+    void set_specular_power_input(Node *input);
+
+    /**
+     * Set specular amount input i.e. a scale from [0, 1] how much to apply the
+     * specular power. Useful for specular maps or to disable specular.
+     *
+     * @returns
+     *   Specular amount input.
+     */
+    Node *specular_amount_input() const;
+
+    /**
+     * Set specular amount input.
+     *
+     * @param input
+     *   New input.
+     */
+    void set_specular_amount_input(Node *input);
+
+    /**
      * Get normal input.
      *
      * @returns
@@ -121,6 +154,12 @@ class RenderNode : public Node
   private:
     /** Colour input. */
     Node *colour_input_;
+
+    /** Specular power input. */
+    Node *specular_power_input_;
+
+    /** Specular amount input. */
+    Node *specular_amount_input_;
 
     /** Normal input. */
     Node *normal_input_;
