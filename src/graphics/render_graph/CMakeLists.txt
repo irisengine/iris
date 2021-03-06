@@ -1,7 +1,8 @@
 set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/graphics/render_graph")
 
-set(RENDER_GRAPH_SRCS
+set(GRAPHICS_SRCS
+    ${GRAPHICS_SRCS}
     "${INCLUDE_ROOT}/compiler.h"
     "${INCLUDE_ROOT}/node.h"
     "${SOURCE_ROOT}/arithmetic_node.cpp"

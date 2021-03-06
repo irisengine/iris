@@ -16,8 +16,6 @@ add_subdirectory("render_graph")
 
 set(GRAPHICS_SRCS
     ${GRAPHICS_SRCS}
-    ${CORE_SRCS}
-    ${RENDER_GRAPH_SRCS}
     "${INCLUDE_ROOT}/animation.h"
     "${INCLUDE_ROOT}/bone.h"
     "${INCLUDE_ROOT}/buffer.h"

@@ -2,6 +2,7 @@ set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/graphics/opengl")
 
 set(GRAPHICS_SRCS
+    ${GRAPHICS_SRCS}
     "${INCLUDE_ROOT}/shader_type.h"
     "${SOURCE_ROOT}/buffer.cpp"
     "${SOURCE_ROOT}/compiler.cpp"
