@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "core/colour.h"
-#include "graphics/scene.h"
+#include "graphics/texture.h"
 
 namespace iris::text_factory
 {
@@ -28,7 +28,7 @@ namespace iris::text_factory
  * @param colour
  *   The colour of the font.
  */
-std::unique_ptr<Scene> create(
+Texture *create(
     const std::string &font_name,
     std::uint32_t size,
     const std::string &text,
