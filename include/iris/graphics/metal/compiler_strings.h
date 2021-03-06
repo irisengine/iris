@@ -34,17 +34,39 @@ typedef struct
     float4x4 model;
     float4x4 normal_matrix;
     float4x4 bones[100];
+    float4 camera;
     float time;
 } DefaultUniform;
 )";
 
-static constexpr auto light_uniform = R"(
+static constexpr auto directional_light_uniform = R"(
 typedef struct
 {
     float4 position;
     float4x4 proj;
     float4x4 view;
-} LightUniform;
+} DirectionalLightUniform;
+)";
+
+static constexpr auto point_light_uniform = R"(
+typedef struct
+{
+    float4 position;
+} PointLightUniform;
+)";
+
+static constexpr auto vertex_begin = R"(
+float4x4 bone_transform = calculate_bone_transform(uniform, vid, vertices);
+float2 uv = vertices[vid].tex.xy;
+
+VertexOut out;
+out.pos = uniform->model * bone_transform * vertices[vid].position;
+out.position = uniform->projection * uniform->view * out.pos;
+out.normal = uniform->normal_matrix * bone_transform * vertices[vid].normal;
+out.color = vertices[vid].color;
+out.tex = vertices[vid].tex;
+
+const float3x3 tbn = calculate_tbn(uniform, bone_transform, vid, vertices);
 )";
 
 static constexpr auto blur_function = R"(

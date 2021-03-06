@@ -6,7 +6,7 @@
 #include "core/camera.h"
 #include "core/vector3.h"
 #include "graphics/buffer.h"
-#include "graphics/light.h"
+#include "graphics/lights/lighting_rig.h"
 #include "graphics/material.h"
 #include "graphics/opengl/opengl.h"
 #include "graphics/pipeline.h"
@@ -58,7 +58,7 @@ void set_uniforms(
     GLuint program,
     const iris::Camera &camera,
     iris::RenderEntity *entity,
-    const std::vector<iris::Light *> lights)
+    const iris::LightingRig *lighting_rig)
 {
     const auto proj_uniform = ::glGetUniformLocation(program, "projection");
     iris::check_opengl_error("could not get projection uniform location");
@@ -101,14 +101,16 @@ void set_uniforms(
         reinterpret_cast<const float *>(entity->normal_transform().data()));
     iris::check_opengl_error("could not set normal matrix uniform data");
 
-    for (auto i = 0u; i < lights.size(); ++i)
+    for (auto i = 0u; i < lighting_rig->directional_lights.size(); ++i)
     {
+        const auto light = lighting_rig->directional_lights[i].get();
+
         const auto light_name = std::string{"light"} + std::to_string(i);
         const auto light_uniform =
             ::glGetUniformLocation(program, light_name.c_str());
         iris::check_opengl_error("could not get light uniform location");
 
-        const auto light_dir = lights[i]->direction();
+        const auto light_dir = light->direction();
 
         ::glUniform3f(light_uniform, light_dir.x, light_dir.y, light_dir.z);
         iris::check_opengl_error("could not set light uniform data");
@@ -119,7 +121,7 @@ void set_uniforms(
             ::glGetUniformLocation(program, light_proj_name.c_str());
         iris::check_opengl_error("could not get light proj uniform location");
 
-        const auto light_proj = lights[i]->shadow_camera().projection();
+        const auto light_proj = light->shadow_camera().projection();
 
         ::glUniformMatrix4fv(
             light_proj_uniform,
@@ -135,7 +137,7 @@ void set_uniforms(
             ::glGetUniformLocation(program, light_view_name.c_str());
         iris::check_opengl_error("could not get light view uniform location");
 
-        const auto light_view = lights[i]->shadow_camera().view();
+        const auto light_view = light->shadow_camera().view();
 
         ::glUniformMatrix4fv(
             light_view_uniform,
@@ -144,6 +146,23 @@ void set_uniforms(
             reinterpret_cast<const float *>(light_view.data()));
         iris::check_opengl_error(
             "could not set projection matrix uniform data");
+    }
+
+    for (auto i = 0u; i < lighting_rig->point_lights.size(); ++i)
+    {
+        const auto light = lighting_rig->point_lights[i].get();
+
+        const auto light_name =
+            std::string{"light"} +
+            std::to_string(i + lighting_rig->directional_lights.size());
+        const auto light_uniform =
+            ::glGetUniformLocation(program, light_name.c_str());
+        iris::check_opengl_error("could not get light uniform location");
+
+        const auto light_pos = light->position();
+
+        ::glUniform3f(light_uniform, light_pos.x, light_pos.y, light_pos.z);
+        iris::check_opengl_error("could not set light uniform data");
     }
 
     const auto bones_uniform = ::glGetUniformLocation(program, "bones");
@@ -156,6 +175,17 @@ void set_uniforms(
         reinterpret_cast<const float *>(
             entity->skeleton().transforms().data()));
     iris::check_opengl_error("could not set bones uniform data");
+
+    const auto camera_uniform = ::glGetUniformLocation(program, "camera");
+    iris::check_opengl_error("could not get camera uniform location");
+
+    const auto camera_position = camera.position();
+    ::glUniform3f(
+        camera_uniform,
+        camera_position.x,
+        camera_position.y,
+        camera_position.z);
+    iris::check_opengl_error("could not set camera uniform data");
 }
 
 /**
@@ -314,26 +344,30 @@ void RenderSystem::render(const Pipeline &pipeline)
 
         render_setup(target);
 
-        for (const auto &[entity, material, lights] : stage->render_items())
+        Material *previous_material = nullptr;
+        GLuint program = 0u;
+
+        for (const auto &[entity, material, lighting_rig] :
+             stage->render_items())
         {
-            // bind Material to render with
-            const auto program =
-                std::any_cast<GLuint>(material->native_handle());
-            ::glUseProgram(program);
-            check_opengl_error("could not bind program");
+            if (material != previous_material)
+            {
+                // bind Material to render with
+                program = std::any_cast<GLuint>(material->native_handle());
+                ::glUseProgram(program);
+                check_opengl_error("could not bind program");
+
+                previous_material = material;
+            }
 
             if (entity->should_render_wireframe())
             {
                 ::glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             }
 
-            set_uniforms(program, camera, entity, lights);
+            set_uniforms(program, camera, entity, lighting_rig);
             bind_textures(program, material);
             draw_meshes(entity);
-
-            // unbind program
-            ::glUseProgram(0u);
-            check_opengl_error("could not unbind program");
         }
     }
 

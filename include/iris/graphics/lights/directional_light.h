@@ -15,10 +15,10 @@ namespace iris
  * passes to be created which can impact performance (depending in scene
  * complexity).
  */
-class Light
+class DirectionalLight
 {
   public:
-    /** Create a new Light.
+    /** Create a new DirectionalLight.
      *
      * @param direction
      *   The direction the rays of light are pointing, for examples to have a
@@ -28,7 +28,7 @@ class Light
      * @param cast_shadows
      *   True if this light should generate shadows, false otherwise.
      */
-    Light(const Vector3 &direction, bool cast_shadows = false);
+    DirectionalLight(const Vector3 &direction, bool cast_shadows = false);
 
     /**
      * Get direction of light.
@@ -46,6 +46,12 @@ class Light
      */
     void set_direction(const Vector3 &direction);
 
+    /**
+     * Check if this light should cast shadows.
+     *
+     * @returns
+     *   True if light casts shadows, false otherwise.
+     */
     bool casts_shadows() const;
 
     /**

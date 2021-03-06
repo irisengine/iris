@@ -32,7 +32,8 @@ void Pipeline::add_stage(
     // note that this us done *before* we add the stage for the scene passed
     // in as we will need all the shadow map stages to be executed before we can
     // render that scene
-    for (const auto &light : current_scene->lights())
+    for (const auto &light :
+         current_scene->lighting_rig()->directional_lights)
     {
         if (light->casts_shadows())
         {
@@ -44,7 +45,7 @@ void Pipeline::add_stage(
             // scene
             for (auto &[graph, entity] : current_scene->entities())
             {
-                graph.render_node()->set_depth_only(true);
+                graph->render_node()->set_depth_only(true);
             }
 
             // add a shadow map stage
@@ -54,15 +55,15 @@ void Pipeline::add_stage(
             for (auto &[graph, entity] : current_scene->entities())
             {
                 // revert depth only mode
-                graph.render_node()->set_depth_only(false);
+                graph->render_node()->set_depth_only(false);
 
                 // if the entity can receive shadows then we need to wire the
                 // shadow map into into its render graph
                 if (entity->receive_shadow())
                 {
-                    auto *texture = graph.create<TextureNode>(
+                    auto *texture = graph->create<TextureNode>(
                         light->shadow_target()->depth_texture());
-                    graph.render_node()->add_shadow_map_input(texture);
+                    graph->render_node()->add_shadow_map_input(texture);
                 }
             }
         }

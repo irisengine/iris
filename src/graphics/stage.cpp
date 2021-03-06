@@ -1,11 +1,12 @@
 #include "graphics/stage.h"
 
+#include <map>
 #include <memory>
 #include <tuple>
 #include <vector>
 
 #include "core/camera.h"
-#include "graphics/light.h"
+#include "graphics/lights/lighting_rig.h"
 #include "graphics/material.h"
 #include "graphics/render_entity.h"
 #include "graphics/render_target.h"
@@ -26,21 +27,32 @@ Stage::Stage(Scene *scene, Camera &camera, RenderTarget *target)
     , render_items_()
     , materials_()
 {
-    std::vector<Light *> lights{};
+    std::map<RenderGraph *, Material *> material_cache{};
 
-    for (const auto &light : scene_->lights())
-    {
-        lights.emplace_back(light.get());
-    }
-
+    // create a RenderItem for each entity in the scene
     for (const auto &[render_graph, entity] : scene_->entities())
     {
-        auto material = std::make_unique<Material>(
-            render_graph, entity->meshes().front(), lights);
+        Material *material = nullptr;
+        const auto cach_entry = material_cache.find(render_graph);
 
-        materials_.emplace_back(std::move(material));
+        // use a simple cache to avoid compiling and creating duplicate
+        // materials
+        if (cach_entry == std::cend(material_cache))
+        {
+            auto new_material = std::make_unique<Material>(
+                render_graph, entity->meshes().front(), scene->lighting_rig());
+
+            materials_.emplace_back(std::move(new_material));
+            material = materials_.back().get();
+            material_cache[render_graph] = material;
+        }
+        else
+        {
+            material = cach_entry->second;
+        }
+
         render_items_.emplace_back(
-            RenderItem{entity.get(), materials_.back().get(), lights});
+            RenderItem{entity.get(), material, scene->lighting_rig()});
     }
 }
 

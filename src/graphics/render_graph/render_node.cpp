@@ -9,6 +9,8 @@ namespace iris
 
 RenderNode::RenderNode()
     : colour_input_(nullptr)
+    , specular_power_input_(nullptr)
+    , specular_amount_input_(nullptr)
     , normal_input_(nullptr)
     , position_input_(nullptr)
     , shadow_map_inputs_()
@@ -29,6 +31,26 @@ Node *RenderNode::colour_input() const
 void RenderNode::set_colour_input(Node *input)
 {
     colour_input_ = input;
+}
+
+Node *RenderNode::specular_power_input() const
+{
+    return specular_power_input_;
+}
+
+void RenderNode::set_specular_power_input(Node *input)
+{
+    specular_power_input_ = input;
+}
+
+Node *RenderNode::specular_amount_input() const
+{
+    return specular_amount_input_;
+}
+
+void RenderNode::set_specular_amount_input(Node *input)
+{
+    specular_amount_input_ = input;
 }
 
 Node *RenderNode::normal_input() const

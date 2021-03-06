@@ -11,6 +11,7 @@
 #include "core/vector3.h"
 #include "core/window.h"
 #include "graphics/buffer.h"
+#include "graphics/lights/lighting_rig.h"
 #include "graphics/pipeline.h"
 #include "graphics/render_entity.h"
 #include "graphics/render_target.h"
@@ -26,14 +27,20 @@ struct DefaultUniform
     iris::Matrix4 model;
     iris::Matrix4 normal_matrix;
     iris::Matrix4 bones[100];
+    float camera[4];
     float time;
 };
 
-struct LightUniform
+struct DirectionalLightUniform
 {
     float direction[4];
     iris::Matrix4 proj;
     iris::Matrix4 view;
+};
+
+struct PointLightUniform
+{
+    float position[4];
 };
 
 /**
@@ -103,7 +110,7 @@ void set_uniforms(
     id<MTLRenderCommandEncoder> render_encoder,
     const iris::Camera &camera,
     iris::RenderEntity *entity,
-    const std::vector<iris::Light *> lights)
+    const iris::LightingRig *lighting_rig)
 {
     static const iris::Matrix4 metal_translate{
         {{1.0f ,0.0f, 0.0f, 0.0f,
@@ -127,28 +134,47 @@ void set_uniforms(
         ++iter;
     }
 
+    const auto camera_position = camera.position();
+    std::memcpy(&uniform_data.camera, &camera_position, sizeof(float) * 3);
+    uniform_data.camera[3] = 0.0f;
+
     static const auto start = std::chrono::steady_clock::now();
     const auto now = std::chrono::steady_clock::now() - start;
     uniform_data.time = static_cast<float>(
         std::chrono::duration_cast<std::chrono::milliseconds>(now).count());
 
-    std::vector<LightUniform> light_data(lights.size());
+    std::vector<DirectionalLightUniform> directional_light_data(lighting_rig->directional_lights.size());
 
-    for (auto i = 0u; i < lights.size(); ++i)
+    for (auto i = 0u; i < directional_light_data.size(); ++i)
     {
+        const auto &lights = lighting_rig->directional_lights;
         const auto direction = lights[i]->direction();
         std::memcpy(
-            &light_data[i].direction,
+            &directional_light_data[i].direction,
             reinterpret_cast<const std::uint8_t*>(&direction),
             sizeof(direction));
-        light_data[i].proj = iris::Matrix4::transpose(metal_translate * lights[i]->shadow_camera().projection());
-        light_data[i].view = iris::Matrix4::transpose(lights[i]->shadow_camera().view());
-        
+        directional_light_data[i].proj = iris::Matrix4::transpose(metal_translate * lights[i]->shadow_camera().projection());
+        directional_light_data[i].view = iris::Matrix4::transpose(lights[i]->shadow_camera().view());
+    }
+
+    std::vector<PointLightUniform> point_light_data(lighting_rig->point_lights.size());
+
+    for (auto i = 0u; i < point_light_data.size(); ++i)
+    {
+        const auto &lights = lighting_rig->point_lights;
+        const auto position = lights[i]->position();
+        std::memcpy(
+            &point_light_data[i].position,
+            reinterpret_cast<const std::uint8_t*>(&position),
+            sizeof(position));
     }
 
     [render_encoder setVertexBytes:static_cast<const void*>(&uniform_data) length:sizeof(uniform_data) atIndex:1];
-    [render_encoder setVertexBytes:static_cast<const void*>(light_data.data()) length:light_data.size() * sizeof(LightUniform) atIndex:2];
-    [render_encoder setFragmentBytes:static_cast<const void*>(light_data.data()) length:light_data.size() * sizeof(LightUniform) atIndex:0];
+    [render_encoder setVertexBytes:static_cast<const void*>(directional_light_data.data()) length:directional_light_data.size() * sizeof(DirectionalLightUniform) atIndex:2];
+    [render_encoder setVertexBytes:static_cast<const void*>(point_light_data.data()) length:point_light_data.size() * sizeof(PointLightUniform) atIndex:3];
+    [render_encoder setFragmentBytes:static_cast<const void*>(&uniform_data) length:sizeof(uniform_data) atIndex:0];
+    [render_encoder setFragmentBytes:static_cast<const void*>(directional_light_data.data()) length:directional_light_data.size() * sizeof(DirectionalLightUniform) atIndex:1];
+    [render_encoder setFragmentBytes:static_cast<const void*>(point_light_data.data()) length:point_light_data.size() * sizeof(PointLightUniform) atIndex:2];
 }
 
 /**

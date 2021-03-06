@@ -11,18 +11,16 @@ if(IRIS_PLATFORM MATCHES "MACOS" OR IRIS_PLATFORM MATCHES "IOS")
   add_subdirectory("macos")
 endif()
 
+add_subdirectory("lights")
 add_subdirectory("render_graph")
 
 set(GRAPHICS_SRCS
     ${GRAPHICS_SRCS}
-    ${CORE_SRCS}
-    ${RENDER_GRAPH_SRCS}
     "${INCLUDE_ROOT}/animation.h"
     "${INCLUDE_ROOT}/bone.h"
     "${INCLUDE_ROOT}/buffer.h"
     "${INCLUDE_ROOT}/buffer_type.h"
     "${INCLUDE_ROOT}/keyframe.h"
-    "${INCLUDE_ROOT}/light.h"
     "${INCLUDE_ROOT}/material.h"
     "${INCLUDE_ROOT}/mesh.h"
     "${INCLUDE_ROOT}/mesh_factory.h"
@@ -44,7 +42,6 @@ set(GRAPHICS_SRCS
     "${INCLUDE_ROOT}/weight.h"
     "${SOURCE_ROOT}/animation.cpp"
     "${SOURCE_ROOT}/bone.cpp"
-    "${SOURCE_ROOT}/light.cpp"
     "${SOURCE_ROOT}/mesh_factory.cpp"
     "${SOURCE_ROOT}/mesh_loader.cpp"
     "${SOURCE_ROOT}/pipeline.cpp"

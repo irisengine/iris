@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "core/camera.h"
-#include "graphics/light.h"
+#include "graphics/lights/lighting_rig.h"
 #include "graphics/material.h"
 #include "graphics/render_entity.h"
 #include "graphics/render_target.h"
@@ -29,7 +29,7 @@ struct RenderItem
     Material *material;
 
     /** Lights effecting entity. */
-    std::vector<Light *> lights;
+    const LightingRig *lighting_rig;
 };
 
 /**

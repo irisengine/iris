@@ -12,14 +12,7 @@
 #include "core/colour.h"
 #include "core/data_buffer.h"
 #include "core/exception.h"
-#include "core/transform.h"
 #include "core/window.h"
-#include "graphics/material.h"
-#include "graphics/mesh_factory.h"
-#include "graphics/render_entity.h"
-#include "graphics/render_graph/render_graph.h"
-#include "graphics/render_graph/texture_node.h"
-#include "graphics/scene.h"
 #include "graphics/texture.h"
 #include "graphics/texture_factory.h"
 #include "log/log.h"
@@ -27,7 +20,7 @@
 namespace iris::text_factory
 {
 
-std::unique_ptr<Scene> create(
+Texture* create(
     const std::string &font_name,
     const std::uint32_t size,
     const std::string &text,
@@ -179,22 +172,7 @@ std::unique_ptr<Scene> create(
     ::CGContextFlush(context.get());
 
     // create a Texture from the rendered pixel data
-    auto *texture = texture_factory::create(pixel_data, width, height, PixelFormat::RGBA);
-
-    RenderGraph render_graph{};
-    auto *texture_node = render_graph.create<TextureNode>(texture);
-    render_graph.render_node()->set_colour_input(texture_node);
-
-    auto scene = std::make_unique<Scene>();
-    scene->create_entity(
-        std::move(render_graph),
-        mesh_factory::sprite({1.0f, 1.0f, 1.0f}),
-        Transform{
-            Vector3{1.0f},
-            {},
-            Vector3{ static_cast<float>(width), static_cast<float>(height), 1.0f }});
-
-    return scene;
+    return texture_factory::create(pixel_data, width, height, PixelFormat::RGBA);
 }
 
 }
