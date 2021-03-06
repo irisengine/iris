@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "core/exception.h"
-#include "graphics/light.h"
+#include "graphics/lights/lighting_rig.h"
 #include "graphics/opengl/opengl.h"
 #include "graphics/opengl/shader.h"
 #include "graphics/opengl/shader_type.h"
@@ -95,13 +95,13 @@ struct Material::implementation
 };
 
 Material::Material(
-    const RenderGraph &render_graph,
+    const RenderGraph *render_graph,
     const Mesh &,
-    const std::vector<Light *> &lights)
+    const LightingRig *lighting_rig)
     : textures_()
     , impl_(std::make_unique<implementation>())
 {
-    Compiler compiler{render_graph, lights};
+    Compiler compiler{render_graph, lighting_rig};
 
     impl_->program =
         create_program(compiler.vertex_shader(), compiler.fragment_shader());

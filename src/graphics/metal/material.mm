@@ -9,7 +9,7 @@
 
 #include "core/exception.h"
 #include "graphics/mesh.h"
-#include "graphics/light.h"
+#include "graphics/lights/lighting_rig.h"
 #include "graphics/render_graph/compiler.h"
 #include "graphics/render_graph/render_graph.h"
 #include "core/macos/macos_ios_utility.h"
@@ -66,13 +66,13 @@ struct Material::implementation
 };
 
 Material::Material(
-    const RenderGraph &render_graph,
+    const RenderGraph *render_graph,
     const Mesh &mesh,
-    const std::vector<Light *> &lights)
+    const LightingRig *lighting_rig)
     : textures_(),
       impl_(std::make_unique<implementation>())
 {
-    Compiler compiler{render_graph, lights};
+    Compiler compiler{render_graph, lighting_rig};
 
     const auto vertex_program = load_function(compiler.vertex_shader(), "vertex_main");
     const auto fragment_program = load_function(compiler.fragment_shader(), "fragment_main");

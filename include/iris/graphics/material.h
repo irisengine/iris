@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "graphics/light.h"
+#include "graphics/lights/lighting_rig.h"
 #include "graphics/mesh.h"
 #include "graphics/render_graph/render_graph.h"
 #include "graphics/texture.h"
@@ -19,22 +19,22 @@ namespace iris
 class Material
 {
   public:
+    /**
+     * Construct a new material.
+     *
+     * @param render_graph
+     *   RenderGraph describing material.
+     *
+     * @param mesh
+     *   Mesh.
+     *
+     * @param lighting_rig
+     *   Lights that will effect this material.
+     */
     Material(
-        /**
-         * Construct a new material.
-         *
-         * @param render_graph
-         *   RenderGraph describing material.
-         *
-         * @param mesh
-         *   Mesh.
-         *
-         * @param lights
-         *   Collection of lights that will effect this material.
-         */
-        const RenderGraph &render_graph,
+        const RenderGraph *render_graph,
         const Mesh &mesh,
-        const std::vector<Light *> &lights);
+        const LightingRig *lighting_rig);
 
     ~Material();
     Material(Material &&);
