@@ -92,3 +92,17 @@ TEST(auto_release, move_assignment)
     ASSERT_EQ(x, 0);
     ASSERT_EQ(y, 0);
 }
+
+TEST(auto_release, address)
+{
+    int x = 1;
+
+    {
+        AutoIntPtr v{nullptr, deleter};
+
+        const auto setter = [&x](int **p) { *p = std::addressof(x); };
+        setter(&v);
+    }
+
+    ASSERT_EQ(x, 0);
+}
