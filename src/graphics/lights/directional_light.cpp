@@ -9,7 +9,7 @@ namespace iris
 
 DirectionalLight::DirectionalLight(const Vector3 &direction, bool cast_shadows)
     : direction_(direction)
-    , shadow_camera_(CameraType::ORTHOGRAPHIC, 100.0f, 100.0f, 100.0f)
+    , shadow_camera_(CameraType::ORTHOGRAPHIC, 100u, 100u, 100u)
     , shadow_target_(1024u, 1024u)
     , cast_shadows_(cast_shadows)
 {
