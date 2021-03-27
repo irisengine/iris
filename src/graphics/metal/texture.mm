@@ -20,6 +20,13 @@ namespace
 {
 
 /**
+ * In order to have a pool of reusable texture ids we maintain a static stack.
+ * This will be lazily populated by the first loaded texture, from there any
+ * deleted texture will return its id to this pool.
+ */
+static std::stack<std::uint32_t> id_pool;
+
+/**
  * Helper method to convert engine pixel format into an metal enum.
  *
  * @param pixel_format
@@ -71,6 +78,11 @@ std::tuple<id<MTLTexture>, std::uint32_t> create_texture(
     std::uint32_t height,
     iris::PixelFormat pixel_format)
 {
+    if (id_pool.empty())
+    {
+        throw iris::Exception("maximum active textures");
+    }
+
     auto *data_ptr = data.data();
 
     iris::DataBuffer padded{};
@@ -137,9 +149,10 @@ std::tuple<id<MTLTexture>, std::uint32_t> create_texture(
                  withBytes:data_ptr
                bytesPerRow:bytes_per_row];
 
-    static std::uint32_t counter = 0u;
+    const auto id = id_pool.top();
+    id_pool.pop();
 
-    return {texture, counter++};
+    return {texture, id};
 }
 
 }
@@ -150,7 +163,6 @@ namespace iris
 struct Texture::implementation
 {
     id<MTLTexture> texture;
-
     std::uint32_t texture_id;
 };
 
@@ -178,6 +190,18 @@ Texture::Texture(
       flip_(false),
       impl_(std::make_unique<implementation>())
 {
+    // populate id pool (this only happens on the first texture creation)
+    static auto once = false;
+    if (!once)
+    {
+        for (auto i = 79; i >= 0; --i)
+        {
+            id_pool.emplace(i);
+        }
+
+        once = true;
+    }
+
     const auto [texture, texture_id] = create_texture(data, width, height, pixel_format);
     impl_->texture = texture;
     impl_->texture_id = texture_id;
@@ -185,7 +209,11 @@ Texture::Texture(
     LOG_ENGINE_INFO("texture", "loaded from data");
 }
 
-Texture::~Texture() = default;
+Texture::~Texture()
+{
+    id_pool.emplace(impl_->texture_id);
+}
+
 Texture::Texture(Texture&&) = default;
 Texture& Texture::operator=(Texture&&) = default;
 
