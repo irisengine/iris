@@ -36,7 +36,7 @@ RenderTarget::RenderTarget(std::uint32_t width, std::uint32_t height)
 
     // create backing textures for colour and depth
     colour_texture_ = std::make_unique<Texture>(
-        width * scale, height * scale, PixelFormat::RGB);
+        width * scale, height * scale, PixelFormat::RGBA);
 
     const auto colour_handle =
         std::any_cast<std::uint32_t>(colour_texture_->native_handle());
