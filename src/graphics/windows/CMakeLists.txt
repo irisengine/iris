@@ -1,0 +1,5 @@
+set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
+
+set(GRAPHICS_SRCS
+    ${GRAPHICS_SRCS} "${SOURCE_ROOT}/text_factory.cpp"
+    PARENT_SCOPE)
