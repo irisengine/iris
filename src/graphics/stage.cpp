@@ -27,10 +27,19 @@ Stage::Stage(Scene *scene, Camera &camera, RenderTarget *target)
     , render_items_()
     , materials_()
 {
+    rebuild(scene_);
+}
+
+void Stage::rebuild(Scene *scene)
+{
+    render_items_.clear();
+    materials_.clear();
+
+    // simple cache to avoid create duplicate materials
     std::map<RenderGraph *, Material *> material_cache{};
 
     // create a RenderItem for each entity in the scene
-    for (const auto &[render_graph, entity] : scene_->entities())
+    for (const auto &[render_graph, entity] : scene->entities())
     {
         Material *material = nullptr;
         const auto cach_entry = material_cache.find(render_graph);

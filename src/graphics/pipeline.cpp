@@ -1,10 +1,13 @@
 #include "graphics/pipeline.h"
 
+#include <algorithm>
+#include <iterator>
 #include <memory>
 #include <tuple>
 #include <vector>
 
 #include "core/camera.h"
+#include "core/exception.h"
 #include "core/matrix4.h"
 #include "graphics/render_graph/texture_node.h"
 #include "graphics/render_target.h"
@@ -13,12 +16,12 @@
 namespace iris
 {
 
-void Pipeline::add_stage(std::unique_ptr<Scene> scene, Camera &camera)
+Scene *Pipeline::add_stage(std::unique_ptr<Scene> scene, Camera &camera)
 {
-    add_stage(std::move(scene), camera, nullptr);
+    return add_stage(std::move(scene), camera, nullptr);
 }
 
-void Pipeline::add_stage(
+Scene *Pipeline::add_stage(
     std::unique_ptr<Scene> scene,
     Camera &camera,
     RenderTarget *target)
@@ -32,8 +35,7 @@ void Pipeline::add_stage(
     // note that this us done *before* we add the stage for the scene passed
     // in as we will need all the shadow map stages to be executed before we can
     // render that scene
-    for (const auto &light :
-         current_scene->lighting_rig()->directional_lights)
+    for (const auto &light : current_scene->lighting_rig()->directional_lights)
     {
         if (light->casts_shadows())
         {
@@ -51,6 +53,8 @@ void Pipeline::add_stage(
             // add a shadow map stage
             stages_.emplace_back(std::make_unique<Stage>(
                 current_scene, light->shadow_camera(), light->shadow_target()));
+
+            scene_map_[current_scene].emplace_back(stages_.back().get());
 
             for (auto &[graph, entity] : current_scene->entities())
             {
@@ -72,10 +76,27 @@ void Pipeline::add_stage(
     // add the requested scene
     stages_.emplace_back(
         std::make_unique<Stage>(current_scene, camera, target));
+    scene_map_[current_scene].emplace_back(stages_.back().get());
+
+    return current_scene;
 }
 
 const std::vector<std::unique_ptr<Stage>> &Pipeline::stages() const
 {
     return stages_;
+}
+
+void Pipeline::rebuild_stage(Scene *scene)
+{
+    const auto &stages = scene_map_.find(scene);
+    if (stages == std::cend(scene_map_))
+    {
+        throw Exception("scene not in pipeline");
+    }
+
+    for (auto stage : stages->second)
+    {
+        stage->rebuild(scene);
+    }
 }
 }

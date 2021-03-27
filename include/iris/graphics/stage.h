@@ -1,8 +1,6 @@
 #pragma once
 
-#include <memory>
-#include <vector>
-
+#include <map>
 #include <memory>
 #include <tuple>
 #include <vector>
@@ -68,6 +66,15 @@ class Stage
      *   Target to be rendered to.
      */
     Stage(Scene *scene, Camera &camera, RenderTarget *target);
+
+    /**
+     * Rebuild this stage, including all Materials and RenderItems, for the
+     * supplied Scene.
+     *
+     * @param scene
+     *   Scene to rebuild stage for.
+     */
+    void rebuild(Scene *scene);
 
     /**
      * Get a collection of RenderEntity's and associated Materials.

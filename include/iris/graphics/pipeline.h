@@ -1,6 +1,7 @@
 #pragma once
 
 #include <any>
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -37,8 +38,11 @@ class Pipeline
      *
      * @param camera
      *   Camera to render scene with.
+     *
+     * @returns
+     *   Pointer to added stage.
      */
-    void add_stage(std::unique_ptr<Scene> scene, Camera &camera);
+    Scene *add_stage(std::unique_ptr<Scene> scene, Camera &camera);
 
     /**
      * Add a staged, which renders to a custom target.
@@ -52,10 +56,19 @@ class Pipeline
      * @param target
      *   Target to render scene to.
      */
-    void add_stage(
+    Scene *add_stage(
         std::unique_ptr<Scene> scene,
         Camera &camera,
         RenderTarget *target);
+
+    /**
+     * Rebuild the stage, including all Materials and RenderItems, associated
+     * with the supplied scene.
+     *
+     * @parma scene
+     *   Scene to rebuild stages for.
+     */
+    void rebuild_stage(Scene *scene);
 
     /**
      * Get a reference to the stages.
@@ -71,5 +84,9 @@ class Pipeline
 
     /** Collection of stages. */
     std::vector<std::unique_ptr<Stage>> stages_;
+
+    /** Mapping of Scenes to Stages. */
+    std::map<Scene *, std::vector<Stage *>> scene_map_;
 };
+
 }
