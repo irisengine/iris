@@ -20,7 +20,7 @@
 #include "graphics/bone.h"
 #include "graphics/skeleton.h"
 #include "graphics/texture.h"
-#include "graphics/texture_factory.h"
+#include "graphics/texture_manager.h"
 #include "graphics/vertex_data.h"
 #include "log/log.h"
 
@@ -238,7 +238,7 @@ iris::Texture *process_texture(const ::aiMaterial *material)
 {
     static const auto type = ::aiTextureType_DIFFUSE;
 
-    auto *texture = iris::texture_factory::blank();
+    auto *texture = iris::TextureManager::blank();
 
     // only support a single texture
     if (material->GetTextureCount(type) == 1u)
@@ -246,7 +246,7 @@ iris::Texture *process_texture(const ::aiMaterial *material)
         ::aiString str;
         material->GetTexture(type, 0u, &str);
 
-        texture = iris::texture_factory::load(str.C_Str());
+        texture = iris::TextureManager::load(str.C_Str());
     }
 
     return texture;

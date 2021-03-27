@@ -172,7 +172,10 @@ Texture* create(
     ::CGContextFlush(context.get());
 
     // create a Texture from the rendered pixel data
-    return texture_factory::create(pixel_data, width, height, PixelFormat::RGBA);
+    auto *texture =
+        TextureManager::load(pixel_data, width, height, PixelFormat::RGBA);
+
+    return texture;
 }
 
 }
