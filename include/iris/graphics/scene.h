@@ -19,7 +19,38 @@ namespace iris
 class Scene
 {
   public:
+    /**
+     * Create a new Scene.
+     */
     Scene();
+
+    /**
+     * Create a RenderGraph for use in this scene. Uses perfect forwarding to
+     * pass along all arguments.
+     *
+     * @param args
+     *   Arguments for RenderGraph.
+     *
+     * @returns
+     *   Pointer to the newly created RenderGraph.
+     */
+    template <class... Args>
+    RenderGraph *create_render_graph(Args &&... args)
+    {
+        auto graph = std::make_unique<RenderGraph>(std::forward<Args>(args)...);
+        return add(std::move(graph));
+    }
+
+    /**
+     * Add a RenderGraph for use in this scene.
+     *
+     * @param graph
+     *   RenderGraph to add.
+     *
+     * @returns
+     *   Pointer to newly added RenderGraph.
+     */
+    RenderGraph *add(std::unique_ptr<RenderGraph> graph);
 
     /**
      * Create a RenderEntity and add it to the scene. Uses perfect forwarding to
@@ -58,6 +89,8 @@ class Scene
     RenderEntity *add(
         RenderGraph *render_graph,
         std::unique_ptr<RenderEntity> entity);
+
+    void remove(RenderEntity *entity);
 
     /**
      * Create a Light and add it to the scene. Uses perfect forwarding to pass
@@ -115,6 +148,17 @@ class Scene
     void set_ambient_light(const Colour &colour);
 
     /**
+     * Get the RenderGraph for a given RenderEntity.
+     *
+     * @param entity
+     *   RenderEntity to get RenderGraph for.
+     *
+     * @returns
+     *   RenderGraph for supplied RenderEntity.
+     */
+    RenderGraph *render_graph(RenderEntity *entity) const;
+
+    /**
      * Get a reference to all entities in the scene.
      *
      * @returns
@@ -123,12 +167,21 @@ class Scene
     std::vector<std::tuple<RenderGraph *, std::unique_ptr<RenderEntity>>>
         &entities();
 
+    /**
+     * Get LightingRig.
+     *
+     * @returns
+     *   Pointer to LightingRig.
+     */
     const LightingRig *lighting_rig();
 
   private:
     /** Collection of <RenderGraph, RenderEntity> tuples. */
     std::vector<std::tuple<RenderGraph *, std::unique_ptr<RenderEntity>>>
         entities_;
+
+    /** Collection of RenderGraphs. */
+    std::vector<std::unique_ptr<RenderGraph>> render_graphs_;
 
     /** Lighting rig for scene. */
     LightingRig lighting_rig_;
