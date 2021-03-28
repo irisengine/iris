@@ -64,6 +64,21 @@ std::wstring widen(const std::string &str)
     return wide_str;
 }
 
+/**
+ * Helper function to call Release on an object.
+ *
+ * @param ptr
+ *   Ptr to release.
+ */
+template <class T>
+void SafeRelease(T ptr)
+{
+    if (ptr != nullptr)
+    {
+        ptr->Release();
+    }
+}
+
 }
 
 namespace iris::text_factory
@@ -171,7 +186,7 @@ Texture *create(
 
     // create a render target to render font to bitmap
     AutoRelease<ID2D1RenderTarget *, nullptr> render_target = {
-        nullptr, ::SafeRelease};
+        nullptr, &SafeRelease<ID2D1RenderTarget *>};
     if (direct2d_factory->CreateWicBitmapRenderTarget(
             bitmap, &properties, &render_target) != S_OK)
     {
@@ -180,8 +195,8 @@ Texture *create(
 
     // create a brush with supplied colour
     AutoRelease<ID2D1SolidColorBrush *, nullptr> brush = {
-        nullptr, ::SafeRelease};
-    if (render_target->CreateSolidColorBrush(
+        nullptr, &SafeRelease<ID2D1SolidColorBrush *>};
+    if (render_target.get()->CreateSolidColorBrush(
             ::D2D1::ColorF(
                 ::D2D1::ColorF::ColorF(colour.r, colour.g, colour.b)),
             &brush) != S_OK)
@@ -192,9 +207,9 @@ Texture *create(
     const auto origin = ::D2D1::Point2F(0.0f, 0.0f);
 
     // render text
-    render_target->BeginDraw();
-    render_target->DrawTextLayout(origin, text_layout, brush);
-    render_target->EndDraw();
+    render_target.get()->BeginDraw();
+    render_target.get()->DrawTextLayout(origin, text_layout, brush);
+    render_target.get()->EndDraw();
 
     // get size of bitmap
     UINT bitmap_width = 0u;
