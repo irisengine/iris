@@ -1,4 +1,4 @@
-#include "graphics/texture_factory.h"
+#include "graphics/texture_manager.h"
 
 #include <cstdint>
 #include <map>
@@ -18,11 +18,6 @@
 
 namespace
 {
-
-// static cache of loaded textures
-static std::map<std::string, std::unique_ptr<iris::Texture>> cache;
-
-static std::uint32_t counter = 0u;
 
 /**
  * Load an image from a data buffer.
@@ -78,12 +73,43 @@ parse_image(const iris::DataBuffer &data)
 
 }
 
-namespace iris::texture_factory
+namespace iris
 {
 
-Texture *load(const std::string &resource)
+TextureManager::TextureManager()
+    : loaded_textures_()
 {
-    if (cache.count(resource) == 0)
+}
+
+TextureManager &TextureManager::instance()
+{
+    static TextureManager texture_manager{};
+    return texture_manager;
+}
+
+Texture *TextureManager::load(const std::string &resource)
+{
+    return instance().load_impl(resource);
+}
+
+Texture *TextureManager::load(
+    const DataBuffer &data,
+    std::uint32_t width,
+    std::uint32_t height,
+    PixelFormat pixel_format)
+{
+    return instance().load_impl(data, width, height, pixel_format);
+}
+
+void TextureManager::unload(Texture *texture)
+{
+    instance().unload_impl(texture);
+}
+
+Texture *TextureManager::load_impl(const std::string &resource)
+{
+    auto loaded = loaded_textures_.find(resource);
+    if (loaded == std::cend(loaded_textures_))
     {
         const auto file_data = ResourceLoader::instance().load(resource);
         const auto [data, width, height, num_channels] = parse_image(file_data);
@@ -96,32 +122,65 @@ Texture *load(const std::string &resource)
             default: throw Exception("unsupported number of channels");
         }
 
-        cache[resource] =
-            std::make_unique<Texture>(data, width, height, format);
+        loaded_textures_[resource] = {
+            1u, std::make_unique<Texture>(data, width, height, format)};
+    }
+    else
+    {
+        ++loaded_textures_[resource].ref_count;
     }
 
-    return cache[resource].get();
+    return loaded_textures_[resource].texture.get();
 }
 
-Texture *create(
+Texture *TextureManager::load_impl(
     const DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
     PixelFormat pixel_format)
 {
+    static std::uint32_t counter = 0u;
+
     std::stringstream strm;
     strm << "!" << counter;
     ++counter;
 
     const auto resource = strm.str();
 
-    cache[resource] =
-        std::make_unique<Texture>(data, width, height, pixel_format);
+    loaded_textures_[resource] = {
+        1u, std::make_unique<Texture>(data, width, height, pixel_format)};
 
-    return cache[resource].get();
+    return loaded_textures_[resource].texture.get();
 }
 
-Texture *blank()
+void TextureManager::unload_impl(Texture *texture)
+{
+    // don't unload the static blank texture!
+    if (texture != blank())
+    {
+        // find the texture that we want to unload
+        auto loaded = std::find_if(
+            std::begin(loaded_textures_),
+            std::end(loaded_textures_),
+            [texture](const auto &element) {
+                return element.second.texture.get() == texture;
+            });
+
+        if (loaded == std::cend(loaded_textures_))
+        {
+            throw Exception("texture has not been loaded");
+        }
+
+        // decrement reference count and, if 0, unload
+        --loaded->second.ref_count;
+        if (loaded->second.ref_count == 0u)
+        {
+            loaded_textures_.erase(loaded);
+        }
+    }
+}
+
+Texture *TextureManager::blank()
 {
     static Texture texture{};
     return &texture;

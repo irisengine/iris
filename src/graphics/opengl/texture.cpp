@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <memory>
+#include <stack>
 #include <vector>
 
 #include "core/data_buffer.h"
@@ -15,6 +16,13 @@
 
 namespace
 {
+
+/**
+ * In order to have a pool of reusable texture ids we maintain a static stack.
+ * This will be lazily populated by the first loaded texture, from there any
+ * deleted texture will return its id to this pool.
+ */
+static std::stack<std::uint32_t> id_pool;
 
 /**
  * Helper method to convert engine pixel format into an opengl enum.
@@ -69,26 +77,29 @@ std::tuple<GLuint, std::uint32_t> create_texture(
 {
     auto texture = 0u;
 
-    static std::uint32_t counter = 0u;
+    if (id_pool.empty())
+    {
+        throw iris::Exception("maximum active textures");
+    }
+    const auto id = id_pool.top();
+    id_pool.pop();
 
     ::glGenTextures(1, &texture);
     iris::check_opengl_error("could not generate texture");
 
-    ::glActiveTexture(GL_TEXTURE0 + counter);
+    ::glActiveTexture(GL_TEXTURE0 + id);
     iris::check_opengl_error("could not activate texture");
 
     ::glBindTexture(GL_TEXTURE_2D, texture);
     iris::check_opengl_error("could not bind texture");
 
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    float borderColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
-    ::glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     iris::check_opengl_error("could not set min filter parameter");
 
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     iris::check_opengl_error("could not set max filter parameter");
 
     const auto format = format_to_opengl(pixel_format);
@@ -110,7 +121,7 @@ std::tuple<GLuint, std::uint32_t> create_texture(
         iris::check_opengl_error("could not generate mipmaps");
     }
 
-    return {texture, counter++};
+    return {texture, id};
 }
 
 }
@@ -157,6 +168,18 @@ Texture::Texture(
     , flip_(false)
     , impl_(std::make_unique<implementation>())
 {
+    // populate id pool (this only happens on the first texture creation)
+    static auto once = false;
+    if (!once)
+    {
+        for (auto i = 79; i >= 0; --i)
+        {
+            id_pool.emplace(i);
+        }
+
+        once = true;
+    }
+
     const auto [texture, id] =
         create_texture(data, width, height, pixel_format);
     impl_->texture = texture;
@@ -169,6 +192,8 @@ Texture::~Texture()
 {
     // cleanup opengl resources
     ::glDeleteTextures(1, std::addressof(impl_->texture));
+
+    id_pool.emplace(impl_->id);
 }
 
 /** Default. */

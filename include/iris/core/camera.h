@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "core/camera_type.h"
 #include "core/matrix4.h"
 #include "core/quaternion.h"
@@ -25,11 +27,15 @@ class Camera
      *
      * @param height
      *   Height of window.
-     * 
+     *
      * @param depth
      *   Depth of projection.
      */
-    Camera(CameraType type, float width, float height, float depth = 1000.0f);
+    Camera(
+        CameraType type,
+        std::uint32_t width,
+        std::uint32_t height,
+        std::uint32_t depth = 1000u);
 
     /**
      * Translate the camera.

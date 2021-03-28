@@ -5,7 +5,7 @@
 #include "core/vector3.h"
 #include "graphics/render_graph/compiler.h"
 #include "graphics/texture.h"
-#include "graphics/texture_factory.h"
+#include "graphics/texture_manager.h"
 
 namespace iris
 {
@@ -16,7 +16,7 @@ TextureNode::TextureNode(Texture *texture)
 }
 
 TextureNode::TextureNode(const std::string &path)
-    : texture_(iris::texture_factory::load(path))
+    : texture_(TextureManager::load(path))
 {
 }
 

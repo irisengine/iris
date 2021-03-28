@@ -1,3 +1,3 @@
-add_subdirectory("animation")
-add_subdirectory("physics")
-add_subdirectory("render_graph")
+add_subdirectory("sample_browser")
+add_subdirectory("jobs")
+add_subdirectory("networking")
