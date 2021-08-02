@@ -44,7 +44,7 @@ set(GRAPHICS_SRCS
     "${SOURCE_ROOT}/bone.cpp"
     "${SOURCE_ROOT}/mesh_factory.cpp"
     "${SOURCE_ROOT}/mesh_loader.cpp"
-    "${SOURCE_ROOT}/pipeline.cpp"
+    "${SOURCE_ROOT}/render_command.cpp"
     "${SOURCE_ROOT}/render_entity.cpp"
     "${SOURCE_ROOT}/scene.cpp"
     "${SOURCE_ROOT}/skeleton.cpp"
