@@ -37,5 +37,4 @@ set(CORE_SRCS
     "${INCLUDE_ROOT}/start.h"
     "${INCLUDE_ROOT}/static_buffer.h"
     "${INCLUDE_ROOT}/thread.h"
-    "${INCLUDE_ROOT}/window.h"
     PARENT_SCOPE)
