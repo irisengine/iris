@@ -36,7 +36,7 @@ set(GRAPHICS_SRCS
     "${INCLUDE_ROOT}/stage.h"
     "${INCLUDE_ROOT}/text_factory.h"
     "${INCLUDE_ROOT}/texture.h"
-    "${INCLUDE_ROOT}/texture_factory.h"
+    "${INCLUDE_ROOT}/texture_manager.h"
     "${INCLUDE_ROOT}/vertex_attributes.h"
     "${INCLUDE_ROOT}/vertex_data.h"
     "${INCLUDE_ROOT}/weight.h"
@@ -56,8 +56,8 @@ set(GRAPHICS_SRCS
     "${SOURCE_ROOT}/scene.cpp"
     "${SOURCE_ROOT}/skeleton.cpp"
     "${SOURCE_ROOT}/stage.cpp"
-    "${SOURCE_ROOT}/texture_factory.cpp"
     "${SOURCE_ROOT}/texture.cpp"
+    "${SOURCE_ROOT}/texture_manager.cpp"
     "${SOURCE_ROOT}/vertex_attributes.cpp"
     "${SOURCE_ROOT}/window.cpp"
     PARENT_SCOPE)
