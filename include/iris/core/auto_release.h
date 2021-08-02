@@ -100,6 +100,19 @@ class AutoRelease
     }
 
     /**
+     * Get the address of the internally managed resource. This is useful if we
+     * are managing a pointer and need to pass that to another function to get
+     * set.
+     *
+     * @returns
+     *   Address of managed resource.
+     */
+    T *operator&()
+    {
+        return std::addressof(resource_);
+    }
+
+    /**
      * Get if this object manages a resource.
      *
      * @returns
