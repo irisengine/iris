@@ -1,78 +1,37 @@
 #pragma once
 
-#include <any>
-#include <memory>
+#include <cstdint>
+#include <vector>
 
-#include "graphics/buffer.h"
-#include "graphics/vertex_attributes.h"
+#include "graphics/vertex_data.h"
 
 namespace iris
 {
 
 /**
- * Class encapsulating all data describing renderable vertices. This includes:
- *   - raw vertex data
- *   - vertex data attributes
- *   - indices (render order of vertices)
+ * Interface for a Mesh - a class which encapsulates all the vertex data needed
+ * to render a mesh.
  */
 class Mesh
 {
   public:
-    /**
-     * Construct new Mesh.
-     *
-     * @param vertex_buffer
-     *   Vertex data.
-     *
-     * @param index_buffer
-     *   Index data.
-     *
-     * @param attributes
-     *   Attributes for vertex.
-     */
-    Mesh(
-        Buffer vertex_buffer,
-        Buffer index_buffer,
-        const VertexAttributes &attributes);
-
-    ~Mesh();
-    Mesh(Mesh &&);
-    Mesh &operator=(Mesh &&);
+    virtual ~Mesh();
 
     /**
-     * Get a reference to the vertex data buffer.
+     * Update the vertex data, this will also update any GPU data.
      *
-     * @returns
-     *   Vertex data buffer.
+     * @param data
+     *   New vertex data.
      */
-    const Buffer &vertex_buffer() const;
+    virtual void update_vertex_data(const std::vector<VertexData> &data) = 0;
 
     /**
-     * Get a reference to the index data buffer.
+     * Update the index data, this will also update any GPU data.
      *
-     * @returns
-     *   Index data buffer.
+     * @param data
+     *   New index data.
      */
-    const Buffer &index_buffer() const;
-
-    /**
-     * Get native handle for buffer descriptor.
-     *
-     * @returns
-     *   Buffer native handle.
-     */
-    std::any native_handle() const;
-
-  private:
-    /** Vertex data buffer. */
-    Buffer vertex_buffer_;
-
-    /** Index data buffer. */
-    Buffer index_buffer_;
-
-    /** Pointer to implementation. */
-    struct implementation;
-    std::unique_ptr<implementation> impl_;
+    virtual void update_index_data(const std::vector<std::uint32_t> &data) = 0;
 };
 
 }
