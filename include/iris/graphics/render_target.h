@@ -1,6 +1,5 @@
 #pragma once
 
-#include <any>
 #include <cstdint>
 #include <memory>
 
@@ -10,9 +9,13 @@ namespace iris
 {
 
 /**
- * This class represents a target for rendering i.e. something that the renderer
- * can render to. It also provides access to the colour and depth information
- * post render.
+ * Abstract class for a RenderTarget - a class that encapsulates something the
+ * renderer can render to. It also provides access to the colour and depth
+ * Texture objects.
+ *
+ * Note that you cannot access the colour or depth data directly after a render
+ * as it is not synchronised back to the CPU, you can use those textures as
+ * inputs for other rendering operations.
  */
 class RenderTarget
 {
@@ -20,24 +23,17 @@ class RenderTarget
     /**
      * Create a new RenderTarget.
      *
-     * @param width
-     *   Width of target in pixels.
+     * @param colour_texture
+     *   Texture to render colour data to.
      *
-     * @param height
-     *   Height of target in pixels.
+     * @param depth_texture
+     *   Texture to render depth data to.
      */
-    RenderTarget(std::uint32_t width, std::uint32_t height);
+    RenderTarget(
+        std::unique_ptr<Texture> colour_texture,
+        std::unique_ptr<Texture> depth_texture);
 
-    ~RenderTarget();
-
-    /**
-     * Get native handle to the API specific implementation of the render
-     * target.
-     *
-     * @returns
-     *   API specific handle.
-     */
-    std::any native_handle() const;
+    virtual ~RenderTarget() = 0;
 
     /**
      * Get a pointer to the texture storing the target colour data.
@@ -55,16 +51,28 @@ class RenderTarget
      */
     Texture *depth_texture() const;
 
-  private:
+    /**
+     * Get the width of the RenderTarget.
+     *
+     * @returns
+     *   Render target width.
+     */
+    std::uint32_t width() const;
+
+    /**
+     * Get the height of the RenderTarget.
+     *
+     * @returns
+     *   Render target height.
+     */
+    std::uint32_t height() const;
+
+  protected:
     /** Colour texture. */
     std::unique_ptr<Texture> colour_texture_;
 
     /** Depth texture. */
     std::unique_ptr<Texture> depth_texture_;
-
-    /** Pointer to implementation. */
-    struct implementation;
-    std::unique_ptr<implementation> impl_;
 };
 
 }
