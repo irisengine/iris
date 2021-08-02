@@ -3,6 +3,7 @@
 #include "core/colour.h"
 #include "graphics/lights/directional_light.h"
 #include "graphics/lights/point_light.h"
+#include "graphics/lights/ambient_light.h"
 
 #include <memory>
 #include <vector>
@@ -22,7 +23,7 @@ struct LightingRig
     std::vector<std::unique_ptr<DirectionalLight>> directional_lights;
 
     /** Ambient light colour. */
-    Colour ambient_light;
+    std::unique_ptr<AmbientLight> ambient_light;
 };
 
 }
