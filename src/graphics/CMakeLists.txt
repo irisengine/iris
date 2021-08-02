@@ -57,6 +57,7 @@ set(GRAPHICS_SRCS
     "${SOURCE_ROOT}/skeleton.cpp"
     "${SOURCE_ROOT}/stage.cpp"
     "${SOURCE_ROOT}/texture_factory.cpp"
+    "${SOURCE_ROOT}/texture.cpp"
     "${SOURCE_ROOT}/vertex_attributes.cpp"
     "${SOURCE_ROOT}/window.cpp"
     PARENT_SCOPE)
