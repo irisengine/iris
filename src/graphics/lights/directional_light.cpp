@@ -1,20 +1,42 @@
 #include "graphics/lights/directional_light.h"
 
+#include <array>
+#include <cstring>
+
 #include "core/camera.h"
 #include "core/matrix4.h"
 #include "core/vector3.h"
+#include "graphics/lights/light_type.h"
 
 namespace iris
 {
 
 DirectionalLight::DirectionalLight(const Vector3 &direction, bool cast_shadows)
     : direction_(direction)
-    , shadow_camera_(CameraType::ORTHOGRAPHIC, 100.0f, 100.0f, 100.0f)
-    , shadow_target_(1024u, 1024u)
+    , shadow_camera_(CameraType::ORTHOGRAPHIC, 100u, 100u, 1000u)
     , cast_shadows_(cast_shadows)
 {
     shadow_camera_.set_view(
         Matrix4::make_look_at(-direction_, {}, {0.0f, 1.0f, 0.0f}));
+}
+
+LightType DirectionalLight::type() const
+{
+    return LightType::DIRECTIONAL;
+}
+
+std::array<float, 4u> DirectionalLight::data() const
+{
+    std::array<float, 4u> light_data{};
+    light_data.fill(0.0f);
+
+    static_assert(
+        light_data.size() * sizeof(decltype(light_data)::value_type) >=
+        sizeof(direction_));
+
+    std::memcpy(light_data.data(), &direction_, sizeof(direction_));
+
+    return light_data;
 }
 
 Vector3 DirectionalLight::direction() const
@@ -34,14 +56,9 @@ bool DirectionalLight::casts_shadows() const
     return cast_shadows_;
 }
 
-Camera &DirectionalLight::shadow_camera()
+const Camera &DirectionalLight::shadow_camera() const
 {
     return shadow_camera_;
-}
-
-RenderTarget *DirectionalLight::shadow_target()
-{
-    return &shadow_target_;
 }
 
 }
