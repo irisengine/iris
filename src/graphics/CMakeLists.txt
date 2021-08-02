@@ -42,21 +42,13 @@ set(GRAPHICS_SRCS
     "${INCLUDE_ROOT}/weight.h"
     "${SOURCE_ROOT}/animation.cpp"
     "${SOURCE_ROOT}/bone.cpp"
-    "${SOURCE_ROOT}/mesh_factory.cpp"
     "${SOURCE_ROOT}/mesh.cpp"
     "${SOURCE_ROOT}/mesh_loader.cpp"
     "${SOURCE_ROOT}/mesh_manager.cpp"
     "${SOURCE_ROOT}/render_command.cpp"
     "${SOURCE_ROOT}/render_entity.cpp"
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
     "${SOURCE_ROOT}/render_target.cpp"
     "${SOURCE_ROOT}/renderer.cpp"
->>>>>>> d653534 (fixup! Refactor RenderTarget to an interface)
-=======
-    "${SOURCE_ROOT}/renderer.cpp"
->>>>>>> 069c9f8 (Refactor RenderSystem to Renderer abstract class)
     "${SOURCE_ROOT}/scene.cpp"
     "${SOURCE_ROOT}/skeleton.cpp"
     "${SOURCE_ROOT}/stage.cpp"
