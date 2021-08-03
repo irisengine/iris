@@ -32,7 +32,10 @@ class RenderEntity
      * @param position
      *   Centre of mesh in world space.
      */
-    RenderEntity(Mesh mesh, const Vector3 &position);
+    RenderEntity(
+        Mesh *mesh,
+        const Vector3 &position,
+        PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
 
     /**
      * Construct a RenderEntity.
@@ -43,27 +46,16 @@ class RenderEntity
      * @param transform
      *   Transform of entity in world space.
      */
-    RenderEntity(Mesh mesh, const Transform &transform);
+    RenderEntity(
+        Mesh *mesh,
+        const Transform &transform,
+        PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
 
     /**
      * Construct a RenderEntity.
      *
      * @param mesh
      *   Mesh to render.
-     *
-     * @param transform
-     *   Transform of entity in world space.
-     *
-     * @param skeleton
-     *   Skeleton.
-     */
-    RenderEntity(Mesh mesh, const Transform &transform, Skeleton skeleton);
-
-    /**
-     * Construct a RenderEntity.
-     *
-     * @param meshes
-     *   Collection of meshes to render.
      *
      * @param transform
      *   Transform of entity in world space.
@@ -72,9 +64,10 @@ class RenderEntity
      *   Skeleton.
      */
     RenderEntity(
-        std::vector<Mesh> meshes,
+        Mesh *mesh,
         const Transform &transform,
-        Skeleton skeleton);
+        Skeleton skeleton,
+        PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
 
     RenderEntity(const RenderEntity &) = delete;
     RenderEntity &operator=(const RenderEntity &) = delete;
@@ -178,14 +171,6 @@ class RenderEntity
      *   Primitive type.
      */
     PrimitiveType primitive_type() const;
-
-    /**
-     * Set primitive type.
-     *
-     * @param type
-     *   New primitive type.
-     */
-    void set_primitive_type(PrimitiveType type);
 
     /**
      * Get reference to skeleton.

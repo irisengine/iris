@@ -37,41 +37,32 @@ iris::Matrix4 create_normal_transform(const iris::Matrix4 &model)
 
 namespace iris
 {
-RenderEntity::RenderEntity(Mesh mesh, const Vector3 &position)
-    : RenderEntity(std::move(mesh), {position, {}, {1.0f}})
-{
-}
-
-RenderEntity::RenderEntity(Mesh mesh, const Transform &transform)
-    : RenderEntity(std::move(mesh), transform, Skeleton{})
+RenderEntity::RenderEntity(
+    Mesh *mesh,
+    const Vector3 &position,
+    PrimitiveType primitive_type)
+    : RenderEntity(mesh, {position, {}, {1.0f}}, primitive_type)
 {
 }
 
 RenderEntity::RenderEntity(
-    Mesh mesh,
+    Mesh *mesh,
     const Transform &transform,
-    Skeleton skeleton)
-    : meshes_()
-    , transform_(transform)
-    , normal_()
-    , wireframe_(false)
-    , primitive_type_(PrimitiveType::TRIANGLES)
-    , skeleton_(std::move(skeleton))
-    , receive_shadow_(true)
+    PrimitiveType primitive_type)
+    : RenderEntity(mesh, transform, Skeleton{}, primitive_type)
 {
-    meshes_.emplace_back(std::move(mesh));
-    normal_ = create_normal_transform(transform_.matrix());
 }
 
 RenderEntity::RenderEntity(
-    std::vector<Mesh> meshes,
+    Mesh *mesh,
     const Transform &transform,
-    Skeleton skeleton)
-    : meshes_(std::move(meshes))
+    Skeleton skeleton,
+    PrimitiveType primitive_type)
+    : mesh_(mesh)
     , transform_(transform)
     , normal_()
     , wireframe_(false)
-    , primitive_type_(PrimitiveType::TRIANGLES)
+    , primitive_type_(primitive_type)
     , skeleton_(std::move(skeleton))
     , receive_shadow_(true)
 {
