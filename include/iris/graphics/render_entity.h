@@ -151,23 +151,9 @@ class RenderEntity
      * @returns
      *   Collection of meshes.
      */
-    const std::vector<Mesh> &meshes() const;
+    Mesh *mesh() const;
 
-    /**
-     * Set mesh.
-     *
-     * @param mesh.
-     *   New (single) mesh.
-     */
-    void set_mesh(Mesh mesh);
-
-    /**
-     * Set meshes.
-     *
-     * @param meshes.
-     *   New meshes
-     */
-    void set_meshes(std::vector<Mesh> meshes);
+    void set_mesh(Mesh *mesh);
 
     /**
      * Returns whether the object should be rendered as a wireframe.
@@ -226,8 +212,8 @@ class RenderEntity
     void set_receive_shadow(bool receive_shadow);
 
   private:
-    /** Meshes to render. */
-    std::vector<Mesh> meshes_;
+    /** Mesh to render. */
+    Mesh *mesh_;
 
     /** World space transform. */
     Transform transform_;

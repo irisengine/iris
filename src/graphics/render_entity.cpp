@@ -116,21 +116,14 @@ Matrix4 RenderEntity::normal_transform() const
     return normal_;
 }
 
-const std::vector<Mesh> &RenderEntity::meshes() const
+Mesh *RenderEntity::mesh() const
 {
-    return meshes_;
+    return mesh_;
 }
 
-void RenderEntity::set_mesh(Mesh mesh)
+void RenderEntity::set_mesh(Mesh *mesh)
 {
-    std::vector<Mesh> descriptors;
-    descriptors.emplace_back(std::move(mesh));
-    set_meshes(std::move(descriptors));
-}
-
-void RenderEntity::set_meshes(std::vector<Mesh> meshes)
-{
-    meshes_ = std::move(meshes);
+    mesh_ = mesh;
 }
 
 bool RenderEntity::should_render_wireframe() const
