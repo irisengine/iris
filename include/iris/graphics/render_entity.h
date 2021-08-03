@@ -7,7 +7,6 @@
 #include "core/matrix4.h"
 #include "core/quaternion.h"
 #include "core/transform.h"
-#include "graphics/material.h"
 #include "graphics/mesh.h"
 #include "graphics/primitive_type.h"
 #include "graphics/render_graph/render_node.h"
@@ -31,6 +30,9 @@ class RenderEntity
      *
      * @param position
      *   Centre of mesh in world space.
+     *
+     * @param primitive_type
+     *   Primitive type of underlying mesh.
      */
     RenderEntity(
         Mesh *mesh,
@@ -45,6 +47,9 @@ class RenderEntity
      *
      * @param transform
      *   Transform of entity in world space.
+     *
+     * @param primitive_type
+     *   Primitive type of underlying mesh.
      */
     RenderEntity(
         Mesh *mesh,
@@ -62,6 +67,9 @@ class RenderEntity
      *
      * @param skeleton
      *   Skeleton.
+     *
+     * @param primitive_type
+     *   Primitive type of underlying mesh.
      */
     RenderEntity(
         Mesh *mesh,
@@ -139,13 +147,19 @@ class RenderEntity
     Matrix4 normal_transform() const;
 
     /**
-     * Get all meshes for this entity.
+     * Get all Mesh for this entity.
      *
      * @returns
-     *   Collection of meshes.
+     *   Mesh.
      */
     Mesh *mesh() const;
 
+    /**
+     * Set Mesh.
+     *
+     * @param mesh
+     *   New Mesh.
+     */
     void set_mesh(Mesh *mesh);
 
     /**
@@ -179,6 +193,14 @@ class RenderEntity
      *   Reference to skeleton.
      */
     Skeleton &skeleton();
+
+    /**
+     * Get const reference to skeleton.
+     *
+     * @returns
+     *   Reference to skeleton.
+     */
+    const Skeleton &skeleton() const;
 
     /**
      * Can this entity have shadows rendered on it.

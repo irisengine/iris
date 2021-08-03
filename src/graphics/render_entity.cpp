@@ -5,7 +5,6 @@
 #include "core/quaternion.h"
 #include "core/transform.h"
 #include "core/vector3.h"
-#include "graphics/mesh_factory.h"
 #include "graphics/skeleton.h"
 
 namespace
@@ -132,12 +131,12 @@ PrimitiveType RenderEntity::primitive_type() const
     return primitive_type_;
 }
 
-void RenderEntity::set_primitive_type(PrimitiveType type)
+Skeleton &RenderEntity::skeleton()
 {
-    primitive_type_ = type;
+    return skeleton_;
 }
 
-Skeleton &RenderEntity::skeleton()
+const Skeleton &RenderEntity::skeleton() const
 {
     return skeleton_;
 }
