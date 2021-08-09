@@ -31,6 +31,7 @@ set(CORE_SRCS
     "${SOURCE_ROOT}/quaternion.cpp"
     "${SOURCE_ROOT}/random.cpp"
     "${SOURCE_ROOT}/transform.cpp"
+    "${SOURCE_ROOT}/root.cpp"
     "${SOURCE_ROOT}/utils.cpp"
     "${SOURCE_ROOT}/vector3.cpp"
     "${INCLUDE_ROOT}/resource_loader.h"
