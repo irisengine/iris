@@ -3,7 +3,7 @@ set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/graphics/render_graph")
 
 set(GRAPHICS_SRCS
     ${GRAPHICS_SRCS}
-    "${INCLUDE_ROOT}/compiler.h"
+    "${INCLUDE_ROOT}/shader_compiler.h"
     "${INCLUDE_ROOT}/node.h"
     "${SOURCE_ROOT}/arithmetic_node.cpp"
     "${INCLUDE_ROOT}/arithmetic_node.h"

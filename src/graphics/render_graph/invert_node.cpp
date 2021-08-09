@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "graphics/render_graph/compiler.h"
+#include "graphics/render_graph/shader_compiler.h"
 
 namespace iris
 {
@@ -12,7 +12,7 @@ InvertNode::InvertNode(Node *input_node)
 {
 }
 
-void InvertNode::accept(Compiler &compiler) const
+void InvertNode::accept(ShaderCompiler &compiler) const
 {
     compiler.visit(*this);
 }

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "graphics/render_graph/compiler.h"
 #include "graphics/render_graph/node.h"
+#include "graphics/render_graph/shader_compiler.h"
 
 namespace iris
 {
@@ -32,7 +32,7 @@ class ValueNode : public Node
      * @param compiler
      *   Compiler to accept.
      */
-    void accept(Compiler &compiler) const override
+    void accept(ShaderCompiler &compiler) const override
     {
         return compiler.visit(*this);
     }

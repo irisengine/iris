@@ -1,7 +1,7 @@
 #include "graphics/render_graph/colour_node.h"
 
 #include "core/colour.h"
-#include "graphics/render_graph/compiler.h"
+#include "graphics/render_graph/shader_compiler.h"
 
 namespace iris
 {
@@ -11,7 +11,7 @@ ColourNode::ColourNode(const Colour &colour)
 {
 }
 
-void ColourNode::accept(Compiler &compiler) const
+void ColourNode::accept(ShaderCompiler &compiler) const
 {
     compiler.visit(*this);
 }

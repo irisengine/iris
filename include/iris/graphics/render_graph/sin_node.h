@@ -6,7 +6,7 @@
 
 namespace iris
 {
-class Compiler;
+class ShaderCompiler;
 
 /**
  * Implementation of Node which calculates the sine of the input node.
@@ -30,7 +30,7 @@ class SinNode : public Node
      * @param compiler
      *   Compiler to accept.
      */
-    void accept(Compiler &compiler) const override;
+    void accept(ShaderCompiler &compiler) const override;
 
     /**
      * Get input node.

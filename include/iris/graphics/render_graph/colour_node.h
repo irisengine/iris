@@ -5,7 +5,7 @@
 
 namespace iris
 {
-class Compiler;
+class ShaderCompiler;
 
 /**
  * Implementation of Node which represents a colour.
@@ -29,7 +29,7 @@ class ColourNode : public Node
      * @param compiler
      *   Compiler to accept.
      */
-    void accept(Compiler &compiler) const override;
+    void accept(ShaderCompiler &compiler) const override;
 
     /**
      * Get colour.

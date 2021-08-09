@@ -6,7 +6,7 @@
 
 namespace iris
 {
-class Compiler;
+class ShaderCompiler;
 
 /**
  * Implementation of Node which provides access to a texture. The compiler will
@@ -40,7 +40,7 @@ class TextureNode : public Node
      * @param compiler
      *   Compiler to accept.
      */
-    void accept(Compiler &compiler) const override;
+    void accept(ShaderCompiler &compiler) const override;
 
     /**
      * Get texture.

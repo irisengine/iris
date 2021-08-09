@@ -4,7 +4,7 @@
 
 namespace iris
 {
-class Compiler;
+class ShaderCompiler;
 
 /**
  * Implementation of Node which provides access to a meshes vertex position.
@@ -24,6 +24,6 @@ class VertexPositionNode : public Node
      * @param compiler
      *   Compiler to accept.
      */
-    void accept(Compiler &compiler) const override;
+    void accept(ShaderCompiler &compiler) const override;
 };
 }

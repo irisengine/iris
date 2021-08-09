@@ -4,7 +4,7 @@ namespace iris
 {
 
 // forward declaration
-class Compiler;
+class ShaderCompiler;
 
 /**
  * This is an interface for Node, which forms part of a render graph. Node
@@ -22,6 +22,6 @@ class Node
      * @param compiler
      *   Compiler to accept.
      */
-    virtual void accept(Compiler &compiler) const = 0;
+    virtual void accept(ShaderCompiler &compiler) const = 0;
 };
 }
