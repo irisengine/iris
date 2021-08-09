@@ -47,6 +47,7 @@ set(GRAPHICS_SRCS
     "${SOURCE_ROOT}/mesh_manager.cpp"
     "${SOURCE_ROOT}/render_command.cpp"
     "${SOURCE_ROOT}/render_entity.cpp"
+    "${SOURCE_ROOT}/render_queue_builder.cpp"
     "${SOURCE_ROOT}/render_target.cpp"
     "${SOURCE_ROOT}/renderer.cpp"
     "${SOURCE_ROOT}/scene.cpp"
