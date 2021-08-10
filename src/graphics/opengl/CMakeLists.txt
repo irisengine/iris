@@ -4,7 +4,6 @@ set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/graphics/opengl")
 set(GRAPHICS_SRCS
     ${GRAPHICS_SRCS}
     "${INCLUDE_ROOT}/shader_type.h"
-    "${SOURCE_ROOT}/buffer.cpp"
     "${SOURCE_ROOT}/compiler.cpp"
     "${SOURCE_ROOT}/material.cpp"
     "${SOURCE_ROOT}/mesh.cpp"
@@ -15,4 +14,5 @@ set(GRAPHICS_SRCS
     "${SOURCE_ROOT}/shader.cpp"
     "${INCLUDE_ROOT}/shader.h"
     "${SOURCE_ROOT}/texture.cpp"
+    "${SOURCE_ROOT}/opengl_buffer.cpp"
     PARENT_SCOPE)
