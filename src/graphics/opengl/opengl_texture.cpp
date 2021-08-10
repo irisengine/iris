@@ -1,9 +1,10 @@
-#include "graphics/texture.h"
+#include "graphics/opengl/opengl_texture.h"
 
 #include <any>
 #include <cstdint>
 #include <filesystem>
 #include <memory>
+#include <stack>
 #include <vector>
 
 #include "core/data_buffer.h"
@@ -47,7 +48,8 @@ GLenum format_to_opengl(iris::PixelFormat pixel_format)
  * Helper function to create an opengl Texture from data.
  *
  * @param data
- *   Raw data of image.
+ *
+ *   Image data. This should be width * hight of pixel_format tuples.
  *
  * @param width
  *   Width of image.
@@ -59,22 +61,21 @@ GLenum format_to_opengl(iris::PixelFormat pixel_format)
  *   Format of texture data.
  *
  * @returns
- *   Handle to texture and unique id.
+ *   Handle to texture.
  */
-std::tuple<GLuint, std::uint32_t> create_texture(
+GLuint create_texture(
     const iris::DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
-    iris::PixelFormat pixel_format)
+    iris::PixelFormat pixel_format,
+    GLuint id)
 {
     auto texture = 0u;
-
-    static std::uint32_t counter = 0u;
 
     ::glGenTextures(1, &texture);
     iris::check_opengl_error("could not generate texture");
 
-    ::glActiveTexture(GL_TEXTURE0 + counter);
+    ::glActiveTexture(id);
     iris::check_opengl_error("could not activate texture");
 
     ::glBindTexture(GL_TEXTURE_2D, texture);
@@ -82,14 +83,16 @@ std::tuple<GLuint, std::uint32_t> create_texture(
 
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    float borderColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
-    ::glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     iris::check_opengl_error("could not set min filter parameter");
 
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     iris::check_opengl_error("could not set max filter parameter");
+
+    const float border_colour[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    ::glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border_colour);
+    iris::check_opengl_error("could not set border colour");
 
     const auto format = format_to_opengl(pixel_format);
 
@@ -110,7 +113,7 @@ std::tuple<GLuint, std::uint32_t> create_texture(
         iris::check_opengl_error("could not generate mipmaps");
     }
 
-    return {texture, counter++};
+    return texture;
 }
 
 }
@@ -118,96 +121,34 @@ std::tuple<GLuint, std::uint32_t> create_texture(
 namespace iris
 {
 
-/**
- * Struct containing implementation specific data.
- */
-struct Texture::implementation
-{
-    GLuint texture;
-    std::uint32_t id;
-};
-
-Texture::Texture()
-    : Texture(
-          DataBuffer(4, static_cast<std::byte>(0xFF)),
-          1u,
-          1u,
-          PixelFormat::RGBA)
-{
-    static constexpr auto value = static_cast<std::byte>(0xFF);
-    data_ = DataBuffer(4, value);
-}
-
-Texture::Texture(
-    std::uint32_t width,
-    std::uint32_t height,
-    PixelFormat pixel_format)
-    : Texture({}, width, height, pixel_format)
-{
-}
-
-Texture::Texture(
+OpenGLTexture::OpenGLTexture(
     const DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
-    PixelFormat pixel_format)
-    : data_(data)
-    , width_(width)
-    , height_(height)
-    , flip_(false)
-    , impl_(std::make_unique<implementation>())
+    PixelFormat pixel_format,
+    GLuint id)
+    : Texture(data, width, height, pixel_format)
+    , handle_(0u)
+    , id_(id)
 {
-    const auto [texture, id] =
-        create_texture(data, width, height, pixel_format);
-    impl_->texture = texture;
-    impl_->id = id;
+    handle_ = create_texture(data, width, height, pixel_format, id_);
 
     LOG_ENGINE_INFO("texture", "loaded from data");
 }
 
-Texture::~Texture()
+OpenGLTexture::~OpenGLTexture()
 {
     // cleanup opengl resources
-    ::glDeleteTextures(1, std::addressof(impl_->texture));
+    ::glDeleteTextures(1, &handle_);
 }
 
-/** Default. */
-Texture::Texture(Texture &&) = default;
-Texture &Texture::operator=(Texture &&) = default;
-
-DataBuffer Texture::data() const
+GLuint OpenGLTexture::handle() const
 {
-    return data_;
+    return handle_;
 }
-
-std::uint32_t Texture::width() const
+GLuint OpenGLTexture::id() const
 {
-    return width_;
-}
-
-std::uint32_t Texture::height() const
-{
-    return height_;
-}
-
-std::any Texture::native_handle() const
-{
-    return impl_->texture;
-}
-
-std::uint32_t Texture::texture_id() const
-{
-    return impl_->id;
-}
-
-bool Texture::flip() const
-{
-    return flip_;
-}
-
-void Texture::set_flip(bool flip)
-{
-    flip_ = flip;
+    return id_;
 }
 
 }

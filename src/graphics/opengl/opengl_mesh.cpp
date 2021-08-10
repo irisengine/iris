@@ -1,4 +1,4 @@
-#include "graphics/mesh.h"
+#include "graphics/opengl/opengl_mesh.h"
 
 #include <memory>
 #include <tuple>
@@ -10,6 +10,16 @@
 namespace
 {
 
+/**
+ * Convert an engine VertexAttributeType to an OpenGL data type.
+ *
+ * @param type
+ *   Type to convert
+ *
+ * @returns
+ *   Tuple of OpenGL type and boolean indiciating if the returned type is a
+ * flaot type.
+ */
 std::tuple<GLenum, bool> to_opengl_format(iris::VertexAttributeType type)
 {
     GLenum format = 0u;
@@ -30,79 +40,34 @@ std::tuple<GLenum, bool> to_opengl_format(iris::VertexAttributeType type)
     return {format, is_float};
 }
 
-/**
- * Helper function to convert internal Buffer type to a opengl type.
- *
- * @param type
- *   Type to convert.
- *
- * @returns
- *   Supplied type as opengl type.
- */
-GLenum type_to_gl_type(const iris::BufferType type)
-{
-    auto gl_type = GL_ARRAY_BUFFER;
-
-    switch (type)
-    {
-        case iris::BufferType::VERTEX_ATTRIBUTES:
-            gl_type = GL_ARRAY_BUFFER;
-            break;
-        case iris::BufferType::VERTEX_INDICES:
-            gl_type = GL_ELEMENT_ARRAY_BUFFER;
-            break;
-        default: throw iris::Exception("unknown Buffer type");
-    }
-
-    return gl_type;
-}
-
-/**
- * Helper function to bind an opengl buffer.
- *
- * @param buffer
- *   Buffer to bind.
- */
-void bind_buffer(const iris::Buffer &buffer)
-{
-    const auto handle = std::any_cast<GLuint>(buffer.native_handle());
-
-    ::glBindBuffer(type_to_gl_type(buffer.type()), handle);
-    iris::check_opengl_error("could not bind buffer");
-}
-
 }
 
 namespace iris
 {
 
-struct Mesh::implementation
-{
-    GLuint vao;
-};
-
-Mesh::Mesh(
-    Buffer vertex_buffer,
-    Buffer index_buffer,
+OpenGLMesh::OpenGLMesh(
+    const std::vector<VertexData> &vertices,
+    const std::vector<std::uint32_t> &indices,
     const VertexAttributes &attributes)
-    : vertex_buffer_(std::move(vertex_buffer))
-    , index_buffer_(std::move(index_buffer))
-    , impl_(std::make_unique<implementation>())
+    : vertex_buffer_(vertices)
+    , index_buffer_(indices)
+    , vao_(0u)
 {
     // create vao
-    ::glGenVertexArrays(1, std::addressof(impl_->vao));
+    ::glGenVertexArrays(1, &vao_);
     check_opengl_error("could not generate vao");
 
-    // bind the vao
-    ::glBindVertexArray(impl_->vao);
-    check_opengl_error("could not bind vao");
+    bind();
 
     // ensure both buffers are bound for the vao
-    bind_buffer(vertex_buffer_);
-    bind_buffer(index_buffer_);
+    ::glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_.handle());
+    iris::check_opengl_error("could not bind buffer");
+    ::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_.handle());
+    iris::check_opengl_error("could not bind buffer");
 
     auto index = 0u;
 
+    // define the vertex attribute data for opengl
     for (const auto &attribute : attributes)
     {
         const auto &[type, components, _, offset] = attribute;
@@ -137,28 +102,39 @@ Mesh::Mesh(
         ++index;
     }
 
-    // unbind vao
+    unbind();
+}
+
+OpenGLMesh::~OpenGLMesh()
+{
+    ::glDeleteVertexArrays(1u, &vao_);
+}
+
+void OpenGLMesh::update_vertex_data(const std::vector<VertexData> &data)
+{
+    vertex_buffer_.write(data);
+}
+
+void OpenGLMesh::update_index_data(const std::vector<std::uint32_t> &data)
+{
+    index_buffer_.write(data);
+}
+
+GLsizei OpenGLMesh::element_count() const
+{
+    return static_cast<GLsizei>(index_buffer_.element_count());
+}
+
+void OpenGLMesh::bind() const
+{
+    ::glBindVertexArray(vao_);
+    iris::check_opengl_error("could not bind vao");
+}
+
+void OpenGLMesh::unbind() const
+{
     ::glBindVertexArray(0u);
-    check_opengl_error("could not unbind vao");
-}
-
-Mesh::~Mesh() = default;
-Mesh::Mesh(Mesh &&) = default;
-Mesh &Mesh::operator=(Mesh &&) = default;
-
-const Buffer &Mesh::vertex_buffer() const
-{
-    return vertex_buffer_;
-}
-
-const Buffer &Mesh::index_buffer() const
-{
-    return index_buffer_;
-}
-
-std::any Mesh::native_handle() const
-{
-    return {impl_->vao};
+    iris::check_opengl_error("could not unbind vao");
 }
 
 }

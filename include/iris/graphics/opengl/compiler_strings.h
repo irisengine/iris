@@ -28,7 +28,10 @@ uniform mat4 view;
 uniform mat4 model;
 uniform mat4 normal_matrix;
 uniform mat4 bones[100];
-uniform vec3 camera;
+uniform vec3 camera_;
+uniform vec4 light_data;
+uniform mat4 light_projection;
+uniform mat4 light_view;
 )";
 
 static constexpr auto vertex_out = R"(
@@ -36,6 +39,8 @@ out vec4 frag_pos;
 out vec2 tex_coord;
 out vec4 col;
 out vec4 norm;
+out vec4 frag_pos_light_space;
+out vec3 tangent_light_pos;
 out vec3 tangent_view_pos;
 out vec3 tangent_frag_pos;
 )";
@@ -45,12 +50,14 @@ in vec2 tex_coord;
 in vec4 col;
 in vec4 norm;
 in vec4 frag_pos;
+in vec4 frag_pos_light_space;
+in vec3 tangent_light_pos;
 in vec3 tangent_view_pos;
 in vec3 tangent_frag_pos;
 )";
 
 static constexpr auto fragment_out = R"(
-out vec4 outColor;
+out vec4 outColour;
 )";
 
 static constexpr auto vertex_begin = R"(
@@ -153,7 +160,7 @@ float calculate_shadow(vec3 n, vec4 frag_pos_light_space, vec3 light_dir, sample
     float closest_depth = texture(tex, proj_coord.xy).r;
     float current_depth = proj_coord.z;
 
-    float bias = max(0.05 * (1.0 - dot(n, light_dir)), 0.005);
+    float bias = 0.001;
     shadow = (current_depth - bias) > closest_depth ? 1.0 : 0.0;
 
     if(proj_coord.z > 1.0)

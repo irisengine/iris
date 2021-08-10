@@ -3,7 +3,7 @@
 #include <string>
 
 #include "graphics/opengl/opengl.h"
-#include "graphics/opengl/shader_type.h"
+#include "graphics/shader_type.h"
 
 namespace iris
 {
@@ -11,7 +11,7 @@ namespace iris
 /**
  * Class encapsulating an opengl shader.
  */
-class Shader
+class OpenGLShader
 {
   public:
     /**
@@ -23,12 +23,12 @@ class Shader
      * @param type
      *   The type of shader.
      */
-    Shader(const std::string &source, ShaderType type);
+    OpenGLShader(const std::string &source, ShaderType type);
 
     /**
      * Destructor, performs opengl cleanup.
      */
-    ~Shader();
+    ~OpenGLShader();
 
     /**
      * Move constructor, steals the state from the moved-in object.
@@ -36,7 +36,7 @@ class Shader
      * @param other
      *   Object to take state from. Do not use after this call.
      */
-    Shader(Shader &&other);
+    OpenGLShader(OpenGLShader &&other);
 
     /**
      * Move operator, steals the state from the moved-in object.
@@ -44,11 +44,11 @@ class Shader
      * @param other
      *   Object to take state from. Do not use after this call.
      */
-    Shader &operator=(Shader &&);
+    OpenGLShader &operator=(OpenGLShader &&);
 
     /** Disabled */
-    Shader(const Shader &) = delete;
-    Shader &operator=(const Shader &) = delete;
+    OpenGLShader(const OpenGLShader &) = delete;
+    OpenGLShader &operator=(const OpenGLShader &) = delete;
 
     /**
      * Get the native opengl handle.

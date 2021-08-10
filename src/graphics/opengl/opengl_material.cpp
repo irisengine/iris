@@ -1,19 +1,15 @@
-#include "graphics/material.h"
+#include "graphics/opengl/opengl_material.h"
 
-#include <any>
 #include <cstdint>
-#include <iostream>
-#include <memory>
 #include <string>
 #include <vector>
 
 #include "core/exception.h"
-#include "graphics/lights/lighting_rig.h"
+#include "graphics/opengl/glsl_shader_compiler.h"
 #include "graphics/opengl/opengl.h"
-#include "graphics/opengl/shader.h"
-#include "graphics/opengl/shader_type.h"
-#include "graphics/render_graph/compiler.h"
+#include "graphics/opengl/opengl_shader.h"
 #include "graphics/render_graph/render_graph.h"
+#include "graphics/shader_type.h"
 
 namespace
 {
@@ -37,9 +33,9 @@ GLuint create_program(
     const auto program = ::glCreateProgram();
     iris::check_opengl_error("could not create new program");
 
-    const iris::Shader vertex_shader{
+    const iris::OpenGLShader vertex_shader{
         vertex_shader_source, iris::ShaderType::VERTEX};
-    const iris::Shader fragment_shader{
+    const iris::OpenGLShader fragment_shader{
         fragment_shader_source, iris::ShaderType::FRAGMENT};
 
     ::glAttachShader(program, vertex_shader.native_handle());
@@ -89,39 +85,36 @@ GLuint create_program(
 namespace iris
 {
 
-struct Material::implementation
-{
-    GLuint program;
-};
-
-Material::Material(
+OpenGLMaterial::OpenGLMaterial(
     const RenderGraph *render_graph,
-    const Mesh &,
-    const LightingRig *lighting_rig)
-    : textures_()
-    , impl_(std::make_unique<implementation>())
+    LightType light_type)
+    : handle_(0u)
+    , textures_()
 {
-    Compiler compiler{render_graph, lighting_rig};
+    GLSLShaderCompiler compiler{render_graph, light_type};
 
-    impl_->program =
+    handle_ =
         create_program(compiler.vertex_shader(), compiler.fragment_shader());
     textures_ = compiler.textures();
 }
 
-Material::~Material()
+OpenGLMaterial::~OpenGLMaterial()
 {
-    ::glDeleteProgram(impl_->program);
+    ::glDeleteProgram(handle_);
 }
 
-Material::Material(Material &&other) = default;
-Material &Material::operator=(Material &&other) = default;
-
-std::any Material::native_handle() const
+void OpenGLMaterial::bind() const
 {
-    return std::any{impl_->program};
+    ::glUseProgram(handle_);
+    check_opengl_error("could not bind program");
 }
 
-std::vector<Texture *> Material::textures() const
+GLuint OpenGLMaterial::handle() const
+{
+    return handle_;
+}
+
+std::vector<Texture *> OpenGLMaterial::textures() const
 {
     return textures_;
 }

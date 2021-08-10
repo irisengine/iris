@@ -1,18 +1,19 @@
-#include "graphics/opengl/shader.h"
+#include "graphics/opengl/opengl_shader.h"
 
 #include <cstdint>
+#include <iostream>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "core/exception.h"
 #include "graphics/opengl/opengl.h"
-#include "graphics/opengl/shader_type.h"
+#include "graphics/shader_type.h"
 
 namespace iris
 {
 
-Shader::Shader(const std::string &source, ShaderType type)
+OpenGLShader::OpenGLShader(const std::string &source, ShaderType type)
     : shader_(0u)
 {
     const auto native_type =
@@ -56,6 +57,8 @@ Shader::Shader(const std::string &source, ShaderType type)
                 error_log.data());
             iris::check_opengl_error("failed to get error log");
 
+            std::cout << source << std::endl;
+
             // convert to string and throw
             const std::string error(error_log.data(), log_length);
             throw Exception("shader compilation failed: " + error);
@@ -63,30 +66,30 @@ Shader::Shader(const std::string &source, ShaderType type)
     }
 }
 
-Shader::~Shader()
+OpenGLShader::~OpenGLShader()
 {
     ::glDeleteShader(shader_);
 }
 
-Shader::Shader(Shader &&other)
+OpenGLShader::OpenGLShader(OpenGLShader &&other)
     : shader_(0u)
 {
     std::swap(shader_, other.shader_);
 }
 
-Shader &Shader::operator=(Shader &&other)
+OpenGLShader &OpenGLShader::operator=(OpenGLShader &&other)
 {
     // create a new shader object to 'steal' the internal state of the supplied
     // object then swap
     // this ensures that the current shader is correctly deleted at the end
     // of this call
-    Shader new_shader{std::move(other)};
+    OpenGLShader new_shader{std::move(other)};
     std::swap(shader_, new_shader.shader_);
 
     return *this;
 }
 
-GLuint Shader::native_handle() const
+GLuint OpenGLShader::native_handle() const
 {
     return shader_;
 }
