@@ -12,6 +12,7 @@ set(GRAPHICS_SRCS
     "${SOURCE_ROOT}/opengl_buffer.cpp"
     "${SOURCE_ROOT}/opengl_material.cpp"
     "${SOURCE_ROOT}/opengl_mesh.cpp"
+    "${SOURCE_ROOT}/opengl_mesh_manager.cpp"
     "${SOURCE_ROOT}/opengl_render_target.cpp"
     "${SOURCE_ROOT}/opengl_shader.cpp"
     "${SOURCE_ROOT}/opengl_texture.cpp"
