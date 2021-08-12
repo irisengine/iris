@@ -17,4 +17,5 @@ set(GRAPHICS_SRCS
     "${SOURCE_ROOT}/opengl_shader.cpp"
     "${SOURCE_ROOT}/opengl_texture.cpp"
     "${SOURCE_ROOT}/opengl_texture_manager.cpp"
+    "${SOURCE_ROOT}/opengl_uniform.cpp"
     PARENT_SCOPE)
