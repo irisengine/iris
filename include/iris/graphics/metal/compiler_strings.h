@@ -26,6 +26,21 @@ typedef struct
 } VertexIn;
 )";
 
+static constexpr auto vertex_out = R"(
+typedef struct
+{
+    float4 position [[position]];
+    float4 frag_position;
+    float3 tangent_view_pos;
+    float3 tangent_frag_pos;
+    float3 tangent_light_pos;
+    float4 frag_pos_light_space;
+    float4 normal;
+    float4 color;
+    float4 tex;
+} VertexOut;
+)";
+
 static constexpr auto default_uniform = R"(
 typedef struct
 {
@@ -35,6 +50,7 @@ typedef struct
     float4x4 normal_matrix;
     float4x4 bones[100];
     float4 camera;
+    float4 light_data;
     float time;
 } DefaultUniform;
 )";
@@ -42,7 +58,6 @@ typedef struct
 static constexpr auto directional_light_uniform = R"(
 typedef struct
 {
-    float4 position;
     float4x4 proj;
     float4x4 view;
 } DirectionalLightUniform;
@@ -60,13 +75,17 @@ float4x4 bone_transform = calculate_bone_transform(uniform, vid, vertices);
 float2 uv = vertices[vid].tex.xy;
 
 VertexOut out;
-out.pos = uniform->model * bone_transform * vertices[vid].position;
-out.position = uniform->projection * uniform->view * out.pos;
+out.frag_position = uniform->model * bone_transform * vertices[vid].position;
+out.position = uniform->projection * uniform->view * out.frag_position;
 out.normal = uniform->normal_matrix * bone_transform * vertices[vid].normal;
 out.color = vertices[vid].color;
 out.tex = vertices[vid].tex;
 
 const float3x3 tbn = calculate_tbn(uniform, bone_transform, vid, vertices);
+
+out.tangent_light_pos = tbn * uniform->light_data.xyz;
+out.tangent_view_pos = tbn * uniform->camera.xyz;
+out.tangent_frag_pos = tbn * out.frag_position.xyz;
 )";
 
 static constexpr auto blur_function = R"(
@@ -147,19 +166,18 @@ float3x3 calculate_tbn(constant DefaultUniform *uniform, float4x4 bone_transform
 })";
 
 static constexpr auto shadow_function = R"(
-float calculate_shadow(float3 n, float4 frag_pos_light_space, float3 light_dir, texture2d<float> texture)
+float calculate_shadow(float3 n, float4 frag_pos_light_space, float3 light_dir, texture2d<float> texture, sampler smp)
 {
     float shadow = 0.0;
 
-    constexpr sampler s(coord::normalized, filter::linear, address::clamp_to_edge, compare_func::less);
     float3 proj_coord = frag_pos_light_space.xyz / frag_pos_light_space.w;
 
     float2 proj_uv = float2(proj_coord.x, -proj_coord.y);
     proj_uv = proj_uv * 0.5 + 0.5;
 
-    float closest_depth = texture.sample(s, proj_uv).r;
+    float closest_depth = texture.sample(smp, proj_uv).r;
     float current_depth = proj_coord.z;
-    float bias = max(0.05 * (1.0 - dot(n, light_dir)), 0.005);
+    float bias = 0.001;
 
     shadow = current_depth - bias > closest_depth ? 1.0 : 0.0;
     if(proj_coord.z > 1.0)
