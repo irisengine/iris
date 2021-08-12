@@ -1,6 +1,6 @@
 /**
  * This is an incomplete file and is intended to be included in
- * include/gl/opengl.h
+ * include/opengl/opengl.h
  *
  * *DO NOT* include this file directly
  *
@@ -23,11 +23,13 @@
 #define GL_VERTEX_SHADER 0x8B31
 #define GL_COMPILE_STATUS 0x8B81
 #define GL_CLAMP_TO_BORDER 0x812D
+#define GL_CLAMP_TO_EDGE 0x812F
 
 #define WGL_CONTEXT_MAJOR_VERSION_ARB 0x2091
 #define WGL_CONTEXT_MINOR_VERSION_ARB 0x2092
 #define WGL_CONTEXT_PROFILE_MASK_ARB 0x9126
 #define WGL_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001
+#define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
 #define WGL_DRAW_TO_WINDOW_ARB 0x2001
 #define WGL_ACCELERATION_ARB 0x2003
 #define WGL_SUPPORT_OPENGL_ARB 0x2010
@@ -40,6 +42,7 @@
 #define WGL_TYPE_RGBA_ARB 0x202B
 
 using GLsizeiptr = std::ptrdiff_t;
+using GLintptr = std::ptrdiff_t;
 using GLchar = char;
 
 // opengl function pointers
@@ -54,6 +57,7 @@ EXTERN void (*glDeleteBuffers)(GLsizei, const GLuint *);
 EXTERN void (*glUseProgram)(GLuint);
 EXTERN void (*glBindBuffer)(GLenum, GLuint);
 EXTERN void (*glGenVertexArrays)(GLsizei, GLuint *);
+EXTERN void (*glDeleteVertexArrays)(GLsizei, GLuint *);
 EXTERN void (*glBindVertexArray)(GLuint);
 EXTERN void (*glEnableVertexAttribArray)(GLuint);
 EXTERN void (*glVertexAttribPointer)(
@@ -69,6 +73,7 @@ EXTERN GLuint (*glCreateProgram)(void);
 EXTERN void (*glAttachShader)(GLuint, GLuint);
 EXTERN void (*glGenBuffers)(GLsizei, GLuint *);
 EXTERN void (*glBufferData)(GLenum, GLsizeiptr, const void *, GLenum);
+EXTERN void (*glBufferSubData)(GLenum, GLintptr, GLsizeiptr, const void *);
 EXTERN void (*glLinkProgram)(GLuint);
 EXTERN void (*glGetProgramiv)(GLuint, GLenum, GLint *);
 EXTERN void (*glGetProgramInfoLog)(GLuint, GLsizei, GLsizei *, GLchar *);
@@ -81,6 +86,7 @@ EXTERN void (*glDeleteFramebuffers)(GLsizei, const GLuint *);
 EXTERN GLint (*glGetUniformLocation)(GLuint, const GLchar *);
 EXTERN void (*glUniformMatrix4fv)(GLint, GLsizei, GLboolean, const GLfloat *);
 EXTERN void (*glUniform3f)(GLint, GLfloat, GLfloat, GLfloat);
+EXTERN void (*glUniform4fv)(GLint, GLsizei, const GLfloat *);
 EXTERN void (*glActiveTexture)(GLenum);
 EXTERN void (*glUniform1i)(GLint, GLint);
 EXTERN void (*glBlitFramebuffer)(
