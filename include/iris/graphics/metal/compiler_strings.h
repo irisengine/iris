@@ -152,7 +152,7 @@ float4x4 calculate_bone_transform(constant DefaultUniform *uniform, uint vid, de
     bone_transform += uniform->bones[vertices[vid].bone_ids.z] * vertices[vid].bone_weights.z;
     bone_transform += uniform->bones[vertices[vid].bone_ids.w] * vertices[vid].bone_weights.w;
 
-    return bone_transform;
+    return transpose(bone_transform);
 
 })";
 
