@@ -3,6 +3,7 @@ set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 set(GRAPHICS_SRCS
     ${GRAPHICS_SRCS}
     "${SOURCE_ROOT}/render_system.mm"
+    "${SOURCE_ROOT}/metal_constant_buffer.mm"
     "${SOURCE_ROOT}/metal_buffer.mm"
     "${SOURCE_ROOT}/metal_material.mm"
     "${SOURCE_ROOT}/metal_mesh.mm"

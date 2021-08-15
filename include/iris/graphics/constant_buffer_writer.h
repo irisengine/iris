@@ -21,7 +21,7 @@ class ConstantBufferWriter
      * @param buffer
      *   Buffer to write data to.
      */
-    ConstantBufferWriter(T *buffer)
+    ConstantBufferWriter(T &buffer)
         : buffer_(buffer)
         , offset_(0u)
     {
@@ -36,7 +36,7 @@ class ConstantBufferWriter
     template <class S>
     void write(const S &object)
     {
-        buffer_->write(object, offset_);
+        buffer_.write(object, offset_);
         offset_ += sizeof(S);
     }
 
@@ -49,7 +49,7 @@ class ConstantBufferWriter
     template <class S>
     void write(const std::vector<S> &objects)
     {
-        buffer_->write(objects.data(), sizeof(S) * objects.size(), offset_);
+        buffer_.write(objects.data(), sizeof(S) * objects.size(), offset_);
         offset_ += sizeof(S) * objects.size();
     }
 
@@ -66,7 +66,7 @@ class ConstantBufferWriter
 
   private:
     /** Buffer to write to, */
-    T *buffer_;
+    T &buffer_;
 
     /** Offset into buffer to write to. */
     std::size_t offset_;
