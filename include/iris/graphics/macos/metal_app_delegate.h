@@ -3,12 +3,12 @@
 /**
  * Delegate for our app which will handle window creation
  */
-@interface AppDelegate : NSObject <NSApplicationDelegate>
+@interface MetalAppDelegate : NSObject <NSApplicationDelegate>
 {
 }
 
 /**
- * Initialise a new AppDelegate with an OpenGl window of the specified
+ * Initialise a new MetalAppDelegate with an OpenGl window of the specified
  * dimensions.
  *
  * @param rect

@@ -1,12 +1,12 @@
-#import "core/macos/AppDelegate.h"
+#import "graphics/macos/opengl_app_delegate.h"
 
 #import <Appkit/Appkit.h>
 #import <CoreGraphics/CoreGraphics.h>
 #import <Foundation/Foundation.h>
 
-#import "core/macos/OpenGLView.h"
+#import "graphics/macos/opengl_view.h"
 
-@implementation AppDelegate
+@implementation OpenGLAppDelegate
 
 - (id)initWithRect:(NSRect)rect
 {

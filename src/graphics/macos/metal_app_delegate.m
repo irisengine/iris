@@ -1,4 +1,4 @@
-#import "core/macos/AppDelegate.h"
+#import "graphics/macos/metal_app_delegate.h"
 
 #import <Appkit/Appkit.h>
 #import <CoreGraphics/CoreGraphics.h>
@@ -7,9 +7,9 @@
 #import <MetalKit/MetalKit.h>
 #import <QuartzCore/QuartzCore.h>
 
-#include "core/macos/MetalView.h"
+#include "graphics/macos/metal_view.h"
 
-@implementation AppDelegate
+@implementation MetalAppDelegate
 
 - (id)initWithRect:(NSRect)rect
 {

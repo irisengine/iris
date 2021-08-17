@@ -1,6 +1,6 @@
-#import "core/macos/MetalView.h"
+#import "graphics/macos/opengl_view.h"
 
-@implementation MetalView
+@implementation OpenGLView
 {
 }
 
@@ -14,9 +14,8 @@
 {
     // once we receive a key event we completely ignore it! This is because we
     // are handling these elsewhere, but having the view accept and ignore key
-    // events prevents the annoying OS X doonk noise
+    // events prevents the annoying macos doonk noise
 }
 
 @end
-
 
