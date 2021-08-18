@@ -238,7 +238,7 @@ void OpenGLRenderer::set_render_passes(
                         OpenGLUniform(program, "projection"),
                         OpenGLUniform(program, "view"),
                         OpenGLUniform(program, "model"),
-                        OpenGLUniform(program, "normal_matrix"),
+                        OpenGLUniform(program, "normal_matrix", false),
                         OpenGLUniform(program, "light_data"),
                         OpenGLUniform(program, "g_shadow_map", false),
                         OpenGLUniform(program, "light_projection", false),
@@ -249,7 +249,8 @@ void OpenGLRenderer::set_render_passes(
                 for (auto i = 0u; i < material->textures().size(); ++i)
                 {
                     uniforms_[material][render_entity]->textures.emplace_back(
-                        program, "texture" + std::to_string(i));
+                        OpenGLUniform{
+                            program, "texture" + std::to_string(i), false});
                 }
             }
         }
