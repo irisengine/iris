@@ -117,9 +117,23 @@ if(IRIS_PLATFORM MATCHES "WINDOWS")
                                       /external:W0 ${WINDOWS_SYSTEM_INCLUDES})
   target_compile_options(iris PUBLIC /MTd)
   target_link_options(iris PUBLIC /subsystem:windows /ENTRY:mainCRTStartup)
+  target_link_libraries(iris PRIVATE DirectX-Headers)
+
+  install(
+    TARGETS iris
+            LinearMath
+            BulletDynamics
+            BulletCollision
+            assimp
+            zlibstatic
+            IrrXML
+            DirectX-Headers
+    EXPORT iris-targets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 else()
   target_compile_options(iris PRIVATE -Wall -Werror -pedantic -glldb -fobjc-arc)
-endif()
 
 install(
   TARGETS iris
@@ -133,6 +147,8 @@ install(
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif()
+
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/iris
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
