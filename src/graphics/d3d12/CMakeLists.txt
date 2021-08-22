@@ -11,5 +11,6 @@ set(GRAPHICS_SRCS
     "${SOURCE_ROOT}/d3d12_descriptor_manager.cpp"
     "${SOURCE_ROOT}/d3d12_texture.cpp"
     "${SOURCE_ROOT}/d3d12_descriptor_handle.cpp"
+    "${SOURCE_ROOT}/d3d12_render_target.cpp"
     "${SOURCE_ROOT}/d3d12_context.cpp"
     PARENT_SCOPE)
