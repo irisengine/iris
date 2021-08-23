@@ -17,4 +17,5 @@ set(GRAPHICS_SRCS
     "${SOURCE_ROOT}/d3d12_texture_manager.cpp"
     "${SOURCE_ROOT}/d3d12_context.cpp"
     "${SOURCE_ROOT}/d3d12_constant_buffer.cpp"
+    "${SOURCE_ROOT}/d3d12_constant_buffer_pool.cpp"
     PARENT_SCOPE)
