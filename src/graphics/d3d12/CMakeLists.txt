@@ -9,6 +9,7 @@ set(GRAPHICS_SRCS
     "${SOURCE_ROOT}/d3d12_gpu_descriptor_handle_allocator.cpp"
     "${SOURCE_ROOT}/d3d12_material.cpp"
     "${SOURCE_ROOT}/d3d12_mesh.cpp"
+    "${SOURCE_ROOT}/d3d12_renderer.cpp"
     "${SOURCE_ROOT}/d3d12_descriptor_manager.cpp"
     "${SOURCE_ROOT}/d3d12_texture.cpp"
     "${SOURCE_ROOT}/d3d12_descriptor_handle.cpp"
