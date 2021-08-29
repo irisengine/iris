@@ -18,6 +18,13 @@ namespace
 {
 
 /**
+ * In order to have a pool of reusable texture ids we maintain a static stack.
+ * This will be lazily populated by the first loaded texture, from there any
+ * deleted texture will return its id to this pool.
+ */
+static std::stack<std::uint32_t> id_pool;
+
+/**
  * Helper method to convert engine pixel format into an opengl enum.
  *
  * @param pixel_format
