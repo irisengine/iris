@@ -38,8 +38,6 @@ namespace iris
 
 void start(int argc, char **argv, std::function<void(int, char **)> entry)
 {
-    PROFILE()
-
     LOG_ENGINE_INFO("start", "engine start");
 
     register_apis();
@@ -49,8 +47,6 @@ void start(int argc, char **argv, std::function<void(int, char **)> entry)
 
 void start_debug(int argc, char **argv, std::function<void(int, char **)> entry)
 {
-    PROFILE()
-
     // enable engine logging
     Logger::instance().set_log_engine(true);
 
