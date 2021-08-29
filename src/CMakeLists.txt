@@ -52,9 +52,6 @@ endif()
 if(IRIS_PLATFORM MATCHES "MACOS")
   target_compile_definitions(iris PUBLIC IRIS_PLATFORM_MACOS)
   target_compile_definitions(iris PRIVATE IRIS_ARCH_X86_64)
-  if(NOT IRIS_GRAPHICS_API)
-    set(IRIS_GRAPHICS_API "METAL")
-  endif()
   if(NOT IRIS_JOBS_API)
     set(IRIS_JOBS_API "FIBERS")
   endif()
@@ -62,9 +59,6 @@ elseif(IRIS_PLATFORM MATCHES "IOS")
   target_compile_definitions(iris PUBLIC IRIS_PLATFORM_IOS)
   target_compile_definitions(iris PRIVATE IRIS_ARCH_ARM64)
   set(IRIS_ARCH "ARM64")
-  if(NOT IRIS_GRAPHICS_API)
-    set(IRIS_GRAPHICS_API "METAL")
-  endif()
   if(NOT IRIS_JOBS_API)
     set(IRIS_JOBS_API "THREADS")
   endif()
@@ -72,42 +66,32 @@ elseif(IRIS_PLATFORM MATCHES "WINDOWS")
   target_compile_definitions(iris PUBLIC IRIS_PLATFORM_WINDOWS)
   target_compile_definitions(iris PRIVATE IRIS_ARCH_X86_64)
   target_compile_definitions(iris PUBLIC NOMINMAX)
-  set(IRIS_GRAPHICS_API "OPENGL")
-  set(IRIS_JOBS_API "THREADS")
+  if(NOT IRIS_JOBS_API)
+    set(IRIS_JOBS_API "THREADS")
+  endif()
 else()
   message(FATAL_ERROR "Unsupported platform")
 endif()
 
-# handle graphic api setup including validating they are supported on current
-# platform
-if(IRIS_GRAPHICS_API MATCHES "METAL")
-  if(IRIS_PLATFORM MATCHES "MACOS" OR IRIS_PLATFORM MATCHES "IOS")
-    set(LINK_FRAMEWORKS
-        "${LINK_FRAMEWORKS} -framework Metal -framework MetalKit -framework MetalPerformanceShaders -framework QuartzCore"
-    )
-    target_compile_definitions(iris PRIVATE IRIS_GRAPHICS_API_METAL)
-  else()
-    message(FATAL_ERROR "METAL not supported on ${IRIS_PLATFORM}")
-  endif()
-elseif(IRIS_GRAPHICS_API MATCHES "OPENGL")
+# handle graphic api setup
+if(IRIS_PLATFORM MATCHES "MACOS" OR IRIS_PLATFORM MATCHES "IOS")
+  set(LINK_FRAMEWORKS
+      "${LINK_FRAMEWORKS} -framework Metal -framework MetalKit -framework MetalPerformanceShaders -framework QuartzCore"
+  )
+endif()
+
+if(IRIS_PLATFORM MATCHES "MACOS" OR IRIS_PLATFORM MATCHES "WINDOWS")
   find_package(OpenGL REQUIRED)
   target_include_directories(iris SYSTEM PRIVATE ${OPENGL_INCLUDE_DIR})
-  target_compile_definitions(iris PRIVATE IRIS_GRAPHICS_API_OPENGL)
   if(IRIS_PLATFORM MATCHES "MACOS")
     set(LINK_FRAMEWORKS "${LINK_FRAMEWORKS} -framework OpenGL")
-    target_compile_definitions(iris PRIVATE IRIS_GRAPHICS_API_OPENGL)
     # opengl is technically deprecated on macos, so silence the deprecation
     # warnings
     target_compile_definitions(iris PRIVATE GL_SILENCE_DEPRECATION)
   endif()
-else()
-  message(FATAL_ERROR "Unsupported graphics API: ${IRIS_GRAPHICS_API}")
 endif()
 
-message(
-  STATUS
-    "Building for ${IRIS_PLATFORM} with ${IRIS_GRAPHICS_API} (${IRIS_JOBS_API})"
-)
+message(STATUS "Building for ${IRIS_PLATFORM} (${IRIS_JOBS_API})")
 
 target_link_libraries(iris PUBLIC LinearMath BulletDynamics BulletCollision
                                   assimp ${LINK_FRAMEWORKS})
@@ -135,18 +119,18 @@ if(IRIS_PLATFORM MATCHES "WINDOWS")
 else()
   target_compile_options(iris PRIVATE -Wall -Werror -pedantic -glldb -fobjc-arc)
 
-install(
-  TARGETS iris
-          LinearMath
-          BulletDynamics
-          BulletCollision
-          assimp
-          zlibstatic
-          IrrXML
-  EXPORT iris-targets
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+  install(
+    TARGETS iris
+            LinearMath
+            BulletDynamics
+            BulletCollision
+            assimp
+            zlibstatic
+            IrrXML
+    EXPORT iris-targets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
 
