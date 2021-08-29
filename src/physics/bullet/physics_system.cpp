@@ -15,6 +15,7 @@
 #include <LinearMath/btVector3.h>
 #include <btBulletDynamicsCommon.h>
 
+#include "core/exception.h"
 #include "core/quaternion.h"
 #include "core/vector3.h"
 #include "graphics/render_entity.h"
@@ -97,10 +98,10 @@ void PhysicsStateDeleter::operator()(PhysicsState *state)
 
 struct PhysicsSystem::implementation
 {
+    std::unique_ptr<::btBroadphaseInterface> broadphase;
     std::unique_ptr<::btGhostPairCallback> ghost_pair_callback;
     std::unique_ptr<::btDefaultCollisionConfiguration> collision_config;
     std::unique_ptr<::btCollisionDispatcher> collision_dispatcher;
-    std::unique_ptr<::btBroadphaseInterface> broadphase;
     std::unique_ptr<::btSequentialImpulseConstraintSolver> solver;
     std::unique_ptr<::btDiscreteDynamicsWorld> world;
     std::vector<std::unique_ptr<RigidBody>> bodies;
@@ -138,6 +139,12 @@ PhysicsSystem::~PhysicsSystem()
         for (const auto &body : impl_->bodies)
         {
             remove_body_from_world(body.get(), impl_->world.get());
+        }
+
+        for (const auto &controller : impl_->character_controllers)
+        {
+            remove_body_from_world(
+                controller->rigid_body(), impl_->world.get());
         }
     }
     catch (...)

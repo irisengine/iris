@@ -68,7 +68,7 @@ class PhysicsSystem
      *   A pointer to the newly created RigidBody.
      */
     template <class... Args>
-    RigidBody *create_rigid_body(Args &&... args)
+    RigidBody *create_rigid_body(Args &&...args)
     {
         auto element = std::make_unique<RigidBody>(std::forward<Args>(args)...);
         return add(std::move(element));
@@ -85,7 +85,7 @@ class PhysicsSystem
      *   A pointer to the newly created CharacterController.
      */
     template <class T, class... Args, typename = is_character_controller<T>>
-    CharacterController *create_character_controller(Args &&... args)
+    CharacterController *create_character_controller(Args &&...args)
     {
         auto element = std::make_unique<T>(std::forward<Args>(args)...);
         return add(std::move(element));
