@@ -18,7 +18,13 @@
 #include "graphics/render_entity.h"
 #include "graphics/render_queue_builder.h"
 #include "graphics/texture_manager.h"
+#include "graphics/window.h"
+#include "graphics/window_manager.h"
 #include "log/log.h"
+
+#if defined(IRIS_PLATFORM_WINDOWS)
+#include "graphics/win32/win32_opengl_window.h"
+#endif
 
 namespace
 {
@@ -264,17 +270,19 @@ RenderTarget *OpenGLRenderer::create_render_target(
     auto &tex_man =
         static_cast<OpenGLTextureManager &>(Root::texture_manager());
 
+    const auto scale = Root::window_manager().current_window()->screen_scale();
+
     render_targets_.emplace_back(std::make_unique<OpenGLRenderTarget>(
         std::make_unique<OpenGLTexture>(
             DataBuffer{},
-            width * 2u,
-            height * 2u,
+            width * scale,
+            height * scale,
             PixelFormat::RGBA,
             tex_man.next_id()),
         std::make_unique<OpenGLTexture>(
             DataBuffer{},
-            width * 2u,
-            height * 2u,
+            width * scale,
+            height * scale,
             PixelFormat::DEPTH,
             tex_man.next_id())));
 
@@ -290,7 +298,10 @@ void OpenGLRenderer::execute_pass_start(RenderCommand &command)
     // else we bind the supplied target
     if (target == nullptr)
     {
-        ::glViewport(0, 0, width_ * 2, height_ * 2);
+        const auto scale =
+            Root::window_manager().current_window()->screen_scale();
+
+        ::glViewport(0, 0, width_ * scale, height_ * scale);
         check_opengl_error("could not set viewport");
 
         ::glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -370,6 +381,10 @@ void OpenGLRenderer::execute_present(RenderCommand &)
 {
 #if defined(IRIS_PLATFORM_MACOS)
     ::glSwapAPPLE();
+#elif defined(IRIS_PLATFORM_WINDOWS)
+    const auto *window = static_cast<Win32OpenGLWindow *>(
+        Root::window_manager().current_window());
+    ::SwapBuffers(window->device_context());
 #endif
 }
 
