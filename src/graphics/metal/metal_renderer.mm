@@ -391,6 +391,7 @@ void MetalRenderer::pre_render()
     frames_[current_frame_ % 3u].lock.lock();
 
     const auto layer = core::utility::metal_layer();
+    [layer setDisplaySyncEnabled:NO];
     drawable_ = [layer nextDrawable];
     command_buffer_ = [command_queue_ commandBuffer];
 
