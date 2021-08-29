@@ -1,0 +1,6 @@
+set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
+
+set(GRAPHICS_SRCS
+    ${GRAPHICS_SRCS}
+    "${SOURCE_ROOT}/win32_window.cpp"
+    PARENT_SCOPE)
