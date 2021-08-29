@@ -8,7 +8,7 @@
 namespace iris
 {
 
-class Compiler;
+class ShaderCompiler;
 
 /**
  * A RenderNode is an implementation of Node which represents the final node in
@@ -33,7 +33,7 @@ class RenderNode : public Node
      * @param compiler
      *   Compiler to accept.
      */
-    void accept(Compiler &compiler) const override;
+    void accept(ShaderCompiler &compiler) const override;
 
     /**
      * Get colour input.
@@ -125,7 +125,7 @@ class RenderNode : public Node
      * @returns
      *   Shadow map node at index if one exists, otherwise nullptr.
      */
-    Node *shadow_map_input(std::size_t index) const;
+    Node *shadow_map_input() const;
 
     /**
      * Add a new shadow map node.
@@ -133,7 +133,7 @@ class RenderNode : public Node
      * @param input
      *   Shadow map input node.
      */
-    void add_shadow_map_input(Node *input);
+    void set_shadow_map_input(Node *input);
 
     /**
      * Is this render node a depth only render.
@@ -168,7 +168,7 @@ class RenderNode : public Node
     Node *position_input_;
 
     /** Collection of shadow map inputs. */
-    std::vector<Node *> shadow_map_inputs_;
+    Node *shadow_map_input_;
 
     /** Is depth only render. */
     bool depth_only_;

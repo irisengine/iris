@@ -10,6 +10,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
+#include "core/auto_release.h"
 #include "core/data_buffer.h"
 #include "core/exception.h"
 #include "core/resource_loader.h"
@@ -40,7 +41,7 @@ parse_image(const iris::DataBuffer &data)
     ::stbi_set_flip_vertically_on_load(true);
 
     // load image using stb library
-    std::unique_ptr<::stbi_uc, decltype(&::stbi_image_free)> raw_data(
+    iris::AutoRelease<::stbi_uc *, nullptr> raw_data(
         ::stbi_load_from_memory(
             reinterpret_cast<const stbi_uc *>(data.data()),
             static_cast<int>(data.size()),
@@ -50,7 +51,7 @@ parse_image(const iris::DataBuffer &data)
             0),
         ::stbi_image_free);
 
-    if (raw_data == nullptr)
+    if (!raw_data)
     {
         throw iris::Exception("failed to load image");
     }
@@ -76,54 +77,41 @@ parse_image(const iris::DataBuffer &data)
 namespace iris
 {
 
-TextureManager::TextureManager()
-    : loaded_textures_()
-{
-}
-
-TextureManager &TextureManager::instance()
-{
-    static TextureManager texture_manager{};
-    return texture_manager;
-}
-
 Texture *TextureManager::load(const std::string &resource)
 {
-    return instance().load_impl(resource);
-}
-
-Texture *TextureManager::load(
-    const DataBuffer &data,
-    std::uint32_t width,
-    std::uint32_t height,
-    PixelFormat pixel_format)
-{
-    return instance().load_impl(data, width, height, pixel_format);
-}
-
-void TextureManager::unload(Texture *texture)
-{
-    instance().unload_impl(texture);
-}
-
-Texture *TextureManager::load_impl(const std::string &resource)
-{
+    // check if texture has been loaded before, if not then load it
     auto loaded = loaded_textures_.find(resource);
     if (loaded == std::cend(loaded_textures_))
     {
         const auto file_data = ResourceLoader::instance().load(resource);
-        const auto [data, width, height, num_channels] = parse_image(file_data);
+        auto [data, width, height, num_channels] = parse_image(file_data);
 
-        auto format = PixelFormat::RGB;
-        switch (num_channels)
+        // some graphics apis (e.g. metal) do not support RGB natively, so we
+        // always extend the data to have a fourth component (alpha - always 1)
+        if (num_channels == 3u)
         {
-            case 3: format = PixelFormat::RGB; break;
-            case 4: format = PixelFormat::RGBA; break;
-            default: throw Exception("unsupported number of channels");
+            // create buffer big enough for RGBA data filled with 255 so we
+            // don't have to worry about setting the alpha
+            DataBuffer padded_data{
+                width * height * 4u, static_cast<std::byte>(255u)};
+
+            auto dst_ptr = padded_data.data();
+            auto src_ptr = data.data();
+
+            while (src_ptr != data.data() + data.size())
+            {
+                // copy RGB then skip past RGBA
+                std::memcpy(dst_ptr, src_ptr, 3u);
+                dst_ptr += 4u;
+                src_ptr += 3u;
+            }
+
+            data = padded_data;
         }
 
-        loaded_textures_[resource] = {
-            1u, std::make_unique<Texture>(data, width, height, format)};
+        auto texture = create(data, width, height, PixelFormat::RGBA);
+
+        loaded_textures_[resource] = {1u, std::move(texture)};
     }
     else
     {
@@ -133,7 +121,7 @@ Texture *TextureManager::load_impl(const std::string &resource)
     return loaded_textures_[resource].texture.get();
 }
 
-Texture *TextureManager::load_impl(
+Texture *TextureManager::load(
     const DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
@@ -141,20 +129,25 @@ Texture *TextureManager::load_impl(
 {
     static std::uint32_t counter = 0u;
 
+    // create a unique name for the in-memory texture
     std::stringstream strm;
     strm << "!" << counter;
     ++counter;
 
     const auto resource = strm.str();
 
-    loaded_textures_[resource] = {
-        1u, std::make_unique<Texture>(data, width, height, pixel_format)};
+    auto texture = create(data, width, height, pixel_format);
+
+    loaded_textures_[resource] = {1u, std::move(texture)};
 
     return loaded_textures_[resource].texture.get();
 }
 
-void TextureManager::unload_impl(Texture *texture)
+void TextureManager::unload(Texture *texture)
 {
+    // allow for implementation specific unloading logic
+    destroy(texture);
+
     // don't unload the static blank texture!
     if (texture != blank())
     {
@@ -182,8 +175,14 @@ void TextureManager::unload_impl(Texture *texture)
 
 Texture *TextureManager::blank()
 {
-    static Texture texture{};
-    return &texture;
+    static const auto byte = static_cast<std::byte>(0xFF);
+    static Texture *texture =
+        load({byte, byte, byte, byte}, 1u, 1u, PixelFormat::RGBA);
+    return texture;
+}
+
+void TextureManager::destroy(Texture *)
+{
 }
 
 }

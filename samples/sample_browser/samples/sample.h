@@ -1,8 +1,10 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include <events/event.h>
+#include <graphics/renderer.h>
 
 /**
  * Interface for a sample in the sample browser.
@@ -29,6 +31,8 @@ class Sample
      *   User input event.
      */
     virtual void handle_input(const iris::Event &event) = 0;
+
+    virtual std::vector<iris::RenderPass> render_passes() = 0;
 
     /**
      * Title of sample.

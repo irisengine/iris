@@ -1,7 +1,7 @@
 #include "graphics/render_graph/arithmetic_node.h"
 
-#include "graphics/render_graph/compiler.h"
 #include "graphics/render_graph/node.h"
+#include "graphics/render_graph/shader_compiler.h"
 
 namespace iris
 {
@@ -16,7 +16,7 @@ ArithmeticNode::ArithmeticNode(
 {
 }
 
-void ArithmeticNode::accept(Compiler &compiler) const
+void ArithmeticNode::accept(ShaderCompiler &compiler) const
 {
     compiler.visit(*this);
 }

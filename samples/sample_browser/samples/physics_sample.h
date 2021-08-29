@@ -6,12 +6,11 @@
 
 #include <core/camera.h>
 #include <core/transform.h>
-#include <core/window.h>
 #include <events/event.h>
 #include <graphics/lights/point_light.h>
-#include <graphics/pipeline.h>
 #include <graphics/render_entity.h>
 #include <graphics/render_graph/render_graph.h>
+#include <graphics/window.h>
 #include <physics/character_controller.h>
 #include <physics/physics_system.h>
 #include <physics/rigid_body.h>
@@ -54,6 +53,8 @@ class PhysicsSample : public Sample
      */
     void handle_input(const iris::Event &event) override;
 
+    std::vector<iris::RenderPass> render_passes() override;
+
     /**
      * Title of sample.
      *
@@ -66,8 +67,9 @@ class PhysicsSample : public Sample
     /** Pointer to window. */
     iris::Window *window_;
 
-    /** Render pipeline for sample. */
-    iris::Pipeline pipeline_;
+    iris::RenderTarget *target_;
+
+    iris::Scene scene_;
 
     /** Physics system */
     iris::PhysicsSystem physics_;

@@ -1,12 +1,16 @@
 #include "physics/bullet/debug_draw.h"
 
+#include <cstdint>
+#include <vector>
+
 #include <btBulletDynamicsCommon.h>
 
 #include "core/colour.h"
 #include "core/exception.h"
+#include "core/root.h"
 #include "core/vector3.h"
-#include "graphics/mesh_factory.h"
-#include "graphics/render_system.h"
+#include "graphics/mesh.h"
+#include "graphics/vertex_data.h"
 
 namespace iris
 {
@@ -16,7 +20,6 @@ DebugDraw::DebugDraw(RenderEntity *entity)
     , entity_(entity)
     , debug_mode_(0)
 {
-    entity_->set_primitive_type(PrimitiveType::LINES);
 }
 
 void DebugDraw::drawLine(
@@ -35,8 +38,25 @@ void DebugDraw::render()
 {
     if (!verticies_.empty())
     {
-        auto mesh = mesh_factory::lines(verticies_);
-        entity_->set_mesh(std::move(mesh));
+        std::vector<VertexData> vertices{};
+        std::vector<std::uint32_t> indices;
+
+        for (const auto &[from_position, from_colour, to_position, to_colour] :
+             verticies_)
+        {
+            vertices.emplace_back(
+                from_position, Vector3{1.0f}, from_colour, Vector3{});
+            indices.emplace_back(
+                static_cast<std::uint32_t>(vertices.size() - 1u));
+
+            vertices.emplace_back(
+                to_position, Vector3{1.0f}, to_colour, Vector3{});
+            indices.emplace_back(
+                static_cast<std::uint32_t>(vertices.size() - 1u));
+        }
+
+        entity_->mesh()->update_vertex_data(vertices);
+        entity_->mesh()->update_index_data(indices);
 
         verticies_.clear();
     }

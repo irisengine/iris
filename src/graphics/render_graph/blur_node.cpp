@@ -1,6 +1,6 @@
 #include "graphics/render_graph/blur_node.h"
 
-#include "graphics/render_graph/compiler.h"
+#include "graphics/render_graph/shader_compiler.h"
 #include "graphics/render_graph/texture_node.h"
 
 namespace iris
@@ -11,7 +11,7 @@ BlurNode::BlurNode(TextureNode *input_node)
 {
 }
 
-void BlurNode::accept(Compiler &compiler) const
+void BlurNode::accept(ShaderCompiler &compiler) const
 {
     compiler.visit(*this);
 }

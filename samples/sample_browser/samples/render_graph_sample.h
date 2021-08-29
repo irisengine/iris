@@ -2,15 +2,15 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
 #include <core/camera.h>
 #include <core/transform.h>
-#include <core/window.h>
 #include <events/event.h>
 #include <graphics/lights/point_light.h>
-#include <graphics/pipeline.h>
 #include <graphics/render_graph/render_graph.h>
 #include <graphics/render_target.h>
+#include <graphics/window.h>
 
 #include "sample.h"
 
@@ -50,6 +50,8 @@ class RenderGraphSample : public Sample
      */
     void handle_input(const iris::Event &event) override;
 
+    std::vector<iris::RenderPass> render_passes() override;
+
     /**
      * Title of sample.
      *
@@ -62,8 +64,11 @@ class RenderGraphSample : public Sample
     /** Pointer to window. */
     iris::Window *window_;
 
-    /** Render pipeline for sample. */
-    iris::Pipeline pipeline_;
+    iris::RenderTarget *target_;
+
+    iris::Scene scene1_;
+    iris::Scene scene2_;
+    iris::Scene scene3_;
 
     /** Transform for moving light. */
     iris::Transform light_transform_;
@@ -75,10 +80,10 @@ class RenderGraphSample : public Sample
     iris::PointLight *light2_;
 
     /** Render target. */
-    iris::RenderTarget sphere1_rt_;
+    iris::RenderTarget *sphere1_rt_;
 
     /** Render target. */
-    iris::RenderTarget sphere2_rt_;
+    iris::RenderTarget *sphere2_rt_;
 
     /** Render camera. */
     iris::Camera camera_;

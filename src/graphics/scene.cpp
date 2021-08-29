@@ -2,9 +2,9 @@
 
 #include <vector>
 
+#include "core/colour.h"
 #include "core/exception.h"
 #include "graphics/lights/lighting_rig.h"
-#include "graphics/material.h"
 #include "graphics/render_entity.h"
 #include "graphics/render_graph/render_graph.h"
 
@@ -15,7 +15,8 @@ Scene::Scene()
     , render_graphs_()
     , lighting_rig_()
 {
-    set_ambient_light({1.0f, 1.0f, 1.0f});
+    lighting_rig_.ambient_light =
+        std::make_unique<AmbientLight>(Colour{1.0f, 1.0f, 1.0f});
 }
 
 RenderGraph *Scene::add(std::unique_ptr<RenderGraph> graph)
@@ -64,12 +65,12 @@ DirectionalLight *Scene::add(std::unique_ptr<DirectionalLight> light)
 
 Colour Scene::ambient_light() const
 {
-    return lighting_rig_.ambient_light;
+    return lighting_rig_.ambient_light->colour();
 }
 
 void Scene::set_ambient_light(const Colour &colour)
 {
-    lighting_rig_.ambient_light = colour;
+    lighting_rig_.ambient_light->set_colour(colour);
 }
 
 RenderGraph *Scene::render_graph(RenderEntity *entity) const
@@ -95,7 +96,13 @@ std::vector<std::tuple<RenderGraph *, std::unique_ptr<RenderEntity>>>
     return entities_;
 }
 
-const LightingRig *Scene::lighting_rig()
+const std::vector<std::tuple<RenderGraph *, std::unique_ptr<RenderEntity>>>
+    &Scene::entities() const
+{
+    return entities_;
+}
+
+const LightingRig *Scene::lighting_rig() const
 {
     return &lighting_rig_;
 }

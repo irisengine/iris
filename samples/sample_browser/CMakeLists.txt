@@ -6,7 +6,8 @@ set(SAMPLE_SRCS
     samples/animation_sample.h
     samples/animation_sample.cpp
     samples/physics_sample.h
-    samples/physics_sample.cpp)
+    samples/physics_sample.cpp
+    )
 
 add_executable(sample_browser ${SAMPLE_SRCS})
 

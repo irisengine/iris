@@ -7,7 +7,7 @@
 
 namespace iris
 {
-class Compiler;
+class ShaderCompiler;
 
 /**
  * Implementation of Node for extracting components from an input_node.
@@ -35,7 +35,7 @@ class ComponentNode : public Node
      * @param compiler
      *   Compiler to accept.
      */
-    void accept(Compiler &compiler) const override;
+    void accept(ShaderCompiler &compiler) const override;
 
     /**
      * Get input_node node.

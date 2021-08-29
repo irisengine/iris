@@ -6,12 +6,11 @@
 #include <core/camera.h>
 #include <core/matrix4.h>
 #include <core/quaternion.h>
+#include <core/root.h>
 #include <core/transform.h>
 #include <core/vector3.h>
-#include <core/window.h>
 #include <graphics/lights/point_light.h>
-#include <graphics/mesh_factory.h>
-#include <graphics/pipeline.h>
+#include <graphics/mesh_manager.h>
 #include <graphics/render_graph/blur_node.h>
 #include <graphics/render_graph/composite_node.h>
 #include <graphics/render_graph/invert_node.h>
@@ -20,6 +19,7 @@
 #include <graphics/render_graph/texture_node.h>
 #include <graphics/render_target.h>
 #include <graphics/scene.h>
+#include <graphics/window.h>
 
 namespace
 {
@@ -79,12 +79,15 @@ RenderGraphSample::RenderGraphSample(
     iris::Window *window,
     iris::RenderTarget *target)
     : window_(window)
-    , pipeline_()
+    , target_(target)
+    , scene1_()
+    , scene2_()
+    , scene3_()
     , light_transform_()
     , light1_(nullptr)
     , light2_(nullptr)
-    , sphere1_rt_(window_->width(), window_->height())
-    , sphere2_rt_(window_->width(), window_->height())
+    , sphere1_rt_(window_->create_render_target())
+    , sphere2_rt_(window_->create_render_target())
     , camera_(
           iris::CameraType::PERSPECTIVE,
           window_->width(),
@@ -104,78 +107,63 @@ RenderGraphSample::RenderGraphSample(
         {iris::Key::E, iris::KeyState::UP},
     };
 
-    auto scene1 = std::make_unique<iris::Scene>();
-    auto *graph1 = scene1->create_render_graph();
+    auto *graph1 = scene1_.create_render_graph();
 
     graph1->render_node()->set_colour_input(graph1->create<iris::InvertNode>(
         graph1->create<iris::TextureNode>("brickwall.jpg")));
     graph1->render_node()->set_normal_input(
         graph1->create<iris::TextureNode>("brickwall_normal.jpg"));
 
-    auto [mesh1, skl1] = iris::mesh_factory::load("sphere.fbx");
-
-    scene1->set_ambient_light({0.15f, 0.15f, 0.15f});
-    light1_ = scene1->create_light<iris::PointLight>(
+    scene1_.set_ambient_light({0.15f, 0.15f, 0.15f});
+    light1_ = scene1_.create_light<iris::PointLight>(
         iris::Vector3{0.0f, 100.0f, -100.0f});
 
-    auto *sphere1 = scene1->create_entity(
+    auto &mesh_manager = iris::Root::mesh_manager();
+
+    auto *sphere1 = scene1_.create_entity(
         graph1,
-        std::move(mesh1),
+        mesh_manager.load_mesh("sphere.fbx"),
         iris::Transform{
             iris::Vector3{-20.0f, 0.0f, 0.0f},
             iris::Quaternion({1.0f, 0.0f, 0.0f}, 1.57079632679489661923f),
-            iris::Vector3{10.0f}},
-        skl1);
+            iris::Vector3{10.0f}});
 
-    auto [mesh2, skl2] = iris::mesh_factory::load("sphere.fbx");
-
-    auto scene2 = std::make_unique<iris::Scene>();
-    auto *graph2 = scene2->create_render_graph();
+    auto *graph2 = scene2_.create_render_graph();
 
     graph2->render_node()->set_colour_input(
         graph2->create<iris::TextureNode>("brickwall.jpg"));
 
-    scene2->set_ambient_light({0.15f, 0.15f, 0.15f});
-    light2_ = scene2->create_light<iris::PointLight>(
+    scene2_.set_ambient_light({0.15f, 0.15f, 0.15f});
+    light2_ = scene2_.create_light<iris::PointLight>(
         iris::Vector3{0.0f, 100.0f, -100.0f});
 
-    auto *sphere2 = scene2->create_entity(
+    auto *sphere2 = scene2_.create_entity(
         graph2,
-        std::move(mesh2),
+        mesh_manager.load_mesh("sphere.fbx"),
         iris::Transform{
             iris::Vector3{20.0f, 0.0f, 0.0f},
             iris::Quaternion({1.0f, 0.0f, 0.0f}, 1.57079632679489661923f),
-            iris::Vector3{10.0f}},
-        skl2);
+            iris::Vector3{10.0f}});
 
-    auto scene3 = std::make_unique<iris::Scene>();
-    auto *graph3 = scene3->create_render_graph();
+    auto *graph3 = scene3_.create_render_graph();
 
     graph3->render_node()->set_colour_input(graph3->create<iris::CompositeNode>(
-        graph3->create<iris::TextureNode>(sphere1_rt_.colour_texture()),
+        graph3->create<iris::TextureNode>(sphere1_rt_->colour_texture()),
         graph3->create<iris::BlurNode>(
-            graph3->create<iris::TextureNode>(sphere2_rt_.colour_texture())),
-        graph3->create<iris::TextureNode>(sphere1_rt_.depth_texture()),
-        graph3->create<iris::TextureNode>(sphere2_rt_.depth_texture())));
+            graph3->create<iris::TextureNode>(sphere2_rt_->colour_texture())),
+        graph3->create<iris::TextureNode>(sphere1_rt_->depth_texture()),
+        graph3->create<iris::TextureNode>(sphere2_rt_->depth_texture())));
 
-    scene3->create_entity(
+    scene3_.create_entity(
         graph3,
-        iris::mesh_factory::sprite({}),
+        mesh_manager.sprite({}),
         iris::Transform{
             iris::Vector3{}, {}, iris::Vector3{800.0f, 800.0f, 1.0f}});
-
-    pipeline_.add_stage(std::move(scene1), camera_, &sphere1_rt_);
-    pipeline_.add_stage(std::move(scene2), camera_, &sphere2_rt_);
-    pipeline_.add_stage(std::move(scene3), screen_camera_, target);
 
     light_transform_ = iris::Transform{light1_->position(), {}, {1.0f}};
 }
 
 void RenderGraphSample::fixed_update()
-{
-}
-
-void RenderGraphSample::variable_update()
 {
     update_camera(camera_, key_map_);
 
@@ -184,8 +172,10 @@ void RenderGraphSample::variable_update()
         light_transform_.matrix());
     light1_->set_position(light_transform_.translation());
     light2_->set_position(light_transform_.translation());
+}
 
-    window_->render(pipeline_);
+void RenderGraphSample::variable_update()
+{
 }
 
 void RenderGraphSample::handle_input(const iris::Event &event)
@@ -203,6 +193,14 @@ void RenderGraphSample::handle_input(const iris::Event &event)
         camera_.adjust_yaw(mouse.delta_x * sensitivity);
         camera_.adjust_pitch(-mouse.delta_y * sensitivity);
     }
+}
+
+std::vector<iris::RenderPass> RenderGraphSample::render_passes()
+{
+    return {
+        {&scene1_, &camera_, sphere1_rt_},
+        {&scene2_, &camera_, sphere2_rt_},
+        {&scene3_, &screen_camera_, target_}};
 }
 
 std::string RenderGraphSample::title() const

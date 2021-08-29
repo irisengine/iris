@@ -1,5 +1,6 @@
 #include "graphics/text_factory.h"
 
+#include <array>
 #include <cmath>
 #include <memory>
 #include <vector>
@@ -12,8 +13,8 @@
 #include "core/auto_release.h"
 #include "core/colour.h"
 #include "core/data_buffer.h"
+#include "core/root.h"
 #include "core/exception.h"
-#include "core/window.h"
 #include "graphics/texture.h"
 #include "graphics/texture_manager.h"
 #include "log/log.h"
@@ -138,7 +139,7 @@ Texture *create(
         throw Exception("failed to create frame");
     }
 
-    const auto scale = Window::screen_scale();
+    const auto scale = 2u;
 
     const auto width = static_cast<std::uint32_t>(rect.width) * scale;
     const auto height = static_cast<std::uint32_t>(rect.height) * scale;
@@ -174,7 +175,7 @@ Texture *create(
 
     // create a Texture from the rendered pixel data
     auto *texture =
-        TextureManager::load(pixel_data, width, height, PixelFormat::RGBA);
+        Root::texture_manager().load(pixel_data, width, height, PixelFormat::RGBA);
     texture->set_flip(true);
 
     return texture;

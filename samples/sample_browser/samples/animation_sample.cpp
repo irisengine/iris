@@ -9,12 +9,11 @@
 #include <core/camera.h>
 #include <core/matrix4.h>
 #include <core/quaternion.h>
+#include <core/root.h>
 #include <core/transform.h>
 #include <core/vector3.h>
-#include <core/window.h>
 #include <graphics/lights/point_light.h>
-#include <graphics/mesh_factory.h>
-#include <graphics/pipeline.h>
+#include <graphics/mesh_manager.h>
 #include <graphics/render_graph/blur_node.h>
 #include <graphics/render_graph/composite_node.h>
 #include <graphics/render_graph/invert_node.h>
@@ -24,6 +23,7 @@
 #include <graphics/render_graph/value_node.h>
 #include <graphics/render_target.h>
 #include <graphics/scene.h>
+#include <graphics/window.h>
 #include <physics/box_collision_shape.h>
 #include <physics/physics_system.h>
 #include <physics/rigid_body.h>
@@ -86,7 +86,8 @@ AnimationSample::AnimationSample(
     iris::Window *window,
     iris::RenderTarget *target)
     : window_(window)
-    , pipeline_()
+    , target_(target)
+    , scene_()
     , light_transform_()
     , light_(nullptr)
     , camera_(
@@ -112,48 +113,48 @@ AnimationSample::AnimationSample(
 
     camera_.set_position(camera_.position() + iris::Vector3{0.0f, 5.0f, 0.0f});
 
-    auto scene = std::make_unique<iris::Scene>();
-    scene->set_ambient_light({0.1f, 0.1f, 0.1f});
+    scene_.set_ambient_light({0.1f, 0.1f, 0.1f, 1.0f});
 
-    auto *floor_graph = scene->create_render_graph();
+    auto *floor_graph = scene_.create_render_graph();
 
     floor_graph->render_node()->set_specular_amount_input(
         floor_graph->create<iris::ValueNode<float>>(0.0f));
 
-    scene->create_entity(
+    auto &mesh_manager = iris::Root::mesh_manager();
+
+    scene_.create_entity(
         floor_graph,
-        iris::mesh_factory::cube({1.0f, 1.0f, 1.0f}),
+        mesh_manager.cube({1.0f, 1.0f, 1.0f}),
         iris::Transform{
             iris::Vector3{0.0f, -500.0f, 0.0f}, {}, iris::Vector3{500.0f}});
 
-    auto *render_graph = scene->create_render_graph();
+    auto *render_graph = scene_.create_render_graph();
 
     auto *texture =
         render_graph->create<iris::TextureNode>("ZombieTexture.png");
 
     render_graph->render_node()->set_colour_input(texture);
 
-    auto [mesh, skeleton] = iris::mesh_factory::load("Zombie.fbx");
-
-    zombie_ = scene->create_entity(
+    zombie_ = scene_.create_entity(
         render_graph,
-        std::move(mesh),
+        mesh_manager.load_mesh("Zombie.fbx"),
         iris::Transform{
-            iris::Vector3{0.0f, 0.0f, 0.0f}, {}, iris::Vector3{0.035f}},
-        skeleton);
+            iris::Vector3{0.0f, 0.0f, 0.0f}, {}, iris::Vector3{0.05f}},
+        mesh_manager.load_skeleton("Zombie.fbx"));
 
     zombie_->set_receive_shadow(false);
 
-    auto *debug_draw = scene->create_entity(
-        nullptr, iris::mesh_factory::empty(), iris::Vector3{});
+    auto *debug_draw = scene_.create_entity(
+        nullptr,
+        mesh_manager.cube({}),
+        iris::Vector3{},
+        iris::PrimitiveType::LINES);
 
-    light_ = scene->create_light<iris::DirectionalLight>(
+    light_ = scene_.create_light<iris::DirectionalLight>(
         iris::Vector3{-1.0f, -1.0f, 0.0f}, true);
     light_transform_ = iris::Transform{light_->direction(), {}, {1.0f}};
 
     physics_.enable_debug_draw(debug_draw);
-
-    pipeline_.add_stage(std::move(scene), camera_, target);
 
     animations_ = {
         "Zombie|ZombieWalk",
@@ -230,11 +231,6 @@ AnimationSample::AnimationSample(
 
 void AnimationSample::fixed_update()
 {
-    physics_.step(std::chrono::milliseconds(33));
-}
-
-void AnimationSample::variable_update()
-{
     update_camera(camera_, key_map_);
 
     light_transform_.set_matrix(
@@ -242,6 +238,11 @@ void AnimationSample::variable_update()
         light_transform_.matrix());
     light_->set_direction(light_transform_.translation());
 
+    physics_.step(std::chrono::milliseconds(13));
+}
+
+void AnimationSample::variable_update()
+{
     zombie_->skeleton().advance();
 
     // update hit boxes
@@ -258,8 +259,6 @@ void AnimationSample::variable_update()
 
         body->reposition(offset.translation(), transform.rotation());
     }
-
-    window_->render(pipeline_);
 }
 
 void AnimationSample::handle_input(const iris::Event &event)
@@ -284,6 +283,11 @@ void AnimationSample::handle_input(const iris::Event &event)
         camera_.adjust_yaw(mouse.delta_x * sensitivity);
         camera_.adjust_pitch(-mouse.delta_y * sensitivity);
     }
+}
+
+std::vector<iris::RenderPass> AnimationSample::render_passes()
+{
+    return {{&scene_, &camera_, target_}};
 }
 
 std::string AnimationSample::title() const

@@ -19,8 +19,6 @@
 #include "graphics/animation.h"
 #include "graphics/bone.h"
 #include "graphics/skeleton.h"
-#include "graphics/texture.h"
-#include "graphics/texture_manager.h"
 #include "graphics/vertex_data.h"
 #include "log/log.h"
 
@@ -226,33 +224,6 @@ std::vector<iris::Bone> process_bones(
 }
 
 /**
- * Get the texture for the given material.
- *
- * @param material
- *   Material to get texture for.
- *
- * @returns
- *   Texture.
- */
-iris::Texture *process_texture(const ::aiMaterial *material)
-{
-    static const auto type = ::aiTextureType_DIFFUSE;
-
-    auto *texture = iris::TextureManager::blank();
-
-    // only support a single texture
-    if (material->GetTextureCount(type) == 1u)
-    {
-        ::aiString str;
-        material->GetTexture(type, 0u, &str);
-
-        texture = iris::TextureManager::load(str.C_Str());
-    }
-
-    return texture;
-}
-
-/**
  * Get the indices for the given mesh.
  *
  * @param mesh
@@ -339,15 +310,10 @@ std::vector<iris::VertexData> process_vertices(
 }
 }
 
-namespace iris
+namespace iris::mesh_loader
 {
 
-void load_mesh(
-    const std::string &mesh_name,
-    std::vector<std::vector<VertexData>> *vertices,
-    std::vector<std::vector<std::uint32_t>> *indices,
-    std::vector<Texture *> *textures,
-    Skeleton *skeleton)
+LoadedData load(const std::string &mesh_name)
 {
     const auto file_data = ResourceLoader::instance().load(mesh_name);
 
@@ -366,99 +332,81 @@ void load_mesh(
     }
 
     const auto *root = scene->mRootNode;
+    aiMesh *mesh = nullptr;
 
-    std::vector<Bone> bones;
-
-    std::stack<const ::aiNode *> to_process;
+    std::stack<const aiNode *> to_process;
     to_process.emplace(root);
 
-    // walk the assimp scene and write the requested data
+    // walk the assimp scene looking for the first mesh
+    // we do *not* support multiple meshes
     do
     {
         const auto *node = to_process.top();
         to_process.pop();
 
-        // iterate each mesh in the current node
-        for (auto i = 0u; i < node->mNumMeshes; ++i)
+        // check if we have a node with a single mesh
+        if (node->mNumMeshes == 1u)
         {
-            const auto *mesh = scene->mMeshes[node->mMeshes[i]];
-            const auto *material = scene->mMaterials[mesh->mMaterialIndex];
-
-            // process and write requested data
-
-            if (vertices != nullptr)
-            {
-                vertices->emplace_back(process_vertices(mesh, material));
-            }
-
-            if (indices != nullptr)
-            {
-                indices->emplace_back(process_indices(mesh));
-            }
-
-            if (textures != nullptr)
-            {
-                textures->emplace_back(process_texture(material));
-            }
-
-            if (skeleton != nullptr)
-            {
-                bones = process_bones(mesh, root);
-            }
+            mesh = scene->mMeshes[node->mMeshes[0u]];
+            break;
         }
 
-        // add child nodes
+        // add child nodes, to keep looking for a node with a single mesh
         for (auto i = 0u; i < node->mNumChildren; ++i)
         {
             to_process.emplace(node->mChildren[i]);
         }
     } while (!to_process.empty());
 
-    // if we want a skeleton then build it
-    if (skeleton != nullptr)
+    // check if we found a node with a single mesh
+    if (mesh == nullptr)
     {
-        const auto animations = process_animations(scene);
+        throw Exception("only support single mesh in file");
+    }
 
-        *skeleton = {bones, animations};
+    const auto *material = scene->mMaterials[mesh->mMaterialIndex];
 
-        // if vertices were requested then go through them all and stamp in bone
-        // data
-        if (vertices != nullptr)
+    LoadedData loaded_data{};
+
+    loaded_data.vertices = process_vertices(mesh, material);
+    loaded_data.indices = process_indices(mesh);
+    loaded_data.skeleton = {
+        process_bones(mesh, root), process_animations(scene)};
+
+    // stamp in bone data into vertices
+    // each vertex supports four bones, so keep a track of the next
+    // index for each vertex
+    std::vector<std::uint32_t> bone_indices(loaded_data.vertices.size());
+
+    for (const auto &bone : loaded_data.skeleton.bones())
+    {
+        for (const auto &[id, weight] : bone.weights())
         {
-            // each vertex supports four bones, so keep a track of the next
-            // index for each vertex
-            std::vector<std::uint32_t> bone_indices(vertices->back().size());
-
-            for (const auto &bone : bones)
+            if (weight == 0.0f)
             {
-                for (const auto &[id, weight] : bone.weights())
-                {
-                    if (weight == 0.0f)
-                    {
-                        continue;
-                    }
-
-                    // only support four bones per vertex
-                    if (bone_indices[id] >= 4)
-                    {
-                        LOG_ENGINE_WARN(
-                            "mf", "too many weights {} {}", id, weight);
-                        continue;
-                    }
-
-                    const auto bone_index = skeleton->bone_index(bone.name());
-
-                    // update vertex data with bone data
-                    vertices->back()[id].bone_ids[bone_indices[id]] =
-                        static_cast<std::uint32_t>(bone_index);
-                    vertices->back()[id].bone_weights[bone_indices[id]] =
-                        weight;
-
-                    ++bone_indices[id];
-                }
+                continue;
             }
+
+            // only support four bones per vertex
+            if (bone_indices[id] >= 4)
+            {
+                LOG_ENGINE_WARN("mf", "too many weights {} {}", id, weight);
+                continue;
+            }
+
+            const auto bone_index =
+                loaded_data.skeleton.bone_index(bone.name());
+
+            // update vertex data with bone data
+            loaded_data.vertices[id].bone_ids[bone_indices[id]] =
+                static_cast<std::uint32_t>(bone_index);
+            loaded_data.vertices[id].bone_weights[bone_indices[id]] = weight;
+
+            ++bone_indices[id];
         }
     }
+
+    return loaded_data;
 }
 
 }

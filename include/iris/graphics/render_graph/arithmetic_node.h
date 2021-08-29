@@ -7,7 +7,7 @@
 namespace iris
 {
 
-class Compiler;
+class ShaderCompiler;
 
 enum class ArithmeticOperator : std::uint8_t
 {
@@ -62,7 +62,7 @@ class ArithmeticNode : public Node
      * @param compiler
      *   Compiler to accept.
      */
-    void accept(Compiler &compiler) const override;
+    void accept(ShaderCompiler &compiler) const override;
 
     /**
      * Get value1.

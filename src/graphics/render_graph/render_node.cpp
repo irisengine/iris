@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "graphics/render_graph/compiler.h"
+#include "graphics/render_graph/shader_compiler.h"
 
 namespace iris
 {
@@ -13,12 +13,12 @@ RenderNode::RenderNode()
     , specular_amount_input_(nullptr)
     , normal_input_(nullptr)
     , position_input_(nullptr)
-    , shadow_map_inputs_()
+    , shadow_map_input_(nullptr)
     , depth_only_(false)
 {
 }
 
-void RenderNode::accept(Compiler &compiler) const
+void RenderNode::accept(ShaderCompiler &compiler) const
 {
     compiler.visit(*this);
 }
@@ -73,15 +73,14 @@ void RenderNode::set_position_input(Node *input)
     position_input_ = input;
 }
 
-Node *RenderNode::shadow_map_input(std::size_t index) const
+Node *RenderNode::shadow_map_input() const
 {
-    return index < shadow_map_inputs_.size() ? shadow_map_inputs_.at(index)
-                                             : nullptr;
+    return shadow_map_input_;
 }
 
-void RenderNode::add_shadow_map_input(Node *input)
+void RenderNode::set_shadow_map_input(Node *input)
 {
-    shadow_map_inputs_.emplace_back(input);
+    shadow_map_input_ = input;
 }
 
 bool RenderNode::is_depth_only() const

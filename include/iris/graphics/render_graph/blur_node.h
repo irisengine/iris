@@ -7,7 +7,7 @@
 
 namespace iris
 {
-class Compiler;
+class ShaderCompiler;
 
 /**
  * Implementation of Node that performs a basic blur on an input texture.
@@ -31,7 +31,7 @@ class BlurNode : public Node
      * @param compiler
      *   Compiler to accept.
      */
-    void accept(Compiler &compiler) const override;
+    void accept(ShaderCompiler &compiler) const override;
 
     /**
      * Get input texture.

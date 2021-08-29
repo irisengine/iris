@@ -7,7 +7,6 @@
 #include "core/matrix4.h"
 #include "core/quaternion.h"
 #include "core/transform.h"
-#include "graphics/material.h"
 #include "graphics/mesh.h"
 #include "graphics/primitive_type.h"
 #include "graphics/render_graph/render_node.h"
@@ -31,50 +30,52 @@ class RenderEntity
      *
      * @param position
      *   Centre of mesh in world space.
-     */
-    RenderEntity(Mesh mesh, const Vector3 &position);
-
-    /**
-     * Construct a RenderEntity.
      *
-     * @param mesh
-     *   Mesh to render.
-     *
-     * @param transform
-     *   Transform of entity in world space.
-     */
-    RenderEntity(Mesh mesh, const Transform &transform);
-
-    /**
-     * Construct a RenderEntity.
-     *
-     * @param mesh
-     *   Mesh to render.
-     *
-     * @param transform
-     *   Transform of entity in world space.
-     *
-     * @param skeleton
-     *   Skeleton.
-     */
-    RenderEntity(Mesh mesh, const Transform &transform, Skeleton skeleton);
-
-    /**
-     * Construct a RenderEntity.
-     *
-     * @param meshes
-     *   Collection of meshes to render.
-     *
-     * @param transform
-     *   Transform of entity in world space.
-     *
-     * @param skeleton
-     *   Skeleton.
+     * @param primitive_type
+     *   Primitive type of underlying mesh.
      */
     RenderEntity(
-        std::vector<Mesh> meshes,
+        Mesh *mesh,
+        const Vector3 &position,
+        PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
+
+    /**
+     * Construct a RenderEntity.
+     *
+     * @param mesh
+     *   Mesh to render.
+     *
+     * @param transform
+     *   Transform of entity in world space.
+     *
+     * @param primitive_type
+     *   Primitive type of underlying mesh.
+     */
+    RenderEntity(
+        Mesh *mesh,
         const Transform &transform,
-        Skeleton skeleton);
+        PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
+
+    /**
+     * Construct a RenderEntity.
+     *
+     * @param mesh
+     *   Mesh to render.
+     *
+     * @param transform
+     *   Transform of entity in world space.
+     *
+     * @param skeleton
+     *   Skeleton.
+     *
+     * @param primitive_type
+     *   Primitive type of underlying mesh.
+     */
+    RenderEntity(
+        Mesh *mesh,
+        const Transform &transform,
+        Skeleton skeleton,
+        PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
 
     RenderEntity(const RenderEntity &) = delete;
     RenderEntity &operator=(const RenderEntity &) = delete;
@@ -146,28 +147,20 @@ class RenderEntity
     Matrix4 normal_transform() const;
 
     /**
-     * Get all meshes for this entity.
+     * Get all Mesh for this entity.
      *
      * @returns
-     *   Collection of meshes.
+     *   Mesh.
      */
-    const std::vector<Mesh> &meshes() const;
+    Mesh *mesh() const;
 
     /**
-     * Set mesh.
+     * Set Mesh.
      *
-     * @param mesh.
-     *   New (single) mesh.
+     * @param mesh
+     *   New Mesh.
      */
-    void set_mesh(Mesh mesh);
-
-    /**
-     * Set meshes.
-     *
-     * @param meshes.
-     *   New meshes
-     */
-    void set_meshes(std::vector<Mesh> meshes);
+    void set_mesh(Mesh *mesh);
 
     /**
      * Returns whether the object should be rendered as a wireframe.
@@ -194,20 +187,20 @@ class RenderEntity
     PrimitiveType primitive_type() const;
 
     /**
-     * Set primitive type.
-     *
-     * @param type
-     *   New primitive type.
-     */
-    void set_primitive_type(PrimitiveType type);
-
-    /**
      * Get reference to skeleton.
      *
      * @returns
      *   Reference to skeleton.
      */
     Skeleton &skeleton();
+
+    /**
+     * Get const reference to skeleton.
+     *
+     * @returns
+     *   Reference to skeleton.
+     */
+    const Skeleton &skeleton() const;
 
     /**
      * Can this entity have shadows rendered on it.
@@ -226,8 +219,8 @@ class RenderEntity
     void set_receive_shadow(bool receive_shadow);
 
   private:
-    /** Meshes to render. */
-    std::vector<Mesh> meshes_;
+    /** Mesh to render. */
+    Mesh *mesh_;
 
     /** World space transform. */
     Transform transform_;

@@ -45,6 +45,7 @@ set(ASSIMP_NO_EXPORT
 add_subdirectory("assimp")
 
 if(IRIS_PLATFORM MATCHES "WINDOWS")
+  add_subdirectory("DirectX-Headers")
   target_compile_options(assimp PRIVATE /MTd)
   target_compile_options(IrrXML PRIVATE /MTd)
 endif()

@@ -1,21 +1,23 @@
 #pragma once
 
+#include <array>
+
 #include "core/camera.h"
 #include "core/vector3.h"
-#include "graphics/render_target.h"
+#include "graphics/lights/light.h"
 
 namespace iris
 {
 
 /**
- * A directional light. This is a light infinitely far away from the scene and
- * consistent in all directions.
+ * An implementation of Light for a directional light. This is a light
+ * infinitely far away from the scene and consistent in all directions.
  *
  * A light may be constructed to cast shadows, this will cause extra render
- * passes to be created which can impact performance (depending in scene
+ * passes to be created which can impact performance (depending on scene
  * complexity).
  */
-class DirectionalLight
+class DirectionalLight : public Light
 {
   public:
     /** Create a new DirectionalLight.
@@ -29,6 +31,24 @@ class DirectionalLight
      *   True if this light should generate shadows, false otherwise.
      */
     DirectionalLight(const Vector3 &direction, bool cast_shadows = false);
+
+    ~DirectionalLight() override = default;
+
+    /**
+     * Get the type of light.
+     *
+     * @returns
+     *   Light type.
+     */
+    LightType type() const override;
+
+    /**
+     * Get the raw data of the light. This is the direction.
+     *
+     * @returns
+     *   Direction as raw data.
+     */
+    std::array<float, 4u> data() const override;
 
     /**
      * Get direction of light.
@@ -62,17 +82,7 @@ class DirectionalLight
      * @returns
      *   Shadow map camera.
      */
-    Camera &shadow_camera();
-
-    /**
-     * Get the render target for this lights shadow map.
-     *
-     * This is used internally and should not normally be called manually.
-     *
-     * @returns
-     *   Shadow map render target.
-     */
-    RenderTarget *shadow_target();
+    const Camera &shadow_camera() const;
 
   private:
     /** Light direction. */
@@ -80,9 +90,6 @@ class DirectionalLight
 
     /** Shadow map camera. */
     Camera shadow_camera_;
-
-    /** Shadow map render target. */
-    RenderTarget shadow_target_;
 
     /** Should shadows be generated. */
     bool cast_shadows_;

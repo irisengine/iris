@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 
-#include "graphics/render_graph/compiler.h"
+#include "graphics/render_graph/shader_compiler.h"
 
 namespace iris
 {
@@ -14,7 +14,7 @@ ComponentNode::ComponentNode(Node *input_node, const std::string &component)
 {
 }
 
-void ComponentNode::accept(Compiler &compiler) const
+void ComponentNode::accept(ShaderCompiler &compiler) const
 {
     compiler.visit(*this);
 }

@@ -7,16 +7,17 @@
 #include <core/exception.h>
 #include <core/looper.h>
 #include <core/resource_loader.h>
+#include <core/root.h>
 #include <core/start.h>
-#include <core/window.h>
-#include <graphics/mesh_factory.h>
-#include <graphics/pipeline.h>
+#include <graphics/mesh_manager.h>
 #include <graphics/render_graph/render_graph.h>
 #include <graphics/render_graph/texture_node.h>
 #include <graphics/render_target.h>
 #include <graphics/scene.h>
 #include <graphics/text_factory.h>
 #include <graphics/texture_manager.h>
+#include <graphics/window.h>
+#include <graphics/window_manager.h>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
@@ -54,111 +55,43 @@ std::unique_ptr<Sample> create_sample(
     return sample;
 }
 
-iris::Pipeline create_pipeline(
-    const iris::Window &window,
-    iris::RenderTarget *screen_target,
-    iris::Scene **new_scene,
-    iris::Camera &camera)
-{
-    auto scene = std::make_unique<iris::Scene>();
-    auto render_graph = scene->create_render_graph();
-
-    auto *texture = screen_target->colour_texture();
-    render_graph->render_node()->set_colour_input(
-        render_graph->create<iris::TextureNode>(texture));
-
-    auto sprite = iris::mesh_factory::sprite(iris::Colour{1.0f, 1.0f, 1.0f});
-
-    scene->create_entity(
-        render_graph,
-        std::move(sprite),
-        iris::Transform{
-            iris::Vector3{},
-            iris::Quaternion{},
-            iris::Vector3{
-                static_cast<float>(texture->width() / window.screen_scale()),
-                static_cast<float>(texture->height() / window.screen_scale()),
-                1.0f}});
-
-    iris::Pipeline pipeline{};
-    *new_scene = pipeline.add_stage(std::move(scene), camera);
-
-    return pipeline;
-}
-
-void update_title(
-    iris::Scene *scene,
-    iris::RenderEntity **current_title,
-    iris::Pipeline *pipeline,
-    const std::string &title,
-    const iris::Vector3 &position)
-{
-    iris::RenderGraph *render_graph = nullptr;
-
-    if (*current_title != nullptr)
-    {
-        render_graph = scene->render_graph(*current_title);
-        iris::TextureManager::unload(
-            static_cast<iris::TextureNode *>(
-                render_graph->render_node()->colour_input())
-                ->texture());
-
-        scene->remove(*current_title);
-    }
-    else
-    {
-        render_graph = scene->create_render_graph();
-    }
-
-    auto *texture = iris::text_factory::create(
-        "Helvetica", 20u, title, iris::Colour{1.0f, 1.0f, 1.0f});
-
-    render_graph->render_node()->set_colour_input(
-        render_graph->create<iris::TextureNode>(texture));
-
-    auto sprite = iris::mesh_factory::sprite(iris::Colour{1.0f, 1.0f, 1.0f});
-
-    *current_title = scene->create_entity(
-        render_graph,
-        std::move(sprite),
-        iris::Transform{
-            position * iris::Window::screen_scale(),
-            iris::Quaternion{},
-            iris::Vector3{
-                static_cast<float>(texture->width()),
-                static_cast<float>(texture->height()),
-                1.0f}});
-
-    pipeline->rebuild_stage(scene);
-}
-
 void go(int, char **)
 {
     iris::ResourceLoader::instance().set_root_directory("assets");
 
-    iris::Window window{800u, 800u};
+    auto window = iris::Root::window_manager().create_window(800u, 800u);
     std::size_t sample_number = 0u;
 
-    iris::RenderTarget target{window.width(), window.height()};
+    auto *target = window->create_render_target();
     iris::Camera camera{
-        iris::CameraType::ORTHOGRAPHIC, window.width(), window.height()};
+        iris::CameraType::ORTHOGRAPHIC, window->width(), window->height()};
     iris::RenderEntity *title = nullptr;
     iris::RenderEntity *fps = nullptr;
 
-    iris::Scene *scene = nullptr;
-    auto pipeline = create_pipeline(window, &target, &scene, camera);
+    auto scene = std::make_unique<iris::Scene>();
+    auto *rg = scene->create_render_graph();
+    rg->render_node()->set_colour_input(
+        rg->create<iris::TextureNode>(target->colour_texture()));
+    scene->create_entity(
+        rg,
+        iris::Root::mesh_manager().sprite({1.0f, 1.0f, 1.0f}),
+        iris::Transform{{0.0f}, {}, {800.0f, 800.0f, 1.0f}});
 
-    auto sample = create_sample(&window, &target, sample_number % sample_count);
-    update_title(
-        scene, &title, &pipeline, sample->title(), {0.0f, 375.0f, 1.0f});
-    update_title(scene, &fps, &pipeline, "0 fps", {350.0f, 375.0f, 1.0f});
+    auto sample = create_sample(window, target, sample_number % sample_count);
+
+    iris::RenderPass pass{scene.get(), &camera, nullptr};
+
+    auto passes = sample->render_passes();
+    passes.emplace_back(pass);
+
+    window->set_render_passes(passes);
 
     std::size_t frame_counter = 0u;
     std::size_t next_update = 1u;
 
     iris::Looper looper{
         0ms,
-        33ms,
+        16ms,
         [&sample](auto, auto) {
             sample->fixed_update();
             return true;
@@ -166,15 +99,15 @@ void go(int, char **)
         [&sample,
          &window,
          &sample_number,
-         &pipeline,
          &target,
-         scene,
          &title,
          &fps,
+         &pass,
          &frame_counter,
          &next_update](std::chrono::microseconds elapsed, auto) {
             auto running = true;
-            if (auto event = window.pump_event(); event)
+            auto event = window->pump_event();
+            while (event)
             {
                 if (event->is_quit() || event->is_key(iris::Key::ESCAPE))
                 {
@@ -184,41 +117,22 @@ void go(int, char **)
                 {
                     ++sample_number;
                     sample = create_sample(
-                        &window, &target, sample_number % sample_count);
+                        window, target, sample_number % sample_count);
 
-                    update_title(
-                        scene,
-                        &title,
-                        &pipeline,
-                        sample->title(),
-                        {0.0f, 375.0f, 1.0f});
+                    auto passes = sample->render_passes();
+                    passes.emplace_back(pass);
+
+                    window->set_render_passes(passes);
                 }
                 else
                 {
                     sample->handle_input(*event);
                 }
+                event = window->pump_event();
             }
 
             sample->variable_update();
-            window.render(pipeline);
-
-            ++frame_counter;
-
-            const auto elapsed_s =
-                std::chrono::duration_cast<std::chrono::seconds>(elapsed)
-                    .count();
-            if (elapsed_s > next_update)
-            {
-                const auto frames_per_second = frame_counter / elapsed_s;
-
-                update_title(
-                    scene,
-                    &fps,
-                    &pipeline,
-                    std::to_string(frames_per_second) + " fps",
-                    {350.0f, 375.0f, 1.0f});
-                next_update = elapsed_s + 1;
-            }
+            window->render();
 
             return running;
         }};

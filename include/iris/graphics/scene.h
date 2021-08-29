@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "graphics/lights/lighting_rig.h"
-#include "graphics/material.h"
 #include "graphics/render_entity.h"
 #include "graphics/render_graph/render_graph.h"
 
@@ -35,7 +34,7 @@ class Scene
      *   Pointer to the newly created RenderGraph.
      */
     template <class... Args>
-    RenderGraph *create_render_graph(Args &&... args)
+    RenderGraph *create_render_graph(Args &&...args)
     {
         auto graph = std::make_unique<RenderGraph>(std::forward<Args>(args)...);
         return add(std::move(graph));
@@ -66,7 +65,7 @@ class Scene
      *   Pointer to the newly created RenderEntity.
      */
     template <class... Args>
-    RenderEntity *create_entity(RenderGraph *render_graph, Args &&... args)
+    RenderEntity *create_entity(RenderGraph *render_graph, Args &&...args)
     {
         auto element =
             std::make_unique<RenderEntity>(std::forward<Args>(args)...);
@@ -103,7 +102,7 @@ class Scene
      *   Pointer to newly created light.
      */
     template <class T, class... Args>
-    T *create_light(Args &&... args)
+    T *create_light(Args &&...args)
     {
         auto light = std::make_unique<T>(std::forward<Args>(args)...);
         return add(std::move(light));
@@ -167,13 +166,16 @@ class Scene
     std::vector<std::tuple<RenderGraph *, std::unique_ptr<RenderEntity>>>
         &entities();
 
+    const std::vector<std::tuple<RenderGraph *, std::unique_ptr<RenderEntity>>>
+        &entities() const;
+
     /**
      * Get LightingRig.
      *
      * @returns
      *   Pointer to LightingRig.
      */
-    const LightingRig *lighting_rig();
+    const LightingRig *lighting_rig() const;
 
   private:
     /** Collection of <RenderGraph, RenderEntity> tuples. */

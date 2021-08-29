@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cstdint>
-#include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "core/data_buffer.h"
@@ -13,9 +13,16 @@
 namespace iris
 {
 
+/**
+ * Abstract class for creating and managing Texture objects. This class handles
+ * caching and lifetime management of all created objects. Implementers just
+ * need to provide a graphics API specific method for creating Texture objects.
+ */
 class TextureManager
 {
   public:
+    virtual ~TextureManager() = default;
+
     /**
      * Load a texture from the supplied file. Will use ResourceManager.
      *
@@ -28,7 +35,7 @@ class TextureManager
      * @returns
      *   Pointer to loaded texture.
      */
-    static Texture *load(const std::string &resource);
+    Texture *load(const std::string &resource);
 
     /**
      * Load a texture from a DataBuffer.
@@ -45,11 +52,11 @@ class TextureManager
      * @param pixel_format
      *   Format of pixel data.
      */
-    static Texture *load(
+    Texture *load(
         const DataBuffer &data,
         std::uint32_t width,
         std::uint32_t height,
-        PixelFormat pixel_foramt);
+        PixelFormat pixel_format);
 
     /**
      * Unloaded the supplied texture (if there are no other references to it).
@@ -64,7 +71,7 @@ class TextureManager
      * @param texture
      *   Texture to unload.
      */
-    static void unload(Texture *texture);
+    void unload(Texture *texture);
 
     /**
      * Get a blank 1x1 white texture
@@ -72,36 +79,41 @@ class TextureManager
      * @returns
      *   Blank texture.
      */
-    static Texture *blank();
+    Texture *blank();
 
-  private:
+  protected:
     /**
-     * Create a new TextureManager. Private to force use of static functions.
-     */
-    TextureManager();
-
-    /**
-     * Get the single instance of this class. Private to force use of static
-     * functions.
+     * Create a Texture object with the provided data.
      *
-     * @returns
-     *   Single instance.
+     * @param data
+     *   Raw data of image, in pixel_format.
+     *
+     * @param width
+     *   Width of image.
+     *
+     * @param height
+     *   Height of image.
+     *
+     * @param pixel_format
+     *   Format of pixel data.
      */
-    static TextureManager &instance();
-
-    // these methods are implementations of the above static methods - see their
-    // doc comments for details
-
-    Texture *load_impl(const std::string &resource);
-
-    Texture *load_impl(
+    virtual std::unique_ptr<Texture> create(
         const DataBuffer &data,
         std::uint32_t width,
         std::uint32_t height,
-        PixelFormat pixel_foramt);
+        PixelFormat pixel_format) = 0;
 
-    void unload_impl(Texture *texture);
+    /**
+     * Implementors should override this method to provide implementation
+     * specific unloading logic. Called automatically when a Texture is being
+     * unloaded (after its reference count is zero), default is a no-op.
+     *
+     * @param texture
+     *   Texture about to be unloaded.
+     */
+    virtual void destroy(Texture *texture);
 
+  private:
     /**
      * Support struct to store a loaded Texture and a reference count.
      */
@@ -112,7 +124,7 @@ class TextureManager
     };
 
     /** Collection of loaded textures. */
-    std::map<std::string, LoadedTexture> loaded_textures_;
+    std::unordered_map<std::string, LoadedTexture> loaded_textures_;
 };
 
 }
