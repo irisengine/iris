@@ -395,12 +395,12 @@ void go(int, char **)
     iris::ClientConnectionHandler client{std::move(socket)};
 
     iris::Window window{800u, 800u};
-    iris::Camera camera{iris::CameraType::PERSPECTIVE, 800.0f, 800.0f};
+    iris::Camera camera{iris::CameraType::PERSPECTIVE, 800u, 800u};
 
     auto scene = std::make_unique<iris::Scene>();
 
     scene->create_entity(
-        iris::RenderGraph{},
+        nullptr,
         iris::mesh_factory::cube({1.0f, 1.0f, 1.0f}),
         iris::Transform{
             iris::Vector3{0.0f, -50.0f, 0.0f},
@@ -408,7 +408,7 @@ void go(int, char **)
             iris::Vector3{500.0f, 50.0f, 500.0f}});
 
     auto *box = scene->create_entity(
-        iris::RenderGraph{},
+        nullptr,
         iris::mesh_factory::cube({1.0f, 0.0f, 0.0f}),
         iris::Transform{
             iris::Vector3{0.0f, 1.0f, 0.0f},
