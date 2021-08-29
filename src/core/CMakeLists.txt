@@ -6,7 +6,7 @@ if(IRIS_PLATFORM MATCHES "MACOS")
 elseif(IRIS_PLATFORM MATCHES "IOS")
   add_subdirectory("ios")
 elseif(IRIS_PLATFORM MATCHES "WINDOWS")
-  add_subdirectory("windows")
+  add_subdirectory("win32")
 endif()
 
 set(CORE_SRCS
@@ -20,6 +20,11 @@ set(CORE_SRCS
     "${INCLUDE_ROOT}/matrix4.h"
     "${INCLUDE_ROOT}/quaternion.h"
     "${INCLUDE_ROOT}/random.h"
+    "${INCLUDE_ROOT}/resource_loader.h"
+    "${INCLUDE_ROOT}/root.h"
+    "${INCLUDE_ROOT}/start.h"
+    "${INCLUDE_ROOT}/static_buffer.h"
+    "${INCLUDE_ROOT}/thread.h"
     "${INCLUDE_ROOT}/transform.h"
     "${INCLUDE_ROOT}/utils.h"
     "${INCLUDE_ROOT}/vector3.h"
@@ -30,12 +35,9 @@ set(CORE_SRCS
     "${SOURCE_ROOT}/matrix4.cpp"
     "${SOURCE_ROOT}/quaternion.cpp"
     "${SOURCE_ROOT}/random.cpp"
+    "${SOURCE_ROOT}/root.cpp"
     "${SOURCE_ROOT}/transform.cpp"
     "${SOURCE_ROOT}/root.cpp"
     "${SOURCE_ROOT}/utils.cpp"
     "${SOURCE_ROOT}/vector3.cpp"
-    "${INCLUDE_ROOT}/resource_loader.h"
-    "${INCLUDE_ROOT}/start.h"
-    "${INCLUDE_ROOT}/static_buffer.h"
-    "${INCLUDE_ROOT}/thread.h"
     PARENT_SCOPE)
