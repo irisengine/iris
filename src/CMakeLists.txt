@@ -19,25 +19,17 @@ add_library(
 add_library(iris::iris ALIAS iris)
 
 target_include_directories(
-  iris PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/iris>
-              $<INSTALL_INTERFACE:include/iris>)
+  iris
+  PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/iris>
+         $<INSTALL_INTERFACE:include/iris>
+  PRIVATE ${stb_SOURCE_DIR} ${bullet_SOURCE_DIR}/src)
 
 # on windows SYSTEM includes do not prevent warnings - so we add bullet using
 # the /external flag
 if(IRIS_PLATFORM MATCHES "WINDOWS")
   set(WINDOWS_SYSTEM_INCLUDES /external:I
                               ${CMAKE_SOURCE_DIR}/third_party/bullet/src)
-else()
-  target_include_directories(
-    iris SYSTEM PRIVATE "${CMAKE_SOURCE_DIR}/third_party/bullet/src")
-  target_include_directories(iris SYSTEM
-                             PRIVATE "${CMAKE_SOURCE_DIR}/third_party")
 endif()
-
-target_include_directories(iris SYSTEM
-                           PRIVATE "${CMAKE_SOURCE_DIR}/third_party")
-target_include_directories(iris SYSTEM
-                           PRIVATE "${CMAKE_SOURCE_DIR}/third_party/assimp")
 
 if(IRIS_PLATFORM MATCHES "MACOS")
   set(LINK_FRAMEWORKS
@@ -120,19 +112,12 @@ else()
   target_compile_options(iris PRIVATE -Wall -Werror -pedantic -glldb -fobjc-arc)
 
   install(
-    TARGETS iris
-            LinearMath
-            BulletDynamics
-            BulletCollision
-            assimp
-            zlibstatic
-            IrrXML
+    TARGETS iris assimp zlibstatic IrrXML BulletDynamics BulletCollision LinearMath
     EXPORT iris-targets
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
-
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/iris
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

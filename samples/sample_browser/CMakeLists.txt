@@ -14,7 +14,7 @@ add_executable(sample_browser ${SAMPLE_SRCS})
 file(COPY assets DESTINATION ${CMAKE_BINARY_DIR}/samples/sample_browser)
 
 target_include_directories(sample_browser
-                           PUBLIC "${PROJECT_SOURCE_DIR}/third_party")
+                           PRIVATE ${stb_SOURCE_DIR})
 target_include_directories(
   sample_browser PUBLIC "${PROJECT_SOURCE_DIR}/samples/sample_browser")
 target_link_libraries(sample_browser iris)

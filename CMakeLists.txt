@@ -1,7 +1,8 @@
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.14)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
+include(FetchContent)
 
 project(
   iris
@@ -25,7 +26,44 @@ if(NOT IRIS_PLATFORM)
   endif()
 endif()
 
-add_subdirectory("third_party")
+set(BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
+set(BUILD_CPU_DEMOS OFF CACHE BOOL "" FORCE)
+set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
+set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ALL_EXPORTERS_BY_DEFAULT OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_FBX_IMPORTER ON CACHE BOOL "" FORCE)
+set(ASSIMP_NO_EXPORT ON CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+  assimp
+  GIT_REPOSITORY https://github.com/assimp/assimp
+  GIT_TAG v5.0.1)
+
+FetchContent_Declare(
+  bullet
+  GIT_REPOSITORY https://github.com/bulletphysics/bullet3
+  GIT_TAG 3.17)
+
+FetchContent_Declare(
+  stb
+  GIT_REPOSITORY https://github.com/nothings/stb
+  GIT_TAG c0c982601f40183e74d84a61237e968dca08380e
+  CONFIGURE_COMMAND "" BUILD_COMMAND "")
+
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG release-1.11.0)
+
+FetchContent_MakeAvailable(assimp bullet stb googletest)
+
 add_subdirectory("src")
 add_subdirectory("samples")
 
