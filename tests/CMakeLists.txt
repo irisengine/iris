@@ -1,5 +1,3 @@
-add_subdirectory(third_party/googletest)
-
 include(GoogleTest)
 
 mark_as_advanced(BUILD_GMOCK BUILD_GTEST gtest_hide_internal_symbols)
