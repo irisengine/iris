@@ -137,12 +137,12 @@ install(
   NAMESPACE iris::
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/iris)
 
-install(FILES ${CMAKE_BINARY_DIR}/iris-config.cmake
-              ${CMAKE_BINARY_DIR}/iris-version.cmake
+install(FILES ${CMAKE_BINARY_DIR}/cmake/iris-config.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/iris-version.cmake
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/iris)
 
-install(FILES ${PROJECT_BINARY_DIR}/iris_export.h
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/iris_export.h
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/iris)
 
 export(EXPORT iris-targets
   FILE ${CMAKE_BINARY_DIR}/cmake/iris-targets.cmake
