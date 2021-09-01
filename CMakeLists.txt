@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.14)
 
-include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 include(FetchContent)
+include(GNUInstallDirs)
+include(GenerateExportHeader)
 
 project(
   iris

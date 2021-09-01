@@ -9,6 +9,11 @@ add_subdirectory("networking")
 add_subdirectory("physics")
 
 add_library(iris::iris ALIAS iris)
+generate_export_header(iris)
+
+set_target_properties(iris PROPERTIES
+  CMAKE_CXX_VISIBILITY_PRESET hidden
+  CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 
 target_include_directories(
   iris
@@ -129,4 +134,5 @@ message(DEBUG "${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_INSTALL_LIBDIR}")
 
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/iris-config.cmake"
               "${CMAKE_CURRENT_BINARY_DIR}/iris-version.cmake"
+               ${PROJECT_BINARY_DIR}/iris_export.h
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/iris)
