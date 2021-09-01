@@ -140,3 +140,7 @@ install(
 install(FILES ${CMAKE_BINARY_DIR}/iris-config.cmake
               ${CMAKE_BINARY_DIR}/iris-version.cmake
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/iris)
+
+install(FILES ${PROJECT_BINARY_DIR}/iris_export.h
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
