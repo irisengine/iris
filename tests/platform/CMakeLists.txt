@@ -1,6 +1,3 @@
 if(IRIS_PLATFORM MATCHES "MACOS")
-    add_subdirectory("macos")
+  add_subdirectory("macos")
 endif()
-
-set(PLATFORM_TEST_SRCS ${PLATFORM_TEST_SRCS} PARENT_SCOPE)
-

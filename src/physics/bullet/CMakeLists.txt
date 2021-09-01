@@ -1,14 +1,11 @@
-set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/physics/bullet")
 
-set(PHYSICS_SRCS
-    "${SOURCE_ROOT}/basic_character_controller.cpp"
-    "${SOURCE_ROOT}/box_collision_shape.cpp"
-    "${SOURCE_ROOT}/capsule_collision_shape.cpp"
-    "${SOURCE_ROOT}/debug_draw.cpp"
-    "${SOURCE_ROOT}/physics_system.cpp"
-    "${SOURCE_ROOT}/rigid_body.cpp"
-
-    PARENT_SCOPE
-)
+target_sources(iris PRIVATE
+    ${INCLUDE_ROOT}/debug_draw.h
+    basic_character_controller.cpp
+    box_collision_shape.cpp
+    capsule_collision_shape.cpp
+    debug_draw.cpp
+    physics_system.cpp
+    rigid_body.cpp)
 

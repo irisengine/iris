@@ -1,15 +1,12 @@
-set(SAMPLE_SRCS
+add_executable(sample_browser
     main.cpp
-    samples/render_graph_sample.h
-    samples/render_graph_sample.cpp
-    samples/sample.h
-    samples/animation_sample.h
     samples/animation_sample.cpp
-    samples/physics_sample.h
+    samples/animation_sample.h
     samples/physics_sample.cpp
-    )
-
-add_executable(sample_browser ${SAMPLE_SRCS})
+    samples/physics_sample.h
+    samples/render_graph_sample.cpp
+    samples/render_graph_sample.h
+    samples/sample.h)
 
 file(COPY assets DESTINATION ${CMAKE_BINARY_DIR}/samples/sample_browser)
 

@@ -1,3 +1,5 @@
+add_library(iris STATIC "")
+
 add_subdirectory("core")
 add_subdirectory("events")
 add_subdirectory("graphics")
@@ -5,16 +7,6 @@ add_subdirectory("jobs")
 add_subdirectory("log")
 add_subdirectory("networking")
 add_subdirectory("physics")
-
-add_library(
-  iris STATIC
-  ${CORE_SRCS}
-  ${EVENTS_SRCS}
-  ${GRAPHICS_SRCS}
-  ${JOB_SRCS}
-  ${LOG_SRCS}
-  ${NETWORKING_SRCS}
-  ${PHYSICS_SRCS})
 
 add_library(iris::iris ALIAS iris)
 
