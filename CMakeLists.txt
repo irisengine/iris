@@ -60,7 +60,25 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/google/googletest.git
   GIT_TAG release-1.11.0)
 
-FetchContent_MakeAvailable(assimp bullet stb googletest)
+ FetchContent_GetProperties(assimp)
+ if(NOT assimp_POPULATED)
+   FetchContent_Populate(assimp)
+   add_subdirectory(${assimp_SOURCE_DIR} ${assimp_BINARY_DIR} EXCLUDE_FROM_ALL)
+ endif()
+
+ FetchContent_GetProperties(bullet)
+ if(NOT bullet_POPULATED)
+   FetchContent_Populate(bullet)
+   add_subdirectory(${bullet_SOURCE_DIR} ${bullet_BINARY_DIR} EXCLUDE_FROM_ALL)
+ endif()
+
+ FetchContent_MakeAvailable(stb)
+
+ FetchContent_GetProperties(googletest)
+ if(NOT googletest_POPULATED)
+   FetchContent_Populate(googletest)
+   add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
+ endif()
 
 add_subdirectory("src")
 add_subdirectory("samples")
