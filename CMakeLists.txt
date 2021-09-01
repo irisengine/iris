@@ -1,15 +1,15 @@
 cmake_minimum_required(VERSION 3.14)
 
-include(CMakePackageConfigHelpers)
-include(FetchContent)
-include(GNUInstallDirs)
-include(GenerateExportHeader)
-
 project(
   iris
   VERSION "0.1.0"
   DESCRIPTION "Cross-platform game engine"
   LANGUAGES C CXX OBJCXX ASM)
+
+include(CMakePackageConfigHelpers)
+include(FetchContent)
+include(GNUInstallDirs)
+include(GenerateExportHeader)
 
 set(CMAKE_CXX_STANDARD 17)
 set(ASM_OPTIONS "-x assembler-with-cpp")
@@ -27,6 +27,7 @@ if(NOT IRIS_PLATFORM)
   endif()
 endif()
 
+set(BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
 set(BUILD_CPU_DEMOS OFF CACHE BOOL "" FORCE)
 set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
 set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
