@@ -144,3 +144,6 @@ install(FILES ${CMAKE_BINARY_DIR}/iris-config.cmake
 install(FILES ${PROJECT_BINARY_DIR}/iris_export.h
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
+export(EXPORT iris-targets
+  FILE ${CMAKE_BINARY_DIR}/cmake/iris-targets.cmake
+  NAMESPACE iris::)
