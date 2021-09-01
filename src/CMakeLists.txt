@@ -21,6 +21,8 @@ target_include_directories(
          $<INSTALL_INTERFACE:include/iris>
   PRIVATE ${stb_SOURCE_DIR} ${bullet_SOURCE_DIR}/src)
 
+configure_file(${CMAKE_SOURCE_DIR}/include/iris/iris_version.h.in ${CMAKE_SOURCE_DIR}/include/iris/iris_version.h)
+
 # on windows SYSTEM includes do not prevent warnings - so we add bullet using
 # the /external flag
 if(IRIS_PLATFORM MATCHES "WINDOWS")
@@ -134,5 +136,5 @@ message(DEBUG "${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_INSTALL_LIBDIR}")
 
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/iris-config.cmake"
               "${CMAKE_CURRENT_BINARY_DIR}/iris-version.cmake"
-               ${PROJECT_BINARY_DIR}/iris_export.h
+               ${PROJECT_BINARY_DIR}/src/iris_export.h
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/iris)
