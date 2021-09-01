@@ -121,6 +121,11 @@ endif()
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/iris
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
+configure_package_config_file(
+  ${CMAKE_SOURCE_DIR}/cmake/iris-config.cmake.in
+  ${CMAKE_BINARY_DIR}/cmake/iris-config.cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/iris)
+
 write_basic_package_version_file(
   iris-version.cmake
   VERSION ${PACKAGE_VERSION}
@@ -130,11 +135,8 @@ install(
   EXPORT iris-targets
   FILE iris-targets.cmake
   NAMESPACE iris::
-  DESTINATION lib/cmake/iris)
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/iris)
 
-message(DEBUG "${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_INSTALL_LIBDIR}")
-
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/iris-config.cmake"
-              "${CMAKE_CURRENT_BINARY_DIR}/iris-version.cmake"
-               ${PROJECT_BINARY_DIR}/src/iris_export.h
+install(FILES ${CMAKE_BINARY_DIR}/iris-config.cmake
+              ${CMAKE_BINARY_DIR}/iris-version.cmake
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/iris)
