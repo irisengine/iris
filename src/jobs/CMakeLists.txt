@@ -14,7 +14,7 @@ target_sources(iris PRIVATE
     job.cpp)
 
 if(IRIS_ARCH MATCHES "X86_64")
-target_sources(iris PRIVATE
-    ${INCLUDE_ROOT}/arch/x86_64/context.h
-    ${INCLUDE_ROOT}/arch/x86_64/functions.S)
+  target_sources(iris PRIVATE
+      ${INCLUDE_ROOT}/arch/x86_64/context.h
+      ${INCLUDE_ROOT}/arch/x86_64/functions.S)
 endif()

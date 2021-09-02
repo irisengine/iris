@@ -28,6 +28,7 @@ if(NOT IRIS_PLATFORM)
 endif()
 
 set(BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(BUILD_CPU_DEMOS OFF CACHE BOOL "" FORCE)
 set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
 set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
@@ -88,3 +89,5 @@ add_subdirectory("samples")
 enable_testing()
 include(CTest)
 add_subdirectory("tests")
+
+include(cmake/cpack.cmake)
