@@ -15,5 +15,10 @@ add_subdirectory("platform")
 
 target_include_directories(unit_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
+if(IRIS_PLATFORM MATCHES "WINDOWS")
+  set_target_properties(unit_tests PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
+  set_target_properties(gmock_main PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
+endif()
+
 target_link_libraries(unit_tests iris gmock_main)
 gtest_discover_tests(unit_tests)

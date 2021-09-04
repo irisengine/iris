@@ -12,7 +12,7 @@ include(GNUInstallDirs)
 include(GenerateExportHeader)
 
 # set options for library
-option(BUILD_UNIT_TESTS "whether to build unit tests" ON)
+option(IRIS_BUILD_UNIT_TESTS "whether to build unit tests" ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(ASM_OPTIONS "-x assembler-with-cpp")
@@ -34,13 +34,6 @@ if(IRIS_PLATFORM MATCHES "MACOS" OR IRIS_PLATFORM MATCHES "IOS")
   enable_language(OBJC)
   enable_language(OBJCXX)
   enable_language(ASM)
-endif()
-
-# create an iris variable from the option
-# this allows us to force overide the option for third party projects but maintain
-# the original value
-if(BUILD_UNIT_TESTS)
-  set(IRIS_BUILD_UNIT_TESTS ON)
 endif()
 
 # set options for third party libraries
@@ -116,7 +109,7 @@ endif()
 add_subdirectory("src")
 add_subdirectory("samples")
 
-if (IRIS_BUILD_UNIT_TESTS)
+if(IRIS_BUILD_UNIT_TESTS)
   enable_testing()
   include(CTest)
   add_subdirectory("tests")
