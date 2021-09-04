@@ -1,10 +1,10 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.18)
 
 project(
   iris
   VERSION "0.1.0"
   DESCRIPTION "Cross-platform game engine"
-  LANGUAGES C CXX OBJCXX ASM)
+  LANGUAGES C CXX OBJCXX ASM_MASM)
 
 include(CMakePackageConfigHelpers)
 include(FetchContent)
@@ -69,25 +69,40 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/google/googletest.git
   GIT_TAG release-1.11.0)
 
- FetchContent_GetProperties(assimp)
- if(NOT assimp_POPULATED)
-   FetchContent_Populate(assimp)
-   add_subdirectory(${assimp_SOURCE_DIR} ${assimp_BINARY_DIR} EXCLUDE_FROM_ALL)
- endif()
+if(IRIS_PLATFORM MATCHES "WINDOWS")
+  FetchContent_Declare(
+    directx-headers
+    GIT_REPOSITORY https://github.com/microsoft/DirectX-Headers.git
+    GIT_TAG v1.4.9)
+endif()
 
- FetchContent_GetProperties(bullet)
- if(NOT bullet_POPULATED)
-   FetchContent_Populate(bullet)
-   add_subdirectory(${bullet_SOURCE_DIR} ${bullet_BINARY_DIR} EXCLUDE_FROM_ALL)
- endif()
+FetchContent_GetProperties(assimp)
+if(NOT assimp_POPULATED)
+  FetchContent_Populate(assimp)
+  add_subdirectory(${assimp_SOURCE_DIR} ${assimp_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
 
- FetchContent_MakeAvailable(stb)
+FetchContent_GetProperties(bullet)
+if(NOT bullet_POPULATED)
+  FetchContent_Populate(bullet)
+  add_subdirectory(${bullet_SOURCE_DIR} ${bullet_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
 
- FetchContent_GetProperties(googletest)
- if(NOT googletest_POPULATED)
-   FetchContent_Populate(googletest)
-   add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
+FetchContent_MakeAvailable(stb)
+
+FetchContent_GetProperties(googletest)
+if(NOT googletest_POPULATED)
+  FetchContent_Populate(googletest)
+  add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
+
+if(IRIS_PLATFORM MATCHES "WINDOWS")
+ FetchContent_GetProperties(directx-headers)
+ if(NOT directx-headers_POPULATED)
+   FetchContent_Populate(directx-headers)
+   add_subdirectory(${directx-headers_SOURCE_DIR} ${directx-headers_BINARY_DIR} EXCLUDE_FROM_ALL)
  endif()
+endif()
 
 add_subdirectory("src")
 add_subdirectory("samples")

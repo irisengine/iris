@@ -23,13 +23,6 @@ target_include_directories(
 
 configure_file(${CMAKE_SOURCE_DIR}/include/iris/iris_version.h.in ${CMAKE_SOURCE_DIR}/include/iris/iris_version.h)
 
-# on windows SYSTEM includes do not prevent warnings - so we add bullet using
-# the /external flag
-if(IRIS_PLATFORM MATCHES "WINDOWS")
-  set(WINDOWS_SYSTEM_INCLUDES /external:I
-                              ${CMAKE_SOURCE_DIR}/third_party/bullet/src)
-endif()
-
 if(IRIS_PLATFORM MATCHES "MACOS")
   set(LINK_FRAMEWORKS
       "-framework AppKit -framework CoreFoundation -framework CoreGraphics")
@@ -88,11 +81,18 @@ target_link_libraries(iris PUBLIC LinearMath BulletDynamics BulletCollision
                                   assimp ${LINK_FRAMEWORKS})
 
 if(IRIS_PLATFORM MATCHES "WINDOWS")
+  # on windows SYSTEM includes do not prevent warnings - so we add bullet using
+  # the /external flag
   target_compile_options(iris PRIVATE /W4 /WX /experimental:external
-                                      /external:W0 ${WINDOWS_SYSTEM_INCLUDES})
-  target_compile_options(iris PUBLIC /MTd)
+                                      /external:W0 /external:I ${bullet_SOURCE_DIR})
   target_link_options(iris PUBLIC /subsystem:windows /ENTRY:mainCRTStartup)
   target_link_libraries(iris PRIVATE DirectX-Headers)
+
+  set_target_properties(iris PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
+  set_target_properties(assimp PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
+  set_target_properties(LinearMath PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
+  set_target_properties(BulletDynamics PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
+  set_target_properties(BulletCollision PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
 
   install(
     TARGETS iris

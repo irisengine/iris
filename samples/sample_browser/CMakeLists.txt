@@ -15,3 +15,7 @@ target_include_directories(sample_browser
 target_include_directories(
   sample_browser PUBLIC "${PROJECT_SOURCE_DIR}/samples/sample_browser")
 target_link_libraries(sample_browser iris)
+
+if(IRIS_PLATFORM MATCHES "WINDOWS")
+  set_target_properties(sample_browser PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
+endif()
