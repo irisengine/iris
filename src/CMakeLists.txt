@@ -11,6 +11,7 @@ add_subdirectory("physics")
 add_library(iris::iris ALIAS iris)
 generate_export_header(iris)
 
+# hide symbols
 set_target_properties(iris PROPERTIES
   CMAKE_CXX_VISIBILITY_PRESET hidden
   CMAKE_VISIBILITY_INLINES_HIDDEN 1)
@@ -21,15 +22,14 @@ target_include_directories(
          $<INSTALL_INTERFACE:include/iris>
   PRIVATE ${stb_SOURCE_DIR} ${bullet_SOURCE_DIR}/src)
 
+# configure ersion file
 configure_file(${CMAKE_SOURCE_DIR}/include/iris/iris_version.h.in ${CMAKE_SOURCE_DIR}/include/iris/iris_version.h)
 
+# set macos/ios framework includes
 if(IRIS_PLATFORM MATCHES "MACOS")
-  set(LINK_FRAMEWORKS
-      "-framework AppKit -framework CoreFoundation -framework CoreGraphics")
+  target_link_libraries(iris PUBLIC "-framework AppKit -framework CoreFoundation -framework CoreGraphics -framework Metal -framework MetalKit -framework MetalPerformanceShaders -framework QuartzCore")
 elseif(IRIS_PLATFORM MATCHES "IOS")
-  set(LINK_FRAMEWORKS
-      "-framework AppKit -framework CoreFoundation -framework UIKit -framework Foundation"
-  )
+  target_link_libraries(iris PUBLIC "-framework AppKit -framework CoreFoundation -framework UIKit -framework Foundation -framework Metal -framework MetalKit -framework MetalPerformanceShaders -framework QuartzCore")
 endif()
 
 # handle platform specific setup including setting default graphics apis
@@ -57,28 +57,21 @@ else()
   message(FATAL_ERROR "Unsupported platform")
 endif()
 
-# handle graphic api setup
-if(IRIS_PLATFORM MATCHES "MACOS" OR IRIS_PLATFORM MATCHES "IOS")
-  set(LINK_FRAMEWORKS
-      "${LINK_FRAMEWORKS} -framework Metal -framework MetalKit -framework MetalPerformanceShaders -framework QuartzCore"
-  )
-endif()
 
 if(IRIS_PLATFORM MATCHES "MACOS" OR IRIS_PLATFORM MATCHES "WINDOWS")
   find_package(OpenGL REQUIRED)
   target_include_directories(iris SYSTEM PRIVATE ${OPENGL_INCLUDE_DIR})
   if(IRIS_PLATFORM MATCHES "MACOS")
-    set(LINK_FRAMEWORKS "${LINK_FRAMEWORKS} -framework OpenGL")
+    target_link_libraries(iris PUBLIC "-framework OpenGL")
     # opengl is technically deprecated on macos, so silence the deprecation
     # warnings
     target_compile_definitions(iris PRIVATE GL_SILENCE_DEPRECATION)
   endif()
 endif()
 
-message(STATUS "Building for ${IRIS_PLATFORM} (${IRIS_JOBS_API})")
+message(STATUS "Building iris-${CMAKE_PROJECT_VERSION} for ${IRIS_PLATFORM} (${IRIS_JOBS_API})")
 
-target_link_libraries(iris PUBLIC LinearMath BulletDynamics BulletCollision
-                                  assimp ${LINK_FRAMEWORKS})
+target_link_libraries(iris PUBLIC LinearMath BulletDynamics BulletCollision assimp)
 
 if(IRIS_PLATFORM MATCHES "WINDOWS")
   # on windows SYSTEM includes do not prevent warnings - so we add bullet using
@@ -117,6 +110,8 @@ else()
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
+
+# various install commands to ensure all files get put in the right place
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/iris
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
