@@ -11,6 +11,8 @@ include(FetchContent)
 include(GNUInstallDirs)
 include(GenerateExportHeader)
 
+option(BUILD_UNIT_TESTS "whether to build unit tests" ON)
+
 set(CMAKE_CXX_STANDARD 17)
 set(ASM_OPTIONS "-x assembler-with-cpp")
 
@@ -25,6 +27,10 @@ if(NOT IRIS_PLATFORM)
   else()
     message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_NAME}")
   endif()
+endif()
+
+if(BUILD_UNIT_TESTS)
+  set(IRIS_BUILD_UNIT_TESTS ON)
 endif()
 
 set(BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
@@ -86,8 +92,10 @@ FetchContent_Declare(
 add_subdirectory("src")
 add_subdirectory("samples")
 
-enable_testing()
-include(CTest)
-add_subdirectory("tests")
+if (IRIS_BUILD_UNIT_TESTS)
+  enable_testing()
+  include(CTest)
+  add_subdirectory("tests")
+endif()
 
 include(cmake/cpack.cmake)
