@@ -1,8 +1,12 @@
-set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
+set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/graphics/lights")
 
-set(GRAPHICS_SRCS
-    ${GRAPHICS_SRCS}
-    "${SOURCE_ROOT}/ambient_light.cpp"
-    "${SOURCE_ROOT}/directional_light.cpp"
-    "${SOURCE_ROOT}/point_light.cpp"
-    PARENT_SCOPE)
+target_sources(iris PRIVATE
+    ${INCLUDE_ROOT}/ambient_light.h
+    ${INCLUDE_ROOT}/directional_light.h
+    ${INCLUDE_ROOT}/light.h
+    ${INCLUDE_ROOT}/light_type.h
+    ${INCLUDE_ROOT}/lighting_rig.h
+    ${INCLUDE_ROOT}/point_light.h
+    ambient_light.cpp
+    directional_light.cpp
+    point_light.cpp)

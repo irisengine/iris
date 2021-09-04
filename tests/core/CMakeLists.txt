@@ -1,7 +1,7 @@
-set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
-
-set(CORE_TEST_SRCS
-    "${SOURCE_ROOT}/matrix4_tests.cpp" "${SOURCE_ROOT}/quaternion_tests.cpp"
-    "${SOURCE_ROOT}/transform_tests.cpp" "${SOURCE_ROOT}/vector3_tests.cpp"
-    "${SOURCE_ROOT}/auto_release_tests.cpp" "${SOURCE_ROOT}/colour_tests.cpp"
-    PARENT_SCOPE)
+target_sources(unit_tests PRIVATE
+    auto_release_tests.cpp
+    colour_tests.cpp
+    matrix4_tests.cpp
+    quaternion_tests.cpp
+    transform_tests.cpp
+    vector3_tests.cpp)

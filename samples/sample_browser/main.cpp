@@ -20,7 +20,7 @@
 #include <graphics/window_manager.h>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb/stb_image_write.h>
+#include <stb_image_write.h>
 
 #include "samples/animation_sample.h"
 #include "samples/physics_sample.h"

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <numeric>
 #include <thread>
 #include <vector>
@@ -38,7 +39,8 @@ TEST(concurrent_queue, enqueue_thread_safe)
     std::vector<int> values(value_count);
     std::iota(std::begin(values), std::end(values), 0);
 
-    const auto worker = [&q, &values](int start) {
+    const auto worker = [&q, &values](int start)
+    {
         for (int i = start; i < start + (value_count / 4); i++)
         {
             q.enqueue(values[i]);

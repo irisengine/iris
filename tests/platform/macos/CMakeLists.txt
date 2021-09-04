@@ -1,5 +1,2 @@
-set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
-
-set(PLATFORM_TEST_SRCS
-    "${SOURCE_ROOT}/thread_tests.cpp"
-    PARENT_SCOPE)
+target_sources(unit_tests PRIVATE
+    thread_tests.cpp)

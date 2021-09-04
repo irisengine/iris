@@ -1,10 +1,12 @@
-set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
+set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/graphics/win32")
 
-set(GRAPHICS_SRCS
-    ${GRAPHICS_SRCS}
-    "${SOURCE_ROOT}/text_factory.cpp"
-    "${SOURCE_ROOT}/win32_d3d12_window.cpp"
-    "${SOURCE_ROOT}/win32_opengl_window.cpp"
-    "${SOURCE_ROOT}/win32_window.cpp"
-    "${SOURCE_ROOT}/win32_window_manager.cpp"
-    PARENT_SCOPE)
+target_sources(iris PRIVATE
+    ${INCLUDE_ROOT}/win32_d3d12_window.h
+    ${INCLUDE_ROOT}/win32_opengl_window.h
+    ${INCLUDE_ROOT}/win32_window.h
+    ${INCLUDE_ROOT}/win32_window_manager.h
+    text_factory.cpp
+    win32_d3d12_window.cpp
+    win32_opengl_window.cpp
+    win32_window.cpp
+    win32_window_manager.cpp)

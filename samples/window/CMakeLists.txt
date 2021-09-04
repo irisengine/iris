@@ -1,7 +1,5 @@
 enable_language(C ASM)
 
-set(SAMPLE_SRCS main.cpp)
-
 if(IRIS_PLATFORM MATCHES "IOS")
   set(IOS_RESOURCES "Default-568h@2x.png")
 
@@ -15,9 +13,13 @@ if(IRIS_PLATFORM MATCHES "IOS")
                XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${IRIS_DEVELOPMENT_TEAM}"
                RESOURCE "${IOS_RESOURCES}")
 else()
-  add_executable(window ${SAMPLE_SRCS})
+  add_executable(window main.cpp)
 endif()
 
 target_include_directories(window PUBLIC "${CMAKE_SOURCE_DIR}/include")
 target_include_directories(window PUBLIC "${PROJECT_SOURCE_DIR}/third_party")
 target_link_libraries(window iris)
+
+if(IRIS_PLATFORM MATCHES "WINDOWS")
+  set_target_properties(window PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
+endif()

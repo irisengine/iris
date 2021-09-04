@@ -1,12 +1,16 @@
-set(SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
+set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/graphics/macos")
 
-set(GRAPHICS_SRCS
-    ${GRAPHICS_SRCS}
-    "${SOURCE_ROOT}/macos_window.mm"
-    "${SOURCE_ROOT}/macos_window_manager.cpp"
-    "${SOURCE_ROOT}/metal_app_delegate.m"
-    "${SOURCE_ROOT}/metal_view.m"
-    "${SOURCE_ROOT}/opengl_app_delegate.m"
-    "${SOURCE_ROOT}/opengl_view.m"
-    "${SOURCE_ROOT}/text_factory.mm"
-    PARENT_SCOPE)
+target_sources(iris PRIVATE
+    ${INCLUDE_ROOT}/macos_window.h
+    ${INCLUDE_ROOT}/macos_window_manager.h
+    ${INCLUDE_ROOT}/metal_app_delegate.h
+    ${INCLUDE_ROOT}/metal_view.h
+    ${INCLUDE_ROOT}/opengl_app_delegate.h
+    ${INCLUDE_ROOT}/opengl_view.h
+    macos_window.mm
+    macos_window_manager.cpp
+    metal_app_delegate.m
+    metal_view.m
+    opengl_app_delegate.m
+    opengl_view.m
+    text_factory.mm)

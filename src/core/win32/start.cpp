@@ -8,6 +8,7 @@
 #include "graphics/opengl/opengl_mesh_manager.h"
 #include "graphics/opengl/opengl_texture_manager.h"
 #include "graphics/win32/win32_window_manager.h"
+#include "iris_version.h"
 #include "log/log.h"
 #include "log/logger.h"
 
@@ -38,7 +39,7 @@ namespace iris
 
 void start(int argc, char **argv, std::function<void(int, char **)> entry)
 {
-    LOG_ENGINE_INFO("start", "engine start");
+    LOG_ENGINE_INFO("start", "engine start {}", IRIS_VERSION_STR);
 
     register_apis();
 
@@ -50,7 +51,8 @@ void start_debug(int argc, char **argv, std::function<void(int, char **)> entry)
     // enable engine logging
     Logger::instance().set_log_engine(true);
 
-    LOG_ENGINE_INFO("start", "engine start (with debugging)");
+    LOG_ENGINE_INFO(
+        "start", "engine start (with debugging) {}", IRIS_VERSION_STR);
 
     register_apis();
 
