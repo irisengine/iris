@@ -9,6 +9,7 @@ namespace iris
 {
 
 class MeshManager;
+class PhysicsManager;
 class TextureManager;
 class WindowManager;
 
@@ -44,6 +45,14 @@ class Root
      *   Current TextureManager.
      */
     static TextureManager &texture_manager();
+
+    /**
+     * Get the current PhysicsManager.
+     *
+     * @returns
+     *   Current PhysicsManager.
+     */
+    static PhysicsManager &physics_manager();
 
     /**
      * Register managers for a given api name.
@@ -90,6 +99,43 @@ class Root
      */
     static std::vector<std::string> registered_graphics_apis();
 
+    /**
+     * Register managers for a given api name.
+     *
+     * @param api
+     *   Name of api to register managers to,
+     *
+     * @param physics_manager
+     *   New PhysicsManager.
+     */
+    static void register_physics_api(
+        const std::string &api,
+        std::unique_ptr<PhysicsManager> physics_manager);
+
+    /**
+     * Get the currently set physics api.
+     *
+     * @returns
+     *   Name of currently set physics api.
+     */
+    static std::string physics_api();
+
+    /**
+     * Set the current physics api.
+     *
+     * @param api
+     *   New physics api name.
+     */
+    static void set_physics_api(const std::string &api);
+
+    /**
+     * Get a collection of all registered api names.
+     *
+     * @returns
+     *   Collection of registered api names.
+     */
+    static std::vector<std::string> registered_physics_apis();
+
   private:
     // private to force access through above public static methods
     Root();
@@ -104,6 +150,8 @@ class Root
 
     TextureManager &texture_manager_impl() const;
 
+    PhysicsManager &physics_manager_impl() const;
+
     void register_graphics_api_impl(
         const std::string &api,
         std::unique_ptr<WindowManager> window_manager,
@@ -115,6 +163,16 @@ class Root
     void set_graphics_api_impl(const std::string &api);
 
     std::vector<std::string> registered_graphics_apis_impl() const;
+
+    void register_physics_api_impl(
+        const std::string &api,
+        std::unique_ptr<PhysicsManager> physics_manager);
+
+    std::string physics_api_impl() const;
+
+    void set_physics_api_impl(const std::string &api);
+
+    std::vector<std::string> registered_physics_apis_impl() const;
 
     /**
      * Helper struct encapsulating all managers for a graphics api.
@@ -131,6 +189,13 @@ class Root
 
     /** Name of current graphics api. */
     std::string graphics_api_;
+
+    /** Map of physics api name to managers. */
+    std::unordered_map<std::string, std::unique_ptr<PhysicsManager>>
+        physics_api_managers_;
+
+    /** Name of current physics api. */
+    std::string physics_api_;
 };
 
 }
