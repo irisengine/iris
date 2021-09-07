@@ -3,11 +3,11 @@
 #include <chrono>
 #include <memory>
 #include <optional>
-#include <type_traits>
 
 #include "core/quaternion.h"
 #include "core/vector3.h"
 #include "physics/character_controller.h"
+#include "physics/collision_shape.h"
 #include "physics/rigid_body.h"
 
 namespace iris
@@ -15,35 +15,23 @@ namespace iris
 
 class RenderEntity;
 
-// forward declare opaque type of storing physics state
-// this will be defined in the PhysicsSystem implementation
-struct PhysicsState;
-
-// must also forward declare a deleter for PhysicsState, otherwise we will be
-// returning a unique_ptr of incomplete type
-struct PhysicsStateDeleter
+/**
+ * Interface for a class which stores the current state of a PhysicsSystem.
+ */
+struct PhysicsState
 {
-    void operator()(PhysicsState *state);
+    virtual ~PhysicsState() = default;
 };
 
 /**
- * Class for handling physics simulations.
+ * Interface for a class which can manage and simulate a physics world.
  */
 class PhysicsSystem
 {
   public:
-    // helper traits
-    template <class T>
-    using is_character_controller =
-        std::enable_if_t<std::is_base_of_v<CharacterController, T>>;
+    PhysicsSystem() = default;
 
-    /**
-     * Create a new physics system.
-     */
-    PhysicsSystem();
-
-    /** Declared in cpp file as implementation is an incomplete file. */
-    ~PhysicsSystem();
+    virtual ~PhysicsSystem() = default;
 
     // disabled
     PhysicsSystem(const PhysicsSystem &) = delete;
@@ -55,63 +43,65 @@ class PhysicsSystem
      * @param time_step
      *   The amount of time to simulate.
      */
-    void step(std::chrono::milliseconds time_step);
+    virtual void step(std::chrono::milliseconds time_step) = 0;
 
     /**
-     * Create a RigidBody and add it to the simulation. Uses perfect
-     * forwarding to pass along all arguments.
+     * Create a RigidBody and add it to the simulation.
      *
-     * @param args
-     *   Arguments for RigidBody.
+     * @param position
+     *   Position in world space.
+     *
+     * @param collision_shape
+     *   The shape that defined the rigid body, this is used for collision
+     *   detection/response.
+     *
+     * @param type
+     *   The type of rigid body, this effects how this body interacts with
+     *   others.
      *
      * @returns
      *   A pointer to the newly created RigidBody.
      */
-    template <class... Args>
-    RigidBody *create_rigid_body(Args &&...args)
-    {
-        auto element = std::make_unique<RigidBody>(std::forward<Args>(args)...);
-        return add(std::move(element));
-    }
+    virtual RigidBody *create_rigid_body(
+        const Vector3 &position,
+        CollisionShape *collision_shape,
+        RigidBodyType type) = 0;
 
     /**
-     * Create a CharacterController and add it to the simulation. Uses perfect
-     * forwarding to pass along all arguments.
-     *
-     * @param args
-     *   Arguments for CharacterController.
+     * Create a CharacterController and add it to the simulation.
      *
      * @returns
      *   A pointer to the newly created CharacterController.
      */
-    template <class T, class... Args, typename = is_character_controller<T>>
-    CharacterController *create_character_controller(Args &&...args)
-    {
-        auto element = std::make_unique<T>(std::forward<Args>(args)...);
-        return add(std::move(element));
-    }
+    virtual CharacterController *create_character_controller() = 0;
 
     /**
-     * Add a RigidBody to the simulation.
+     * Create a CollisionShape for a box.
      *
-     * @param body
-     *   Rigid body to add.
+     * @param half_size
+     *   The extends from the center of the box which define its size.
      *
      * @returns
-     *   Pointer to the added body.
+     *   Pointer to newly created CollisionShape.
      */
-    RigidBody *add(std::unique_ptr<RigidBody> body);
+    virtual CollisionShape *create_box_collision_shape(
+        const Vector3 &half_size) = 0;
 
     /**
-     * Add a CharacterController to the simulation.
+     * Create a CollisionShape for a capsule.
      *
-     * @param character
-     *   Character controller to add.
+     * @param width
+     *   Diameter of capsule.
+     *
+     * @param height
+     *   Height of capsule.
      *
      * @returns
-     *   Pointer to the added character controller.
+     *   Pointer to newly created CollisionShape.
      */
-    CharacterController *add(std::unique_ptr<CharacterController> character);
+    virtual CollisionShape *create_capsule_collision_shape(
+        float width,
+        float height) = 0;
 
     /**
      * Remove a body from the physics system.
@@ -122,7 +112,7 @@ class PhysicsSystem
      * @param body
      *   Body to remove.
      */
-    void remove(RigidBody *body);
+    virtual void remove(RigidBody *body) = 0;
 
     /**
      * Character controller a body from the physics system.
@@ -133,7 +123,7 @@ class PhysicsSystem
      * @param body
      *   Body to remove.
      */
-    void remove(CharacterController *charaacter);
+    virtual void remove(CharacterController *charaacter) = 0;
 
     /**
      * Cast a ray into physics engine world.
@@ -148,9 +138,9 @@ class PhysicsSystem
      *   If ray hits an object then a tuple [object hit, point of intersection],
      *   else empty optional.
      */
-    std::optional<std::tuple<RigidBody *, Vector3>> ray_cast(
+    virtual std::optional<std::tuple<RigidBody *, Vector3>> ray_cast(
         const Vector3 &origin,
-        const Vector3 &direction) const;
+        const Vector3 &direction) const = 0;
 
     /**
      * Add a body to be excluded from ray_casts
@@ -158,7 +148,7 @@ class PhysicsSystem
      * @param body
      *   Body to ignore.
      */
-    void ignore_in_raycast(RigidBody *body);
+    virtual void ignore_in_raycast(RigidBody *body) = 0;
 
     /**
      * Save the current state of the simulation.
@@ -170,7 +160,7 @@ class PhysicsSystem
      * @returns
      *   Saved state.
      */
-    std::unique_ptr<PhysicsState, PhysicsStateDeleter> save();
+    virtual std::unique_ptr<PhysicsState> save() = 0;
 
     /**
      * Load saved state. This will restore the simulation to that of the
@@ -181,7 +171,7 @@ class PhysicsSystem
      * @param state
      *   State to restore from.
      */
-    void load(const PhysicsState *state);
+    virtual void load(const PhysicsState *state) = 0;
 
     /**
      * Enable debug rendering. This should only be called once.
@@ -189,12 +179,7 @@ class PhysicsSystem
      * @param entity.
      *   The RenderEntity to store debug render data in.
      */
-    void enable_debug_draw(RenderEntity *entity);
-
-  private:
-    /** Physics API implementation. */
-    struct implementation;
-    std::unique_ptr<implementation> impl_;
+    virtual void enable_debug_draw(RenderEntity *entity) = 0;
 };
 
 }
