@@ -13,14 +13,6 @@ class CollisionShape
 {
   public:
     virtual ~CollisionShape() = default;
-
-    /**
-     * Get native handle for physics engine implementation of collision shape.
-     *
-     * @returns
-     *   Physics engine native handle.
-     */
-    virtual std::any native_handle() const = 0;
 };
 
 }

@@ -11,6 +11,7 @@
 #include "iris_version.h"
 #include "log/log.h"
 #include "log/logger.h"
+#include "physics/bullet/bullet_physics_manager.h"
 
 namespace
 {
@@ -30,6 +31,11 @@ void register_apis()
         std::make_unique<iris::OpenGLTextureManager>());
 
     iris::Root::set_graphics_api("d3d12");
+
+    iris::Root::register_physics_api(
+        "bullet", std::make_unique<iris::BulletPhysicsManager>());
+
+    iris::Root::set_physics_api("bullet");
 }
 
 }

@@ -1,8 +1,5 @@
 #pragma once
 
-#include <any>
-#include <memory>
-
 #include "core/quaternion.h"
 #include "core/vector3.h"
 #include "physics/character_controller.h"
@@ -137,8 +134,7 @@ class BasicCharacterController : public CharacterController
      * @param collision_shape
      *   New collision shape.
      */
-    void set_collision_shape(
-        std::unique_ptr<CollisionShape> collision_shape) override;
+    void set_collision_shape(CollisionShape *collision_shape) override;
 
   private:
     /** Speed of character. */
@@ -151,7 +147,7 @@ class BasicCharacterController : public CharacterController
     PhysicsSystem *physics_system_;
 
     /** Underlying rigid body, */
-    std::unique_ptr<RigidBody> body_;
+    RigidBody *body_;
 };
 
 }

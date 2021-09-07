@@ -3,39 +3,43 @@
 #include <chrono>
 #include <memory>
 #include <optional>
+#include <set>
+#include <vector>
+
+#include <BulletCollision/CollisionDispatch/btCollisionObject.h>
+#include <BulletCollision/CollisionDispatch/btGhostObject.h>
+#include <BulletDynamics/Dynamics/btRigidBody.h>
+#include <LinearMath/btMotionState.h>
+#include <btBulletDynamicsCommon.h>
 
 #include "core/quaternion.h"
 #include "core/vector3.h"
+#include "physics/bullet/bullet_collision_shape.h"
+#include "physics/bullet/debug_draw.h"
 #include "physics/character_controller.h"
 #include "physics/collision_shape.h"
+#include "physics/physics_system.h"
 #include "physics/rigid_body.h"
 
 namespace iris
 {
 
-class RenderEntity;
-
 /**
- * Interface for a class which stores the current state of a PhysicsSystem.
+ * Implementation of PhysicsSystem for bullet.
  */
-struct PhysicsState
-{
-    virtual ~PhysicsState() = default;
-};
-
-/**
- * Interface for a class which can manage and simulate a physics world.
- */
-class PhysicsSystem
+class BulletPhysicsSystem : public PhysicsSystem
 {
   public:
-    PhysicsSystem() = default;
+    /**
+     * Construct a new BulletPhysicsSystem.
+     */
+    BulletPhysicsSystem();
 
-    virtual ~PhysicsSystem() = default;
+    ~BulletPhysicsSystem() override;
 
     // disabled
-    PhysicsSystem(const PhysicsSystem &) = delete;
-    PhysicsSystem &operator=(const PhysicsSystem &) = delete;
+    BulletPhysicsSystem(const BulletPhysicsSystem &) = delete;
+    BulletPhysicsSystem &operator=(const BulletPhysicsSystem &) = delete;
 
     /**
      * Step the physics system by the supplied time.
@@ -43,7 +47,7 @@ class PhysicsSystem
      * @param time_step
      *   The amount of time to simulate.
      */
-    virtual void step(std::chrono::milliseconds time_step) = 0;
+    void step(std::chrono::milliseconds time_step) override;
 
     /**
      * Create a RigidBody and add it to the simulation.
@@ -62,10 +66,10 @@ class PhysicsSystem
      * @returns
      *   A pointer to the newly created RigidBody.
      */
-    virtual RigidBody *create_rigid_body(
+    RigidBody *create_rigid_body(
         const Vector3 &position,
         CollisionShape *collision_shape,
-        RigidBodyType type) = 0;
+        RigidBodyType type) override;
 
     /**
      * Create a CharacterController and add it to the simulation.
@@ -73,7 +77,7 @@ class PhysicsSystem
      * @returns
      *   A pointer to the newly created CharacterController.
      */
-    virtual CharacterController *create_character_controller() = 0;
+    CharacterController *create_character_controller() override;
 
     /**
      * Create a CollisionShape for a box.
@@ -84,8 +88,8 @@ class PhysicsSystem
      * @returns
      *   Pointer to newly created CollisionShape.
      */
-    virtual CollisionShape *create_box_collision_shape(
-        const Vector3 &half_size) = 0;
+    CollisionShape *create_box_collision_shape(
+        const Vector3 &half_size) override;
 
     /**
      * Create a CollisionShape for a capsule.
@@ -99,9 +103,8 @@ class PhysicsSystem
      * @returns
      *   Pointer to newly created CollisionShape.
      */
-    virtual CollisionShape *create_capsule_collision_shape(
-        float width,
-        float height) = 0;
+    CollisionShape *create_capsule_collision_shape(float width, float height)
+        override;
 
     /**
      * Remove a body from the physics system.
@@ -112,7 +115,7 @@ class PhysicsSystem
      * @param body
      *   Body to remove.
      */
-    virtual void remove(RigidBody *body) = 0;
+    void remove(RigidBody *body) override;
 
     /**
      * Character controller a body from the physics system.
@@ -123,7 +126,7 @@ class PhysicsSystem
      * @param body
      *   Body to remove.
      */
-    virtual void remove(CharacterController *charaacter) = 0;
+    void remove(CharacterController *charaacter) override;
 
     /**
      * Cast a ray into physics engine world.
@@ -138,9 +141,9 @@ class PhysicsSystem
      *   If ray hits an object then a tuple [object hit, point of intersection],
      *   else empty optional.
      */
-    virtual std::optional<std::tuple<RigidBody *, Vector3>> ray_cast(
+    std::optional<std::tuple<RigidBody *, Vector3>> ray_cast(
         const Vector3 &origin,
-        const Vector3 &direction) const = 0;
+        const Vector3 &direction) const override;
 
     /**
      * Add a body to be excluded from ray_casts
@@ -148,7 +151,7 @@ class PhysicsSystem
      * @param body
      *   Body to ignore.
      */
-    virtual void ignore_in_raycast(RigidBody *body) = 0;
+    void ignore_in_raycast(RigidBody *body) override;
 
     /**
      * Save the current state of the simulation.
@@ -160,7 +163,7 @@ class PhysicsSystem
      * @returns
      *   Saved state.
      */
-    virtual std::unique_ptr<PhysicsState> save() = 0;
+    std::unique_ptr<PhysicsState> save() override;
 
     /**
      * Load saved state. This will restore the simulation to that of the
@@ -171,7 +174,7 @@ class PhysicsSystem
      * @param state
      *   State to restore from.
      */
-    virtual void load(const PhysicsState *state) = 0;
+    void load(const PhysicsState *state) override;
 
     /**
      * Enable debug rendering. This should only be called once.
@@ -179,7 +182,44 @@ class PhysicsSystem
      * @param entity.
      *   The RenderEntity to store debug render data in.
      */
-    virtual void enable_debug_draw(RenderEntity *entity) = 0;
+    void enable_debug_draw(RenderEntity *entity) override;
+
+  private:
+    /** Bullet interface for detecting AABB overlapping pairs. */
+    std::unique_ptr<btBroadphaseInterface> broadphase_;
+
+    /**
+     * Bullet callback for adding and removing overlapping pairs from the
+     * broadphase.
+     */
+    std::unique_ptr<btGhostPairCallback> ghost_pair_callback_;
+
+    /** Bullet collision config object, */
+    std::unique_ptr<btDefaultCollisionConfiguration> collision_config_;
+
+    /** Object containing algorithms for handling collision pairs. */
+    std::unique_ptr<btCollisionDispatcher> collision_dispatcher_;
+
+    /** Bullet constraint solver. */
+    std::unique_ptr<btSequentialImpulseConstraintSolver> solver_;
+
+    /** Bullet simulated world. */
+    std::unique_ptr<btDiscreteDynamicsWorld> world_;
+
+    /** Collection of rigid bodies. */
+    std::vector<std::unique_ptr<RigidBody>> bodies_;
+
+    /** Collection of collision objects to be ignored during raycasts. */
+    std::set<const btCollisionObject *> ignore_;
+
+    /** Collection of character controllers. */
+    std::vector<std::unique_ptr<CharacterController>> character_controllers_;
+
+    /** DebugDraw object. */
+    std::unique_ptr<DebugDraw> debug_draw_;
+
+    /** Collection of collision shapes. */
+    std::vector<std::unique_ptr<BulletCollisionShape>> collision_shapes_;
 };
 
 }

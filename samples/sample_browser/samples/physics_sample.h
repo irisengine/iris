@@ -72,7 +72,7 @@ class PhysicsSample : public Sample
     iris::Scene scene_;
 
     /** Physics system */
-    iris::PhysicsSystem physics_;
+    iris::PhysicsSystem *physics_;
 
     /** Transform for moving light. */
     iris::Transform light_transform_;

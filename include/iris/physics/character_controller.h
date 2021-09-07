@@ -1,7 +1,5 @@
 #pragma once
 
-#include <any>
-
 #include "core/quaternion.h"
 #include "core/vector3.h"
 #include "physics/collision_shape.h"
@@ -125,8 +123,7 @@ class CharacterController
      * @param collision_shape
      *   New collision shape.
      */
-    virtual void set_collision_shape(
-        std::unique_ptr<CollisionShape> collision_shape) = 0;
+    virtual void set_collision_shape(CollisionShape *collision_shape) = 0;
 };
 
 }
