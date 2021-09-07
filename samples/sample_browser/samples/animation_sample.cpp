@@ -24,8 +24,7 @@
 #include <graphics/render_target.h>
 #include <graphics/scene.h>
 #include <graphics/window.h>
-#include <physics/box_collision_shape.h>
-#include <physics/physics_system.h>
+#include <physics/physics_manager.h>
 #include <physics/rigid_body.h>
 
 namespace
@@ -94,7 +93,7 @@ AnimationSample::AnimationSample(
           iris::CameraType::PERSPECTIVE,
           window_->width(),
           window_->height())
-    , physics_()
+    , physics_(iris::Root::physics_manager().create_physics_system())
     , zombie_(nullptr)
     , animation_(0u)
     , animations_()
@@ -154,7 +153,7 @@ AnimationSample::AnimationSample(
         iris::Vector3{-1.0f, -1.0f, 0.0f}, true);
     light_transform_ = iris::Transform{light_->direction(), {}, {1.0f}};
 
-    physics_.enable_debug_draw(debug_draw);
+    physics_->enable_debug_draw(debug_draw);
 
     animations_ = {
         "Zombie|ZombieWalk",
@@ -210,9 +209,9 @@ AnimationSample::AnimationSample(
             // create hit box
             hit_boxes_[box_data->first] = {
                 i,
-                physics_.create_rigid_body(
+                physics_->create_rigid_body(
                     iris::Vector3{},
-                    std::make_unique<iris::BoxCollisionShape>(scale_offset),
+                    physics_->create_box_collision_shape(scale_offset),
                     iris::RigidBodyType::GHOST)};
 
             // calculate hit box location after offset is applied
@@ -238,7 +237,7 @@ void AnimationSample::fixed_update()
         light_transform_.matrix());
     light_->set_direction(light_transform_.translation());
 
-    physics_.step(std::chrono::milliseconds(13));
+    physics_->step(std::chrono::milliseconds(13));
 }
 
 void AnimationSample::variable_update()

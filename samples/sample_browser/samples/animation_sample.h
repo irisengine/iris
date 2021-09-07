@@ -81,7 +81,7 @@ class AnimationSample : public Sample
     iris::Camera camera_;
 
     /** Physics system */
-    iris::PhysicsSystem physics_;
+    iris::PhysicsSystem *physics_;
 
     /** Zombie entity. */
     iris::RenderEntity *zombie_;
