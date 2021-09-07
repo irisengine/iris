@@ -1,0 +1,44 @@
+#pragma once
+
+#include <memory>
+
+#include <BulletCollision/CollisionShapes/btCapsuleShape.h>
+
+#include "physics/bullet/bullet_collision_shape.h"
+
+namespace iris
+{
+
+/**
+ * Implementation of CollisionShape for a capsule.
+ */
+class BulletCapsuleCollisionShape : public BulletCollisionShape
+{
+  public:
+    /**
+     * Construct new CapsuleCollisionShape
+     *
+     * @param width
+     *   Diameter of capsule.
+     *
+     * @param height
+     *   Height of capsule.
+     */
+    BulletCapsuleCollisionShape(float width, float height);
+
+    ~BulletCapsuleCollisionShape() override = default;
+
+    /**
+     * Get a handle to the bullet object.
+     *
+     * @returns
+     *   Bullet object.
+     */
+    btCollisionShape *handle() const override;
+
+  private:
+    /** Bullet collision shape. */
+    std::unique_ptr<btCapsuleShape> shape_;
+};
+
+}

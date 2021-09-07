@@ -2,11 +2,13 @@
 
 #include <btBulletDynamicsCommon.h>
 
+#include "core/exception.h"
 #include "core/vector3.h"
 #include "log/log.h"
-#include "physics/capsule_collision_shape.h"
+#include "physics/bullet/bullet_rigid_body.h"
+#include "physics/collision_shape.h"
 #include "physics/physics_system.h"
-#include "physics/rigid_body.h"
+#include "physics/rigid_body_type.h"
 
 namespace iris
 {
@@ -19,19 +21,26 @@ BasicCharacterController::BasicCharacterController(
     , body_(nullptr)
 {
     // use capsule shape for character
-    body_ = std::make_unique<RigidBody>(
+    body_ = physics_system_->create_rigid_body(
         Vector3{0.0f, 0.0f, 10.0f},
-        std::make_unique<CapsuleCollisionShape>(0.5f, 1.7f),
+        physics_system_->create_capsule_collision_shape(0.5f, 1.7f),
         RigidBodyType::NORMAL);
 
-    // store a copy of the bullet rigid body pointer
-    auto *bullet_body = std::any_cast<::btRigidBody *>(body_->native_handle());
+    auto *bullet_body = static_cast<BulletRigidBody *>(body_);
+
+    if (bullet_body->type() != RigidBodyType::NORMAL)
+    {
+        throw Exception(
+            "can only create BasicCharacterController with a NORMAL RigidBody");
+    }
+
+    auto *rigid_body = static_cast<btRigidBody *>(bullet_body->handle());
 
     // prevent capsule from falling over
-    bullet_body->setAngularFactor(::btVector3(0.0f, 0.0f, 0.0f));
+    rigid_body->setAngularFactor(::btVector3(0.0f, 0.0f, 0.0f));
 
     // prevent bullet sleeping the rigid body
-    bullet_body->setActivationState(DISABLE_DEACTIVATION);
+    rigid_body->setActivationState(DISABLE_DEACTIVATION);
 }
 
 BasicCharacterController::~BasicCharacterController() = default;
@@ -115,13 +124,13 @@ bool BasicCharacterController::on_ground() const
 
 RigidBody *BasicCharacterController::rigid_body() const
 {
-    return body_.get();
+    return body_;
 }
 
 void BasicCharacterController::set_collision_shape(
-    std::unique_ptr<CollisionShape> collision_shape)
+    CollisionShape *collision_shape)
 {
-    body_->set_collision_shape(std::move(collision_shape));
+    body_->set_collision_shape(collision_shape);
 }
 
 }

@@ -6,40 +6,21 @@
 
 #include "core/quaternion.h"
 #include "core/vector3.h"
+#include "physics/collision_shape.h"
 #include "physics/rigid_body_type.h"
 
 namespace iris
 {
 
-class CollisionShape;
-
 /**
- * A rigid body is a physics entity that can be added to the physics systems and
- * simulated. It can collide and interact with other rigid bodies.
+ * Interface for a  rigid body, a physics entity that can be added to the
+ * physics systems and simulated. It can collide and interact with other rigid
+ * bodies.
  */
 class RigidBody
 {
   public:
-    /**
-     * Create a new rigid body.
-     *
-     * @param position
-     *   Position in world space.
-     *
-     * @param collision_shape
-     *   The shape that defined the rigid body, this is used for collision
-     *   detection/response.
-     *
-     * @param type
-     *   The type of rigid body, this effects how this body interacts with
-     *   others.
-     */
-    RigidBody(
-        const Vector3 &position,
-        std::unique_ptr<CollisionShape> collision_shape,
-        RigidBodyType type);
-
-    ~RigidBody();
+    virtual ~RigidBody() = default;
 
     /**
      * Get position of rigid body centre of mass.
@@ -47,7 +28,7 @@ class RigidBody
      * @returns
      *   Rigid body position.
      */
-    Vector3 position() const;
+    virtual Vector3 position() const = 0;
 
     /**
      * Get orientation of rigid body.
@@ -55,7 +36,7 @@ class RigidBody
      * @returns
      *   Rigid body orientation.
      */
-    Quaternion orientation() const;
+    virtual Quaternion orientation() const = 0;
 
     /**
      * Get linear velocity.
@@ -65,7 +46,7 @@ class RigidBody
      * @returns
      *   Linear velocity.
      */
-    Vector3 linear_velocity() const;
+    virtual Vector3 linear_velocity() const = 0;
 
     /**
      * Get angular velocity.
@@ -75,7 +56,7 @@ class RigidBody
      * @returns
      *   Angular velocity.
      */
-    Vector3 angular_velocity() const;
+    virtual Vector3 angular_velocity() const = 0;
 
     /**
      * Set linear velocity.
@@ -85,7 +66,7 @@ class RigidBody
      * @param linear_velocity
      *   New linear velocity.
      */
-    void set_linear_velocity(const Vector3 &linear_velocity);
+    virtual void set_linear_velocity(const Vector3 &linear_velocity) = 0;
 
     /**
      * Set angular velocity.
@@ -95,7 +76,7 @@ class RigidBody
      * @param angular_velocity
      *   New angular velocity.
      */
-    void set_angular_velocity(const Vector3 &angular_velocity);
+    virtual void set_angular_velocity(const Vector3 &angular_velocity) = 0;
 
     /**
      * Reposition rigid body.
@@ -106,15 +87,9 @@ class RigidBody
      * @param orientation
      *   New orientation.
      */
-    void reposition(const Vector3 &position, const Quaternion &orientation);
-
-    /**
-     * Get native handle for physics engine implementation of rigid body.
-     *
-     * @returns
-     *   Physics engine native handle.
-     */
-    std::any native_handle() const;
+    virtual void reposition(
+        const Vector3 &position,
+        const Quaternion &orientation) = 0;
 
     /**
      * Get the name of the rigid body. This is an optional trait and will return
@@ -123,7 +98,7 @@ class RigidBody
      * @returns
      *   Optional name of rigid body.
      */
-    std::string name() const;
+    virtual std::string name() const = 0;
 
     /**
      * Set name.
@@ -131,7 +106,7 @@ class RigidBody
      * @param name
      *   New name.
      */
-    void set_name(const std::string &name);
+    virtual void set_name(const std::string &name) = 0;
 
     /**
      * Get type.
@@ -139,7 +114,7 @@ class RigidBody
      * @returns
      *   Type of rigid body.
      */
-    RigidBodyType type() const;
+    virtual RigidBodyType type() const = 0;
 
     /**
      * Pointer to collision shape.
@@ -147,7 +122,7 @@ class RigidBody
      * @returns
      *   Collision shape.
      */
-    CollisionShape *collision_shape() const;
+    virtual CollisionShape *collision_shape() const = 0;
 
     /**
      * Set collision shape.
@@ -155,7 +130,7 @@ class RigidBody
      * @param collision_shape
      *   New collision shape.
      */
-    void set_collision_shape(std::unique_ptr<CollisionShape> collision_shape);
+    virtual void set_collision_shape(CollisionShape *collision_shape) = 0;
 
     /**
      * Apply an impulse (at the centre of mass).
@@ -163,21 +138,7 @@ class RigidBody
      * @param impulse
      *   Impulse to apply.
      */
-    void apply_impulse(const Vector3 &impulse);
-
-  private:
-    /** Name of rigid body.*/
-    std::string name_;
-
-    /** Type of rigid body. */
-    RigidBodyType type_;
-
-    /** Collision shape of rigid body. */
-    std::unique_ptr<CollisionShape> collision_shape_;
-
-    /** Pointer to implementation. */
-    struct implementation;
-    std::unique_ptr<implementation> impl_;
+    virtual void apply_impulse(const Vector3 &impulse) = 0;
 };
 
 }
