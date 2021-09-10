@@ -15,8 +15,10 @@
 
 #include "core/data_buffer.h"
 #include "core/exception.h"
+#include "core/root.h"
 #include "jobs/concurrent_queue.h"
 #include "jobs/job.h"
+#include "jobs/job_system_manager.h"
 #include "log/log.h"
 #include "networking/channel/channel.h"
 #include "networking/channel/reliable_ordered_channel.h"
@@ -188,7 +190,7 @@ ClientConnectionHandler::ClientConnectionHandler(std::unique_ptr<Socket> socket)
     // a background job
     // this will handle any protocol packets and stick data into queues, which
     // can then be retrieved by calls to try_read
-    job::add({[this]() {
+    Root::jobs_manager().add({[this]() {
         for (;;)
         {
             // block and read the next Packet
@@ -219,7 +221,7 @@ ClientConnectionHandler::ClientConnectionHandler(std::unique_ptr<Socket> socket)
                         LOG_ERROR(
                             "client_connection_handler",
                             "unknown packet type {}",
-                            (int)p.type());
+                            static_cast<int>(p.type()));
                         break;
                 }
             }

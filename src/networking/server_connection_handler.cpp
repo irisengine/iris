@@ -14,8 +14,10 @@
 
 #include "core/data_buffer.h"
 #include "core/exception.h"
+#include "core/root.h"
 #include "jobs/concurrent_queue.h"
 #include "jobs/job.h"
+#include "jobs/job_system_manager.h"
 #include "log/log.h"
 #include "networking/channel/channel_type.h"
 #include "networking/channel/reliable_ordered_channel.h"
@@ -155,7 +157,7 @@ ServerConnectionHandler::ServerConnectionHandler(
 {
     // we want to always be accepting connections, so we do this in a background
     // job
-    job::add({[this]() {
+    Root::jobs_manager().add({[this]() {
         for (;;)
         {
             auto [client_socket, raw_packet, new_connection] = socket_->read();
