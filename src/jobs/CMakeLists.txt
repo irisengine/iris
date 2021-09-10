@@ -11,4 +11,4 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/context.h
     ${INCLUDE_ROOT}/job.h
     ${INCLUDE_ROOT}/job_system.h
-    job.cpp)
+    ${INCLUDE_ROOT}/job_system_manager.h)
