@@ -1,7 +1,5 @@
 #pragma once
 
-#include <atomic>
-#include <memory>
 #include <vector>
 
 #include "jobs/job.h"
@@ -10,17 +8,14 @@ namespace iris
 {
 
 /**
- * Class for managing the scheduling and running of jobs.
+ * Interface for a class managing the scheduling and running of jobs.
  */
 class JobSystem
 {
   public:
-    /**
-     * Create a new job system.
-     */
-    JobSystem();
+    JobSystem() = default;
+    virtual ~JobSystem() = default;
 
-    ~JobSystem();
     JobSystem(const JobSystem &) = delete;
     JobSystem &operator=(const JobSystem &) = delete;
     JobSystem(JobSystem &&) = delete;
@@ -34,7 +29,7 @@ class JobSystem
      * @param jobs
      *   Jobs to execute.
      */
-    void add_jobs(const std::vector<Job> &jobs);
+    virtual void add_jobs(const std::vector<Job> &jobs) = 0;
 
     /**
      * Add a collection of jobs. Once added this call blocks until all
@@ -43,15 +38,7 @@ class JobSystem
      * @param jobs
      *   Jobs to execute.
      */
-    void wait_for_jobs(const std::vector<Job> &jobs);
-
-  private:
-    /** Flag indicating of system is running. */
-    std::atomic<bool> running_;
-
-    /** Pointer to implementation. */
-    struct implementation;
-    std::unique_ptr<implementation> impl_;
+    virtual void wait_for_jobs(const std::vector<Job> &jobs) = 0;
 };
 
 }
