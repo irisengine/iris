@@ -27,7 +27,11 @@ OpenGLRenderTarget::OpenGLRenderTarget(
 
     // set colour texture
     ::glFramebufferTexture2D(
-        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colour_handle, 0);
+        GL_FRAMEBUFFER,
+        GL_COLOR_ATTACHMENT0,
+        GL_TEXTURE_2D_MULTISAMPLE,
+        colour_handle,
+        0);
     check_opengl_error("could not attach colour texture");
 
     const auto depth_handle =
@@ -35,7 +39,11 @@ OpenGLRenderTarget::OpenGLRenderTarget(
 
     // set depth texture
     ::glFramebufferTexture2D(
-        GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_handle, 0);
+        GL_FRAMEBUFFER,
+        GL_DEPTH_ATTACHMENT,
+        GL_TEXTURE_2D_MULTISAMPLE,
+        depth_handle,
+        0);
     check_opengl_error("could not attach depth texture");
 
     // check everything worked

@@ -37,7 +37,8 @@ class OpenGLTexture : public Texture
         std::uint32_t width,
         std::uint32_t height,
         PixelFormat pixel_format,
-        GLuint id);
+        GLuint id,
+        bool is_render_target = false);
 
     /**
      * Clean up OpenGL objects.

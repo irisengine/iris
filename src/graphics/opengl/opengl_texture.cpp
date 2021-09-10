@@ -75,7 +75,8 @@ GLuint create_texture(
     std::uint32_t width,
     std::uint32_t height,
     iris::PixelFormat pixel_format,
-    GLuint id)
+    GLuint id,
+    bool is_render_target)
 {
     auto texture = 0u;
 
@@ -85,7 +86,14 @@ GLuint create_texture(
     ::glActiveTexture(id);
     iris::check_opengl_error("could not activate texture");
 
-    ::glBindTexture(GL_TEXTURE_2D, texture);
+    if (is_render_target)
+    {
+        ::glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture);
+    }
+    else
+    {
+        ::glBindTexture(GL_TEXTURE_2D, texture);
+    }
     iris::check_opengl_error("could not bind texture");
 
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
@@ -110,8 +118,16 @@ GLuint create_texture(
         (format == GL_DEPTH_COMPONENT) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_BYTE;
 
     // create opengl texture
-    ::glTexImage2D(
-        GL_TEXTURE_2D, 0, format, width, height, 0, format, type, data_ptr);
+    if (is_render_target)
+    {
+        ::glTexImage2DMultisample(
+            GL_TEXTURE_2D_MULTISAMPLE, 4, format, width, height, GL_TRUE);
+    }
+    else
+    {
+        ::glTexImage2D(
+            GL_TEXTURE_2D, 0, format, width, height, 0, format, type, data_ptr);
+    }
     iris::check_opengl_error("could not set Texture data");
 
     if (format != GL_DEPTH_COMPONENT)
@@ -133,12 +149,14 @@ OpenGLTexture::OpenGLTexture(
     std::uint32_t width,
     std::uint32_t height,
     PixelFormat pixel_format,
-    GLuint id)
+    GLuint id,
+    bool is_render_target)
     : Texture(data, width, height, pixel_format)
     , handle_(0u)
     , id_(id)
 {
-    handle_ = create_texture(data, width, height, pixel_format, id_);
+    handle_ = create_texture(
+        data, width, height, pixel_format, id_, is_render_target);
 
     LOG_ENGINE_INFO("texture", "loaded from data");
 }

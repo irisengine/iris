@@ -281,13 +281,15 @@ RenderTarget *OpenGLRenderer::create_render_target(
             width * scale,
             height * scale,
             PixelFormat::RGBA,
-            tex_man.next_id()),
+            tex_man.next_id(),
+            true),
         std::make_unique<OpenGLTexture>(
             DataBuffer{},
             width * scale,
             height * scale,
             PixelFormat::DEPTH,
-            tex_man.next_id())));
+            tex_man.next_id(),
+            true)));
 
     return render_targets_.back().get();
 }
