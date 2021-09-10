@@ -3,23 +3,27 @@
 #include <vector>
 
 #include "jobs/job.h"
+#include "jobs/job_system.h"
 
 namespace iris
 {
 
 /**
- * Interface for a class managing the scheduling and running of jobs.
+ * Interface for a class that manages JobSystem objects. This used as part of
+ * component registration in the Root.
  */
-class JobSystem
+class JobSystemManager
 {
   public:
-    JobSystem() = default;
-    virtual ~JobSystem() = default;
+    virtual ~JobSystemManager() = default;
 
-    JobSystem(const JobSystem &) = delete;
-    JobSystem &operator=(const JobSystem &) = delete;
-    JobSystem(JobSystem &&) = delete;
-    JobSystem &operator=(JobSystem &&) = delete;
+    /**
+     * Create a JobSystem.
+     *
+     * @returns
+     *   Pointer to JobSystem.
+     */
+    virtual JobSystem *create_job_system() = 0;
 
     /**
      * Add a collection of jobs. Once added these are executed in a
@@ -29,7 +33,7 @@ class JobSystem
      * @param jobs
      *   Jobs to execute.
      */
-    virtual void add_jobs(const std::vector<Job> &jobs) = 0;
+    virtual void add(const std::vector<Job> &jobs) = 0;
 
     /**
      * Add a collection of jobs. Once added this call blocks until all
@@ -38,7 +42,7 @@ class JobSystem
      * @param jobs
      *   Jobs to execute.
      */
-    virtual void wait_for_jobs(const std::vector<Job> &jobs) = 0;
+    virtual void wait(const std::vector<Job> &jobs) = 0;
 };
 
 }

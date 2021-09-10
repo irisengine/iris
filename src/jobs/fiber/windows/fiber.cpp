@@ -12,6 +12,9 @@
 namespace iris
 {
 
+// we disable optimisations for job_runner as the inlining messes up with the
+// fiber resuming code
+#pragma optimize("", off)
 struct Fiber::implementation
 {
     AutoRelease<LPVOID, NULL> handle;
@@ -24,6 +27,7 @@ struct Fiber::implementation
      */
     static void job_runner(void *data)
     {
+
         auto *fiber = static_cast<Fiber *>(data);
         *this_fiber() = fiber;
 
@@ -43,6 +47,7 @@ struct Fiber::implementation
         fiber->parent_fiber_->resume();
     }
 };
+#pragma optimize("", on)
 
 Fiber::Fiber(Job job)
     : Fiber(job, nullptr)
@@ -187,4 +192,5 @@ Fiber **Fiber::this_fiber()
     thread_local Fiber *this_fiber = nullptr;
     return &this_fiber;
 }
+
 }

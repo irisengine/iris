@@ -1,4 +1,4 @@
-#include "jobs/job_system.h"
+#include "jobs/thread/thread_job_system.h"
 
 #include <chrono>
 #include <future>
@@ -10,19 +10,12 @@
 namespace iris
 {
 
-struct JobSystem::implementation
-{
-};
-
-JobSystem::JobSystem()
+ThreadJobSystem::ThreadJobSystem()
     : running_(true)
-    , impl_(nullptr)
 {
 }
 
-JobSystem::~JobSystem() = default;
-
-void JobSystem::add_jobs(const std::vector<Job> &jobs)
+void ThreadJobSystem::add_jobs(const std::vector<Job> &jobs)
 {
     for (const auto &job : jobs)
     {
@@ -38,7 +31,7 @@ void JobSystem::add_jobs(const std::vector<Job> &jobs)
     }
 }
 
-void JobSystem::wait_for_jobs(const std::vector<Job> &jobs)
+void ThreadJobSystem::wait_for_jobs(const std::vector<Job> &jobs)
 {
     std::vector<std::future<void>> waiting_jobs{};
 
@@ -52,5 +45,4 @@ void JobSystem::wait_for_jobs(const std::vector<Job> &jobs)
         waiting_job.get();
     }
 }
-
 }

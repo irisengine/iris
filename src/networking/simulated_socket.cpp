@@ -7,8 +7,10 @@
 #include <thread>
 
 #include "core/random.h"
+#include "core/root.h"
 #include "jobs/concurrent_queue.h"
 #include "jobs/job.h"
+#include "jobs/job_system_manager.h"
 #include "log/log.h"
 
 using namespace std::chrono_literals;
@@ -29,7 +31,7 @@ SimulatedSocket::SimulatedSocket(
     // in order to facilitate message delay without blocking we have write()
     // enqueue data with a time point, this job then grabs them and can wait
     // until the delay has passed before sending
-    job::add({[this]() {
+    Root::jobs_manager().add({[this]() {
         for (;;)
         {
             if (write_queue_.empty())

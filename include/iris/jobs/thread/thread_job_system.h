@@ -1,25 +1,23 @@
 #pragma once
 
+#include <atomic>
+#include <memory>
 #include <vector>
 
 #include "jobs/job.h"
+#include "jobs/job_system.h"
 
 namespace iris
 {
 
 /**
- * Interface for a class managing the scheduling and running of jobs.
+ * Implementation of JobSystem that schedules its jobs using threads.
  */
-class JobSystem
+class ThreadJobSystem : public JobSystem
 {
   public:
-    JobSystem() = default;
-    virtual ~JobSystem() = default;
-
-    JobSystem(const JobSystem &) = delete;
-    JobSystem &operator=(const JobSystem &) = delete;
-    JobSystem(JobSystem &&) = delete;
-    JobSystem &operator=(JobSystem &&) = delete;
+    ThreadJobSystem();
+    ~ThreadJobSystem() override = default;
 
     /**
      * Add a collection of jobs. Once added these are executed in a
@@ -29,7 +27,7 @@ class JobSystem
      * @param jobs
      *   Jobs to execute.
      */
-    virtual void add_jobs(const std::vector<Job> &jobs) = 0;
+    void add_jobs(const std::vector<Job> &jobs) override;
 
     /**
      * Add a collection of jobs. Once added this call blocks until all
@@ -38,7 +36,11 @@ class JobSystem
      * @param jobs
      *   Jobs to execute.
      */
-    virtual void wait_for_jobs(const std::vector<Job> &jobs) = 0;
+    void wait_for_jobs(const std::vector<Job> &jobs) override;
+
+  private:
+    /** Flag indicating of system is running. */
+    std::atomic<bool> running_;
 };
 
 }

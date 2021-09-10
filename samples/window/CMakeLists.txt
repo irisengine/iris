@@ -1,5 +1,3 @@
-enable_language(C ASM)
-
 if(IRIS_PLATFORM MATCHES "IOS")
   set(IOS_RESOURCES "Default-568h@2x.png")
 
