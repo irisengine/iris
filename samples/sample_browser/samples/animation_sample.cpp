@@ -242,7 +242,7 @@ void AnimationSample::fixed_update()
 
 void AnimationSample::variable_update()
 {
-    zombie_->skeleton().advance();
+    // zombie_->skeleton().advance();
 
     // update hit boxes
     for (auto &[name, data] : hit_boxes_)

@@ -37,7 +37,13 @@
             32,                      // 32 bit depth buffer
             NSOpenGLPFADoubleBuffer, // use double buffering
             NSOpenGLPFAAccelerated,  // use hardware acceleration
-            0                        // array termination
+            NSOpenGLPFASampleBuffers,
+            1, // one multi sample buffer
+            NSOpenGLPFASamples,
+            4,                      // use 4 samples for anti-aliasing
+            NSOpenGLPFANoRecovery,  // disable software fallback
+            NSOpenGLPFAMultisample, // prefer multi-sampling
+            0                       // array termination
         };
 
         // create the pixel format object with the above attributes

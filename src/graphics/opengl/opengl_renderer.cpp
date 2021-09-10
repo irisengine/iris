@@ -193,6 +193,9 @@ OpenGLRenderer::OpenGLRenderer(std::uint32_t width, std::uint32_t height)
     ::glDepthFunc(GL_LEQUAL);
     check_opengl_error("could not set depth test function");
 
+    ::glEnable(GL_MULTISAMPLE);
+    check_opengl_error("could not enable multi sampling");
+
     LOG_ENGINE_INFO("render_system", "constructed opengl renderer");
 }
 
