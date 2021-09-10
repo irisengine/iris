@@ -6,13 +6,15 @@
 #include <vector>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb/stb_image_write.h>
+#include <stb_image_write.h>
 
 #include "core/colour.h"
 #include "core/exception.h"
+#include "core/root.h"
 #include "core/start.h"
 #include "core/vector3.h"
 #include "jobs/job.h"
+#include "jobs/job_system_manager.h"
 #include "log/log.h"
 
 struct Sphere;
@@ -257,7 +259,7 @@ void go(int, char **)
         std::vector<iris::Job> batch(std::cend(jobs) - count, std::cend(jobs));
         jobs.erase(std::cend(jobs) - count, std::cend(jobs));
 
-        iris::job::wait(batch);
+        iris::Root::jobs_manager().wait(batch);
 
     } while (!jobs.empty());
 
