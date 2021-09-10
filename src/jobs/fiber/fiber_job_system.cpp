@@ -1,4 +1,4 @@
-#include "jobs/job_system.h"
+#include "jobs/fiber/fiber_job_system.h"
 
 #include <atomic>
 #include <cassert>
@@ -39,7 +39,7 @@ namespace
  *   Flag to indicate if this thread should keep running.
  *
  * @param fibers
- *   Queue of fibers to pop from.
+ *   Queue of fibers to pop from.e
  */
 void job_thread(
     int id,
@@ -122,123 +122,120 @@ void job_thread(
     *iris::Fiber::this_fiber() = nullptr;
 }
 
+/**
+ * If the main thread (which is not a fiber) wants to wait on a job then it
+ * cannot. We bootstrap that by using traditional signaling primitives.
+ *
+ * @param jobs
+ *   Jobs to wait on
+ *
+ * @param js
+ *   Pointer to JoSystem.
+ */
+void bootstrap_first_job(
+    const std::vector<iris::Job> &jobs,
+    iris::FiberJobSystem *js)
+{
+    std::mutex m;
+    std::condition_variable cv;
+    std::atomic<bool> done = false;
+    std::exception_ptr exception;
+
+    // wrap everything up in a fire-and-forget job
+    js->add_jobs({{[&cv, &done, &jobs, &exception, js]() {
+        LOG_ENGINE_INFO("job_system", "bootstrap started");
+
+        try
+        {
+            // we can now call wait for jobs because we are within another
+            // fiber
+            js->wait_for_jobs(jobs);
+        }
+        catch (...)
+        {
+            // capture any exception
+            exception = std::current_exception();
+        }
+
+        // signal calling thread we are finished
+        done = true;
+        cv.notify_one();
+        LOG_ENGINE_INFO("job_system", "bootstrap lambda done");
+    }}});
+
+    // block and wait for wrapping fiber to finish
+    if (!done)
+    {
+        std::unique_lock lock(m);
+        cv.wait(lock, [&done]() { return done.load(); });
+    }
+
+    LOG_ENGINE_INFO("job_system", "non-fiber wait complete");
+
+    // rethrow any exception
+    if (exception)
+    {
+        std::rethrow_exception(exception);
+    }
+}
+
 }
 
 namespace iris
 {
 
-struct JobSystem::implementation
-{
-    Semaphore jobs_semaphore;
-    std::vector<Thread> workers;
-    ConcurrentQueue<std::tuple<Fiber *, Counter *>> fibers;
-
-    /**
-     * If the main thread (which is not a fiber) wants to wait on a job then it
-     * cannot. We bootstrap that by using traditional signaling primitives.
-     *
-     * @param jobs
-     *   Jobs to wait on
-     *
-     * @param js
-     *   Pointer to JoSystem.
-     */
-    static void bootstrap_first_job(const std::vector<Job> &jobs, JobSystem *js)
-    {
-        std::mutex m;
-        std::condition_variable cv;
-        std::atomic<bool> done = false;
-        std::exception_ptr exception;
-
-        // wrap everything up in a fire-and-forget job
-        js->add_jobs({{[&cv, &done, &jobs, &exception, js]() {
-            LOG_ENGINE_INFO("job_system", "bootstrap started");
-
-            try
-            {
-                // we can now call wait for jobs because we are within another
-                // fiber
-                js->wait_for_jobs(jobs);
-            }
-            catch (...)
-            {
-                // capture any exception
-                exception = std::current_exception();
-            }
-
-            // signal calling thread we are finished
-            done = true;
-            cv.notify_one();
-            LOG_ENGINE_INFO("job_system", "bootstrap lambda done");
-        }}});
-
-        // block and wait for wrapping fiber to finish
-        if (!done)
-        {
-            std::unique_lock lock(m);
-            cv.wait(lock, [&done]() { return done.load(); });
-        }
-
-        LOG_ENGINE_INFO("job_system", "non-fiber wait complete");
-
-        // rethrow any exception
-        if (exception)
-        {
-            std::rethrow_exception(exception);
-        }
-    }
-};
-
-JobSystem::JobSystem()
+FiberJobSystem::FiberJobSystem()
     : running_(true)
-    , impl_(std::make_unique<implementation>())
+    , jobs_semaphore_()
+    , workers_()
+    , fibers_()
 {
     auto thread_count = std::max(1u, std::thread::hardware_concurrency() - 1u);
 
     LOG_ENGINE_INFO("job_system", "creating {} threads", thread_count);
     for (auto i = 0u; i < thread_count; ++i)
     {
-        impl_->workers.emplace_back(
+        workers_.emplace_back(
             job_thread,
             i + 1,
-            std::ref(impl_->jobs_semaphore),
+            std::ref(jobs_semaphore_),
             std::ref(running_),
-            std::ref(impl_->fibers));
+            std::ref(fibers_));
     }
 }
 
-JobSystem::~JobSystem()
+FiberJobSystem::~FiberJobSystem()
 {
     running_ = false;
 
-    for (auto i = 0u; i < impl_->workers.size() + 1u; i++)
+    for (auto i = 0u; i < workers_.size() + 1u; i++)
     {
-        impl_->jobs_semaphore.release();
+        jobs_semaphore_.release();
     }
 
-    for (auto &worker : impl_->workers)
+    for (auto &worker : workers_)
     {
         worker.join();
     }
 }
 
-void JobSystem::add_jobs(const std::vector<Job> &jobs)
+void FiberJobSystem::add_jobs(const std::vector<Job> &jobs)
 {
     for (const auto &job : jobs)
     {
         // we rely on the worker thread to clean up after us
         auto *f = new Fiber{job};
 
-        impl_->fibers.enqueue(f, nullptr);
-        impl_->jobs_semaphore.release();
+        fibers_.enqueue(f, nullptr);
+        jobs_semaphore_.release();
     }
 }
 
-void JobSystem::wait_for_jobs(const std::vector<Job> &jobs)
+void FiberJobSystem::wait_for_jobs(const std::vector<Job> &jobs)
 {
     if (*Fiber::this_fiber() == nullptr)
     {
-        implementation::bootstrap_first_job(jobs, this);
+        bootstrap_first_job(jobs, this);
     }
     else
     {
@@ -250,15 +247,15 @@ void JobSystem::wait_for_jobs(const std::vector<Job> &jobs)
         {
             fibers.emplace_back(std::make_unique<Fiber>(job, counter.get()));
 
-            impl_->fibers.enqueue(fibers.back().get(), nullptr);
-            impl_->jobs_semaphore.release();
+            fibers_.enqueue(fibers.back().get(), nullptr);
+            jobs_semaphore_.release();
         }
 
         // mark current fiber as unsafe (so another thread doesn't preemptively
         // try to resume it), stick it on the queue
         (*Fiber::this_fiber())->set_unsafe();
-        impl_->fibers.enqueue(*Fiber::this_fiber(), counter.get());
-        impl_->jobs_semaphore.release();
+        fibers_.enqueue(*Fiber::this_fiber(), counter.get());
+        jobs_semaphore_.release();
 
         // suspend current thread - this will internally mark the fiber as safe
         (*Fiber::this_fiber())->suspend();

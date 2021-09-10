@@ -9,5 +9,7 @@ endif()
 target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/counter.h
     ${INCLUDE_ROOT}/fiber.h
+    ${INCLUDE_ROOT}/fiber_job_system.h
     counter.cpp
-    job_system.cpp)
+    fiber_job_system.cpp
+    fiber_job_system_manager.cpp)
