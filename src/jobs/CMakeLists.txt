@@ -1,10 +1,7 @@
 set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/jobs")
 
-if(IRIS_JOBS_API MATCHES "FIBERS")
-  add_subdirectory("fiber")
-elseif(IRIS_JOBS_API MATCHES "THREADS")
-  add_subdirectory("thread")
-endif()
+add_subdirectory("fiber")
+add_subdirectory("thread")
 
 target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/concurrent_queue.h
