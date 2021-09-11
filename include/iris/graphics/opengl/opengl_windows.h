@@ -24,6 +24,8 @@
 #define GL_COMPILE_STATUS 0x8B81
 #define GL_CLAMP_TO_BORDER 0x812D
 #define GL_CLAMP_TO_EDGE 0x812F
+#define GL_TEXTURE_2D_MULTISAMPLE 0x9100
+#define GL_MULTISAMPLE 0x809D
 
 #define WGL_CONTEXT_MAJOR_VERSION_ARB 0x2091
 #define WGL_CONTEXT_MINOR_VERSION_ARB 0x2092
@@ -40,6 +42,8 @@
 #define WGL_STENCIL_BITS_ARB 0x2023
 #define WGL_FULL_ACCELERATION_ARB 0x2027
 #define WGL_TYPE_RGBA_ARB 0x202B
+#define WGL_SAMPLE_BUFFERS_ARB 0x2041
+#define WGL_SAMPLES_ARB 0x2042
 
 using GLsizeiptr = std::ptrdiff_t;
 using GLintptr = std::ptrdiff_t;
@@ -107,3 +111,10 @@ EXTERN void (*glGetShaderiv)(GLuint, GLenum, GLint *);
 EXTERN void (*glGetShaderInfoLog)(GLuint, GLsizei, GLsizei *, GLchar *);
 EXTERN void (*glDeleteShader)(GLuint);
 EXTERN void (*glGenerateMipmap)(GLenum);
+EXTERN void (*glTexImage2DMultisample)(
+    GLenum,
+    GLsizei,
+    GLenum,
+    GLsizei,
+    GLsizei,
+    GLboolean);

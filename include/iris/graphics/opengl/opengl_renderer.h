@@ -65,6 +65,8 @@ class OpenGLRenderer : public Renderer
 
     void execute_draw(RenderCommand &command) override;
 
+    void execute_pass_end(RenderCommand &command) override;
+
     void execute_present(RenderCommand &command) override;
 
   private:

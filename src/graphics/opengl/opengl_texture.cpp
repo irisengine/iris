@@ -76,7 +76,7 @@ GLuint create_texture(
     std::uint32_t height,
     iris::PixelFormat pixel_format,
     GLuint id,
-    bool is_render_target)
+    bool is_multisampled)
 {
     auto texture = 0u;
 
@@ -86,7 +86,7 @@ GLuint create_texture(
     ::glActiveTexture(id);
     iris::check_opengl_error("could not activate texture");
 
-    if (is_render_target)
+    if (is_multisampled)
     {
         ::glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture);
     }
@@ -118,7 +118,7 @@ GLuint create_texture(
         (format == GL_DEPTH_COMPONENT) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_BYTE;
 
     // create opengl texture
-    if (is_render_target)
+    if (is_multisampled)
     {
         ::glTexImage2DMultisample(
             GL_TEXTURE_2D_MULTISAMPLE, 4, format, width, height, GL_TRUE);
@@ -150,13 +150,14 @@ OpenGLTexture::OpenGLTexture(
     std::uint32_t height,
     PixelFormat pixel_format,
     GLuint id,
-    bool is_render_target)
+    bool is_multisampled)
     : Texture(data, width, height, pixel_format)
     , handle_(0u)
     , id_(id)
+    , is_multisampled_(is_multisampled)
 {
     handle_ = create_texture(
-        data, width, height, pixel_format, id_, is_render_target);
+        data, width, height, pixel_format, id_, is_multisampled_);
 
     LOG_ENGINE_INFO("texture", "loaded from data");
 }
@@ -171,9 +172,18 @@ GLuint OpenGLTexture::handle() const
 {
     return handle_;
 }
+
 GLuint OpenGLTexture::id() const
 {
     return id_;
+}
+
+void OpenGLTexture::bind() const
+{
+    const auto target =
+        is_multisampled_ ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
+    ::glBindTexture(target, handle_);
+    iris::check_opengl_error("could not bind texture``");
 }
 
 }

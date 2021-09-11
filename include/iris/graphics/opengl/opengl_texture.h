@@ -38,7 +38,7 @@ class OpenGLTexture : public Texture
         std::uint32_t height,
         PixelFormat pixel_format,
         GLuint id,
-        bool is_render_target = false);
+        bool is_multisampled = false);
 
     /**
      * Clean up OpenGL objects.
@@ -61,12 +61,16 @@ class OpenGLTexture : public Texture
      */
     GLuint id() const;
 
+    void bind() const;
+
   private:
     /** OpenGL texture handle. */
     GLuint handle_;
 
     /** OpenGL texture unit. */
     GLuint id_;
+
+    bool is_multisampled_;
 };
 
 }

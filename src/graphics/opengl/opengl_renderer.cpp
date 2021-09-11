@@ -96,13 +96,11 @@ void set_uniforms(
             static_cast<const iris::DirectionalLight *>(light);
         const auto *opengl_texture = static_cast<const iris::OpenGLTexture *>(
             shadow_map->depth_texture());
-        const auto tex_handle = opengl_texture->handle();
 
         ::glActiveTexture(opengl_texture->id());
         iris::check_opengl_error("could not activate texture");
 
-        ::glBindTexture(GL_TEXTURE_2D, tex_handle);
-        iris::check_opengl_error("could not bind texture``");
+        opengl_texture->bind();
 
         uniforms->shadow_map.set_value(opengl_texture->id() - GL_TEXTURE0);
         uniforms->light_projection.set_value(
@@ -137,8 +135,7 @@ void bind_textures(
         ::glActiveTexture(opengl_texture->id());
         iris::check_opengl_error("could not activate texture");
 
-        ::glBindTexture(GL_TEXTURE_2D, tex_handle);
-        iris::check_opengl_error("could not bind texture``");
+        opengl_texture->bind();
 
         uniforms->textures[i].set_value(opengl_texture->id() - GL_TEXTURE0);
     }
@@ -281,15 +278,13 @@ RenderTarget *OpenGLRenderer::create_render_target(
             width * scale,
             height * scale,
             PixelFormat::RGBA,
-            tex_man.next_id(),
-            true),
+            tex_man.next_id()),
         std::make_unique<OpenGLTexture>(
             DataBuffer{},
             width * scale,
             height * scale,
             PixelFormat::DEPTH,
-            tex_man.next_id(),
-            true)));
+            tex_man.next_id())));
 
     return render_targets_.back().get();
 }
@@ -380,6 +375,17 @@ void OpenGLRenderer::execute_draw(RenderCommand &command)
     set_uniforms(uniforms, camera, render_entity, command.shadow_map(), light);
     bind_textures(uniforms, material);
     draw_meshes(render_entity);
+}
+
+void OpenGLRenderer::execute_pass_end(RenderCommand &command)
+{
+    const auto *target = static_cast<const OpenGLRenderTarget *>(
+        command.render_pass()->render_target);
+
+    if (target != nullptr)
+    {
+        target->multisample_resolve();
+    }
 }
 
 void OpenGLRenderer::execute_present(RenderCommand &)

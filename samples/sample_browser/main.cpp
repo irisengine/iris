@@ -58,6 +58,7 @@ std::unique_ptr<Sample> create_sample(
 void go(int, char **)
 {
     iris::ResourceLoader::instance().set_root_directory("assets");
+    iris::Root::set_graphics_api("opengl");
 
     auto window = iris::Root::window_manager().create_window(800u, 800u);
     std::size_t sample_number = 0u;

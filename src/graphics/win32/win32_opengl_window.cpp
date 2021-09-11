@@ -95,6 +95,7 @@ void resolve_global_opengl_functions()
     resolve_opengl_function(glGetShaderInfoLog, "glGetShaderInfoLog");
     resolve_opengl_function(glDeleteShader, "glDeleteShader");
     resolve_opengl_function(glGenerateMipmap, "glGenerateMipmap");
+    resolve_opengl_function(glTexImage2DMultisample, "glTexImage2DMultisample");
 }
 
 /**
@@ -224,6 +225,10 @@ void init_opengl(HDC dc)
         24,
         WGL_STENCIL_BITS_ARB,
         8,
+        WGL_SAMPLE_BUFFERS_ARB,
+        GL_TRUE,
+        WGL_SAMPLES_ARB,
+        4,
         0};
 
     int pixel_format = 0;

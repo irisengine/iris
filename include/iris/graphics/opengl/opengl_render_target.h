@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "graphics/opengl/opengl.h"
+#include "graphics/opengl/opengl_texture.h"
 #include "graphics/render_target.h"
 #include "graphics/texture.h"
 
@@ -49,9 +50,16 @@ class OpenGLRenderTarget : public RenderTarget
      */
     void unbind(GLenum target) const;
 
+    void multisample_resolve() const;
+
   private:
     /** OpenGL handle to framebuffer */
     GLuint handle_;
+
+    GLuint multisample_handle_;
+
+    std::unique_ptr<OpenGLTexture> multisample_colour_texture_;
+    std::unique_ptr<OpenGLTexture> multisample_depth_texture_;
 };
 
 }
