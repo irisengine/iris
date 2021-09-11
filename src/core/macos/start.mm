@@ -45,7 +45,7 @@ void register_apis()
     iris::Root::register_jobs_api(
         "fiber", std::make_unique<iris::FiberJobSystemManager>());
 
-    iris::Root::set_jobs_api("fiber");
+    iris::Root::set_jobs_api("thread");
 }
 
 }

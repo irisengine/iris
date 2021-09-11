@@ -7,6 +7,7 @@
 #include "core/camera.h"
 #include "core/root.h"
 #include "core/vector3.h"
+#include "graphics/anti_aliasing_level.h"
 #include "graphics/lights/lighting_rig.h"
 #include "graphics/opengl/default_uniforms.h"
 #include "graphics/opengl/opengl.h"
@@ -130,7 +131,6 @@ void bind_textures(
     {
         const auto *opengl_texture =
             static_cast<const iris::OpenGLTexture *>(textures[i]);
-        const auto tex_handle = opengl_texture->handle();
 
         ::glActiveTexture(opengl_texture->id());
         iris::check_opengl_error("could not activate texture");
@@ -173,13 +173,17 @@ void draw_meshes(const iris::RenderEntity *entity)
 namespace iris
 {
 
-OpenGLRenderer::OpenGLRenderer(std::uint32_t width, std::uint32_t height)
+OpenGLRenderer::OpenGLRenderer(
+    std::uint32_t width,
+    std::uint32_t height,
+    AntiAliasingLevel anti_aliasing_level)
     : Renderer()
     , render_targets_()
     , materials_()
     , uniforms_()
     , width_(width)
     , height_(height)
+    , anti_aliasing_level_(anti_aliasing_level)
 {
     ::glClearColor(0.77f, 0.83f, 0.9f, 1.0f);
     check_opengl_error("could not set clear colour");
@@ -190,7 +194,14 @@ OpenGLRenderer::OpenGLRenderer(std::uint32_t width, std::uint32_t height)
     ::glDepthFunc(GL_LEQUAL);
     check_opengl_error("could not set depth test function");
 
-    ::glEnable(GL_MULTISAMPLE);
+    if (anti_aliasing_level_ == AntiAliasingLevel::NONE)
+    {
+        ::glDisable(GL_MULTISAMPLE);
+    }
+    else
+    {
+        ::glEnable(GL_MULTISAMPLE);
+    }
     check_opengl_error("could not enable multi sampling");
 
     LOG_ENGINE_INFO("render_system", "constructed opengl renderer");
@@ -271,6 +282,7 @@ RenderTarget *OpenGLRenderer::create_render_target(
         static_cast<OpenGLTextureManager &>(Root::texture_manager());
 
     const auto scale = Root::window_manager().current_window()->screen_scale();
+    const auto samples = static_cast<std::uint32_t>(anti_aliasing_level_);
 
     render_targets_.emplace_back(std::make_unique<OpenGLRenderTarget>(
         std::make_unique<OpenGLTexture>(
@@ -278,13 +290,16 @@ RenderTarget *OpenGLRenderer::create_render_target(
             width * scale,
             height * scale,
             PixelFormat::RGBA,
-            tex_man.next_id()),
+            tex_man.next_id(),
+            samples),
         std::make_unique<OpenGLTexture>(
             DataBuffer{},
             width * scale,
             height * scale,
             PixelFormat::DEPTH,
-            tex_man.next_id())));
+            tex_man.next_id(),
+            samples),
+        samples));
 
     return render_targets_.back().get();
 }

@@ -76,7 +76,7 @@ GLuint create_texture(
     std::uint32_t height,
     iris::PixelFormat pixel_format,
     GLuint id,
-    bool is_multisampled)
+    std::uint32_t samples)
 {
     auto texture = 0u;
 
@@ -86,13 +86,13 @@ GLuint create_texture(
     ::glActiveTexture(id);
     iris::check_opengl_error("could not activate texture");
 
-    if (is_multisampled)
+    if (samples == 0u)
     {
-        ::glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture);
+        ::glBindTexture(GL_TEXTURE_2D, texture);
     }
     else
     {
-        ::glBindTexture(GL_TEXTURE_2D, texture);
+        ::glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture);
     }
     iris::check_opengl_error("could not bind texture");
 
@@ -118,15 +118,15 @@ GLuint create_texture(
         (format == GL_DEPTH_COMPONENT) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_BYTE;
 
     // create opengl texture
-    if (is_multisampled)
-    {
-        ::glTexImage2DMultisample(
-            GL_TEXTURE_2D_MULTISAMPLE, 4, format, width, height, GL_TRUE);
-    }
-    else
+    if (samples == 0u)
     {
         ::glTexImage2D(
             GL_TEXTURE_2D, 0, format, width, height, 0, format, type, data_ptr);
+    }
+    else
+    {
+        ::glTexImage2DMultisample(
+            GL_TEXTURE_2D_MULTISAMPLE, samples, format, width, height, GL_TRUE);
     }
     iris::check_opengl_error("could not set Texture data");
 
@@ -150,14 +150,13 @@ OpenGLTexture::OpenGLTexture(
     std::uint32_t height,
     PixelFormat pixel_format,
     GLuint id,
-    bool is_multisampled)
+    std::uint32_t samples)
     : Texture(data, width, height, pixel_format)
     , handle_(0u)
     , id_(id)
-    , is_multisampled_(is_multisampled)
+    , samples_(samples)
 {
-    handle_ = create_texture(
-        data, width, height, pixel_format, id_, is_multisampled_);
+    handle_ = create_texture(data, width, height, pixel_format, id_, samples_);
 
     LOG_ENGINE_INFO("texture", "loaded from data");
 }
@@ -181,7 +180,7 @@ GLuint OpenGLTexture::id() const
 void OpenGLTexture::bind() const
 {
     const auto target =
-        is_multisampled_ ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
+        samples_ == 0u ? GL_TEXTURE_2D : GL_TEXTURE_2D_MULTISAMPLE;
     ::glBindTexture(target, handle_);
     iris::check_opengl_error("could not bind texture``");
 }

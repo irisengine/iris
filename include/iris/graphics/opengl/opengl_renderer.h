@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "graphics/anti_aliasing_level.h"
 #include "graphics/opengl/default_uniforms.h"
 #include "graphics/opengl/opengl_material.h"
 #include "graphics/opengl/opengl_render_target.h"
@@ -30,7 +31,10 @@ class OpenGLRenderer : public Renderer
      * @param height
      *   Height of window being rendered to.
      */
-    OpenGLRenderer(std::uint32_t width, std::uint32_t height);
+    OpenGLRenderer(
+        std::uint32_t width,
+        std::uint32_t height,
+        AntiAliasingLevel level);
     ~OpenGLRenderer() override = default;
 
     /**
@@ -90,6 +94,8 @@ class OpenGLRenderer : public Renderer
 
     /** Height of window being rendered to. */
     std::uint32_t height_;
+
+    AntiAliasingLevel anti_aliasing_level_;
 };
 
 }

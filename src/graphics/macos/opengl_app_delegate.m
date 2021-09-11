@@ -8,7 +8,7 @@
 
 @implementation OpenGLAppDelegate
 
-- (id)initWithRect:(NSRect)rect
+- (id)initWithRect:(NSRect)rect withSamples:(int)samples
 {
     // call the super init, perform custom initialisation if this succeeds
     if (self = [super init])
@@ -40,7 +40,7 @@
             NSOpenGLPFASampleBuffers,
             1, // one multi sample buffer
             NSOpenGLPFASamples,
-            4,                      // use 4 samples for anti-aliasing
+            samples,                // use 4 samples for anti-aliasing
             NSOpenGLPFANoRecovery,  // disable software fallback
             NSOpenGLPFAMultisample, // prefer multi-sampling
             0                       // array termination

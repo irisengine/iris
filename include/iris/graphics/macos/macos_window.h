@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "graphics/anti_aliasing_level.h"
 #include "graphics/window.h"
 
 namespace iris
@@ -22,7 +23,10 @@ class MacosWindow : public Window
      * @param height
      *   Height of window.
      */
-    MacosWindow(std::uint32_t width, std::uint32_t height);
+    MacosWindow(
+        std::uint32_t width,
+        std::uint32_t height,
+        AntiAliasingLevel anti_aliasing_level = AntiAliasingLevel::MEDIUM);
     ~MacosWindow() override = default;
 
     /**

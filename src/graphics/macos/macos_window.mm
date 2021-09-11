@@ -13,6 +13,7 @@
 #include "events/keyboard_event.h"
 #include "events/mouse_button_event.h"
 #include "events/mouse_event.h"
+#include "graphics/anti_aliasing_level.h"
 #include "graphics/macos/metal_app_delegate.h"
 #include "graphics/macos/opengl_app_delegate.h"
 #include "graphics/metal/metal_renderer.h"
@@ -200,7 +201,10 @@ iris::MouseEvent handle_mouse_event(NSEvent *event)
 namespace iris
 {
 
-MacosWindow::MacosWindow(std::uint32_t width, std::uint32_t height)
+MacosWindow::MacosWindow(
+    std::uint32_t width,
+    std::uint32_t height,
+    AntiAliasingLevel anti_aliasing_level)
     : Window(width, height)
 {
     // get and/or create the application singleton
@@ -214,6 +218,8 @@ MacosWindow::MacosWindow(std::uint32_t width, std::uint32_t height)
 
     id<NSApplicationDelegate> app_delegate = nullptr;
 
+    const auto samples = static_cast<int>(anti_aliasing_level);
+
     const auto api = Root::graphics_api();
 
     // create a graphics api specific Renderer and app delegate
@@ -226,8 +232,10 @@ MacosWindow::MacosWindow(std::uint32_t width, std::uint32_t height)
     else if (api == "opengl")
     {
         app_delegate = [[OpenGLAppDelegate alloc]
-            initWithRect:NSMakeRect(0.0f, 0.0f, width_, height_)];
-        renderer_ = std::make_unique<OpenGLRenderer>(width_, height_);
+            initWithRect:NSMakeRect(0.0f, 0.0f, width_, height_)
+             withSamples:samples];
+        renderer_ = std::make_unique<OpenGLRenderer>(
+            width_, height_, anti_aliasing_level);
     }
     else
     {

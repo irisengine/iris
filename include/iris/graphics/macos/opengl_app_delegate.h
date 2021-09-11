@@ -14,7 +14,7 @@
  * @param rect
  *   Dimensions of new window.
  */
-- (id)initWithRect:(NSRect)rect;
+- (id)initWithRect:(NSRect)rect withSamples:(int)samples;
 
 /** Width of OpenGl window. */
 @property(assign) CGFloat width;

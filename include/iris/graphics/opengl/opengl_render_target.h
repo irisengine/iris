@@ -27,7 +27,8 @@ class OpenGLRenderTarget : public RenderTarget
      */
     OpenGLRenderTarget(
         std::unique_ptr<Texture> colour_texture,
-        std::unique_ptr<Texture> depth_texture);
+        std::unique_ptr<Texture> depth_texture,
+        std::uint32_t samples);
 
     /**
      * Clean up OpenGL objects.
@@ -60,6 +61,7 @@ class OpenGLRenderTarget : public RenderTarget
 
     std::unique_ptr<OpenGLTexture> multisample_colour_texture_;
     std::unique_ptr<OpenGLTexture> multisample_depth_texture_;
+    std::uint32_t samples_;
 };
 
 }

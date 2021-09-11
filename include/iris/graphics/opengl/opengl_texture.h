@@ -38,7 +38,7 @@ class OpenGLTexture : public Texture
         std::uint32_t height,
         PixelFormat pixel_format,
         GLuint id,
-        bool is_multisampled = false);
+        std::uint32_t smaples = 0u);
 
     /**
      * Clean up OpenGL objects.
@@ -70,7 +70,7 @@ class OpenGLTexture : public Texture
     /** OpenGL texture unit. */
     GLuint id_;
 
-    bool is_multisampled_;
+    std::uint32_t samples_;
 };
 
 }

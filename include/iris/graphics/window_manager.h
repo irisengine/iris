@@ -1,5 +1,7 @@
 #pragma once
 
+#include "graphics/anti_aliasing_level.h"
+
 #include <cstdint>
 
 namespace iris
@@ -26,7 +28,8 @@ class WindowManager
      */
     virtual Window *create_window(
         std::uint32_t width,
-        std::uint32_t height) = 0;
+        std::uint32_t height,
+        AntiAliasingLevel level = AntiAliasingLevel::MEDIUM) = 0;
 
     /**
      * Get the currently active window.

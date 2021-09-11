@@ -56,41 +56,46 @@ namespace iris
 
 OpenGLRenderTarget::OpenGLRenderTarget(
     std::unique_ptr<Texture> colour_texture,
-    std::unique_ptr<Texture> depth_texture)
+    std::unique_ptr<Texture> depth_texture,
+    std::uint32_t samples)
     : RenderTarget(std::move(colour_texture), std::move(depth_texture))
     , handle_(0u)
     , multisample_handle_(0u)
     , multisample_colour_texture_(nullptr)
     , multisample_depth_texture_(nullptr)
+    , samples_(samples)
 {
     handle_ = create_fbo(
         static_cast<OpenGLTexture *>(colour_texture_.get())->handle(),
         static_cast<OpenGLTexture *>(depth_texture_.get())->handle(),
         GL_TEXTURE_2D);
 
-    auto &tex_man =
-        static_cast<OpenGLTextureManager &>(Root::texture_manager());
+    if (samples_ > 0u)
+    {
+        auto &tex_man =
+            static_cast<OpenGLTextureManager &>(Root::texture_manager());
 
-    multisample_colour_texture_ = std::make_unique<OpenGLTexture>(
-        DataBuffer{},
-        colour_texture_->width(),
-        colour_texture_->height(),
-        colour_texture_->pixel_format(),
-        tex_man.next_id(),
-        true);
+        multisample_colour_texture_ = std::make_unique<OpenGLTexture>(
+            DataBuffer{},
+            colour_texture_->width(),
+            colour_texture_->height(),
+            colour_texture_->pixel_format(),
+            tex_man.next_id(),
+            samples_);
 
-    multisample_depth_texture_ = std::make_unique<OpenGLTexture>(
-        DataBuffer{},
-        depth_texture_->width(),
-        depth_texture_->height(),
-        depth_texture_->pixel_format(),
-        tex_man.next_id(),
-        true);
+        multisample_depth_texture_ = std::make_unique<OpenGLTexture>(
+            DataBuffer{},
+            depth_texture_->width(),
+            depth_texture_->height(),
+            depth_texture_->pixel_format(),
+            tex_man.next_id(),
+            samples_);
 
-    multisample_handle_ = create_fbo(
-        multisample_colour_texture_->handle(),
-        multisample_depth_texture_->handle(),
-        GL_TEXTURE_2D_MULTISAMPLE);
+        multisample_handle_ = create_fbo(
+            multisample_colour_texture_->handle(),
+            multisample_depth_texture_->handle(),
+            GL_TEXTURE_2D_MULTISAMPLE);
+    }
 }
 
 OpenGLRenderTarget::~OpenGLRenderTarget()
@@ -112,27 +117,30 @@ void OpenGLRenderTarget::unbind(GLenum target) const
 
 void OpenGLRenderTarget::multisample_resolve() const
 {
-    ::glBindFramebuffer(GL_READ_FRAMEBUFFER, multisample_handle_);
-    check_opengl_error("could not bind read frame buffer");
+    if (samples_ > 0)
+    {
+        ::glBindFramebuffer(GL_READ_FRAMEBUFFER, multisample_handle_);
+        check_opengl_error("could not bind read frame buffer");
 
-    ::glBindFramebuffer(GL_DRAW_FRAMEBUFFER, handle_);
-    check_opengl_error("could not bind draw frame buffer");
+        ::glBindFramebuffer(GL_DRAW_FRAMEBUFFER, handle_);
+        check_opengl_error("could not bind draw frame buffer");
 
-    const auto width = colour_texture_->width();
-    const auto height = colour_texture_->height();
+        const auto width = colour_texture_->width();
+        const auto height = colour_texture_->height();
 
-    ::glBlitFramebuffer(
-        0,
-        0,
-        width,
-        height,
-        0,
-        0,
-        width,
-        height,
-        GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT,
-        GL_NEAREST);
-    check_opengl_error("failed to blit");
+        ::glBlitFramebuffer(
+            0,
+            0,
+            width,
+            height,
+            0,
+            0,
+            width,
+            height,
+            GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT,
+            GL_NEAREST);
+        check_opengl_error("failed to blit");
+    }
 }
 
 }
