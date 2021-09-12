@@ -11,6 +11,7 @@
 #import <QuartzCore/QuartzCore.h>
 
 #include "core/root.h"
+#include "graphics/anti_aliasing_level.h"
 #include "graphics/metal/metal_constant_buffer.h"
 #include "graphics/metal/metal_material.h"
 #include "graphics/metal/metal_render_target.h"
@@ -44,7 +45,10 @@ class MetalRenderer : public Renderer
      * @param height
      *   Height of window being rendered to.
      */
-    MetalRenderer(std::uint32_t width, std::uint32_t height);
+    MetalRenderer(
+        std::uint32_t width,
+        std::uint32_t height,
+        AntiAliasingLevel anti_aliasing_level);
 
     /**
      * Destructor, will block until all inflight frames have finished rendering.
@@ -148,6 +152,8 @@ class MetalRenderer : public Renderer
 
     /** Default sampler for shadow maps. */
     id<MTLSamplerState> shadow_sampler_;
+
+    AntiAliasingLevel anti_aliasing_level_;
 };
 
 }

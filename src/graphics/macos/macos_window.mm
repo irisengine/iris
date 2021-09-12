@@ -227,7 +227,8 @@ MacosWindow::MacosWindow(
     {
         app_delegate = [[MetalAppDelegate alloc]
             initWithRect:NSMakeRect(0.0f, 0.0f, width_, height_)];
-        renderer_ = std::make_unique<MetalRenderer>(width_, height_);
+        renderer_ = std::make_unique<MetalRenderer>(
+            width_, height_, anti_aliasing_level);
     }
     else if (api == "opengl")
     {

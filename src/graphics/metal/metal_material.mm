@@ -63,7 +63,8 @@ namespace iris
 MetalMaterial::MetalMaterial(
     const RenderGraph *render_graph,
     MTLVertexDescriptor *descriptors,
-    LightType light_type)
+    LightType light_type,
+    std::uint32_t samples)
     : pipeline_state_()
     , textures_()
 {
@@ -86,6 +87,7 @@ MetalMaterial::MetalMaterial(
     [pipeline_state_descriptor
         setDepthAttachmentPixelFormat:MTLPixelFormatDepth32Float];
     [pipeline_state_descriptor setVertexDescriptor:descriptors];
+    [pipeline_state_descriptor setSampleCount:(samples == 0u) ? 1 : samples];
 
     // set blend mode based on light
     // ambient is always rendered first (no blending)

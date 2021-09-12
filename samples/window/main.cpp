@@ -11,6 +11,7 @@
 #include <iris/core/vector3.h>
 #include <iris/events/event.h>
 #include <iris/events/keyboard_event.h>
+#include <iris/graphics/anti_aliasing_level.h>
 #include <iris/graphics/mesh_manager.h>
 #include <iris/graphics/render_entity.h>
 #include <iris/graphics/render_graph/colour_node.h>
@@ -91,7 +92,8 @@ void go(int, char **)
         {iris::Key::E, iris::KeyState::UP},
     };
 
-    auto window = iris::Root::window_manager().create_window(800u, 800u);
+    auto window = iris::Root::window_manager().create_window(
+        800u, 800u, iris::AntiAliasingLevel::MEDIUM);
     iris::Camera camera{iris::CameraType::PERSPECTIVE, 800u, 800u};
     iris::Camera orth{iris::CameraType::ORTHOGRAPHIC, 800u, 800u};
     auto *rt = window->create_render_target(800u, 800u);

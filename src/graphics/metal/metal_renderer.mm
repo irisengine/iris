@@ -14,6 +14,7 @@
 #include "core/macos/macos_ios_utility.h"
 #include "core/matrix4.h"
 #include "core/vector3.h"
+#include "graphics/anti_aliasing_level.h"
 #include "graphics/constant_buffer_writer.h"
 #include "graphics/lights/lighting_rig.h"
 #include "graphics/metal/metal_constant_buffer.h"
@@ -229,7 +230,10 @@ void bind_textures(
 namespace iris
 {
 
-MetalRenderer::MetalRenderer(std::uint32_t width, std::uint32_t height)
+MetalRenderer::MetalRenderer(
+    std::uint32_t width,
+    std::uint32_t height,
+    AntiAliasingLevel anti_aliasing_level)
     : Renderer()
     , command_queue_()
     , descriptor_()
@@ -244,6 +248,7 @@ MetalRenderer::MetalRenderer(std::uint32_t width, std::uint32_t height)
     , materials_()
     , default_depth_buffer_()
     , shadow_sampler_()
+    , anti_aliasing_level_(anti_aliasing_level)
 {
     const auto *device = iris::core::utility::metal_device();
 
@@ -336,7 +341,8 @@ void MetalRenderer::set_render_passes(
                     std::make_unique<MetalMaterial>(
                         render_graph,
                         static_cast<MetalMesh *>(entity->mesh())->descriptors(),
-                        light_type);
+                        light_type,
+                        static_cast<std::uint32_t>(anti_aliasing_level_));
             }
 
             return materials_[render_graph][light_type].get();

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <vector>
 
 #import <Metal/Metal.h>
@@ -33,7 +34,8 @@ class MetalMaterial : public Material
     MetalMaterial(
         const RenderGraph *render_graph,
         MTLVertexDescriptor *descriptors,
-        LightType light_type);
+        LightType light_type,
+        std::uint32_t samples);
 
     ~MetalMaterial() override = default;
 
