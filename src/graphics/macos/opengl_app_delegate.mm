@@ -1,5 +1,7 @@
 #import "graphics/macos/opengl_app_delegate.h"
 
+#include <vector>
+
 #import <Appkit/Appkit.h>
 #import <CoreGraphics/CoreGraphics.h>
 #import <Foundation/Foundation.h>
@@ -25,8 +27,7 @@
                                           backing:NSBackingStoreBuffered
                                             defer:NO];
 
-        // here we specify the attributes of the OpenGl view.
-        NSOpenGLPixelFormatAttribute pixelFormatAttributes[] = {
+        std::vector<NSOpenGLPixelFormatAttribute> pixel_attributes{
             NSOpenGLPFAOpenGLProfile,
             NSOpenGLProfileVersion3_2Core, // use at least OpenGl 3.2
             NSOpenGLPFAColorSize,
@@ -37,18 +38,31 @@
             32,                      // 32 bit depth buffer
             NSOpenGLPFADoubleBuffer, // use double buffering
             NSOpenGLPFAAccelerated,  // use hardware acceleration
-            NSOpenGLPFASampleBuffers,
-            1, // one multi sample buffer
-            NSOpenGLPFASamples,
-            samples,                // use 4 samples for anti-aliasing
-            NSOpenGLPFANoRecovery,  // disable software fallback
-            NSOpenGLPFAMultisample, // prefer multi-sampling
-            0                       // array termination
         };
+
+        if (samples > 0)
+        {
+            // one multi sample buffer
+            pixel_attributes.emplace_back(NSOpenGLPFASampleBuffers);
+            pixel_attributes.emplace_back(1);
+
+            // use 4 samples for anti-aliasing
+            pixel_attributes.emplace_back(NSOpenGLPFASamples);
+            pixel_attributes.emplace_back(samples);
+
+            // disable software fallback
+            pixel_attributes.emplace_back(NSOpenGLPFANoRecovery);
+
+            // prefer multi-sampling
+            pixel_attributes.emplace_back(NSOpenGLPFAMultisample);
+        }
+
+        // add array termination value
+        pixel_attributes.emplace_back(0);
 
         // create the pixel format object with the above attributes
         NSOpenGLPixelFormat *pixel_format = [[NSOpenGLPixelFormat alloc]
-            initWithAttributes:pixelFormatAttributes];
+            initWithAttributes:pixel_attributes.data()];
 
         // create our OpenGl view, make it the same size as the window
         OpenGLView *view = [[OpenGLView alloc] initWithFrame:rect

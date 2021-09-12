@@ -9,6 +9,7 @@
 #include <core/resource_loader.h>
 #include <core/root.h>
 #include <core/start.h>
+#include <graphics/anti_aliasing_level.h>
 #include <graphics/mesh_manager.h>
 #include <graphics/render_graph/render_graph.h>
 #include <graphics/render_graph/texture_node.h>
@@ -60,7 +61,8 @@ void go(int, char **)
     iris::ResourceLoader::instance().set_root_directory("assets");
     iris::Root::set_graphics_api("opengl");
 
-    auto window = iris::Root::window_manager().create_window(800u, 800u);
+    auto window = iris::Root::window_manager().create_window(
+        800u, 800u, iris::AntiAliasingLevel::LOW);
     std::size_t sample_number = 0u;
 
     auto *target = window->create_render_target();

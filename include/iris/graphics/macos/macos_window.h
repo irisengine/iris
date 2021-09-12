@@ -26,7 +26,7 @@ class MacosWindow : public Window
     MacosWindow(
         std::uint32_t width,
         std::uint32_t height,
-        AntiAliasingLevel anti_aliasing_level = AntiAliasingLevel::MEDIUM);
+        AntiAliasingLevel anti_aliasing_level);
     ~MacosWindow() override = default;
 
     /**

@@ -200,6 +200,17 @@ OpenGLRenderer::OpenGLRenderer(
     }
     else
     {
+        const auto samples = static_cast<std::uint32_t>(anti_aliasing_level);
+        GLint max_samples = 0;
+
+        ::glGetIntegerv(GL_MAX_SAMPLES, &max_samples);
+        check_opengl_error("could not get max samples");
+
+        if (samples > max_samples)
+        {
+            throw Exception("do not support anti aliasing level");
+        }
+
         ::glEnable(GL_MULTISAMPLE);
     }
     check_opengl_error("could not enable multi sampling");
@@ -291,14 +302,14 @@ RenderTarget *OpenGLRenderer::create_render_target(
             height * scale,
             PixelFormat::RGBA,
             tex_man.next_id(),
-            samples),
+            0u),
         std::make_unique<OpenGLTexture>(
             DataBuffer{},
             width * scale,
             height * scale,
             PixelFormat::DEPTH,
             tex_man.next_id(),
-            samples),
+            0u),
         samples));
 
     return render_targets_.back().get();

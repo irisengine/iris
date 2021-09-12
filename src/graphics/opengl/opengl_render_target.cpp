@@ -105,7 +105,8 @@ OpenGLRenderTarget::~OpenGLRenderTarget()
 
 void OpenGLRenderTarget::bind(GLenum target) const
 {
-    ::glBindFramebuffer(target, multisample_handle_);
+    const auto bind_handle = samples_ > 0u ? multisample_handle_ : handle_;
+    ::glBindFramebuffer(target, bind_handle);
     check_opengl_error("could not bind framebuffer");
 }
 

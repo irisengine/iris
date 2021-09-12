@@ -11,6 +11,6 @@ target_sources(iris PRIVATE
     macos_window_manager.cpp
     metal_app_delegate.m
     metal_view.m
-    opengl_app_delegate.m
+    opengl_app_delegate.mm
     opengl_view.m
     text_factory.mm)
