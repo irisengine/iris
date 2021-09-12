@@ -81,7 +81,7 @@ void go(int, char **)
 {
     iris::ResourceLoader::instance().set_root_directory("assets");
 
-    iris::Root::set_graphics_api("opengl");
+    // iris::Root::set_graphics_api("opengl");
 
     std::map<iris::Key, iris::KeyState> key_map = {
         {iris::Key::W, iris::KeyState::UP},

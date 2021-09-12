@@ -33,7 +33,8 @@ class MetalTexture : public Texture
         const DataBuffer &data,
         std::uint32_t width,
         std::uint32_t height,
-        PixelFormat pixel_format);
+        PixelFormat pixel_format,
+        std::uint32_t samples = 1u);
 
     ~MetalTexture() override = default;
 

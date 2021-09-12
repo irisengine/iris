@@ -65,7 +65,8 @@ id<MTLTexture> create_texture(
     iris::DataBuffer data,
     std::uint32_t width,
     std::uint32_t height,
-    iris::PixelFormat pixel_format)
+    iris::PixelFormat pixel_format,
+    std::uint32_t samples)
 {
     auto *data_ptr = data.data();
 
@@ -83,13 +84,16 @@ id<MTLTexture> create_texture(
         [texture_descriptor setResourceOptions:MTLResourceStorageModePrivate];
         [texture_descriptor
             setUsage:MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead];
+        texture_descriptor.textureType =
+            samples == 1u ? MTLTextureType2D : MTLTextureType2DMultisample;
+        texture_descriptor.sampleCount = samples;
     }
     else
     {
         // annoyingly metal only allows BGRA for render targets
         // rather than adding this to PixelFormat and generally muddying the
         // user api we instead do a byte swap here to convert to BGRA this means
-        // that to a user everything is RGBA, but interally to metal all
+        // that to a user everything is RGBA, but internally to metal all
         // textures are BGRA
         if ((pixel_format == iris::PixelFormat::RGBA) && !data.empty())
         {
@@ -103,12 +107,16 @@ id<MTLTexture> create_texture(
 
         // create metal texture descriptor
         texture_descriptor = [MTLTextureDescriptor new];
-        texture_descriptor.textureType = MTLTextureType2D;
+        texture_descriptor.textureType =
+            samples == 1u ? MTLTextureType2D : MTLTextureType2DMultisample;
+        texture_descriptor.storageMode =
+            samples == 1u ? MTLStorageModeManaged : MTLStorageModePrivate;
         texture_descriptor.width = width;
         texture_descriptor.height = height;
         texture_descriptor.pixelFormat = format;
         texture_descriptor.usage =
             MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead;
+        texture_descriptor.sampleCount = samples;
     }
 
     auto *device = iris::core::utility::metal_device();
@@ -141,11 +149,17 @@ MetalTexture::MetalTexture(
     const DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
-    PixelFormat pixel_format)
+    PixelFormat pixel_format,
+    std::uint32_t samples)
     : Texture(data, width, height, pixel_format)
     , texture_()
 {
-    texture_ = create_texture(data, width, height, pixel_format);
+    if (samples == 0u)
+    {
+        samples = 1u;
+    }
+
+    texture_ = create_texture(data, width, height, pixel_format, samples);
 
     LOG_ENGINE_INFO("texture", "loaded from data");
 }

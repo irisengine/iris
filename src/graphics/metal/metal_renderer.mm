@@ -56,12 +56,32 @@ namespace
 id<MTLRenderCommandEncoder> create_render_encoder(
     id<MTLTexture> colour,
     id<MTLTexture> depth,
+    id<MTLTexture> multisample_colour,
+    id<MTLTexture> multisample_depth,
     MTLRenderPassDescriptor *descriptor,
     const id<MTLDepthStencilState> depth_stencil_state,
     id<MTLCommandBuffer> command_buffer)
 {
-    descriptor.colorAttachments[0].texture = colour;
-    descriptor.depthAttachment.texture = depth;
+    if ((multisample_colour == nullptr) || (multisample_depth == nullptr))
+    {
+        descriptor.colorAttachments[0].texture = colour;
+        descriptor.colorAttachments[0].resolveTexture = nil;
+        descriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
+        descriptor.depthAttachment.texture = depth;
+        descriptor.depthAttachment.resolveTexture = nil;
+        descriptor.depthAttachment.storeAction = MTLStoreActionStore;
+    }
+    else
+    {
+        descriptor.colorAttachments[0].texture = multisample_colour;
+        descriptor.colorAttachments[0].resolveTexture = colour;
+        descriptor.colorAttachments[0].storeAction =
+            MTLStoreActionStoreAndMultisampleResolve;
+        descriptor.depthAttachment.texture = multisample_depth;
+        descriptor.depthAttachment.resolveTexture = depth;
+        descriptor.depthAttachment.storeAction =
+            MTLStoreActionStoreAndMultisampleResolve;
+    }
 
     const auto render_encoder =
         [command_buffer renderCommandEncoderWithDescriptor:descriptor];
@@ -258,6 +278,12 @@ MetalRenderer::MetalRenderer(
         throw iris::Exception("could not create command queue");
     }
 
+    const auto samples = static_cast<std::uint32_t>(anti_aliasing_level_);
+    if (![device supportsTextureSampleCount:samples])
+    {
+        throw Exception("do not support anti aliasing level");
+    }
+
     const auto scale = 2;
 
     // create and setup descriptor for depth texture
@@ -286,17 +312,18 @@ MetalRenderer::MetalRenderer(
     [[[descriptor_ colorAttachments] objectAtIndexedSubscript:0]
         setClearColor:MTLClearColorMake(0.77f, 0.83f, 0.9f, 1.0f)];
     [[[descriptor_ colorAttachments] objectAtIndexedSubscript:0]
-        setStoreAction:MTLStoreActionStore];
+        setStoreAction:MTLStoreActionStoreAndMultisampleResolve];
     [[[descriptor_ colorAttachments] objectAtIndexedSubscript:0]
         setTexture:nullptr];
     [[descriptor_ depthAttachment] setTexture:nullptr];
     [[descriptor_ depthAttachment] setClearDepth:1.0f];
     [[descriptor_ depthAttachment] setLoadAction:MTLLoadActionClear];
-    [[descriptor_ depthAttachment] setStoreAction:MTLStoreActionStore];
+    [[descriptor_ depthAttachment]
+        setStoreAction:MTLStoreActionStoreAndMultisampleResolve];
 
     // create default depth buffer
     default_depth_buffer_ = std::make_unique<MetalTexture>(
-        DataBuffer{}, width * 2u, height * 2u, PixelFormat::DEPTH);
+        DataBuffer{}, width * 2u, height * 2u, PixelFormat::DEPTH, samples);
 
     render_encoder_ = nullptr;
 
@@ -379,13 +406,15 @@ RenderTarget *MetalRenderer::create_render_target(
     std::uint32_t width,
     std::uint32_t height)
 {
+    const auto samples = static_cast<std::uint32_t>(anti_aliasing_level_);
     const auto scale = Root::window_manager().current_window()->screen_scale();
 
     render_targets_.emplace_back(std::make_unique<MetalRenderTarget>(
         std::make_unique<MetalTexture>(
             DataBuffer{}, width * scale, height * scale, PixelFormat::RGBA),
         std::make_unique<MetalTexture>(
-            DataBuffer{}, width * scale, height * scale, PixelFormat::DEPTH)));
+            DataBuffer{}, width * scale, height * scale, PixelFormat::DEPTH),
+        samples));
 
     return render_targets_.back().get();
 }
@@ -412,7 +441,8 @@ void MetalRenderer::execute_draw(RenderCommand &command)
     const auto *entity = command.render_entity();
     const auto *mesh = static_cast<const MetalMesh *>(entity->mesh());
     const auto *camera = command.render_pass()->camera;
-    const auto *target = command.render_pass()->render_target;
+    const auto *target = static_cast<const MetalRenderTarget *>(
+        command.render_pass()->render_target);
 
     // create a render encoder based on the render command target
     if (render_encoders_.count(target) == 0u)
@@ -424,6 +454,8 @@ void MetalRenderer::execute_draw(RenderCommand &command)
             encoder = create_render_encoder(
                 drawable_.texture,
                 default_depth_buffer_->handle(),
+                nullptr,
+                nullptr,
                 descriptor_,
                 depth_stencil_state_,
                 command_buffer_);
@@ -434,6 +466,12 @@ void MetalRenderer::execute_draw(RenderCommand &command)
                 static_cast<const MetalTexture *>(target->colour_texture())
                     ->handle(),
                 static_cast<const MetalTexture *>(target->depth_texture())
+                    ->handle(),
+                static_cast<const MetalTexture *>(
+                    target->multisample_colour_texture())
+                    ->handle(),
+                static_cast<const MetalTexture *>(
+                    target->multisample_depth_texture())
                     ->handle(),
                 descriptor_,
                 depth_stencil_state_,
