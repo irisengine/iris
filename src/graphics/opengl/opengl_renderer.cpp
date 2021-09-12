@@ -206,7 +206,7 @@ OpenGLRenderer::OpenGLRenderer(
         ::glGetIntegerv(GL_MAX_SAMPLES, &max_samples);
         check_opengl_error("could not get max samples");
 
-        if (samples > max_samples)
+        if (samples > static_cast<std::uint32_t>(max_samples))
         {
             throw Exception("do not support anti aliasing level");
         }

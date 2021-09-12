@@ -1,25 +1,9 @@
 #include "graphics/win32/win32_d3d12_window.h"
 
-#include <any>
-#include <optional>
-#include <queue>
+#include <cstdint>
+#include <memory>
 
-#define WIN32_LEAN_AND_MEAN
-#include <ShellScalingApi.h>
-#include <Windows.h>
-#include <Windowsx.h>
-#include <hidusage.h>
-
-#include "core/auto_release.h"
-#include "core/colour.h"
-#include "core/exception.h"
-#include "events/event.h"
-#include "events/quit_event.h"
 #include "graphics/d3d12/d3d12_renderer.h"
-#include "graphics/render_target.h"
-#include "log/log.h"
-
-#pragma comment(lib, "Shcore.lib")
 
 namespace iris
 {

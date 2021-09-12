@@ -13,6 +13,7 @@
 #include "core/exception.h"
 #include "events/event.h"
 #include "events/quit_event.h"
+#include "graphics/anti_aliasing_level.h"
 #define DONT_MAKE_GL_FUNCTIONS_EXTERN // get concrete function pointers for all
                                       // opengl functions
 #include "graphics/opengl/opengl.h"
@@ -206,9 +207,9 @@ void resolve_wgl_functions(HINSTANCE instance)
  * @param dc
  *   Device context for window.
  */
-void init_opengl(HDC dc)
+void init_opengl(HDC dc, std::uint32_t samples)
 {
-    int pixel_format_attribs[] = {
+    std::vector<int> pixel_format_attribs = {
         WGL_DRAW_TO_WINDOW_ARB,
         GL_TRUE,
         WGL_SUPPORT_OPENGL_ARB,
@@ -224,17 +225,24 @@ void init_opengl(HDC dc)
         WGL_DEPTH_BITS_ARB,
         24,
         WGL_STENCIL_BITS_ARB,
-        8,
-        WGL_SAMPLE_BUFFERS_ARB,
-        GL_TRUE,
-        WGL_SAMPLES_ARB,
-        4,
-        0};
+        8};
+
+    if (samples > 0)
+    {
+
+        pixel_format_attribs.emplace_back(WGL_SAMPLE_BUFFERS_ARB);
+        pixel_format_attribs.emplace_back(GL_TRUE);
+        pixel_format_attribs.emplace_back(WGL_SAMPLES_ARB);
+        pixel_format_attribs.emplace_back(samples);
+    }
+
+    // add array termination value
+    pixel_format_attribs.emplace_back(0);
 
     int pixel_format = 0;
     UINT num_formats = 0u;
     ::wglChoosePixelFormatARB(
-        dc, pixel_format_attribs, 0, 1, &pixel_format, &num_formats);
+        dc, pixel_format_attribs.data(), 0, 1, &pixel_format, &num_formats);
 
     if (num_formats == 0)
     {
@@ -287,17 +295,23 @@ void init_opengl(HDC dc)
 namespace iris
 {
 
-Win32OpenGLWindow::Win32OpenGLWindow(std::uint32_t width, std::uint32_t height)
+Win32OpenGLWindow::Win32OpenGLWindow(
+    std::uint32_t width,
+    std::uint32_t height,
+    AntiAliasingLevel anti_aliasing_level)
     : Win32Window(width, height)
 {
+    const auto samples = static_cast<std::uint32_t>(anti_aliasing_level);
+
     // initialise opengl
     resolve_wgl_functions(wc_.hInstance);
-    init_opengl(dc_);
+    init_opengl(dc_, samples);
 
     // we can now resolve all our opengl functions
     resolve_global_opengl_functions();
 
-    renderer_ = std::make_unique<OpenGLRenderer>(width_, height_);
+    renderer_ =
+        std::make_unique<OpenGLRenderer>(width_, height_, anti_aliasing_level);
 }
 
 }

@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <memory>
 
+#include "graphics/anti_aliasing_level.h"
 #include "graphics/window.h"
 #include "graphics/window_manager.h"
 
@@ -27,6 +28,11 @@ class Win32WindowManager : public WindowManager
      *   Height of window.
      */
     Window *create_window(std::uint32_t width, std::uint32_t height) override;
+
+    Window *create_window(
+        std::uint32_t width,
+        std::uint32_t height,
+        AntiAliasingLevel anti_aliasing_level) override;
 
     /**
      * Get the currently active window.
