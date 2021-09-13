@@ -36,7 +36,8 @@ Window *Win32WindowManager::create_window(
 
     if (graphics_api == "d3d12")
     {
-        current_window_ = std::make_unique<Win32D3D12Window>(width, height);
+        current_window_ = std::make_unique<Win32D3D12Window>(
+            width, height, anti_aliasing_level);
     }
     else if (graphics_api == "opengl")
     {

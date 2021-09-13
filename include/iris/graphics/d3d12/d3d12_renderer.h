@@ -18,10 +18,12 @@
 #include "directx/d3dx12.h"
 
 #include "core/auto_release.h"
+#include "graphics/anti_aliasing_level.h"
 #include "graphics/d3d12/d3d12_constant_buffer.h"
 #include "graphics/d3d12/d3d12_constant_buffer_pool.h"
 #include "graphics/d3d12/d3d12_descriptor_handle.h"
 #include "graphics/d3d12/d3d12_material.h"
+#include "graphics/d3d12/d3d12_render_target.h"
 #include "graphics/d3d12/d3d12_texture.h"
 #include "graphics/render_target.h"
 #include "graphics/renderer.h"
@@ -61,7 +63,8 @@ class D3D12Renderer : public Renderer
         HWND window,
         std::uint32_t width,
         std::uint32_t height,
-        std::uint32_t initial_screen_scale);
+        std::uint32_t initial_screen_scale,
+        AntiAliasingLevel anti_aliasing_level);
 
     /**
      * Destructor, will block until all inflight frames have finished rendering.
@@ -118,6 +121,7 @@ class D3D12Renderer : public Renderer
             HANDLE fence_event)
             : buffer(buffer)
             , render_target(render_target)
+            , final_target(nullptr)
             , depth_buffer(std::move(depth_buffer))
             , command_allocator(command_allocator)
             , fence(fence)
@@ -130,6 +134,8 @@ class D3D12Renderer : public Renderer
 
         /** render target view for buffer. */
         D3D12DescriptorHandle render_target;
+
+        D3D12RenderTarget *final_target;
 
         /** Depth buffer for frame. */
         std::unique_ptr<D3D12Texture> depth_buffer;
@@ -156,6 +162,8 @@ class D3D12Renderer : public Renderer
 
     /** Height of window to present to. */
     std::uint32_t height_;
+
+    AntiAliasingLevel anti_aliasing_level_;
 
     /** Collection of frames for triple buffering. */
     std::vector<Frame> frames_;

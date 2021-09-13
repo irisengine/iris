@@ -22,7 +22,8 @@ D3D12Texture::D3D12Texture(
     std::uint32_t width,
     std::uint32_t height,
     PixelFormat pixel_format,
-    bool is_render_target)
+    bool is_render_target,
+    std::uint32_t samples)
     : Texture(data, width, height, pixel_format)
     , resource_()
     , upload_()
@@ -31,6 +32,11 @@ D3D12Texture::D3D12Texture(
     , footprint_()
     , type_()
 {
+    if (samples == 0u)
+    {
+        samples = 1u;
+    }
+
     // create description of texture resource
     D3D12_RESOURCE_DESC texture_description{};
     texture_description.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -41,8 +47,8 @@ D3D12Texture::D3D12Texture(
                                     : D3D12_RESOURCE_FLAG_NONE;
     texture_description.DepthOrArraySize = 1;
     texture_description.MipLevels = 1;
-    texture_description.SampleDesc.Count = 1;
-    texture_description.SampleDesc.Quality = 0;
+    texture_description.SampleDesc.Count = samples;
+    texture_description.SampleDesc.Quality = samples > 1u ? 1u : 0u;
     texture_description.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
     texture_description.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
     texture_description.Alignment = 0;
@@ -129,9 +135,17 @@ D3D12Texture::D3D12Texture(
     }
 }
 
-D3D12Texture::D3D12Texture(std::uint32_t width, std::uint32_t height)
+D3D12Texture::D3D12Texture(
+    std::uint32_t width,
+    std::uint32_t height,
+    std::uint32_t samples)
     : Texture({}, width, height, PixelFormat::DEPTH)
 {
+    if (samples == 0u)
+    {
+        samples = 1u;
+    }
+
     // create description of depth buffer resource
     D3D12_RESOURCE_DESC texture_description{};
     texture_description.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -141,8 +155,8 @@ D3D12Texture::D3D12Texture(std::uint32_t width, std::uint32_t height)
     texture_description.DepthOrArraySize = 1;
     texture_description.MipLevels = 1;
     texture_description.Format = DXGI_FORMAT_R24G8_TYPELESS;
-    texture_description.SampleDesc.Count = 1;
-    texture_description.SampleDesc.Quality = 0;
+    texture_description.SampleDesc.Count = samples;
+    texture_description.SampleDesc.Quality = samples > 1u ? 1u : 0u;
     texture_description.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
     texture_description.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
@@ -175,7 +189,9 @@ D3D12Texture::D3D12Texture(std::uint32_t width, std::uint32_t height)
 
     D3D12_DEPTH_STENCIL_VIEW_DESC depth_view_description = {0};
     depth_view_description.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    depth_view_description.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+    depth_view_description.ViewDimension = samples > 1u
+                                               ? D3D12_DSV_DIMENSION_TEXTURE2DMS
+                                               : D3D12_DSV_DIMENSION_TEXTURE2D;
     depth_view_description.Flags = D3D12_DSV_FLAG_NONE;
     depth_view_description.Texture2D.MipSlice = 0;
 
@@ -193,7 +209,9 @@ D3D12Texture::D3D12Texture(std::uint32_t width, std::uint32_t height)
     shader_view_description.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
     shader_view_description.Shader4ComponentMapping =
         D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-    shader_view_description.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    shader_view_description.ViewDimension =
+        samples > 1u ? D3D12_SRV_DIMENSION_TEXTURE2DMS
+                     : D3D12_SRV_DIMENSION_TEXTURE2D;
     shader_view_description.Texture2D.MipLevels = 1;
     shader_view_description.Texture2D.MostDetailedMip = 0;
 

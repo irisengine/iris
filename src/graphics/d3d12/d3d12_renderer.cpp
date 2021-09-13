@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <vector>
 
 #define WIN32_LEAN_AND_MEAN
@@ -19,6 +20,7 @@
 #include "directx/d3dx12.h"
 
 #include "core/root.h"
+#include "graphics/anti_aliasing_level.h"
 #include "graphics/constant_buffer_writer.h"
 #include "graphics/d3d12/d3d12_constant_buffer.h"
 #include "graphics/d3d12/d3d12_context.h"
@@ -198,9 +200,11 @@ D3D12Renderer::D3D12Renderer(
     HWND window,
     std::uint32_t width,
     std::uint32_t height,
-    std::uint32_t initial_screen_scale)
+    std::uint32_t initial_screen_scale,
+    AntiAliasingLevel anti_aliasing_level)
     : width_(width)
     , height_(height)
+    , anti_aliasing_level_(anti_aliasing_level)
     , frames_()
     , frame_index_(0u)
     , command_queue_(nullptr)
@@ -225,6 +229,22 @@ D3D12Renderer::D3D12Renderer(
 
     auto *device = D3D12Context::device();
     auto *dxgi_factory = D3D12Context::dxgi_factory();
+
+    D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS feature_data = {};
+    feature_data.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    feature_data.SampleCount = static_cast<UINT>(anti_aliasing_level_);
+    if (device->CheckFeatureSupport(
+            D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
+            &feature_data,
+            sizeof(feature_data)) != S_OK)
+    {
+        throw Exception("could not query supported anti aliasing levels");
+    }
+
+    if (feature_data.NumQualityLevels == 0u)
+    {
+        throw Exception("do not support anti aliasing level");
+    }
 
     // create command queue
     if (device->CreateCommandQueue(&desc, IID_PPV_ARGS(&command_queue_)) !=
@@ -277,6 +297,11 @@ D3D12Renderer::D3D12Renderer(
         {
             throw Exception("could not get back buffer");
         }
+
+        std::wstringstream strm;
+        strm << L"swap chain buffer " << i;
+        const auto name = strm.str();
+        frame->SetName(name.c_str());
 
         // create a static descriptor handle for the render targ
         auto rtv_handle = D3D12DescriptorManager::cpu_allocator(
@@ -363,17 +388,29 @@ void D3D12Renderer::set_render_passes(
         [this](
             RenderGraph *render_graph,
             RenderEntity *render_entity,
+            const RenderTarget *target,
             LightType light_type) {
             if (materials_.count(render_graph) == 0u ||
                 materials_[render_graph].count(light_type) == 0u)
             {
+                ///////////////////////////////////////
+                ///////////////////////////////////////
+                ///// CHECK THIS HARD CODED VALUE /////
+                ///////////////////////////////////////
+                ///////////////////////////////////////
+                const auto samples =
+                    target == nullptr
+                        ? 4u
+                        : static_cast<std::uint32_t>(anti_aliasing_level_);
+
                 materials_[render_graph][light_type] =
                     std::make_unique<D3D12Material>(
                         render_graph,
                         static_cast<D3D12Mesh *>(render_entity->mesh())
                             ->input_descriptors(),
                         render_entity->primitive_type(),
-                        light_type);
+                        light_type,
+                        samples);
             }
 
             return materials_[render_graph][light_type].get();
@@ -387,6 +424,12 @@ void D3D12Renderer::set_render_passes(
     for (auto &frame : frames_)
     {
         frame.constant_data_buffers.clear();
+
+        if (frame.final_target == nullptr)
+        {
+            frame.final_target = static_cast<D3D12RenderTarget *>(
+                create_render_target(width_, height_));
+        }
     }
 
     // create a constant data buffer for each draw command
@@ -426,7 +469,9 @@ RenderTarget *D3D12Renderer::create_render_target(
     uploaded_.emplace(depth_texture.get());
 
     render_targets_.emplace_back(std::make_unique<D3D12RenderTarget>(
-        std::move(colour_texture), std::move(depth_texture)));
+        std::move(colour_texture),
+        std::move(depth_texture),
+        static_cast<std::uint32_t>(anti_aliasing_level_)));
 
     auto *rt = render_targets_.back().get();
 
@@ -505,23 +550,16 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
 
     const Colour clear_colour{0.4f, 0.6f, 0.9f, 1.0f};
 
-    D3D12_CPU_DESCRIPTOR_HANDLE rt_handle;
-    D3D12_CPU_DESCRIPTOR_HANDLE depth_handle;
-
-    auto *target = static_cast<const D3D12RenderTarget *>(
-        command.render_pass()->render_target);
-
-    const auto scale = Root::window_manager().current_window()->screen_scale();
-    auto width = width_ * scale;
-    auto height = height_ * scale;
-
     const auto &frame = frames_[frame_index_];
+
+    // const auto *target = command.render_pass()->render_target == nullptr
+    //                         ? frame.final_target
+    //                         : static_cast<const D3D12RenderTarget *>(
+    //                               command.render_pass()->render_target);
+    const auto *target = command.render_pass()->render_target;
 
     if (target == nullptr)
     {
-        rt_handle = frame.render_target.cpu_handle();
-        depth_handle = frame.depth_buffer->depth_handle().cpu_handle();
-
         // if the current frame is the default render target i.e. not one
         // manually created we need to transition it from PRESENT and make the
         // depth buffer writable
@@ -536,30 +574,29 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
                 D3D12_RESOURCE_STATE_DEPTH_WRITE)};
 
         command_list_->ResourceBarrier(2u, barriers);
+
+        target = frame.final_target;
     }
-    else
-    {
-        width = target->width();
-        height = target->height();
 
-        rt_handle = static_cast<const D3D12RenderTarget *>(target)
-                        ->handle()
-                        .cpu_handle();
-        depth_handle = static_cast<D3D12Texture *>(target->depth_texture())
-                           ->depth_handle()
-                           .cpu_handle();
+    const auto width = target->width();
+    const auto height = target->height();
+    const auto *d3d12_target = static_cast<const D3D12RenderTarget *>(target);
 
-        // if we are rendering to a custom render target we just need to make
-        // its depth buffer writable
+    const auto rt_handle = d3d12_target->multisample_handle().cpu_handle();
+    const auto depth_handle =
+        static_cast<D3D12Texture *>(d3d12_target->multisample_depth_texture())
+            ->depth_handle()
+            .cpu_handle();
 
-        const auto barrier = ::CD3DX12_RESOURCE_BARRIER::Transition(
-            static_cast<const D3D12Texture *>(target->depth_texture())
-                ->resource(),
-            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-            D3D12_RESOURCE_STATE_DEPTH_WRITE);
+    // if we are rendering to a custom render target we just need to make
+    // its depth buffer writable
 
-        command_list_->ResourceBarrier(1u, &barrier);
-    }
+    const auto barrier = ::CD3DX12_RESOURCE_BARRIER::Transition(
+        static_cast<const D3D12Texture *>(target->depth_texture())->resource(),
+        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+        D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
+    command_list_->ResourceBarrier(1u, &barrier);
 
     // setup and clear render target
     command_list_->OMSetRenderTargets(1, &rt_handle, FALSE, &depth_handle);
@@ -582,8 +619,14 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
 
 void D3D12Renderer::execute_pass_end(RenderCommand &command)
 {
+    const auto &frame = frames_[frame_index_];
     const auto *target = static_cast<const D3D12RenderTarget *>(
         command.render_pass()->render_target);
+
+    if (target == nullptr)
+    {
+        target = frame.final_target;
+    }
 
     if (target != nullptr)
     {
@@ -708,19 +751,45 @@ void D3D12Renderer::execute_present(RenderCommand &)
 {
     const auto &frame = frames_[frame_index_];
 
-    // transition the frame render target to present and depth buffer to shader
-    // visible
-    const D3D12_RESOURCE_BARRIER barriers[] = {
-        ::CD3DX12_RESOURCE_BARRIER::Transition(
-            frame.buffer.Get(),
-            D3D12_RESOURCE_STATE_RENDER_TARGET,
-            D3D12_RESOURCE_STATE_PRESENT),
-        ::CD3DX12_RESOURCE_BARRIER::Transition(
-            frame.depth_buffer->resource(),
-            D3D12_RESOURCE_STATE_DEPTH_WRITE,
-            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)};
+    {
+        const D3D12_RESOURCE_BARRIER barriers[] = {
+            ::CD3DX12_RESOURCE_BARRIER::Transition(
+                frame.buffer.Get(),
+                D3D12_RESOURCE_STATE_RENDER_TARGET,
+                D3D12_RESOURCE_STATE_RESOLVE_DEST),
+            ::CD3DX12_RESOURCE_BARRIER::Transition(
+                frame.final_target->multisample_colour_texture()->resource(),
+                D3D12_RESOURCE_STATE_RENDER_TARGET,
+                D3D12_RESOURCE_STATE_RESOLVE_SOURCE)};
 
-    command_list_->ResourceBarrier(2u, barriers);
+        command_list_->ResourceBarrier(2u, barriers);
+        command_list_->ResolveSubresource(
+            frame.buffer.Get(),
+            0u,
+            frame.final_target->multisample_colour_texture()->resource(),
+            0u,
+            DXGI_FORMAT_R8G8B8A8_UNORM);
+    }
+
+    {
+        // transition the frame render target to present and depth buffer to
+        // shader visible
+        const D3D12_RESOURCE_BARRIER barriers[] = {
+            ::CD3DX12_RESOURCE_BARRIER::Transition(
+                frame.buffer.Get(),
+                D3D12_RESOURCE_STATE_RESOLVE_DEST,
+                D3D12_RESOURCE_STATE_PRESENT),
+            ::CD3DX12_RESOURCE_BARRIER::Transition(
+                frame.depth_buffer->resource(),
+                D3D12_RESOURCE_STATE_DEPTH_WRITE,
+                D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+            ::CD3DX12_RESOURCE_BARRIER::Transition(
+                frame.final_target->multisample_colour_texture()->resource(),
+                D3D12_RESOURCE_STATE_RESOLVE_SOURCE,
+                D3D12_RESOURCE_STATE_RENDER_TARGET)};
+
+        command_list_->ResourceBarrier(3u, barriers);
+    }
 
     command_list_->Close();
 

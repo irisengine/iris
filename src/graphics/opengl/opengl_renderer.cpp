@@ -227,7 +227,10 @@ void OpenGLRenderer::set_render_passes(
 
     RenderQueueBuilder queue_builder(
         [this](
-            RenderGraph *render_graph, RenderEntity *, LightType light_type) {
+            RenderGraph *render_graph,
+            RenderEntity *,
+            const RenderTarget *,
+            LightType light_type) {
             if (materials_.count(render_graph) == 0u ||
                 materials_[render_graph].count(light_type) == 0u)
             {

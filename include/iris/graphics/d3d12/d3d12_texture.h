@@ -49,7 +49,8 @@ class D3D12Texture : public Texture
         std::uint32_t width,
         std::uint32_t height,
         PixelFormat pixel_format,
-        bool is_render_target = false);
+        bool is_render_target = false,
+        std::uint32_t samples = 1u);
 
     /**
      * Construct a new D3D12Texture for a depth buffer. Whilst it might not be
@@ -63,7 +64,10 @@ class D3D12Texture : public Texture
      * @param height
      *   Height of image.
      */
-    D3D12Texture(std::uint32_t width, std::uint32_t height);
+    D3D12Texture(
+        std::uint32_t width,
+        std::uint32_t height,
+        std::uint32_t samples = 1u);
 
     ~D3D12Texture() override = default;
 

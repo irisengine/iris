@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
@@ -44,7 +45,8 @@ class D3D12Material : public Material
         const RenderGraph *render_graph,
         const std::vector<D3D12_INPUT_ELEMENT_DESC> &input_descriptors,
         PrimitiveType primitive_type,
-        LightType light_type);
+        LightType light_type,
+        std::uint32_t samples);
 
     ~D3D12Material() override = default;
 

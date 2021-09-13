@@ -35,6 +35,7 @@ namespace
  */
 void encode_light_pass_commands(
     const iris::Scene *scene,
+    const iris::RenderTarget *target,
     iris::LightType light_type,
     iris::RenderCommand &cmd,
     iris::RenderQueueBuilder::CreateMaterialCallback create_material_callback,
@@ -45,7 +46,7 @@ void encode_light_pass_commands(
     for (const auto &[render_graph, render_entity] : scene->entities())
     {
         auto *material = create_material_callback(
-            render_graph, render_entity.get(), light_type);
+            render_graph, render_entity.get(), target, light_type);
         cmd.set_material(material);
 
         // renderer implementation will handle duplicate checking
@@ -162,6 +163,7 @@ std::vector<RenderCommand> RenderQueueBuilder::build(
         // always encode ambient light pass
         encode_light_pass_commands(
             pass.scene,
+            pass.render_target,
             LightType::AMBIENT,
             cmd,
             create_material_callback_,
@@ -173,6 +175,7 @@ std::vector<RenderCommand> RenderQueueBuilder::build(
         {
             encode_light_pass_commands(
                 pass.scene,
+                pass.render_target,
                 LightType::POINT,
                 cmd,
                 create_material_callback_,
@@ -185,6 +188,7 @@ std::vector<RenderCommand> RenderQueueBuilder::build(
         {
             encode_light_pass_commands(
                 pass.scene,
+                pass.render_target,
                 LightType::DIRECTIONAL,
                 cmd,
                 create_material_callback_,

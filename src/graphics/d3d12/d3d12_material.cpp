@@ -1,6 +1,6 @@
 #include "graphics/d3d12/d3d12_material.h"
 
-#include <any>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
@@ -73,10 +73,16 @@ D3D12Material::D3D12Material(
     const RenderGraph *render_graph,
     const std::vector<D3D12_INPUT_ELEMENT_DESC> &input_descriptors,
     PrimitiveType primitive_type,
-    LightType light_type)
+    LightType light_type,
+    std::uint32_t samples)
     : pso_()
     , textures_()
 {
+    if (samples == 0u)
+    {
+        samples = 1u;
+    }
+
     HLSLShaderCompiler compiler{render_graph, light_type};
     const auto vertex_source = compiler.vertex_shader();
     const auto fragment_source = compiler.fragment_shader();
@@ -114,6 +120,14 @@ D3D12Material::D3D12Material(
         D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC descriptor = {};
+    descriptor.SampleDesc.Count = samples;
+
+    if (samples > 1u)
+    {
+        rasterizer_description.MultisampleEnable = TRUE;
+        descriptor.SampleDesc.Quality = 1u;
+    }
+
     descriptor.InputLayout = {
         input_descriptors.data(), static_cast<UINT>(input_descriptors.size())};
     descriptor.pRootSignature = root_signature;
@@ -127,7 +141,6 @@ D3D12Material::D3D12Material(
     descriptor.RasterizerState = rasterizer_description;
     descriptor.NumRenderTargets = 1;
     descriptor.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-    descriptor.SampleDesc.Count = 1;
 
     switch (primitive_type)
     {
