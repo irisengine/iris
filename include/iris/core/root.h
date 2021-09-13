@@ -202,6 +202,8 @@ class Root
      */
     static std::vector<std::string> registered_jobs_apis();
 
+    static void reset();
+
   private:
     // private to force access through above public static methods
     Root();
@@ -251,6 +253,8 @@ class Root
     void set_jobs_api_impl(const std::string &api);
 
     std::vector<std::string> registered_jobs_apis_impl() const;
+
+    void reset_impl();
 
     /**
      * Helper struct encapsulating all managers for a graphics api.

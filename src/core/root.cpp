@@ -119,6 +119,11 @@ std::string Root::jobs_api()
     return instance().jobs_api_impl();
 }
 
+void Root::reset()
+{
+    instance().reset_impl();
+}
+
 void Root::set_jobs_api(const std::string &api)
 {
     return instance().set_jobs_api_impl(api);
@@ -263,6 +268,13 @@ std::vector<std::string> Root::registered_jobs_apis_impl() const
     }
 
     return apis;
+}
+
+void Root::reset_impl()
+{
+    physics_api_managers_.clear();
+    graphics_api_managers_.clear();
+    jobs_api_managers_.clear();
 }
 
 }
