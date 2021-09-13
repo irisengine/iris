@@ -39,7 +39,7 @@ MetalRenderTarget::MetalRenderTarget(
             depth_texture_->height(),
             depth_texture_->pixel_format(),
             samples);
-        multisample_depth_texture_->set_flip(true);
+        multisample_colour_texture_->set_flip(true);
     }
 }
 

@@ -113,6 +113,10 @@ class MetalRenderer : public Renderer
             constant_data_buffers;
     };
 
+    std::uint32_t width_;
+
+    std::uint32_t height_;
+
     /** Current command queue. */
     id<MTLCommandQueue> command_queue_;
 
@@ -152,6 +156,8 @@ class MetalRenderer : public Renderer
 
     /** Default sampler for shadow maps. */
     id<MTLSamplerState> shadow_sampler_;
+
+    MetalRenderTarget *final_target_;
 
     AntiAliasingLevel anti_aliasing_level_;
 };

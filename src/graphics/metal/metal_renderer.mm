@@ -56,8 +56,8 @@ namespace
 id<MTLRenderCommandEncoder> create_render_encoder(
     id<MTLTexture> colour,
     id<MTLTexture> depth,
-    id<MTLTexture> multisample_colour,
-    id<MTLTexture> multisample_depth,
+    const iris::MetalTexture *multisample_colour,
+    const iris::MetalTexture *multisample_depth,
     MTLRenderPassDescriptor *descriptor,
     const id<MTLDepthStencilState> depth_stencil_state,
     id<MTLCommandBuffer> command_buffer)
@@ -73,11 +73,11 @@ id<MTLRenderCommandEncoder> create_render_encoder(
     }
     else
     {
-        descriptor.colorAttachments[0].texture = multisample_colour;
+        descriptor.colorAttachments[0].texture = multisample_colour->handle();
         descriptor.colorAttachments[0].resolveTexture = colour;
         descriptor.colorAttachments[0].storeAction =
             MTLStoreActionStoreAndMultisampleResolve;
-        descriptor.depthAttachment.texture = multisample_depth;
+        descriptor.depthAttachment.texture = multisample_depth->handle();
         descriptor.depthAttachment.resolveTexture = depth;
         descriptor.depthAttachment.storeAction =
             MTLStoreActionStoreAndMultisampleResolve;
@@ -145,29 +145,30 @@ void set_constant_data(
           0.0f,
           1.0f}}};
 
+    iris::DirectionalLightConstantBuffer light_consant_buffer{};
+
     // set shadow map specific data, if it is present
     if ((shadow_map != nullptr) &&
         (light->type() == iris::LightType::DIRECTIONAL))
     {
         const auto *directional_light =
             static_cast<const iris::DirectionalLight *>(light);
-        iris::DirectionalLightConstantBuffer light_consant_buffer{};
 
         light_consant_buffer.proj = iris::Matrix4::transpose(
             metal_translate * directional_light->shadow_camera().projection());
         light_consant_buffer.view =
             iris::Matrix4::transpose(directional_light->shadow_camera().view());
-
-        [render_encoder
-            setVertexBytes:static_cast<const void *>(&light_consant_buffer)
-                    length:sizeof(light_consant_buffer)
-                   atIndex:2];
-
-        [render_encoder
-            setFragmentBytes:static_cast<const void *>(&light_consant_buffer)
-                      length:sizeof(light_consant_buffer)
-                     atIndex:1];
     }
+
+    [render_encoder
+        setVertexBytes:static_cast<const void *>(&light_consant_buffer)
+                length:sizeof(light_consant_buffer)
+               atIndex:2];
+
+    [render_encoder
+        setFragmentBytes:static_cast<const void *>(&light_consant_buffer)
+                  length:sizeof(light_consant_buffer)
+                 atIndex:1];
 
     iris::ConstantBufferWriter writer(constant_buffer);
 
@@ -230,8 +231,9 @@ void bind_textures(
         const auto *metal_texture = static_cast<const iris::MetalTexture *>(
             shadow_map->depth_texture());
         [render_encoder setFragmentTexture:metal_texture->handle() atIndex:0];
-        [render_encoder setFragmentSamplerState:shadow_sampler atIndex:0];
     }
+
+    [render_encoder setFragmentSamplerState:shadow_sampler atIndex:0];
 
     // bind all textures in material
     const auto textures = material->textures();
@@ -255,6 +257,8 @@ MetalRenderer::MetalRenderer(
     std::uint32_t height,
     AntiAliasingLevel anti_aliasing_level)
     : Renderer()
+    , width_(width)
+    , height_(height)
     , command_queue_()
     , descriptor_()
     , drawable_()
@@ -268,6 +272,7 @@ MetalRenderer::MetalRenderer(
     , materials_()
     , default_depth_buffer_()
     , shadow_sampler_()
+    , final_target_(nullptr)
     , anti_aliasing_level_(anti_aliasing_level)
 {
     const auto *device = iris::core::utility::metal_device();
@@ -278,7 +283,9 @@ MetalRenderer::MetalRenderer(
         throw iris::Exception("could not create command queue");
     }
 
-    const auto samples = static_cast<std::uint32_t>(anti_aliasing_level_);
+    const auto samples = (anti_aliasing_level_ == AntiAliasingLevel::NONE)
+                             ? 1u
+                             : static_cast<std::uint32_t>(anti_aliasing_level_);
     if (![device supportsTextureSampleCount:samples])
     {
         throw Exception("do not support anti aliasing level");
@@ -323,7 +330,7 @@ MetalRenderer::MetalRenderer(
 
     // create default depth buffer
     default_depth_buffer_ = std::make_unique<MetalTexture>(
-        DataBuffer{}, width * 2u, height * 2u, PixelFormat::DEPTH, samples);
+        DataBuffer{}, width * scale, height * scale, PixelFormat::DEPTH);
 
     render_encoder_ = nullptr;
 
@@ -400,6 +407,12 @@ void MetalRenderer::set_render_passes(
             }
         }
     }
+
+    if (final_target_ == nullptr)
+    {
+        final_target_ = static_cast<MetalRenderTarget *>(
+            create_render_target(width_, height_));
+    }
 }
 
 RenderTarget *MetalRenderer::create_render_target(
@@ -454,8 +467,8 @@ void MetalRenderer::execute_draw(RenderCommand &command)
             encoder = create_render_encoder(
                 drawable_.texture,
                 default_depth_buffer_->handle(),
-                nullptr,
-                nullptr,
+                final_target_->multisample_colour_texture(),
+                final_target_->multisample_depth_texture(),
                 descriptor_,
                 depth_stencil_state_,
                 command_buffer_);
@@ -467,12 +480,8 @@ void MetalRenderer::execute_draw(RenderCommand &command)
                     ->handle(),
                 static_cast<const MetalTexture *>(target->depth_texture())
                     ->handle(),
-                static_cast<const MetalTexture *>(
-                    target->multisample_colour_texture())
-                    ->handle(),
-                static_cast<const MetalTexture *>(
-                    target->multisample_depth_texture())
-                    ->handle(),
+                target->multisample_colour_texture(),
+                target->multisample_depth_texture(),
                 descriptor_,
                 depth_stencil_state_,
                 command_buffer_);
