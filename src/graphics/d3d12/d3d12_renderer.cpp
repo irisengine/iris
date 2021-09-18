@@ -578,6 +578,17 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
 
         target = frame.final_target;
     }
+    else
+    {
+        const D3D12_RESOURCE_BARRIER barriers[] = {
+            ::CD3DX12_RESOURCE_BARRIER::Transition(
+                static_cast<const D3D12Texture *>(target->depth_texture())
+                    ->resource(),
+                D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+                D3D12_RESOURCE_STATE_DEPTH_WRITE)};
+
+        command_list_->ResourceBarrier(1u, barriers);
+    }
 
     const auto width = target->width();
     const auto height = target->height();
@@ -633,13 +644,18 @@ void D3D12Renderer::execute_pass_end(RenderCommand &command)
     {
         // if we are rendering to a custom render target then we need to make
         // the depth buffer accessible to the shader
-        const auto barrier = ::CD3DX12_RESOURCE_BARRIER::Transition(
-            static_cast<const D3D12Texture *>(target->depth_texture())
-                ->resource(),
-            D3D12_RESOURCE_STATE_DEPTH_WRITE,
-            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        const D3D12_RESOURCE_BARRIER barriers[] = {
+            ::CD3DX12_RESOURCE_BARRIER::Transition(
+                static_cast<const D3D12Texture *>(target->depth_texture())
+                    ->resource(),
+                D3D12_RESOURCE_STATE_DEPTH_WRITE,
+                D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+            ::CD3DX12_RESOURCE_BARRIER::Transition(
+                target->multisample_depth_texture()->resource(),
+                D3D12_RESOURCE_STATE_DEPTH_WRITE,
+                D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)};
 
-        command_list_->ResourceBarrier(1u, &barrier);
+        command_list_->ResourceBarrier(2u, barriers);
     }
 }
 
