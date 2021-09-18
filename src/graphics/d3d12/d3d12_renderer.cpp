@@ -361,20 +361,21 @@ D3D12Renderer::D3D12Renderer(
 D3D12Renderer::~D3D12Renderer()
 {
     // build a collection of all frame events
-    std::vector<HANDLE> wait_handles{};
+    // std::vector<HANDLE> wait_handles{};
 
     for (const auto &frame : frames_)
     {
-        wait_handles.emplace_back(frame.fence_event);
+        // wait_handles.emplace_back(frame.fence_event);
+        ::WaitForSingleObjectEx(frame.fence_event, INFINITE, TRUE);
     }
 
     // we cannot destruct whilst a frame is being rendered, so we wait for all
     // frames to signal they are done
-    ::WaitForMultipleObjects(
-        static_cast<DWORD>(wait_handles.size()),
-        wait_handles.data(),
-        TRUE,
-        INFINITE);
+    //::WaitForMultipleObjects(
+    //    static_cast<DWORD>(wait_handles.size()),
+    //    wait_handles.data(),
+    //    TRUE,
+    //    INFINITE);
 }
 
 void D3D12Renderer::set_render_passes(
@@ -420,7 +421,8 @@ void D3D12Renderer::set_render_passes(
         });
     render_queue_ = queue_builder.build(render_passes_);
 
-    // clear all constant data buffers
+    // clear all constant data buffers and, if this is the first call,
+    // initialise the final render targets
     for (auto &frame : frames_)
     {
         frame.constant_data_buffers.clear();
@@ -592,7 +594,7 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
     // its depth buffer writable
 
     const auto barrier = ::CD3DX12_RESOURCE_BARRIER::Transition(
-        static_cast<const D3D12Texture *>(target->depth_texture())->resource(),
+        d3d12_target->multisample_depth_texture()->resource(),
         D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
         D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
@@ -619,14 +621,14 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
 
 void D3D12Renderer::execute_pass_end(RenderCommand &command)
 {
-    const auto &frame = frames_[frame_index_];
+    // const auto &frame = frames_[frame_index_];
     const auto *target = static_cast<const D3D12RenderTarget *>(
         command.render_pass()->render_target);
 
-    if (target == nullptr)
-    {
-        target = frame.final_target;
-    }
+    // if (target == nullptr)
+    //{
+    //    target = frame.final_target;
+    //}
 
     if (target != nullptr)
     {
@@ -784,11 +786,15 @@ void D3D12Renderer::execute_present(RenderCommand &)
                 D3D12_RESOURCE_STATE_DEPTH_WRITE,
                 D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
             ::CD3DX12_RESOURCE_BARRIER::Transition(
+                frame.final_target->multisample_depth_texture()->resource(),
+                D3D12_RESOURCE_STATE_DEPTH_WRITE,
+                D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+            ::CD3DX12_RESOURCE_BARRIER::Transition(
                 frame.final_target->multisample_colour_texture()->resource(),
                 D3D12_RESOURCE_STATE_RESOLVE_SOURCE,
                 D3D12_RESOURCE_STATE_RENDER_TARGET)};
 
-        command_list_->ResourceBarrier(3u, barriers);
+        command_list_->ResourceBarrier(4u, barriers);
     }
 
     command_list_->Close();

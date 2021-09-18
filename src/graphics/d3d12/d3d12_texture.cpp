@@ -1,5 +1,8 @@
 #include "graphics/d3d12/d3d12_texture.h"
 
+#include <sstream>
+#include <string>
+
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <wrl.h>
@@ -133,6 +136,12 @@ D3D12Texture::D3D12Texture(
         dst_cursor += footprint_.Footprint.RowPitch;
         src_cursor += row_size[0];
     }
+
+    static int c = 0;
+    std::wstringstream strm{};
+    strm << "colour: " << c++;
+    name_ = strm.str();
+    resource_->SetName(name_.c_str());
 }
 
 D3D12Texture::D3D12Texture(
@@ -217,6 +226,12 @@ D3D12Texture::D3D12Texture(
 
     device->CreateShaderResourceView(
         resource_.Get(), &shader_view_description, resource_view_.cpu_handle());
+
+    static int c = 0;
+    std::wstringstream strm{};
+    strm << "depth: " << c++;
+    name_ = strm.str();
+    resource_->SetName(name_.c_str());
 }
 
 ID3D12Resource *D3D12Texture::resource() const

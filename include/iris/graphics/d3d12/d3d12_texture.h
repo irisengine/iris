@@ -141,6 +141,8 @@ class D3D12Texture : public Texture
 
     /** Type of heap to copy data to. */
     D3D12_DESCRIPTOR_HEAP_TYPE type_;
+
+    std::wstring name_;
 };
 
 }
