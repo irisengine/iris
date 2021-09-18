@@ -258,12 +258,17 @@ class Root
 
     /**
      * Helper struct encapsulating all managers for a graphics api.
+     *
+     * Note that the member order is important, we want the WindowManager to
+     * be destroyed first as some implementations require the Renderer
+     * destructor to wait for gpu operations to finish before destroying other
+     * resources.
      */
     struct GraphicsApiManagers
     {
-        std::unique_ptr<WindowManager> window_manager;
         std::unique_ptr<MeshManager> mesh_manager;
         std::unique_ptr<TextureManager> texture_manager;
+        std::unique_ptr<WindowManager> window_manager;
     };
 
     /** Map of graphics api name to managers. */

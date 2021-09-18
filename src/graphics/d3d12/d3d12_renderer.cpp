@@ -361,21 +361,20 @@ D3D12Renderer::D3D12Renderer(
 D3D12Renderer::~D3D12Renderer()
 {
     // build a collection of all frame events
-    // std::vector<HANDLE> wait_handles{};
+    std::vector<HANDLE> wait_handles{};
 
     for (const auto &frame : frames_)
     {
-        // wait_handles.emplace_back(frame.fence_event);
-        ::WaitForSingleObjectEx(frame.fence_event, INFINITE, TRUE);
+        wait_handles.emplace_back(frame.fence_event);
     }
 
     // we cannot destruct whilst a frame is being rendered, so we wait for all
     // frames to signal they are done
-    //::WaitForMultipleObjects(
-    //    static_cast<DWORD>(wait_handles.size()),
-    //    wait_handles.data(),
-    //    TRUE,
-    //    INFINITE);
+    ::WaitForMultipleObjects(
+        static_cast<DWORD>(wait_handles.size()),
+        wait_handles.data(),
+        TRUE,
+        INFINITE);
 }
 
 void D3D12Renderer::set_render_passes(
