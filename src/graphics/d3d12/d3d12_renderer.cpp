@@ -502,6 +502,21 @@ void D3D12Renderer::pre_render()
     D3D12DescriptorManager::cpu_allocator(
         D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)
         .reset_dynamic();
+
+    // if the current frame is the default render target i.e. not one
+    // manually created we need to transition it from PRESENT and make the
+    // depth buffer writable
+    const D3D12_RESOURCE_BARRIER barriers[] = {
+        ::CD3DX12_RESOURCE_BARRIER::Transition(
+            frame.buffer.Get(),
+            D3D12_RESOURCE_STATE_PRESENT,
+            D3D12_RESOURCE_STATE_RENDER_TARGET),
+        ::CD3DX12_RESOURCE_BARRIER::Transition(
+            frame.depth_buffer->resource(),
+            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+            D3D12_RESOURCE_STATE_DEPTH_WRITE)};
+
+    command_list_->ResourceBarrier(2u, barriers);
 }
 
 void D3D12Renderer::execute_upload_texture(RenderCommand &command)
@@ -564,17 +579,17 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
         // if the current frame is the default render target i.e. not one
         // manually created we need to transition it from PRESENT and make the
         // depth buffer writable
-        const D3D12_RESOURCE_BARRIER barriers[] = {
-            ::CD3DX12_RESOURCE_BARRIER::Transition(
-                frame.buffer.Get(),
-                D3D12_RESOURCE_STATE_PRESENT,
-                D3D12_RESOURCE_STATE_RENDER_TARGET),
-            ::CD3DX12_RESOURCE_BARRIER::Transition(
-                frame.depth_buffer->resource(),
-                D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-                D3D12_RESOURCE_STATE_DEPTH_WRITE)};
+        // const D3D12_RESOURCE_BARRIER barriers[] = {
+        //    ::CD3DX12_RESOURCE_BARRIER::Transition(
+        //        frame.buffer.Get(),
+        //        D3D12_RESOURCE_STATE_PRESENT,
+        //        D3D12_RESOURCE_STATE_RENDER_TARGET),
+        //    ::CD3DX12_RESOURCE_BARRIER::Transition(
+        //        frame.depth_buffer->resource(),
+        //        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+        //        D3D12_RESOURCE_STATE_DEPTH_WRITE)};
 
-        command_list_->ResourceBarrier(2u, barriers);
+        // command_list_->ResourceBarrier(2u, barriers);
 
         target = frame.final_target;
     }
