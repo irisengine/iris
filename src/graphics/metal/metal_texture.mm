@@ -29,7 +29,7 @@ namespace
  * @returns
  *   An metal enum representing the pixel format.
  */
-MTLPixelFormat forma_to_metal(iris::PixelFormat pixel_format)
+MTLPixelFormat format_to_metal(iris::PixelFormat pixel_format)
 {
     auto format = MTLPixelFormatR8Unorm;
 
@@ -103,7 +103,7 @@ id<MTLTexture> create_texture(
             }
         }
 
-        const auto format = forma_to_metal(pixel_format);
+        const auto format = format_to_metal(pixel_format);
 
         // create metal texture descriptor
         texture_descriptor = [MTLTextureDescriptor new];

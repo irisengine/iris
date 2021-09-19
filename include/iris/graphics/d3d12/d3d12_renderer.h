@@ -102,8 +102,8 @@ class D3D12Renderer : public Renderer
     void pre_render() override;
     void execute_upload_texture(RenderCommand &command) override;
     void execute_pass_start(RenderCommand &command) override;
-    void execute_draw(RenderCommand &command) override;
     void execute_pass_end(RenderCommand &command) override;
+    void execute_draw(RenderCommand &command) override;
     void execute_present(RenderCommand &command) override;
 
   private:

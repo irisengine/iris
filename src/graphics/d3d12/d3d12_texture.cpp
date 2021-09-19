@@ -139,7 +139,12 @@ D3D12Texture::D3D12Texture(
 
     static int c = 0;
     std::wstringstream strm{};
-    strm << "colour: " << c++;
+    strm << L"colour_";
+    if (is_render_target)
+    {
+        strm << L"rt_";
+    }
+    strm << c++;
     name_ = strm.str();
     resource_->SetName(name_.c_str());
 }
@@ -229,7 +234,7 @@ D3D12Texture::D3D12Texture(
 
     static int c = 0;
     std::wstringstream strm{};
-    strm << "depth: " << c++;
+    strm << L"depth_rt_" << c++;
     name_ = strm.str();
     resource_->SetName(name_.c_str());
 }
