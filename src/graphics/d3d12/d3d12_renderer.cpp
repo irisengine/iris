@@ -657,20 +657,54 @@ void D3D12Renderer::execute_pass_end(RenderCommand &command)
 
     if (target != nullptr)
     {
-        // if we are rendering to a custom render target then we need to make
-        // the depth buffer accessible to the shader
-        const D3D12_RESOURCE_BARRIER barriers[] = {
-            ::CD3DX12_RESOURCE_BARRIER::Transition(
-                static_cast<const D3D12Texture *>(target->depth_texture())
-                    ->resource(),
-                D3D12_RESOURCE_STATE_DEPTH_WRITE,
-                D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
-            ::CD3DX12_RESOURCE_BARRIER::Transition(
-                target->multisample_depth_texture()->resource(),
-                D3D12_RESOURCE_STATE_DEPTH_WRITE,
-                D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)};
+        {
+            // if we are rendering to a custom render target then we need to
+            // make the depth buffer accessible to the shader
+            const D3D12_RESOURCE_BARRIER barriers[] = {
+                ::CD3DX12_RESOURCE_BARRIER::Transition(
+                    static_cast<const D3D12Texture *>(target->depth_texture())
+                        ->resource(),
+                    D3D12_RESOURCE_STATE_DEPTH_WRITE,
+                    D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+                ::CD3DX12_RESOURCE_BARRIER::Transition(
+                    target->multisample_depth_texture()->resource(),
+                    D3D12_RESOURCE_STATE_DEPTH_WRITE,
+                    D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+                ::CD3DX12_RESOURCE_BARRIER::Transition(
+                    static_cast<const D3D12Texture *>(target->colour_texture())
+                        ->resource(),
+                    D3D12_RESOURCE_STATE_RENDER_TARGET,
+                    D3D12_RESOURCE_STATE_RESOLVE_DEST),
+                ::CD3DX12_RESOURCE_BARRIER::Transition(
+                    target->multisample_colour_texture()->resource(),
+                    D3D12_RESOURCE_STATE_RENDER_TARGET,
+                    D3D12_RESOURCE_STATE_RESOLVE_SOURCE)};
 
-        command_list_->ResourceBarrier(2u, barriers);
+            command_list_->ResourceBarrier(4u, barriers);
+        }
+
+        command_list_->ResolveSubresource(
+            static_cast<const D3D12Texture *>(target->colour_texture())
+                ->resource(),
+            0u,
+            target->multisample_colour_texture()->resource(),
+            0u,
+            DXGI_FORMAT_R8G8B8A8_UNORM);
+
+        {
+            const D3D12_RESOURCE_BARRIER barriers[] = {
+                ::CD3DX12_RESOURCE_BARRIER::Transition(
+                    static_cast<const D3D12Texture *>(target->colour_texture())
+                        ->resource(),
+                    D3D12_RESOURCE_STATE_RESOLVE_DEST,
+                    D3D12_RESOURCE_STATE_RENDER_TARGET),
+                ::CD3DX12_RESOURCE_BARRIER::Transition(
+                    target->multisample_colour_texture()->resource(),
+                    D3D12_RESOURCE_STATE_RESOLVE_SOURCE,
+                    D3D12_RESOURCE_STATE_RENDER_TARGET)};
+
+            command_list_->ResourceBarrier(2u, barriers);
+        }
     }
 }
 
