@@ -773,7 +773,8 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
         (shadow_map == nullptr)
             ? static_cast<D3D12Texture *>(Root::texture_manager().blank())
                   ->handle()
-            : static_cast<D3D12Texture *>(command.shadow_map()->depth_texture())
+            : static_cast<const D3D12RenderTarget *>(command.shadow_map())
+                  ->multisample_depth_texture()
                   ->handle();
 
     // build the table descriptor from all our handles
