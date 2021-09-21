@@ -3,6 +3,9 @@
 #include <map>
 #include <vector>
 
+#include "core/root.h"
+#include "graphics/mesh_manager.h"
+#include "graphics/render_graph/colour_node.h"
 #include "graphics/render_graph/render_graph.h"
 #include "graphics/render_target.h"
 #include "graphics/renderer.h"
@@ -102,14 +105,16 @@ namespace iris
 
 RenderQueueBuilder::RenderQueueBuilder(
     CreateMaterialCallback create_material_callback,
-    CreateRenderTargetCallback create_render_target_callback)
+    CreateRenderTargetCallback create_render_target_callback,
+    CreateResolvePassCallback create_resolve_pass_callback)
     : create_material_callback_(create_material_callback)
     , create_render_target_callback_(create_render_target_callback)
+    , create_resolve_pass_callback_(create_resolve_pass_callback)
 {
 }
 
 std::vector<RenderCommand> RenderQueueBuilder::build(
-    std::vector<RenderPass> &render_passes) const
+    std::vector<RenderPass> &render_passes)
 {
     std::map<DirectionalLight *, RenderTarget *> shadow_maps;
     std::vector<RenderPass> shadow_passes{};
@@ -131,6 +136,12 @@ std::vector<RenderCommand> RenderQueueBuilder::build(
                 shadow_passes.emplace_back(shadow_pass);
 
                 shadow_maps[light.get()] = rt;
+
+                if (create_resolve_pass_callback_)
+                {
+                    shadow_passes.emplace_back(
+                        create_resolve_pass_callback_(rt));
+                }
             }
         }
     }
@@ -205,5 +216,4 @@ std::vector<RenderCommand> RenderQueueBuilder::build(
 
     return render_queue;
 }
-
 }

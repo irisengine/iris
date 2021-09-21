@@ -48,6 +48,10 @@ class D3D12Material : public Material
         LightType light_type,
         std::uint32_t samples);
 
+    D3D12Material(
+        const std::vector<D3D12_INPUT_ELEMENT_DESC> &input_descriptors,
+        Texture *multisample_source);
+
     ~D3D12Material() override = default;
 
     /**

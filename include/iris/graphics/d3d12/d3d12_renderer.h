@@ -23,6 +23,7 @@
 #include "graphics/d3d12/d3d12_constant_buffer_pool.h"
 #include "graphics/d3d12/d3d12_descriptor_handle.h"
 #include "graphics/d3d12/d3d12_material.h"
+#include "graphics/d3d12/d3d12_mesh.h"
 #include "graphics/d3d12/d3d12_render_target.h"
 #include "graphics/d3d12/d3d12_texture.h"
 #include "graphics/render_target.h"
@@ -200,5 +201,10 @@ class D3D12Renderer : public Renderer
 
     /** Collection of textures that have been uploaded. */
     std::set<const D3D12Texture *> uploaded_;
+
+    std::unique_ptr<D3D12Material> resolve_material_;
+    D3D12RenderTarget *resolve_render_target_;
+    std::unique_ptr<Scene> resolve_scene_;
+    std::unique_ptr<Camera> resolve_camera_;
 };
 }

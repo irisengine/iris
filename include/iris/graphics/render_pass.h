@@ -36,6 +36,7 @@ struct RenderPass
         , camera(camera)
         , render_target(target)
         , depth_only(false)
+        , resolve_pass(false)
     {
     }
 
@@ -50,6 +51,8 @@ struct RenderPass
 
     /** Flag indicating that only depth information should be rendered. */
     bool depth_only = false;
+
+    bool resolve_pass;
 };
 
 }

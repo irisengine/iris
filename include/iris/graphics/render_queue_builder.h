@@ -2,13 +2,17 @@
 
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <vector>
 
+#include "core/camera.h"
 #include "graphics/lights/light_type.h"
+#include "graphics/mesh.h"
 #include "graphics/render_entity.h"
 #include "graphics/render_graph/render_graph.h"
 #include "graphics/render_target.h"
 #include "graphics/renderer.h"
+#include "graphics/scene.h"
 #include "graphics/texture.h"
 
 namespace iris
@@ -30,6 +34,7 @@ class RenderQueueBuilder
             *(RenderGraph *, RenderEntity *, const RenderTarget *, LightType)>;
     using CreateRenderTargetCallback =
         std::function<RenderTarget *(std::uint32_t, std::uint32_t)>;
+    using CreateResolvePassCallback = std::function<RenderPass(RenderTarget *)>;
 
     /**
      * Construct a new RenderQueueBuilder
@@ -42,7 +47,8 @@ class RenderQueueBuilder
      */
     RenderQueueBuilder(
         CreateMaterialCallback create_material_callback,
-        CreateRenderTargetCallback create_render_target_callback);
+        CreateRenderTargetCallback create_render_target_callback,
+        CreateResolvePassCallback create_resolve_pass_callback_ = nullptr);
 
     /**
      * Build a render queue (a collection of RenderCommand objects) from a
@@ -55,8 +61,7 @@ class RenderQueueBuilder
      *   Collection of RenderCommand objects which when executed will render the
      *   supplied passes.
      */
-    std::vector<RenderCommand> build(
-        std::vector<RenderPass> &render_passes) const;
+    std::vector<RenderCommand> build(std::vector<RenderPass> &render_passes);
 
   private:
     /**   Callback fro creating a Material object. */
@@ -64,6 +69,8 @@ class RenderQueueBuilder
 
     /**   Callback for creating a RenderTarget object. */
     CreateRenderTargetCallback create_render_target_callback_;
+
+    CreateResolvePassCallback create_resolve_pass_callback_;
 };
 
 }

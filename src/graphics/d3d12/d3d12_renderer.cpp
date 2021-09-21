@@ -28,7 +28,10 @@
 #include "graphics/d3d12/d3d12_mesh.h"
 #include "graphics/d3d12/d3d12_render_target.h"
 #include "graphics/d3d12/d3d12_texture.h"
+#include "graphics/mesh_manager.h"
 #include "graphics/render_entity.h"
+#include "graphics/render_graph/colour_node.h"
+#include "graphics/render_pass.h"
 #include "graphics/render_queue_builder.h"
 #include "graphics/texture.h"
 #include "graphics/texture_manager.h"
@@ -216,7 +219,8 @@ D3D12Renderer::D3D12Renderer(
     , render_targets_()
     , materials_()
     , uploaded_()
-
+    , resolve_material_()
+    , resolve_render_target_(nullptr)
 {
     // we will use triple buffering
     const auto num_frames = 3u;
@@ -382,10 +386,12 @@ void D3D12Renderer::set_render_passes(
 {
     render_passes_ = render_passes;
 
+    std::set<RenderGraph *> resolve_graphs{};
+
     // build the render queue from the provided passes
 
     RenderQueueBuilder queue_builder(
-        [this](
+        [this, &resolve_graphs](
             RenderGraph *render_graph,
             RenderEntity *render_entity,
             const RenderTarget *target,
@@ -393,30 +399,65 @@ void D3D12Renderer::set_render_passes(
             if (materials_.count(render_graph) == 0u ||
                 materials_[render_graph].count(light_type) == 0u)
             {
-                ///////////////////////////////////////
-                ///////////////////////////////////////
-                ///// CHECK THIS HARD CODED VALUE /////
-                ///////////////////////////////////////
-                ///////////////////////////////////////
-                const auto samples =
-                    target == nullptr
-                        ? 4u
-                        : static_cast<std::uint32_t>(anti_aliasing_level_);
+                if (resolve_graphs.count(render_graph) == 0u)
+                {
+                    ///////////////////////////////////////
+                    ///////////////////////////////////////
+                    ///// CHECK THIS HARD CODED VALUE /////
+                    ///////////////////////////////////////
+                    ///////////////////////////////////////
+                    const auto samples =
+                        target == nullptr
+                            ? 4u
+                            : static_cast<std::uint32_t>(anti_aliasing_level_);
 
-                materials_[render_graph][light_type] =
-                    std::make_unique<D3D12Material>(
-                        render_graph,
-                        static_cast<D3D12Mesh *>(render_entity->mesh())
-                            ->input_descriptors(),
-                        render_entity->primitive_type(),
-                        light_type,
-                        samples);
+                    materials_[render_graph][light_type] =
+                        std::make_unique<D3D12Material>(
+                            render_graph,
+                            static_cast<D3D12Mesh *>(render_entity->mesh())
+                                ->input_descriptors(),
+                            render_entity->primitive_type(),
+                            light_type,
+                            samples);
+                }
+                else
+                {
+                    materials_[render_graph][light_type] =
+                        std::make_unique<D3D12Material>(
+                            static_cast<D3D12Mesh *>(render_entity->mesh())
+                                ->input_descriptors(),
+                            static_cast<const D3D12RenderTarget *>(target)
+                                ->multisample_depth_texture());
+
+                    uploaded_.emplace(
+                        static_cast<const D3D12RenderTarget *>(target)
+                            ->multisample_depth_texture());
+                }
             }
 
             return materials_[render_graph][light_type].get();
         },
         [this](std::uint32_t width, std::uint32_t height) {
             return create_render_target(width, height);
+        },
+        [this, &resolve_graphs](RenderTarget *target) {
+            resolve_camera_ =
+                std::make_unique<Camera>(CameraType::ORTHOGRAPHIC, 1024, 1024);
+            resolve_scene_ = std::make_unique<Scene>();
+            auto *rg = resolve_scene_->create_render_graph();
+            resolve_graphs.emplace(rg);
+
+            resolve_scene_->create_entity(
+                rg,
+                Root::mesh_manager().sprite({}),
+                Transform{{}, {}, {1024, 1024, 1}});
+
+            RenderPass resolve_pass{
+                resolve_scene_.get(), resolve_camera_.get(), target};
+            resolve_pass.depth_only = true;
+            resolve_pass.resolve_pass = true;
+
+            return resolve_pass;
         });
     render_queue_ = queue_builder.build(render_passes_);
 
@@ -446,6 +487,12 @@ void D3D12Renderer::set_render_passes(
                     command_ptr, D3D12ConstantBufferPool{});
             }
         }
+    }
+
+    if (resolve_render_target_ == nullptr)
+    {
+        resolve_render_target_ = static_cast<D3D12RenderTarget *>(
+            create_render_target(1024u, 1024u));
     }
 }
 
@@ -609,17 +656,28 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
     const auto height = target->height();
     const auto *d3d12_target = static_cast<const D3D12RenderTarget *>(target);
 
-    const auto rt_handle = d3d12_target->multisample_handle().cpu_handle();
-    const auto depth_handle =
-        static_cast<D3D12Texture *>(d3d12_target->multisample_depth_texture())
-            ->depth_handle()
-            .cpu_handle();
+    D3D12_CPU_DESCRIPTOR_HANDLE rt_handle = {};
+    D3D12Texture *depth_texture = nullptr;
+
+    if (command.render_pass()->resolve_pass)
+    {
+        rt_handle = d3d12_target->handle().cpu_handle();
+        depth_texture =
+            static_cast<D3D12Texture *>(d3d12_target->depth_texture());
+    }
+    else
+    {
+        rt_handle = d3d12_target->multisample_handle().cpu_handle();
+        depth_texture = d3d12_target->multisample_depth_texture();
+    }
+
+    const auto depth_handle = depth_texture->depth_handle().cpu_handle();
 
     // if we are rendering to a custom render target we just need to make
     // its depth buffer writable
 
     const auto barrier = ::CD3DX12_RESOURCE_BARRIER::Transition(
-        d3d12_target->multisample_depth_texture()->resource(),
+        depth_texture->resource(),
         D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
         D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
@@ -683,13 +741,16 @@ void D3D12Renderer::execute_pass_end(RenderCommand &command)
             command_list_->ResourceBarrier(4u, barriers);
         }
 
-        command_list_->ResolveSubresource(
-            static_cast<const D3D12Texture *>(target->colour_texture())
-                ->resource(),
-            0u,
-            target->multisample_colour_texture()->resource(),
-            0u,
-            DXGI_FORMAT_R8G8B8A8_UNORM);
+        if (!command.render_pass()->depth_only)
+        {
+            command_list_->ResolveSubresource(
+                static_cast<const D3D12Texture *>(target->colour_texture())
+                    ->resource(),
+                0u,
+                target->multisample_colour_texture()->resource(),
+                0u,
+                DXGI_FORMAT_R8G8B8A8_UNORM);
+        }
 
         {
             const D3D12_RESOURCE_BARRIER barriers[] = {
@@ -705,6 +766,124 @@ void D3D12Renderer::execute_pass_end(RenderCommand &command)
 
             command_list_->ResourceBarrier(2u, barriers);
         }
+
+        // const auto width = resolve_render_target_->width();
+        // const auto height = resolve_render_target_->height();
+
+        // if (width != target->depth_texture()->width())
+        //    return;
+
+        // const auto rt_handle = resolve_render_target_->handle().cpu_handle();
+        // const auto depth_handle =
+        //    static_cast<D3D12Texture *>(target->depth_texture())
+        //        ->depth_handle()
+        //        .cpu_handle();
+
+        // const Colour clear_colour{0.4f, 0.6f, 0.9f, 1.0f};
+
+        //// if we are rendering to a custom render target we just need to make
+        //// its depth buffer writable
+
+        //{
+        //    const D3D12_RESOURCE_BARRIER barriers[] = {
+        //        CD3DX12_RESOURCE_BARRIER::Transition(
+        //            static_cast<D3D12Texture *>(target->depth_texture())
+        //                ->resource(),
+        //            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+        //            D3D12_RESOURCE_STATE_DEPTH_WRITE),
+        //        CD3DX12_RESOURCE_BARRIER::Transition(
+        //            target->multisample_depth_texture()->resource(),
+        //            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+        //            D3D12_RESOURCE_STATE_DEPTH_WRITE)};
+
+        //    command_list_->ResourceBarrier(2u, barriers);
+        //}
+
+        //// setup and clear render target
+        // command_list_->OMSetRenderTargets(1, &rt_handle, FALSE,
+        // &depth_handle); command_list_->ClearRenderTargetView(
+        //    rt_handle,
+        //    reinterpret_cast<const FLOAT *>(&clear_colour),
+        //    0,
+        //    nullptr);
+        // command_list_->ClearDepthStencilView(
+        //    depth_handle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0u, 0u, nullptr);
+
+        // command_list_->SetGraphicsRootSignature(D3D12Context::root_signature());
+
+        //// update viewport incase it's changed for current render target
+        // viewport_ = CD3DX12_VIEWPORT{
+        //    0.0f, 0.0f, static_cast<float>(width),
+        //    static_cast<float>(height)};
+        // scissor_rect_ = CD3DX12_RECT{
+        //    0u, 0u, static_cast<LONG>(width), static_cast<LONG>(height)};
+
+        // command_list_->RSSetViewports(1u, &viewport_);
+        // command_list_->RSSetScissorRects(1u, &scissor_rect_);
+        // command_list_->SetPipelineState(resolve_material_->pso());
+
+        // const auto table_descriptors =
+        //    D3D12DescriptorManager::gpu_allocator(
+        //        D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)
+        //        .allocate(D3D12Context::num_descriptors());
+        // const auto descriptor_size = D3D12DescriptorManager::gpu_allocator(
+        //                                 D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)
+        //                                 .descriptor_size();
+        // auto table_descriptor_start = table_descriptors.cpu_handle();
+
+        // auto cb = new D3D12ConstantBuffer{7168u};
+        // static Camera orth{CameraType::ORTHOGRAPHIC, 1024, 1024};
+
+        // iris::ConstantBufferWriter writer(*cb);
+        // const auto transform = Transform{{}, {}, {1024, 1024, 1}};
+
+        // writer.write(directx_translate * orth.projection());
+        // writer.write(orth.view());
+        // writer.write(orth.position());
+        // writer.write(transform.matrix());
+        // writer.write(transform.matrix());
+
+        //// build the table descriptor from all our handles
+        // build_table_descriptor(
+        //    table_descriptor_start,
+        //    descriptor_size,
+        //    cb->descriptor_handle(),
+        //    null_buffer_->descriptor_handle(),
+        //    target->multisample_depth_texture()->handle(),
+        //    {});
+
+        //// set the table descriptor for the vertex and pixel shader
+        // command_list_->SetGraphicsRootDescriptorTable(
+        //    0u, table_descriptors.gpu_handle());
+        // command_list_->SetGraphicsRootDescriptorTable(
+        //    1u, table_descriptors.gpu_handle());
+
+        // const auto vertex_view =
+        // resolve_mesh_->vertex_buffer().vertex_view(); const auto index_view =
+        // resolve_mesh_->index_buffer().index_view(); const auto num_indices =
+        //    static_cast<UINT>(resolve_mesh_->index_buffer().element_count());
+
+        // command_list_->IASetPrimitiveTopology(
+        //    D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+        // command_list_->IASetVertexBuffers(0u, 1u, &vertex_view);
+        // command_list_->IASetIndexBuffer(&index_view);
+        // command_list_->DrawIndexedInstanced(num_indices, 1u, 0u, 0u, 0u);
+
+        //{
+        //    const D3D12_RESOURCE_BARRIER barriers[] = {
+        //        CD3DX12_RESOURCE_BARRIER::Transition(
+        //            static_cast<D3D12Texture *>(target->depth_texture())
+        //                ->resource(),
+        //            D3D12_RESOURCE_STATE_DEPTH_WRITE,
+        //            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE),
+        //        CD3DX12_RESOURCE_BARRIER::Transition(
+        //            target->multisample_depth_texture()->resource(),
+        //            D3D12_RESOURCE_STATE_DEPTH_WRITE,
+        //            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)};
+
+        //    command_list_->ResourceBarrier(2u, barriers);
+        //}
     }
 }
 
@@ -773,8 +952,8 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
         (shadow_map == nullptr)
             ? static_cast<D3D12Texture *>(Root::texture_manager().blank())
                   ->handle()
-            : static_cast<const D3D12RenderTarget *>(command.shadow_map())
-                  ->multisample_depth_texture()
+            : static_cast<const D3D12Texture *>(
+                  command.shadow_map()->depth_texture())
                   ->handle();
 
     // build the table descriptor from all our handles
@@ -883,5 +1062,4 @@ void D3D12Renderer::execute_present(RenderCommand &)
 
     frame_index_ = swap_chain_->GetCurrentBackBufferIndex();
 }
-
 }

@@ -11,6 +11,7 @@
 #include <core/start.h>
 #include <graphics/anti_aliasing_level.h>
 #include <graphics/mesh_manager.h>
+#include <graphics/render_graph/colour_node.h>
 #include <graphics/render_graph/render_graph.h>
 #include <graphics/render_graph/texture_node.h>
 #include <graphics/render_target.h>
@@ -84,7 +85,19 @@ void go(int, char **)
 
     iris::RenderPass pass{scene.get(), &camera, nullptr};
 
+    auto *t = window->create_render_target(1024, 1024);
+    iris::Camera c{iris::CameraType::ORTHOGRAPHIC, 1024, 1024};
+    auto s = std::make_unique<iris::Scene>();
+    auto r = scene->create_render_graph();
+    r->render_node()->set_colour_input(
+        r->create<iris::ColourNode>(iris::Colour{1.0, 0.0, 0.0f, 1.0f}));
+    s->create_entity(
+        r,
+        iris::Root::mesh_manager().sprite({}),
+        iris::Transform{{}, {}, {1024, 1024, 1}});
+
     auto passes = sample->render_passes();
+    passes.emplace_back(iris::RenderPass{s.get(), &c, t});
     passes.emplace_back(pass);
 
     window->set_render_passes(passes);
