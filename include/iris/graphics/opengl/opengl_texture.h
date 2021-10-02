@@ -5,8 +5,8 @@
 #include "graphics/opengl/opengl.h"
 
 #include "core/data_buffer.h"
-#include "graphics/pixel_format.h"
 #include "graphics/texture.h"
+#include "graphics/texture_usage.h"
 
 namespace iris
 {
@@ -29,6 +29,9 @@ class OpenGLTexture : public Texture
      * @param height
      *   Height of data.
      *
+     * @param usage
+     *   Texture usage.
+     *
      * @param id
      *    OpenGL texture unit.
      */
@@ -36,7 +39,7 @@ class OpenGLTexture : public Texture
         const DataBuffer &data,
         std::uint32_t width,
         std::uint32_t height,
-        PixelFormat pixel_format,
+        TextureUsage usage,
         GLuint id);
 
     /**

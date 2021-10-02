@@ -11,51 +11,133 @@
 #include "core/exception.h"
 #include "core/resource_loader.h"
 #include "graphics/opengl/opengl.h"
-#include "graphics/pixel_format.h"
+#include "graphics/texture_usage.h"
 #include "log/log.h"
 
 namespace
 {
 
 /**
- * In order to have a pool of reusable texture ids we maintain a static stack.
- * This will be lazily populated by the first loaded texture, from there any
- * deleted texture will return its id to this pool.
+ * Helper function to specify a texture suitable for the texture usage.
+ * usage.
+ *
+ * @param width
+ *   Width of texture.
+ *
+ * @param height
+ *   Height of texture.
+ *
+ * @param data_ptr
+ *   Pointer to image data.
  */
-static std::stack<std::uint32_t> id_pool;
+void specify_image_texture(
+    std::uint32_t width,
+    std::uint32_t height,
+    const std::byte *data_ptr)
+{
+    ::glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_SRGB_ALPHA,
+        width,
+        height,
+        0,
+        GL_RGBA,
+        GL_UNSIGNED_BYTE,
+        data_ptr);
+    iris::check_opengl_error("could not set specify image texture");
+
+    ::glGenerateMipmap(GL_TEXTURE_2D);
+    iris::check_opengl_error("could not generate mipmaps");
+}
 
 /**
- * Helper method to convert engine pixel format into an opengl enum.
+ * Helper function to specify a texture suitable for the data usage.
+ * usage.
  *
- * @param pixel_format
- *   Format of texture data.
+ * @param width
+ *   Width of texture.
  *
- * @returns
- *   An opengl enum representing the pixel format.
+ * @param height
+ *   Height of texture.
+ *
+ * @param data_ptr
+ *   Pointer to image data.
  */
-GLenum format_to_opengl(iris::PixelFormat pixel_format)
+void specify_data_texture(
+    std::uint32_t width,
+    std::uint32_t height,
+    const std::byte *data_ptr)
 {
-    auto opengl_format = 0u;
+    ::glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_RGBA,
+        width,
+        height,
+        0,
+        GL_RGBA,
+        GL_UNSIGNED_BYTE,
+        data_ptr);
+    iris::check_opengl_error("could not set specify data texture");
 
-    switch (pixel_format)
-    {
-        case iris::PixelFormat::R: opengl_format = GL_RED; break;
-        case iris::PixelFormat::RGB: opengl_format = GL_RGB; break;
-        case iris::PixelFormat::RGBA: opengl_format = GL_RGBA; break;
-        case iris::PixelFormat::DEPTH:
-            opengl_format = GL_DEPTH_COMPONENT;
-            break;
-        default: throw std::runtime_error("incorrect number of channels");
-    }
+    ::glGenerateMipmap(GL_TEXTURE_2D);
+}
 
-    return opengl_format;
+/**
+ * Helper function to specify a texture suitable for the render target usage.
+ * usage.
+ *
+ * @param width
+ *   Width of texture.
+ *
+ * @param height
+ *   Height of texture.
+ */
+void specify_render_target_texture(std::uint32_t width, std::uint32_t height)
+{
+    ::glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_RGBA16F,
+        width,
+        height,
+        0,
+        GL_RGBA,
+        GL_FLOAT,
+        nullptr);
+    iris::check_opengl_error("could not set specify render target texture");
+}
+
+/**
+ * Helper function to specify a texture suitable for the depth usage.
+ * usage.
+ *
+ * @param width
+ *   Width of texture.
+ *
+ * @param height
+ *   Height of texture.
+ */
+void specify_depth_texture(std::uint32_t width, std::uint32_t height)
+{
+    ::glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_DEPTH_COMPONENT,
+        width,
+        height,
+        0,
+        GL_DEPTH_COMPONENT,
+        GL_UNSIGNED_SHORT,
+        nullptr);
+    iris::check_opengl_error("could not set specify depth texture");
 }
 
 /**
  * Helper function to create an opengl Texture from data.
  *
  * @param data
- *
  *   Image data. This should be width * hight of pixel_format tuples.
  *
  * @param width
@@ -64,8 +146,8 @@ GLenum format_to_opengl(iris::PixelFormat pixel_format)
  * @param height
  *   Height of image.
  *
- * @param pixel_format
- *   Format of texture data.
+ * @param usage
+ *   Texture usage.
  *
  * @returns
  *   Handle to texture.
@@ -74,7 +156,7 @@ GLuint create_texture(
     const iris::DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
-    iris::PixelFormat pixel_format,
+    iris::TextureUsage usage,
     GLuint id)
 {
     auto texture = 0u;
@@ -101,23 +183,24 @@ GLuint create_texture(
     ::glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border_colour);
     iris::check_opengl_error("could not set border colour");
 
-    const auto format = format_to_opengl(pixel_format);
-
     // opengl requires a nullptr if there is no data
     const auto *data_ptr = (data.empty()) ? nullptr : data.data();
 
-    const auto type =
-        (format == GL_DEPTH_COMPONENT) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_BYTE;
-
-    // create opengl texture
-    ::glTexImage2D(
-        GL_TEXTURE_2D, 0, format, width, height, 0, format, type, data_ptr);
-    iris::check_opengl_error("could not set Texture data");
-
-    if (format != GL_DEPTH_COMPONENT)
+    switch (usage)
     {
-        ::glGenerateMipmap(GL_TEXTURE_2D);
-        iris::check_opengl_error("could not generate mipmaps");
+        case iris::TextureUsage::IMAGE:
+            specify_image_texture(width, height, data_ptr);
+            break;
+        case iris::TextureUsage::DATA:
+            specify_data_texture(width, height, data_ptr);
+            break;
+        case iris::TextureUsage::RENDER_TARGET:
+            specify_render_target_texture(width, height);
+            break;
+        case iris::TextureUsage::DEPTH:
+            specify_depth_texture(width, height);
+            break;
+        default: throw iris::Exception("unknown usage");
     }
 
     return texture;
@@ -132,13 +215,13 @@ OpenGLTexture::OpenGLTexture(
     const DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
-    PixelFormat pixel_format,
+    TextureUsage usage,
     GLuint id)
-    : Texture(data, width, height, pixel_format)
+    : Texture(data, width, height, usage)
     , handle_(0u)
     , id_(id)
 {
-    handle_ = create_texture(data, width, height, pixel_format, id_);
+    handle_ = create_texture(data, width, height, usage, id_);
 
     LOG_ENGINE_INFO("texture", "loaded from data");
 }
