@@ -17,6 +17,7 @@ namespace iris
 {
 
 class RenderNode;
+class PostProcessingNode;
 class ColourNode;
 class TextureNode;
 class InvertNode;
@@ -52,6 +53,7 @@ class MSLShaderCompiler : public ShaderCompiler
 
     // visitor methods
     void visit(const RenderNode &node) override;
+    void visit(const PostProcessingNode &node) override;
     void visit(const ColourNode &node) override;
     void visit(const TextureNode &node) override;
     void visit(const InvertNode &node) override;
