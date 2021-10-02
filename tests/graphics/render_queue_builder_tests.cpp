@@ -21,7 +21,7 @@ class RenderQueueBuilderFixture : public ::testing::Test
         , render_targets_()
     {
         builder_ = std::make_unique<iris::RenderQueueBuilder>(
-            [this](auto *, auto *, auto) {
+            [this](auto *, auto *, const auto *, auto) {
                 materials_.emplace_back(std::make_unique<FakeMaterial>());
                 return materials_.back().get();
             },

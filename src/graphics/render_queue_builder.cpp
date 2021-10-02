@@ -45,7 +45,10 @@ void encode_light_pass_commands(
     for (const auto &[render_graph, render_entity] : scene->entities())
     {
         auto *material = create_material_callback(
-            render_graph, render_entity.get(), light_type);
+            render_graph,
+            render_entity.get(),
+            cmd.render_pass()->render_target,
+            light_type);
         cmd.set_material(material);
 
         // renderer implementation will handle duplicate checking
