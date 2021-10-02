@@ -8,8 +8,8 @@
 #include "core/exception.h"
 #include "graphics/opengl/opengl.h"
 #include "graphics/opengl/opengl_texture.h"
-#include "graphics/pixel_format.h"
 #include "graphics/texture_manager.h"
+#include "graphics/texture_usage.h"
 
 namespace iris
 {
@@ -42,14 +42,14 @@ void OpenGLTextureManager::return_id(GLuint id)
     id_pool_.emplace(id);
 }
 
-std::unique_ptr<Texture> OpenGLTextureManager::create(
+std::unique_ptr<Texture> OpenGLTextureManager::do_create(
     const DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
-    PixelFormat pixel_format)
+    TextureUsage usage)
 {
     return std::make_unique<OpenGLTexture>(
-        data, width, height, pixel_format, next_id());
+        data, width, height, usage, next_id());
 }
 
 void OpenGLTextureManager::destroy(Texture *texture)

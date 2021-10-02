@@ -4,9 +4,9 @@
 #include <memory>
 
 #include "core/data_buffer.h"
-#include "graphics/pixel_format.h"
 #include "graphics/texture.h"
 #include "graphics/texture_manager.h"
+#include "graphics/texture_usage.h"
 
 namespace iris
 {
@@ -32,14 +32,14 @@ class D3D12TextureManager : public TextureManager
      * @param height
      *   Height of image.
      *
-     * @param pixel_format
-     *   Format of pixel data.
+     * @param usage
+     *   Usage of the texture.
      */
-    std::unique_ptr<Texture> create(
+    std::unique_ptr<Texture> do_create(
         const DataBuffer &data,
         std::uint32_t width,
         std::uint32_t height,
-        PixelFormat pixel_format) override;
+        TextureUsage usage) override;
 };
 
 }

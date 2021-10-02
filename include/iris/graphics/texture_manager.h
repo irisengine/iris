@@ -7,8 +7,8 @@
 #include <vector>
 
 #include "core/data_buffer.h"
-#include "graphics/pixel_format.h"
 #include "graphics/texture.h"
+#include "graphics/texture_usage.h"
 
 namespace iris
 {
@@ -32,13 +32,20 @@ class TextureManager
      * @param resource
      *   File to load.
      *
+     * @param usage
+     *   The usage of the texture. Default is IMAGE i.e. something that will be
+     *   rendered. If Texture represents something like a normal or height map
+     *   the DATA should be used.
+     *
      * @returns
      *   Pointer to loaded texture.
      */
-    Texture *load(const std::string &resource);
+    Texture *load(
+        const std::string &resource,
+        TextureUsage usage = TextureUsage::IMAGE);
 
     /**
-     * Load a texture from a DataBuffer.
+     * Create a texture from a DataBuffer.
      *
      * @param data
      *   Raw data of image, in pixel_format.
@@ -49,14 +56,14 @@ class TextureManager
      * @param height
      *   Height of image.
      *
-     * @param pixel_format
-     *   Format of pixel data.
+     * @param usage
+     *   The usage of the texture.
      */
-    Texture *load(
+    Texture *create(
         const DataBuffer &data,
         std::uint32_t width,
         std::uint32_t height,
-        PixelFormat pixel_format);
+        TextureUsage usage);
 
     /**
      * Unloaded the supplied texture (if there are no other references to it).
@@ -94,14 +101,14 @@ class TextureManager
      * @param height
      *   Height of image.
      *
-     * @param pixel_format
-     *   Format of pixel data.
+     * @param usage
+     *   Usage of the texture.
      */
-    virtual std::unique_ptr<Texture> create(
+    virtual std::unique_ptr<Texture> do_create(
         const DataBuffer &data,
         std::uint32_t width,
         std::uint32_t height,
-        PixelFormat pixel_format) = 0;
+        TextureUsage usage) = 0;
 
     /**
      * Implementors should override this method to provide implementation

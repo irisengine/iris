@@ -14,8 +14,8 @@
 #include "core/data_buffer.h"
 #include "core/exception.h"
 #include "core/resource_loader.h"
-#include "graphics/pixel_format.h"
 #include "graphics/texture.h"
+#include "graphics/texture_usage.h"
 
 namespace
 {
@@ -29,8 +29,8 @@ namespace
  * @returns
  *   Tuple of <data, width, height, number of channels>.
  */
-std::tuple<iris::DataBuffer, std::uint32_t, std::uint32_t, std::uint32_t>
-parse_image(const iris::DataBuffer &data)
+std::tuple<iris::DataBuffer, std::uint32_t, std::uint32_t> parse_image(
+    const iris::DataBuffer &data)
 {
     int width = 0;
     int height = 0;
@@ -51,7 +51,7 @@ parse_image(const iris::DataBuffer &data)
             0),
         ::stbi_image_free);
 
-    if (!raw_data)
+    if (!raw_data || (num_channels == 0))
     {
         throw iris::Exception("failed to load image");
     }
@@ -59,17 +59,38 @@ parse_image(const iris::DataBuffer &data)
     // calculate the total number of bytes needed for the raw data
     const auto size = width * height * num_channels;
 
-    const auto *raw_data_ptr =
-        reinterpret_cast<const std::byte *>(raw_data.get());
+    static constexpr auto output_channels = 4u;
 
-    // take a copy of the image data
-    auto image_data = iris::DataBuffer(raw_data_ptr, raw_data_ptr + size);
+    // create buffer big enough for RGBA data
+    iris::DataBuffer padded_data{width * height * output_channels};
+
+    // we only store image data as RGBA in the engine, so extend the data if
+    // we have less than four channels
+
+    auto dst_ptr = padded_data.data();
+    auto *src_ptr = reinterpret_cast<const std::byte *>(raw_data.get());
+    const auto *end_ptr =
+        reinterpret_cast<const std::byte *>(raw_data.get() + size);
+
+    while (src_ptr != end_ptr)
+    {
+        // default pixel value (black with alpha)
+        // this allows us to memcpy over the data we do have and leaves the
+        // correct defaults if we have less than four channels
+        std::byte rgba[] = {
+            std::byte{0x0}, std::byte{0x0}, std::byte{0x0}, std::byte{0xff}};
+
+        std::memcpy(rgba, src_ptr, num_channels);
+        std::memcpy(dst_ptr, rgba, output_channels);
+
+        dst_ptr += output_channels;
+        src_ptr += num_channels;
+    }
 
     return std::make_tuple(
-        std::move(image_data),
+        std::move(padded_data),
         static_cast<std::uint32_t>(width),
-        static_cast<std::uint32_t>(height),
-        static_cast<std::uint32_t>(num_channels));
+        static_cast<std::uint32_t>(height));
 }
 
 }
@@ -77,39 +98,21 @@ parse_image(const iris::DataBuffer &data)
 namespace iris
 {
 
-Texture *TextureManager::load(const std::string &resource)
+Texture *TextureManager::load(const std::string &resource, TextureUsage usage)
 {
+    if ((usage != TextureUsage::IMAGE) && (usage != TextureUsage::DATA))
+    {
+        throw Exception("can only load IMAGE or DATA from file");
+    }
+
     // check if texture has been loaded before, if not then load it
     auto loaded = loaded_textures_.find(resource);
     if (loaded == std::cend(loaded_textures_))
     {
         const auto file_data = ResourceLoader::instance().load(resource);
-        auto [data, width, height, num_channels] = parse_image(file_data);
+        auto [data, width, height] = parse_image(file_data);
 
-        // some graphics apis (e.g. metal) do not support RGB natively, so we
-        // always extend the data to have a fourth component (alpha - always 1)
-        if (num_channels == 3u)
-        {
-            // create buffer big enough for RGBA data filled with 255 so we
-            // don't have to worry about setting the alpha
-            DataBuffer padded_data{
-                width * height * 4u, static_cast<std::byte>(255u)};
-
-            auto dst_ptr = padded_data.data();
-            auto src_ptr = data.data();
-
-            while (src_ptr != data.data() + data.size())
-            {
-                // copy RGB then skip past RGBA
-                std::memcpy(dst_ptr, src_ptr, 3u);
-                dst_ptr += 4u;
-                src_ptr += 3u;
-            }
-
-            data = padded_data;
-        }
-
-        auto texture = create(data, width, height, PixelFormat::RGBA);
+        auto texture = do_create(data, width, height, usage);
 
         loaded_textures_[resource] = {1u, std::move(texture)};
     }
@@ -121,11 +124,11 @@ Texture *TextureManager::load(const std::string &resource)
     return loaded_textures_[resource].texture.get();
 }
 
-Texture *TextureManager::load(
+Texture *TextureManager::create(
     const DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
-    PixelFormat pixel_format)
+    TextureUsage usage)
 {
     static std::uint32_t counter = 0u;
 
@@ -136,7 +139,7 @@ Texture *TextureManager::load(
 
     const auto resource = strm.str();
 
-    auto texture = create(data, width, height, pixel_format);
+    auto texture = do_create(data, width, height, usage);
 
     loaded_textures_[resource] = {1u, std::move(texture)};
 
@@ -175,9 +178,12 @@ void TextureManager::unload(Texture *texture)
 
 Texture *TextureManager::blank()
 {
-    static const auto byte = static_cast<std::byte>(0xFF);
-    static Texture *texture =
-        load({byte, byte, byte, byte}, 1u, 1u, PixelFormat::RGBA);
+    static Texture *texture = create(
+        {std::byte{0xff}, std::byte{0xff}, std::byte{0xff}, std::byte{0xff}},
+        1u,
+        1u,
+        TextureUsage::IMAGE);
+
     return texture;
 }
 
