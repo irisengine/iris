@@ -17,7 +17,17 @@ class FakeLight : public iris::Light
             std::numeric_limits<iris::LightType>::max());
     }
 
-    std::array<float, 4u> data() const override
+    std::array<float, 4u> colour_data() const override
+    {
+        return {};
+    }
+
+    std::array<float, 4u> world_space_data() const override
+    {
+        return {};
+    }
+
+    std::array<float, 3u> attenuation_data() const override
     {
         return {};
     }

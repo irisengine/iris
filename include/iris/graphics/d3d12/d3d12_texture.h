@@ -11,8 +11,8 @@
 
 #include "core/data_buffer.h"
 #include "graphics/d3d12/d3d12_descriptor_handle.h"
-#include "graphics/pixel_format.h"
 #include "graphics/texture.h"
+#include "graphics/texture_usage.h"
 
 namespace iris
 {
@@ -38,32 +38,14 @@ class D3D12Texture : public Texture
      * @param height
      *   Height of image.
      *
-     * @param pixel_format
-     *   Number of channels.
-     *
-     * @param is_render_target
-     *   Flag indicating if this texture will be used as a render target.
+     * @param usage
+     *   Texture usage.
      */
     D3D12Texture(
         const DataBuffer &data,
         std::uint32_t width,
         std::uint32_t height,
-        PixelFormat pixel_format,
-        bool is_render_target = false);
-
-    /**
-     * Construct a new D3D12Texture for a depth buffer. Whilst it might not be
-     * obvious from the api that this constructor is for creating depth buffers,
-     * this is an internal class and the engine knows when to use each
-     * constructor.
-     *
-     * @param width
-     *   Width of image.
-     *
-     * @param height
-     *   Height of image.
-     */
-    D3D12Texture(std::uint32_t width, std::uint32_t height);
+        TextureUsage usage);
 
     ~D3D12Texture() override = default;
 

@@ -84,6 +84,7 @@ void resolve_global_opengl_functions()
     resolve_opengl_function(glGetUniformLocation, "glGetUniformLocation");
     resolve_opengl_function(glUniformMatrix4fv, "glUniformMatrix4fv");
     resolve_opengl_function(glUniform3f, "glUniform3f");
+    resolve_opengl_function(glUniform1fv, "glUniform1fv");
     resolve_opengl_function(glUniform4fv, "glUniform4fv");
     resolve_opengl_function(glActiveTexture, "glActiveTexture");
     resolve_opengl_function(glUniform1i, "glUniform1i");

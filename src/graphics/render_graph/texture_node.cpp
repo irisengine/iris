@@ -7,6 +7,7 @@
 #include "graphics/render_graph/shader_compiler.h"
 #include "graphics/texture.h"
 #include "graphics/texture_manager.h"
+#include "graphics/texture_usage.h"
 
 namespace iris
 {
@@ -16,8 +17,8 @@ TextureNode::TextureNode(Texture *texture)
 {
 }
 
-TextureNode::TextureNode(const std::string &path)
-    : texture_(Root::texture_manager().load(path))
+TextureNode::TextureNode(const std::string &path, TextureUsage usage)
+    : texture_(Root::texture_manager().load(path, usage))
 {
 }
 

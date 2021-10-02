@@ -13,7 +13,6 @@ namespace iris
  * Implementation of Light for a constant and uniform light without direction or
  * position.
  */
-
 class AmbientLight : public Light
 {
   public:
@@ -36,12 +35,28 @@ class AmbientLight : public Light
     LightType type() const override;
 
     /**
-     * Get the raw data of the light. This is the colour.
+     * Get the raw data for the light colour.
      *
      * @returns
-     *   Colour as raw data.
+     *   Raw data (as floats) for the colour.
      */
-    std::array<float, 4u> data() const override;
+    std::array<float, 4u> colour_data() const override;
+
+    /**
+     * Unused by this light type.
+     *
+     * @returns
+     *   Array of 0.0f values.
+     */
+    std::array<float, 4u> world_space_data() const override;
+
+    /**
+     * Unused by this light type.
+     *
+     * @returns
+     *   Array of 0.0f values.
+     */
+    std::array<float, 3u> attenuation_data() const override;
 
     /**
      * Get the colour of the light.
@@ -60,6 +75,7 @@ class AmbientLight : public Light
     void set_colour(const Colour &colour);
 
   private:
+    /** Colour of ambient light. */
     Colour colour_;
 };
 

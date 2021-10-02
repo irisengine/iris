@@ -3,7 +3,9 @@
 #include <sstream>
 #include <string>
 
+#include "core/colour.h"
 #include "core/exception.h"
+#include "core/vector3.h"
 #include "graphics/lights/lighting_rig.h"
 #include "graphics/metal/compiler_strings.h"
 #include "graphics/render_graph/arithmetic_node.h"
@@ -12,7 +14,9 @@
 #include "graphics/render_graph/combine_node.h"
 #include "graphics/render_graph/component_node.h"
 #include "graphics/render_graph/composite_node.h"
+#include "graphics/render_graph/conditional_node.h"
 #include "graphics/render_graph/invert_node.h"
+#include "graphics/render_graph/post_processing_node.h"
 #include "graphics/render_graph/render_node.h"
 #include "graphics/render_graph/sin_node.h"
 #include "graphics/render_graph/texture_node.h"
@@ -215,13 +219,13 @@ void MSLShaderCompiler::visit(const RenderNode &node)
     {
         case LightType::AMBIENT:
             *current_stream_
-                << "return uniform->light_data * fragment_colour;\n";
+                << "return uniform->light_colour * fragment_colour;\n";
             break;
         case LightType::DIRECTIONAL:
             *current_stream_ << "float3 light_dir = ";
             *current_stream_
                 << (node.normal_input() == nullptr
-                        ? "normalize(-uniform->light_data.xyz);\n"
+                        ? "normalize(-uniform->light_position.xyz);\n"
                         : "normalize(-in.tangent_light_pos.xyz);\n");
 
             *current_stream_ << "float shadow = 0.0;\n";
@@ -240,20 +244,58 @@ void MSLShaderCompiler::visit(const RenderNode &node)
             *current_stream_ << "float3 light_dir = ";
             *current_stream_
                 << (node.normal_input() == nullptr
-                        ? "normalize(uniform->light_data.xyz - "
+                        ? "normalize(uniform->light_position.xyz - "
                           "in.frag_position.xyz);\n"
                         : "normalize(in.tangent_light_pos.xyz - "
                           "in.tangent_frag_pos.xyz);\n");
             *current_stream_ << R"(
+                float distance  = length(uniform->light_position.xyz - in.frag_position.xyz);
+                float constant_term = uniform->light_attenuation[0];
+                float linear = uniform->light_attenuation[1];
+                float quadratic = uniform->light_attenuation[2];
+                float attenuation = 1.0 / (constant_term + linear * distance + quadratic * (distance * distance));    
+                float3 att = float3(attenuation, attenuation, attenuation);
+
                 float diff = max(dot(n, light_dir), 0.0);
                 float3 diffuse = float3(diff, diff, diff);
                 
-                return float4(diffuse * fragment_colour.xyz, 1.0);
+                return float4(diffuse * uniform->light_colour.xyz * fragment_colour.xyz * att, 1.0);
                 )";
             break;
     }
 
     *current_stream_ << "}";
+}
+
+void MSLShaderCompiler::visit(const PostProcessingNode &node)
+{
+    current_stream_ = &vertex_stream_;
+    current_functions_ = &vertex_functions_;
+
+    current_functions_->emplace(bone_transform_function);
+    current_functions_->emplace(tbn_function);
+
+    // build vertex shader
+
+    vertex_stream_ << vertex_begin;
+    *current_stream_ << "return out;";
+    *current_stream_ << "}";
+
+    current_stream_ = &fragment_stream_;
+    current_functions_ = &fragment_functions_;
+
+    // build fragment shader
+
+    *current_stream_ << "float2 uv = in.tex.xy;\n";
+
+    build_fragment_colour(fragment_stream_, node.colour_input(), this);
+
+    *current_stream_ << R"(
+        float3 mapped = fragment_colour.rgb / (fragment_colour.rgb + float3(1.0, 1.0, 1.0));
+        mapped = pow(mapped, float3(1.0 / 2.2));
+
+        return float4(mapped, 1.0);
+    })";
 }
 
 void MSLShaderCompiler::visit(const ColourNode &node)
@@ -337,18 +379,62 @@ void MSLShaderCompiler::visit(const ValueNode<float> &node)
     *current_stream_ << std::to_string(node.value());
 }
 
+void MSLShaderCompiler::visit(const ValueNode<Vector3> &node)
+{
+    *current_stream_ << "float3(" << node.value().x << ", " << node.value().y
+                     << ", " << node.value().z << ")";
+}
+
+void MSLShaderCompiler::visit(const ValueNode<Colour> &node)
+{
+    *current_stream_ << "float4(" << node.value().g << ", " << node.value().g
+                     << ", " << node.value().b << ", " << node.value().a << ")";
+}
+
 void MSLShaderCompiler::visit(const ArithmeticNode &node)
 {
     *current_stream_ << "(";
-    node.value1()->accept(*this);
-    switch (node.arithmetic_operator())
+    if (node.arithmetic_operator() == ArithmeticOperator::DOT)
     {
-        case ArithmeticOperator::ADD: *current_stream_ << " + "; break;
-        case ArithmeticOperator::SUBTRACT: *current_stream_ << " - "; break;
-        case ArithmeticOperator::MULTIPLY: *current_stream_ << " * "; break;
-        case ArithmeticOperator::DIVIDE: *current_stream_ << " / "; break;
+        *current_stream_ << "dot(";
+        node.value1()->accept(*this);
+        *current_stream_ << ", ";
+        node.value2()->accept(*this);
+        *current_stream_ << ")";
     }
-    node.value2()->accept(*this);
+    else
+    {
+        node.value1()->accept(*this);
+        switch (node.arithmetic_operator())
+        {
+            case ArithmeticOperator::ADD: *current_stream_ << " + "; break;
+            case ArithmeticOperator::SUBTRACT: *current_stream_ << " - "; break;
+            case ArithmeticOperator::MULTIPLY: *current_stream_ << " * "; break;
+            case ArithmeticOperator::DIVIDE: *current_stream_ << " / "; break;
+            default: throw Exception("unknown arithmetic operator");
+        }
+        node.value2()->accept(*this);
+    }
+
+    *current_stream_ << ")";
+}
+
+void MSLShaderCompiler::visit(const ConditionalNode &node)
+{
+    *current_stream_ << "(";
+    node.input_value1()->accept(*this);
+
+    switch (node.conditional_operator())
+    {
+        case ConditionalOperator::GREATER: *current_stream_ << " > "; break;
+    }
+
+    node.input_value2()->accept(*this);
+
+    *current_stream_ << " ? ";
+    node.output_value1()->accept(*this);
+    *current_stream_ << " : ";
+    node.output_value2()->accept(*this);
     *current_stream_ << ")";
 }
 

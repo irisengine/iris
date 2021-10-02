@@ -248,7 +248,7 @@ Texture *create(
     }
 
     auto *texture =
-        TextureManager::load(pixel_data, width, height, PixelFormat::RGBA);
+        TextureManager::load(pixel_data, width, height, TextureUsage::RGBA);
     texture->set_flip(true);
 
     return texture;

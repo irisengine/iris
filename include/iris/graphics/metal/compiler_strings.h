@@ -50,7 +50,9 @@ typedef struct
     float4x4 normal_matrix;
     float4x4 bones[100];
     float4 camera;
-    float4 light_data;
+    float4 light_colour;
+    float4 light_position;
+    float light_attenuation[3];
     float time;
 } DefaultUniform;
 )";
@@ -83,7 +85,7 @@ out.tex = vertices[vid].tex;
 
 const float3x3 tbn = calculate_tbn(uniform, bone_transform, vid, vertices);
 
-out.tangent_light_pos = tbn * uniform->light_data.xyz;
+out.tangent_light_pos = tbn * uniform->light_position.xyz;
 out.tangent_view_pos = tbn * uniform->camera.xyz;
 out.tangent_frag_pos = tbn * out.frag_position.xyz;
 )";
@@ -93,7 +95,7 @@ float4 blur(texture2d<float> texture, float2 tex_coords)
 {
     constexpr sampler s(coord::normalized, address::repeat, filter::linear);
 
-    const float offset = 1.0 / 100.0;  
+    const float offset = 1.0 / 500.0;  
     float2 offsets[9] = {
         float2(-offset,  offset), // top-left
         float2( 0.0f,    offset), // top-center

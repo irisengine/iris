@@ -3,7 +3,9 @@
 #include <sstream>
 #include <string>
 
+#include "core/colour.h"
 #include "core/exception.h"
+#include "core/vector3.h"
 #include "graphics/lights/lighting_rig.h"
 #include "graphics/opengl/compiler_strings.h"
 #include "graphics/opengl/opengl_texture.h"
@@ -13,7 +15,9 @@
 #include "graphics/render_graph/combine_node.h"
 #include "graphics/render_graph/component_node.h"
 #include "graphics/render_graph/composite_node.h"
+#include "graphics/render_graph/conditional_node.h"
 #include "graphics/render_graph/invert_node.h"
+#include "graphics/render_graph/post_processing_node.h"
 #include "graphics/render_graph/render_node.h"
 #include "graphics/render_graph/sin_node.h"
 #include "graphics/render_graph/texture_node.h"
@@ -122,7 +126,7 @@ void build_tangent_values(std::stringstream &strm, iris::LightType light_type)
                 "frag_pos;\n";
     }
 
-    strm << "tangent_light_pos = tbn * light_data.xyz;\n";
+    strm << "tangent_light_pos = tbn * light_position.xyz;\n";
     strm << "tangent_view_pos = tbn * camera_.xyz;\n";
     strm << "tangent_frag_pos = tbn * frag_pos.xyz;\n";
 }
@@ -235,18 +239,18 @@ void GLSLShaderCompiler::visit(const RenderNode &node)
         {
             case LightType::AMBIENT:
                 *current_stream_ << R"(
-            outColour = light_data * fragment_colour;)";
+            outColour = light_colour * fragment_colour;)";
                 break;
             case LightType::DIRECTIONAL:
                 *current_stream_ << "vec3 light_dir = ";
                 *current_stream_
                     << (node.normal_input() == nullptr
-                            ? "normalize(-light_data.xyz);\n"
+                            ? "normalize(-light_position.xyz);\n"
                             : "normalize(-tangent_light_pos.xyz);\n");
 
                 *current_stream_ << "float shadow = 0.0;\n";
                 *current_stream_ <<
-                    R"(shadow = calculate_shadow(n, frag_pos_light_space, light_data.xyz, g_shadow_map);
+                    R"(shadow = calculate_shadow(n, frag_pos_light_space, light_position.xyz, g_shadow_map);
                 )";
 
                 *current_stream_ << R"(
@@ -260,14 +264,20 @@ void GLSLShaderCompiler::visit(const RenderNode &node)
                 *current_stream_ << "vec3 light_dir = ";
                 *current_stream_
                     << (node.normal_input() == nullptr
-                            ? "normalize(light_data.xyz - frag_pos.xyz);\n"
+                            ? "normalize(light_position.xyz - frag_pos.xyz);\n"
                             : "normalize(tangent_light_pos.xyz - "
                               "tangent_frag_pos.xyz);\n");
                 *current_stream_ << R"(
+                float distance  = length(light_position.xyz - frag_pos.xyz);
+                float constant = light_attenuation[0];
+                float linear = light_attenuation[1];
+                float quadratic = light_attenuation[2];
+                float attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));    
+
                 float diff = max(dot(n, light_dir), 0.0);
                 vec3 diffuse = vec3(diff);
                 
-                outColour = vec4(diffuse * fragment_colour.xyz, 1.0);
+                outColour = vec4(diffuse * light_colour.xyz * fragment_colour.xyz * vec3(attenuation), 1.0);
                 )";
                 break;
         }
@@ -280,6 +290,40 @@ void GLSLShaderCompiler::visit(const RenderNode &node)
 )";
     }
     fragment_stream_ << "}";
+}
+
+void GLSLShaderCompiler::visit(const PostProcessingNode &node)
+{
+    current_stream_ = &vertex_stream_;
+    current_functions_ = &vertex_functions_;
+
+    current_functions_->emplace(bone_transform_function);
+    current_functions_->emplace(tbn_function);
+
+    // build vertex shader
+
+    vertex_stream_ << " void main()\n{\n";
+    vertex_stream_ << vertex_begin;
+    vertex_stream_ << "}";
+
+    current_stream_ = &fragment_stream_;
+    current_functions_ = &fragment_functions_;
+
+    current_functions_->emplace(shadow_function);
+
+    // build fragment shader
+
+    fragment_stream_ << "void main()\n{\n";
+
+    // build basic values
+    build_fragment_colour(*current_stream_, node.colour_input(), this);
+
+    *current_stream_ << R"(
+        vec3 mapped = fragment_colour.rgb / (fragment_colour.rgb + vec3(1.0));
+        mapped = pow(mapped, vec3(1.0 / 2.2));
+
+        outColour = vec4(mapped, 1.0);
+    })";
 }
 
 void GLSLShaderCompiler::visit(const ColourNode &node)
@@ -346,18 +390,63 @@ void GLSLShaderCompiler::visit(const ValueNode<float> &node)
     *current_stream_ << std::to_string(node.value());
 }
 
+void GLSLShaderCompiler::visit(const ValueNode<Vector3> &node)
+{
+    *current_stream_ << "vec3(" << node.value().x << ", " << node.value().y
+                     << ", " << node.value().z << ")";
+}
+
+void GLSLShaderCompiler::visit(const ValueNode<Colour> &node)
+{
+    *current_stream_ << "vec4(" << node.value().g << ", " << node.value().g
+                     << ", " << node.value().b << ", " << node.value().a << ")";
+}
+
 void GLSLShaderCompiler::visit(const ArithmeticNode &node)
 {
     *current_stream_ << "(";
-    node.value1()->accept(*this);
-    switch (node.arithmetic_operator())
+
+    if (node.arithmetic_operator() == ArithmeticOperator::DOT)
     {
-        case ArithmeticOperator::ADD: *current_stream_ << " + "; break;
-        case ArithmeticOperator::SUBTRACT: *current_stream_ << " - "; break;
-        case ArithmeticOperator::MULTIPLY: *current_stream_ << " * "; break;
-        case ArithmeticOperator::DIVIDE: *current_stream_ << " / "; break;
+        *current_stream_ << "dot(";
+        node.value1()->accept(*this);
+        *current_stream_ << ", ";
+        node.value2()->accept(*this);
+        *current_stream_ << ")";
     }
-    node.value2()->accept(*this);
+    else
+    {
+        node.value1()->accept(*this);
+        switch (node.arithmetic_operator())
+        {
+            case ArithmeticOperator::ADD: *current_stream_ << " + "; break;
+            case ArithmeticOperator::SUBTRACT: *current_stream_ << " - "; break;
+            case ArithmeticOperator::MULTIPLY: *current_stream_ << " * "; break;
+            case ArithmeticOperator::DIVIDE: *current_stream_ << " / "; break;
+            default: throw Exception("unknown arithmetic operator");
+        }
+        node.value2()->accept(*this);
+    }
+
+    *current_stream_ << ")";
+}
+
+void GLSLShaderCompiler::visit(const ConditionalNode &node)
+{
+    *current_stream_ << "(";
+    node.input_value1()->accept(*this);
+
+    switch (node.conditional_operator())
+    {
+        case ConditionalOperator::GREATER: *current_stream_ << " > "; break;
+    }
+
+    node.input_value2()->accept(*this);
+
+    *current_stream_ << " ? ";
+    node.output_value1()->accept(*this);
+    *current_stream_ << " : ";
+    node.output_value2()->accept(*this);
     *current_stream_ << ")";
 }
 
@@ -442,5 +531,4 @@ std::vector<Texture *> GLSLShaderCompiler::textures() const
 {
     return textures_;
 }
-
 }

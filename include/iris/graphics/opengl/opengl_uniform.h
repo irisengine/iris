@@ -65,6 +65,14 @@ class OpenGLUniform
     void set_value(const std::array<float, 4u> &value) const;
 
     /**
+     * Set an array of float values for the uniform.
+     *
+     * @param value
+     *   The value to set.
+     */
+    void set_value(const std::array<float, 3u> &value) const;
+
+    /**
      * Set an integer value for the uniform.
      *
      * @param value

@@ -16,6 +16,7 @@
 #include "core/vector3.h"
 #include "graphics/constant_buffer_writer.h"
 #include "graphics/lights/lighting_rig.h"
+#include "graphics/mesh_manager.h"
 #include "graphics/metal/metal_constant_buffer.h"
 #include "graphics/metal/metal_default_constant_buffer_types.h"
 #include "graphics/metal/metal_material.h"
@@ -23,6 +24,8 @@
 #include "graphics/metal/metal_render_target.h"
 #include "graphics/metal/metal_texture.h"
 #include "graphics/render_entity.h"
+#include "graphics/render_graph/post_processing_node.h"
+#include "graphics/render_graph/texture_node.h"
 #include "graphics/render_queue_builder.h"
 #include "graphics/render_target.h"
 #include "graphics/window.h"
@@ -166,11 +169,9 @@ void set_constant_data(
     writer.write(camera->position());
     writer.write(0.0f);
 
-    const auto light_data = light->data();
-    writer.write(light_data[0]);
-    writer.write(light_data[1]);
-    writer.write(light_data[2]);
-    writer.write(light_data[3]);
+    writer.write(light->colour_data());
+    writer.write(light->world_space_data());
+    writer.write(light->attenuation_data());
 
     writer.write(0.0f);
 
@@ -231,6 +232,8 @@ namespace iris
 
 MetalRenderer::MetalRenderer(std::uint32_t width, std::uint32_t height)
     : Renderer()
+    , width_(width)
+    , height_(height)
     , command_queue_()
     , descriptor_()
     , drawable_()
@@ -291,7 +294,7 @@ MetalRenderer::MetalRenderer(std::uint32_t width, std::uint32_t height)
 
     // create default depth buffer
     default_depth_buffer_ = std::make_unique<MetalTexture>(
-        DataBuffer{}, width * 2u, height * 2u, PixelFormat::DEPTH);
+        DataBuffer{}, width * 2u, height * 2u, TextureUsage::DEPTH);
 
     render_encoder_ = nullptr;
 
@@ -322,12 +325,55 @@ void MetalRenderer::set_render_passes(
 {
     render_passes_ = render_passes;
 
+    // add a post processing pass
+
+    // find the pass which renders to the screen
+    auto final_pass = std::find_if(
+        std::begin(render_passes_),
+        std::end(render_passes_),
+        [](const RenderPass &pass) { return pass.render_target == nullptr; });
+
+    if (final_pass == std::cend(render_passes_))
+    {
+        throw Exception("no final pass");
+    }
+
+    // deferred creating of render target to ensure this class is full
+    // constructed
+    if (post_processing_target_ == nullptr)
+    {
+        post_processing_target_ = create_render_target(width_, height_);
+        post_processing_camera_ =
+            std::make_unique<Camera>(CameraType::ORTHOGRAPHIC, width_, height_);
+    }
+
+    post_processing_scene_ = std::make_unique<Scene>();
+
+    // create a full screen quad which renders the final stage with the post
+    // processing node
+    auto *rg = post_processing_scene_->create_render_graph();
+    rg->set_render_node<PostProcessingNode>(
+        rg->create<TextureNode>(post_processing_target_->colour_texture()));
+    post_processing_scene_->create_entity(
+        rg,
+        Root::mesh_manager().sprite({}),
+        Transform(
+            {},
+            {},
+            {static_cast<float>(width_), static_cast<float>(height_), 1.0}));
+
+    // wire up this pass
+    final_pass->render_target = post_processing_target_;
+    render_passes_.emplace_back(
+        post_processing_scene_.get(), post_processing_camera_.get(), nullptr);
+
     // build the render queue from the provided passes
 
     RenderQueueBuilder queue_builder(
         [this](
             RenderGraph *render_graph,
             RenderEntity *entity,
+            const RenderTarget *target,
             LightType light_type) {
             if (materials_.count(render_graph) == 0u ||
                 materials_[render_graph].count(light_type) == 0u)
@@ -377,9 +423,12 @@ RenderTarget *MetalRenderer::create_render_target(
 
     render_targets_.emplace_back(std::make_unique<MetalRenderTarget>(
         std::make_unique<MetalTexture>(
-            DataBuffer{}, width * scale, height * scale, PixelFormat::RGBA),
+            DataBuffer{},
+            width * scale,
+            height * scale,
+            TextureUsage::RENDER_TARGET),
         std::make_unique<MetalTexture>(
-            DataBuffer{}, width * scale, height * scale, PixelFormat::DEPTH)));
+            DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH)));
 
     return render_targets_.back().get();
 }

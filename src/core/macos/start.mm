@@ -60,6 +60,8 @@ void start(int argc, char **argv, std::function<void(int, char **)> entry)
     register_apis();
 
     entry(argc, argv);
+
+    Root::reset();
 }
 
 void start_debug(int argc, char **argv, std::function<void(int, char **)> entry)
@@ -73,6 +75,8 @@ void start_debug(int argc, char **argv, std::function<void(int, char **)> entry)
     register_apis();
 
     entry(argc, argv);
+
+    Root::reset();
 }
 
 }

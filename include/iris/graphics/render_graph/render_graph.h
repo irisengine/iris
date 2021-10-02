@@ -55,6 +55,22 @@ class RenderGraph
     }
 
     /**
+     * Set the render node.
+     *
+     * @param args
+     *   Arguments for Node.
+     *
+     * @returns
+     *   A pointer to the newly created Node.
+     */
+    template <class T, class... Args, typename = is_node<T>>
+    RenderNode *set_render_node(Args &&... args)
+    {
+        nodes_[0] = std::make_unique<T>(std::forward<Args>(args)...);
+        return render_node();
+    }
+
+    /**
      * Add a Node to the graph.
      *
      * @param node

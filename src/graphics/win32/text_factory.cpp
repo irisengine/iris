@@ -248,8 +248,8 @@ Texture *create(
         std::swap(pixel_data[i], pixel_data[i + 2u]);
     }
 
-    auto *texture = Root::texture_manager().load(
-        pixel_data, width, height, PixelFormat::RGBA);
+    auto *texture = Root::texture_manager().create(
+        pixel_data, width, height, TextureUsage::IMAGE);
     texture->set_flip(true);
 
     return texture;

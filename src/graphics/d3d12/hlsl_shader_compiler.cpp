@@ -4,7 +4,9 @@
 #include <sstream>
 #include <string>
 
+#include "core/colour.h"
 #include "core/exception.h"
+#include "core/vector3.h"
 #include "graphics/lights/lighting_rig.h"
 #include "graphics/render_graph/arithmetic_node.h"
 #include "graphics/render_graph/blur_node.h"
@@ -12,7 +14,9 @@
 #include "graphics/render_graph/combine_node.h"
 #include "graphics/render_graph/component_node.h"
 #include "graphics/render_graph/composite_node.h"
+#include "graphics/render_graph/conditional_node.h"
 #include "graphics/render_graph/invert_node.h"
+#include "graphics/render_graph/post_processing_node.h"
 #include "graphics/render_graph/render_node.h"
 #include "graphics/render_graph/sin_node.h"
 #include "graphics/render_graph/texture_node.h"
@@ -33,7 +37,9 @@ cbuffer DefaultUniforms : register(b0)
     matrix model;
     matrix normal_matrix;
     matrix bones[100];
-    float4 light;
+    float4 light_colour;
+    float4 light_position;
+    float4 light_attenuation;
 };
 
 cbuffer DirectionalLight : register(b1)
@@ -78,7 +84,7 @@ float4 composite(float4 colour1, float4 colour2, float4 depth1, float4 depth2, f
 static constexpr auto blur_function = R"(
 float4 blur(Texture2D tex, float2 tex_coords)
 {
-    const float offset = 1.0 / 100.0;  
+    const float offset = 1.0 / 500.0;  
     float2 offsets[9] = {
         float2(-offset,  offset), // top-left
         float2( 0.0f,    offset), // top-center
@@ -318,7 +324,7 @@ PSInput main(
     result.frag_position = mul(position, bone_transform);
     result.frag_position = mul(result.frag_position, model);
 
-    result.tangent_light_pos = float4(mul(light.xyz, tbn), 0.0);
+    result.tangent_light_pos = float4(mul(light_position.xyz, tbn), 0.0);
     result.tangent_view_pos = float4(mul(camera.xyz, tbn), 0.0);
     result.tangent_frag_pos = float4(mul(result.frag_position, tbn), 0.0);
 )";
@@ -359,13 +365,13 @@ float4 main(PSInput input) : SV_TARGET
     switch (light_type_)
     {
         case LightType::AMBIENT:
-            *current_stream_ << "return light * fragment_colour;";
+            *current_stream_ << "return light_colour * fragment_colour;";
             break;
         case LightType::DIRECTIONAL:
             *current_stream_ << "float3 light_dir = ";
             *current_stream_
                 << (node.normal_input() == nullptr
-                        ? "normalize(-light.xyz);\n"
+                        ? "normalize(-light_position.xyz);\n"
                         : "normalize(-input.tangent_light_pos.xyz);\n");
 
             *current_stream_ << "float shadow = 0.0;\n";
@@ -384,20 +390,84 @@ float4 main(PSInput input) : SV_TARGET
             *current_stream_ << "float3 light_dir = ";
             *current_stream_
                 << (node.normal_input() == nullptr
-                        ? "normalize(light.xyz - input.frag_position.xyz);\n"
+                        ? "normalize(light_position.xyz - "
+                          "input.frag_position.xyz);\n"
                         : "normalize(input.tangent_light_pos.xyz - "
                           "input.tangent_frag_pos.xyz);\n");
             *current_stream_ << R"(
+                float distance  = length(light_position.xyz - input.frag_position.xyz);
+                float constant = light_attenuation.x;
+                float linear_term = light_attenuation.y;
+                float quadratic = light_attenuation.z;
+                float attenuation = 1.0 / (constant + linear_term * distance + quadratic * (distance * distance));    
+                float3 att = {attenuation, attenuation, attenuation};
+
                 float diff = max(dot(n, light_dir), 0.0);
                 float3 diffuse = {diff, diff, diff};
                 
-                return float4(diffuse * fragment_colour, 1.0);
+                return float4(diffuse * light_colour.xyz * fragment_colour.xyz * att, 1.0);
                 )";
             break;
         default: throw Exception("unknown light type");
     }
 
     *current_stream_ << "}";
+}
+
+void HLSLShaderCompiler::visit(const PostProcessingNode &node)
+{
+    current_stream_ = &vertex_stream_;
+    current_functions_ = &vertex_functions_;
+
+    // build vertex shader
+
+    *current_stream_ << R"(
+PSInput main(
+    float4 position : TEXCOORD0,
+    float4 normal : TEXCOORD1,
+    float4 colour : TEXCOORD2,
+    float4 tex_coord : TEXCOORD3,
+    float4 tangent : TEXCOORD4,
+    float4 bitangent : TEXCOORD5,
+    uint4 bone_ids : TEXCOORD6,
+    float4 bone_weights : TEXCOORD7)
+{
+    matrix bone_transform = mul(bones[bone_ids[0]], bone_weights[0]);
+    bone_transform += mul(bones[bone_ids[1]], bone_weights[1]);
+    bone_transform += mul(bones[bone_ids[2]], bone_weights[2]);
+    bone_transform += mul(bones[bone_ids[3]], bone_weights[3]);
+
+    PSInput result;
+
+    result.frag_position = mul(position, bone_transform);
+    result.frag_position = mul(result.frag_position, model);
+    result.position = mul(result.frag_position, view);
+    result.position = mul(result.position, projection);
+    result.colour = colour;
+    result.tex_coord = tex_coord;
+
+    return result;
+})";
+
+    current_stream_ = &fragment_stream_;
+    current_functions_ = &fragment_functions_;
+
+    current_functions_->emplace(shadow_function);
+
+    // build fragment shader
+
+    *current_stream_ << R"(
+float4 main(PSInput input) : SV_TARGET
+{)";
+
+    build_fragment_colour(*current_stream_, node.colour_input(), this);
+
+    *current_stream_ << R"(
+        float3 mapped = fragment_colour.rgb / (fragment_colour.rgb + float3(1.0, 1.0, 1.0));
+        mapped = pow(mapped, float3(1.0 / 2.2, 1.0 / 2.2, 1.0 / 2.2));
+
+        return float4(mapped.r, mapped.g, mapped.b, 1.0);
+    })";
 }
 
 void HLSLShaderCompiler::visit(const ColourNode &node)
@@ -476,18 +546,62 @@ void HLSLShaderCompiler::visit(const ValueNode<float> &node)
     *current_stream_ << std::to_string(node.value());
 }
 
+void HLSLShaderCompiler::visit(const ValueNode<Vector3> &node)
+{
+    *current_stream_ << "float3(" << node.value().x << ", " << node.value().y
+                     << ", " << node.value().z << ")";
+}
+
+void HLSLShaderCompiler::visit(const ValueNode<Colour> &node)
+{
+    *current_stream_ << "float4(" << node.value().g << ", " << node.value().g
+                     << ", " << node.value().b << ", " << node.value().a << ")";
+}
+
 void HLSLShaderCompiler::visit(const ArithmeticNode &node)
 {
     *current_stream_ << "(";
-    node.value1()->accept(*this);
-    switch (node.arithmetic_operator())
+    if (node.arithmetic_operator() == ArithmeticOperator::DOT)
     {
-        case ArithmeticOperator::ADD: *current_stream_ << " + "; break;
-        case ArithmeticOperator::SUBTRACT: *current_stream_ << " - "; break;
-        case ArithmeticOperator::MULTIPLY: *current_stream_ << " * "; break;
-        case ArithmeticOperator::DIVIDE: *current_stream_ << " / "; break;
+        *current_stream_ << "dot(";
+        node.value1()->accept(*this);
+        *current_stream_ << ", ";
+        node.value2()->accept(*this);
+        *current_stream_ << ")";
     }
-    node.value2()->accept(*this);
+    else
+    {
+        node.value1()->accept(*this);
+        switch (node.arithmetic_operator())
+        {
+            case ArithmeticOperator::ADD: *current_stream_ << " + "; break;
+            case ArithmeticOperator::SUBTRACT: *current_stream_ << " - "; break;
+            case ArithmeticOperator::MULTIPLY: *current_stream_ << " * "; break;
+            case ArithmeticOperator::DIVIDE: *current_stream_ << " / "; break;
+            default: throw Exception("unknown arithmetic operator");
+        }
+        node.value2()->accept(*this);
+    }
+
+    *current_stream_ << ")";
+}
+
+void HLSLShaderCompiler::visit(const ConditionalNode &node)
+{
+    *current_stream_ << "(";
+    node.input_value1()->accept(*this);
+
+    switch (node.conditional_operator())
+    {
+        case ConditionalOperator::GREATER: *current_stream_ << " > "; break;
+    }
+
+    node.input_value2()->accept(*this);
+
+    *current_stream_ << " ? ";
+    node.output_value1()->accept(*this);
+    *current_stream_ << " : ";
+    node.output_value2()->accept(*this);
     *current_stream_ << ")";
 }
 

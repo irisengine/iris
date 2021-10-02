@@ -29,7 +29,9 @@ uniform mat4 model;
 uniform mat4 normal_matrix;
 uniform mat4 bones[100];
 uniform vec3 camera_;
-uniform vec4 light_data;
+uniform vec4 light_colour;
+uniform vec4 light_position;
+uniform float light_attenuation[3];
 uniform mat4 light_projection;
 uniform mat4 light_view;
 )";
@@ -75,7 +77,7 @@ static constexpr auto vertex_begin = R"(
 static constexpr auto blur_function = R"(
 vec4 blur(sampler2D tex, vec2 tex_coords)
 {
-    const float offset = 1.0 / 100.0;  
+    const float offset = 1.0 / 500.0;  
     vec2 offsets[9] = vec2[](
         vec2(-offset,  offset), // top-left
         vec2( 0.0f,    offset), // top-center

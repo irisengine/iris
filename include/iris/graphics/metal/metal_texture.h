@@ -5,8 +5,8 @@
 #import <Metal/Metal.h>
 
 #include "core/data_buffer.h"
-#include "graphics/pixel_format.h"
 #include "graphics/texture.h"
+#include "graphics/texture_usage.h"
 
 namespace iris
 {
@@ -28,12 +28,15 @@ class MetalTexture : public Texture
      *
      * @param height
      *   Height of data.
+     *
+     * @param usage
+     *   Texture usage.
      */
     MetalTexture(
         const DataBuffer &data,
         std::uint32_t width,
         std::uint32_t height,
-        PixelFormat pixel_format);
+        TextureUsage usage);
 
     ~MetalTexture() override = default;
 

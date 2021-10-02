@@ -39,12 +39,17 @@ class D3D12Material : public Material
      *
      * @param light_type
      *   Type of light for this material.
+     *
+     * @param render_to_swapchain
+     *   True if material will be rendered to the swapchain, false otherwise
+     *   (render target).
      */
     D3D12Material(
         const RenderGraph *render_graph,
         const std::vector<D3D12_INPUT_ELEMENT_DESC> &input_descriptors,
         PrimitiveType primitive_type,
-        LightType light_type);
+        LightType light_type,
+        bool render_to_swapchain);
 
     ~D3D12Material() override = default;
 

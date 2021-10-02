@@ -8,6 +8,7 @@
 #include "core/root.h"
 #include "core/vector3.h"
 #include "graphics/lights/lighting_rig.h"
+#include "graphics/mesh_manager.h"
 #include "graphics/opengl/default_uniforms.h"
 #include "graphics/opengl/opengl.h"
 #include "graphics/opengl/opengl_material.h"
@@ -16,6 +17,8 @@
 #include "graphics/opengl/opengl_texture.h"
 #include "graphics/opengl/opengl_texture_manager.h"
 #include "graphics/render_entity.h"
+#include "graphics/render_graph/post_processing_node.h"
+#include "graphics/render_graph/texture_node.h"
 #include "graphics/render_queue_builder.h"
 #include "graphics/texture_manager.h"
 #include "graphics/window.h"
@@ -86,7 +89,9 @@ void set_uniforms(
     uniforms->view.set_value(camera->view());
     uniforms->model.set_value(entity->transform());
     uniforms->normal_matrix.set_value(entity->normal_transform());
-    uniforms->light_data.set_value(light->data());
+    uniforms->light_colour.set_value(light->colour_data());
+    uniforms->light_position.set_value(light->world_space_data());
+    uniforms->light_attenuation.set_value(light->attenuation_data());
 
     // set shadow map specific texture and uniforms, if it was provided
     if ((shadow_map != nullptr) &&
@@ -184,7 +189,7 @@ OpenGLRenderer::OpenGLRenderer(std::uint32_t width, std::uint32_t height)
     , width_(width)
     , height_(height)
 {
-    ::glClearColor(0.77f, 0.83f, 0.9f, 1.0f);
+    ::glClearColor(0.39f, 0.58f, 0.93f, 1.0f);
     check_opengl_error("could not set clear colour");
 
     ::glEnable(GL_DEPTH_TEST);
@@ -201,11 +206,56 @@ void OpenGLRenderer::set_render_passes(
 {
     render_passes_ = render_passes;
 
+    // add a post processing pass
+
+    // find the pass which renders to the screen
+    auto final_pass = std::find_if(
+        std::begin(render_passes_),
+        std::end(render_passes_),
+        [](const RenderPass &pass) { return pass.render_target == nullptr; });
+
+    if (final_pass == std::cend(render_passes_))
+    {
+        throw Exception("no final pass");
+    }
+
+    // deferred creating of render target to ensure this class is full
+    // constructed
+    if (post_processing_target_ == nullptr)
+    {
+        post_processing_target_ = create_render_target(width_, height_);
+        post_processing_camera_ =
+            std::make_unique<Camera>(CameraType::ORTHOGRAPHIC, width_, height_);
+    }
+
+    post_processing_scene_ = std::make_unique<Scene>();
+
+    // create a full screen quad which renders the final stage with the post
+    // processing node
+    auto *rg = post_processing_scene_->create_render_graph();
+    rg->set_render_node<PostProcessingNode>(
+        rg->create<TextureNode>(post_processing_target_->colour_texture()));
+    post_processing_scene_->create_entity(
+        rg,
+        Root::mesh_manager().sprite({}),
+        Transform(
+            {},
+            {},
+            {static_cast<float>(width_), static_cast<float>(height_), 1.0}));
+
+    // wire up this pass
+    final_pass->render_target = post_processing_target_;
+    render_passes_.emplace_back(
+        post_processing_scene_.get(), post_processing_camera_.get(), nullptr);
+
     // build the render queue from the provided passes
 
     RenderQueueBuilder queue_builder(
         [this](
-            RenderGraph *render_graph, RenderEntity *, LightType light_type) {
+            RenderGraph *render_graph,
+            RenderEntity *,
+            const RenderTarget *,
+            LightType light_type) {
             if (materials_.count(render_graph) == 0u ||
                 materials_[render_graph].count(light_type) == 0u)
             {
@@ -245,7 +295,9 @@ void OpenGLRenderer::set_render_passes(
                         OpenGLUniform(program, "view"),
                         OpenGLUniform(program, "model"),
                         OpenGLUniform(program, "normal_matrix", false),
-                        OpenGLUniform(program, "light_data"),
+                        OpenGLUniform(program, "light_colour", false),
+                        OpenGLUniform(program, "light_position", false),
+                        OpenGLUniform(program, "light_attenuation", false),
                         OpenGLUniform(program, "g_shadow_map", false),
                         OpenGLUniform(program, "light_projection", false),
                         OpenGLUniform(program, "light_view", false),
@@ -277,13 +329,13 @@ RenderTarget *OpenGLRenderer::create_render_target(
             DataBuffer{},
             width * scale,
             height * scale,
-            PixelFormat::RGBA,
+            TextureUsage::RENDER_TARGET,
             tex_man.next_id()),
         std::make_unique<OpenGLTexture>(
             DataBuffer{},
             width * scale,
             height * scale,
-            PixelFormat::DEPTH,
+            TextureUsage::DEPTH,
             tex_man.next_id())));
 
     return render_targets_.back().get();

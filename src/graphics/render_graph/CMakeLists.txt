@@ -7,8 +7,10 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/combine_node.h
     ${INCLUDE_ROOT}/component_node.h
     ${INCLUDE_ROOT}/composite_node.h
+    ${INCLUDE_ROOT}/conditional_node.h
     ${INCLUDE_ROOT}/invert_node.h
     ${INCLUDE_ROOT}/node.h
+    ${INCLUDE_ROOT}/post_processing_node.h
     ${INCLUDE_ROOT}/render_graph.h
     ${INCLUDE_ROOT}/render_node.h
     ${INCLUDE_ROOT}/shader_compiler.h
@@ -22,7 +24,9 @@ target_sources(iris PRIVATE
     combine_node.cpp
     component_node.cpp
     composite_node.cpp
+    conditional_node.cpp
     invert_node.cpp
+    post_processing_node.cpp
     render_graph.cpp
     render_node.cpp
     sin_node.cpp

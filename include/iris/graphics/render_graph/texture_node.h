@@ -3,6 +3,7 @@
 #include "core/vector3.h"
 #include "graphics/render_graph/node.h"
 #include "graphics/texture.h"
+#include "graphics/texture_usage.h"
 
 namespace iris
 {
@@ -30,7 +31,9 @@ class TextureNode : public Node
      * @param path
      *   Path of texture.
      */
-    TextureNode(const std::string &path);
+    TextureNode(
+        const std::string &path,
+        TextureUsage usage = TextureUsage::IMAGE);
 
     ~TextureNode() override = default;
 

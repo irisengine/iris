@@ -2,6 +2,7 @@
 
 #include <any>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -73,7 +74,8 @@ D3D12Material::D3D12Material(
     const RenderGraph *render_graph,
     const std::vector<D3D12_INPUT_ELEMENT_DESC> &input_descriptors,
     PrimitiveType primitive_type,
-    LightType light_type)
+    LightType light_type,
+    bool render_to_swapchain)
     : pso_()
     , textures_()
 {
@@ -126,7 +128,9 @@ D3D12Material::D3D12Material(
     descriptor.SampleMask = UINT_MAX;
     descriptor.RasterizerState = rasterizer_description;
     descriptor.NumRenderTargets = 1;
-    descriptor.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+    descriptor.RTVFormats[0] = !render_to_swapchain
+                                   ? DXGI_FORMAT_R16G16B16A16_FLOAT
+                                   : DXGI_FORMAT_R8G8B8A8_UNORM;
     descriptor.SampleDesc.Count = 1;
 
     switch (primitive_type)
@@ -147,6 +151,12 @@ D3D12Material::D3D12Material(
     {
         throw Exception("could not create pso");
     }
+
+    static int counter = 0;
+    std::wstringstream strm{};
+    strm << L"pso_" << counter++;
+    const auto name = strm.str();
+    pso_->SetName(name.c_str());
 }
 
 std::vector<Texture *> D3D12Material::textures() const

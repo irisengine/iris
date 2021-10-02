@@ -5,7 +5,6 @@
 #include "core/exception.h"
 #include "graphics/opengl/opengl.h"
 #include "graphics/opengl/opengl_texture.h"
-#include "graphics/pixel_format.h"
 
 namespace iris
 {

@@ -26,7 +26,10 @@
 #include "graphics/d3d12/d3d12_mesh.h"
 #include "graphics/d3d12/d3d12_render_target.h"
 #include "graphics/d3d12/d3d12_texture.h"
+#include "graphics/mesh_manager.h"
 #include "graphics/render_entity.h"
+#include "graphics/render_graph/post_processing_node.h"
+#include "graphics/render_graph/texture_node.h"
 #include "graphics/render_queue_builder.h"
 #include "graphics/texture.h"
 #include "graphics/texture_manager.h"
@@ -80,7 +83,7 @@ void write_vertex_data_constant_buffer(
     iris::D3D12ConstantBuffer &constant_buffer,
     const iris::Camera *camera,
     const iris::RenderEntity *entity,
-    const std::array<float, 4u> &light_data)
+    const iris::Light *light)
 {
     iris::ConstantBufferWriter writer(constant_buffer);
 
@@ -95,10 +98,9 @@ void write_vertex_data_constant_buffer(
     writer.write(bones);
     writer.advance((100u - bones.size()) * sizeof(iris::Matrix4));
 
-    writer.write(light_data[0]);
-    writer.write(light_data[1]);
-    writer.write(light_data[2]);
-    writer.write(light_data[3]);
+    writer.write(light->colour_data());
+    writer.write(light->world_space_data());
+    writer.write(light->attenuation_data());
 }
 
 /**
@@ -245,6 +247,7 @@ D3D12Renderer::D3D12Renderer(
     swap_chain_descriptor.Scaling = DXGI_SCALING_STRETCH;
     swap_chain_descriptor.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
     swap_chain_descriptor.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+    swap_chain_descriptor.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 
     // create swap chain for window
     Microsoft::WRL::ComPtr<IDXGISwapChain1> swap_chain_tmp = nullptr;
@@ -278,7 +281,13 @@ D3D12Renderer::D3D12Renderer(
             throw Exception("could not get back buffer");
         }
 
-        // create a static descriptor handle for the render targ
+        static int counter = 0;
+        std::wstringstream strm{};
+        strm << L"frame_" << counter++;
+        const auto name = strm.str();
+        frame->SetName(name.c_str());
+
+        // create a static descriptor handle for the render target
         auto rtv_handle = D3D12DescriptorManager::cpu_allocator(
                               D3D12_DESCRIPTOR_HEAP_TYPE_RTV)
                               .allocate_static();
@@ -310,7 +319,10 @@ D3D12Renderer::D3D12Renderer(
             frame,
             rtv_handle,
             std::make_unique<D3D12Texture>(
-                width_ * initial_screen_scale, height_ * initial_screen_scale),
+                DataBuffer{},
+                width_ * initial_screen_scale,
+                height_ * initial_screen_scale,
+                TextureUsage::DEPTH),
             command_allocator,
             fence,
             ::CreateEvent(NULL, FALSE, TRUE, NULL));
@@ -357,12 +369,55 @@ void D3D12Renderer::set_render_passes(
 {
     render_passes_ = render_passes;
 
+    // add a post processing pass
+
+    // find the pass which renders to the screen
+    auto final_pass = std::find_if(
+        std::begin(render_passes_),
+        std::end(render_passes_),
+        [](const RenderPass &pass) { return pass.render_target == nullptr; });
+
+    if (final_pass == std::cend(render_passes_))
+    {
+        throw Exception("no final pass");
+    }
+
+    // deferred creating of render target to ensure this class is full
+    // constructed
+    if (post_processing_target_ == nullptr)
+    {
+        post_processing_target_ = create_render_target(width_, height_);
+        post_processing_camera_ =
+            std::make_unique<Camera>(CameraType::ORTHOGRAPHIC, width_, height_);
+    }
+
+    post_processing_scene_ = std::make_unique<Scene>();
+
+    // create a full screen quad which renders the final stage with the post
+    // processing node
+    auto *rg = post_processing_scene_->create_render_graph();
+    rg->set_render_node<PostProcessingNode>(
+        rg->create<TextureNode>(post_processing_target_->colour_texture()));
+    post_processing_scene_->create_entity(
+        rg,
+        Root::mesh_manager().sprite({}),
+        Transform(
+            {},
+            {},
+            {static_cast<float>(width_), static_cast<float>(height_), 1.0}));
+
+    // wire up this pass
+    final_pass->render_target = post_processing_target_;
+    render_passes_.emplace_back(
+        post_processing_scene_.get(), post_processing_camera_.get(), nullptr);
+
     // build the render queue from the provided passes
 
     RenderQueueBuilder queue_builder(
         [this](
             RenderGraph *render_graph,
             RenderEntity *render_entity,
+            const RenderTarget *target,
             LightType light_type) {
             if (materials_.count(render_graph) == 0u ||
                 materials_[render_graph].count(light_type) == 0u)
@@ -373,7 +428,8 @@ void D3D12Renderer::set_render_passes(
                         static_cast<D3D12Mesh *>(render_entity->mesh())
                             ->input_descriptors(),
                         render_entity->primitive_type(),
-                        light_type);
+                        light_type,
+                        target == nullptr);
             }
 
             return materials_[render_graph][light_type].get();
@@ -411,15 +467,13 @@ RenderTarget *D3D12Renderer::create_render_target(
 {
     const auto scale = Root::window_manager().current_window()->screen_scale();
 
-    const auto byte = static_cast<std::byte>(0xff);
     auto colour_texture = std::make_unique<D3D12Texture>(
-        DataBuffer(width * scale * height * scale * 4u, byte),
+        DataBuffer{},
         width * scale,
         height * scale,
-        PixelFormat::RGBA,
-        true);
-    auto depth_texture =
-        std::make_unique<D3D12Texture>(width * scale, height * scale);
+        TextureUsage::RENDER_TARGET);
+    auto depth_texture = std::make_unique<D3D12Texture>(
+        DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH);
 
     // add these to uploaded so the next render pass doesn't try to upload them
     uploaded_.emplace(colour_texture.get());
@@ -646,8 +700,7 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
     // create and write our constant data buffers
     auto &vertex_buffer =
         frame.constant_data_buffers.at(std::addressof(command)).next();
-    write_vertex_data_constant_buffer(
-        vertex_buffer, camera, entity, light->data());
+    write_vertex_data_constant_buffer(vertex_buffer, camera, entity, light);
 
     auto &light_buffer =
         frame.constant_data_buffers.at(std::addressof(command)).next();

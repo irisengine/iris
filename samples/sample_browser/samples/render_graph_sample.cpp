@@ -111,12 +111,13 @@ RenderGraphSample::RenderGraphSample(
 
     graph1->render_node()->set_colour_input(graph1->create<iris::InvertNode>(
         graph1->create<iris::TextureNode>("brickwall.jpg")));
-    graph1->render_node()->set_normal_input(
-        graph1->create<iris::TextureNode>("brickwall_normal.jpg"));
+    graph1->render_node()->set_normal_input(graph1->create<iris::TextureNode>(
+        "brickwall_normal.jpg", iris::TextureUsage::DATA));
 
     scene1_.set_ambient_light({0.15f, 0.15f, 0.15f});
     light1_ = scene1_.create_light<iris::PointLight>(
-        iris::Vector3{0.0f, 100.0f, -100.0f});
+        iris::Vector3{0.0f, 50.0f, -50.0f},
+        iris::Colour{200.0f, 200.0f, 200.0f});
 
     auto &mesh_manager = iris::Root::mesh_manager();
 
@@ -135,7 +136,8 @@ RenderGraphSample::RenderGraphSample(
 
     scene2_.set_ambient_light({0.15f, 0.15f, 0.15f});
     light2_ = scene2_.create_light<iris::PointLight>(
-        iris::Vector3{0.0f, 100.0f, -100.0f});
+        iris::Vector3{0.0f, 50.0f, -50.0f},
+        iris::Colour{100.0f, 100.0f, 100.0f});
 
     auto *sphere2 = scene2_.create_entity(
         graph2,

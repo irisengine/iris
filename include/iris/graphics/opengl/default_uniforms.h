@@ -27,8 +27,14 @@ struct DefaultUniforms
      * @param normal_matrix
      *   Normal matrix uniform.
      *
-     * @param light_data
-     *   Light data uniform. How it is interpreted is dependant on the Material.
+     * @param light_colour
+     *   Colour of the light.
+     *
+     * @param light_position
+     *   Position data of the light.
+     *
+     * @param light_attenuation
+     *   Attenuation data of the light.
      *
      * @param shadow_map
      *   Shadow map uniform.
@@ -47,7 +53,9 @@ struct DefaultUniforms
         OpenGLUniform view,
         OpenGLUniform model,
         OpenGLUniform normal_matrix,
-        OpenGLUniform light_data,
+        OpenGLUniform light_colour,
+        OpenGLUniform light_position,
+        OpenGLUniform light_attenuation,
         OpenGLUniform shadow_map,
         OpenGLUniform light_projection,
         OpenGLUniform light_view,
@@ -56,7 +64,9 @@ struct DefaultUniforms
         , view(view)
         , model(model)
         , normal_matrix(normal_matrix)
-        , light_data(light_data)
+        , light_colour(light_colour)
+        , light_position(light_position)
+        , light_attenuation(light_attenuation)
         , shadow_map(shadow_map)
         , light_projection(light_projection)
         , light_view(light_view)
@@ -77,8 +87,14 @@ struct DefaultUniforms
     /** Normal matrix uniform. */
     OpenGLUniform normal_matrix;
 
-    /** Light data uniform. */
-    OpenGLUniform light_data;
+    /** Colour of the light. */
+    OpenGLUniform light_colour;
+
+    /** Position data of the light. */
+    OpenGLUniform light_position;
+
+    /** Attenuation data of the light. */
+    OpenGLUniform light_attenuation;
 
     /** Shadow map uniform. */
     OpenGLUniform shadow_map;

@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "core/colour.h"
+#include "core/vector3.h"
 #include "graphics/lights/light_type.h"
 #include "graphics/texture.h"
 
@@ -10,6 +12,7 @@ namespace iris
 {
 
 class RenderNode;
+class PostProcessingNode;
 class ColourNode;
 class TextureNode;
 class InvertNode;
@@ -17,6 +20,7 @@ class BlurNode;
 class CompositeNode;
 class VertexPositionNode;
 class ArithmeticNode;
+class ConditionalNode;
 class ComponentNode;
 class CombineNode;
 class SinNode;
@@ -34,6 +38,7 @@ class ShaderCompiler
 
     // visitor methods
     virtual void visit(const RenderNode &node) = 0;
+    virtual void visit(const PostProcessingNode &node) = 0;
     virtual void visit(const ColourNode &node) = 0;
     virtual void visit(const TextureNode &node) = 0;
     virtual void visit(const InvertNode &node) = 0;
@@ -41,7 +46,10 @@ class ShaderCompiler
     virtual void visit(const CompositeNode &node) = 0;
     virtual void visit(const VertexPositionNode &node) = 0;
     virtual void visit(const ValueNode<float> &node) = 0;
+    virtual void visit(const ValueNode<Vector3> &node) = 0;
+    virtual void visit(const ValueNode<Colour> &node) = 0;
     virtual void visit(const ArithmeticNode &node) = 0;
+    virtual void visit(const ConditionalNode &node) = 0;
     virtual void visit(const ComponentNode &node) = 0;
     virtual void visit(const CombineNode &node) = 0;
     virtual void visit(const SinNode &node) = 0;

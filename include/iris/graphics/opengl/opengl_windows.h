@@ -24,6 +24,10 @@
 #define GL_COMPILE_STATUS 0x8B81
 #define GL_CLAMP_TO_BORDER 0x812D
 #define GL_CLAMP_TO_EDGE 0x812F
+#define GL_RGBA16F 0x881A
+#define GL_SRGB 0x8C40
+#define GL_SRGB_ALPHA 0x8C42
+#define GL_FRAMEBUFFER_SRGB 0x8DB9
 
 #define WGL_CONTEXT_MAJOR_VERSION_ARB 0x2091
 #define WGL_CONTEXT_MINOR_VERSION_ARB 0x2092
@@ -86,6 +90,7 @@ EXTERN void (*glDeleteFramebuffers)(GLsizei, const GLuint *);
 EXTERN GLint (*glGetUniformLocation)(GLuint, const GLchar *);
 EXTERN void (*glUniformMatrix4fv)(GLint, GLsizei, GLboolean, const GLfloat *);
 EXTERN void (*glUniform3f)(GLint, GLfloat, GLfloat, GLfloat);
+EXTERN void (*glUniform1fv)(GLint, GLsizei, const GLfloat *);
 EXTERN void (*glUniform4fv)(GLint, GLsizei, const GLfloat *);
 EXTERN void (*glActiveTexture)(GLenum);
 EXTERN void (*glUniform1i)(GLint, GLint);

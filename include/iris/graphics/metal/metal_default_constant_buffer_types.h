@@ -15,9 +15,11 @@ struct DefaultConstantBuffer
     Matrix4 normal_matrix;
     Matrix4 bones[100];
     float camera[4];
-    float light_data[4];
+    float light_position[4];
+    float light_world_space[4];
+    float light_attenuation[3];
     float time;
-    char padding[12];
+    char padding[48];
 };
 
 struct DirectionalLightConstantBuffer

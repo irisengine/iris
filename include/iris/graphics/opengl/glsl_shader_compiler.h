@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "core/colour.h"
+#include "core/vector3.h"
 #include "graphics/lights/light_type.h"
 #include "graphics/render_graph/render_graph.h"
 #include "graphics/render_graph/shader_compiler.h"
@@ -15,6 +17,7 @@ namespace iris
 {
 
 class RenderNode;
+class PostProcessingNode;
 class ColourNode;
 class TextureNode;
 class InvertNode;
@@ -22,6 +25,7 @@ class BlurNode;
 class CompositeNode;
 class VertexPositionNode;
 class ArithmeticNode;
+class ConditionalNode;
 class ComponentNode;
 class CombineNode;
 class SinNode;
@@ -49,6 +53,7 @@ class GLSLShaderCompiler : public ShaderCompiler
 
     // visitor methods
     void visit(const RenderNode &node) override;
+    void visit(const PostProcessingNode &node) override;
     void visit(const ColourNode &node) override;
     void visit(const TextureNode &node) override;
     void visit(const InvertNode &node) override;
@@ -56,7 +61,10 @@ class GLSLShaderCompiler : public ShaderCompiler
     void visit(const CompositeNode &node) override;
     void visit(const VertexPositionNode &node) override;
     void visit(const ValueNode<float> &node) override;
+    void visit(const ValueNode<Vector3> &node) override;
+    void visit(const ValueNode<Colour> &node) override;
     void visit(const ArithmeticNode &node) override;
+    void visit(const ConditionalNode &node) override;
     void visit(const ComponentNode &node) override;
     void visit(const CombineNode &node) override;
     void visit(const SinNode &node) override;

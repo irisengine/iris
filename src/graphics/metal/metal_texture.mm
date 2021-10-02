@@ -14,33 +14,121 @@
 #include "core/macos/macos_ios_utility.h"
 #include "core/resource_loader.h"
 #include "core/vector3.h"
-#include "graphics/pixel_format.h"
+#include "graphics/texture_usage.h"
 #include "log/log.h"
 
 namespace
 {
 
 /**
- * Helper method to convert engine pixel format into an metal enum.
+ * Helper function to create a metal texture descriptor suitable for the texture
+ * usage.
  *
- * @param pixel_format
- *   Format of texture data.
+ * @param width
+ *   Width of texture.
+ *
+ * @param height
+ *   Height of texture.
  *
  * @returns
- *   An metal enum representing the pixel format.
+ *   MTLTextureDescriptor for texture.
  */
-MTLPixelFormat forma_to_metal(iris::PixelFormat pixel_format)
+MTLTextureDescriptor *image_texture_descriptor(
+    std::uint32_t width,
+    std::uint32_t height)
 {
-    auto format = MTLPixelFormatR8Unorm;
+    auto *texture_descriptor = [MTLTextureDescriptor new];
+    texture_descriptor.textureType = MTLTextureType2D;
+    texture_descriptor.width = width;
+    texture_descriptor.height = height;
+    texture_descriptor.pixelFormat = MTLPixelFormatRGBA8Unorm_sRGB;
+    texture_descriptor.usage = MTLTextureUsageShaderRead;
 
-    switch (pixel_format)
-    {
-        case iris::PixelFormat::R: format = MTLPixelFormatR8Unorm; break;
-        case iris::PixelFormat::RGBA: format = MTLPixelFormatBGRA8Unorm; break;
-        default: throw iris::Exception("unsupported pixel format");
-    }
+    return texture_descriptor;
+}
 
-    return format;
+/**
+ * Helper function to create a metal texture descriptor suitable for the data
+ * usage.
+ *
+ * @param width
+ *   Width of texture.
+ *
+ * @param height
+ *   Height of texture.
+ *
+ * @returns
+ *   MTLTextureDescriptor for texture.
+ */
+MTLTextureDescriptor *data_texture_descriptor(
+    std::uint32_t width,
+    std::uint32_t height)
+{
+    auto *texture_descriptor = [MTLTextureDescriptor new];
+    texture_descriptor.textureType = MTLTextureType2D;
+    texture_descriptor.width = width;
+    texture_descriptor.height = height;
+    texture_descriptor.pixelFormat = MTLPixelFormatRGBA8Unorm;
+    texture_descriptor.usage = MTLTextureUsageShaderRead;
+
+    return texture_descriptor;
+}
+
+/**
+ * Helper function to create a metal texture descriptor suitable for the render
+ * target usage.
+ *
+ * @param width
+ *   Width of texture.
+ *
+ * @param height
+ *   Height of texture.
+ *
+ * @returns
+ *   MTLTextureDescriptor for texture.
+ */
+MTLTextureDescriptor *render_target_texture_descriptor(
+    std::uint32_t width,
+    std::uint32_t height)
+{
+    auto *texture_descriptor = [MTLTextureDescriptor new];
+    texture_descriptor.textureType = MTLTextureType2D;
+    texture_descriptor.width = width;
+    texture_descriptor.height = height;
+    texture_descriptor.pixelFormat = MTLPixelFormatRGBA16Float;
+    texture_descriptor.usage =
+        MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead;
+
+    return texture_descriptor;
+}
+
+/**
+ * Helper function to create a metal texture descriptor suitable for the depth
+ * usage.
+ *
+ * @param width
+ *   Width of texture.
+ *
+ * @param height
+ *   Height of texture.
+ *
+ * @returns
+ *   MTLTextureDescriptor for texture.
+ */
+MTLTextureDescriptor *depth_texture_descriptor(
+    std::uint32_t width,
+    std::uint32_t height)
+{
+    auto *texture_descriptor = [MTLTextureDescriptor new];
+    texture_descriptor.textureType = MTLTextureType2D;
+    texture_descriptor.width = width;
+    texture_descriptor.height = height;
+    texture_descriptor.pixelFormat = MTLPixelFormatDepth32Float;
+    texture_descriptor.resourceOptions = MTLResourceStorageModePrivate;
+    texture_descriptor.usage =
+        MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead;
+
+    return texture_descriptor;
 }
 
 /**
@@ -55,8 +143,8 @@ MTLPixelFormat forma_to_metal(iris::PixelFormat pixel_format)
  * @param height
  *   Height of image.
  *
- * @param pixel_format
- *   Format of texture data.
+ * @param usage
+ *   Texture usage.
  *
  * @returns
  *   Handle to texture.
@@ -65,7 +153,7 @@ id<MTLTexture> create_texture(
     iris::DataBuffer data,
     std::uint32_t width,
     std::uint32_t height,
-    iris::PixelFormat pixel_format)
+    iris::TextureUsage usage)
 {
     auto *data_ptr = data.data();
 
@@ -73,42 +161,22 @@ id<MTLTexture> create_texture(
 
     MTLTextureDescriptor *texture_descriptor = nullptr;
 
-    if (pixel_format == iris::PixelFormat::DEPTH)
+    switch (usage)
     {
-        texture_descriptor = [MTLTextureDescriptor
-            texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float
-                                         width:width
-                                        height:height
-                                     mipmapped:NO];
-        [texture_descriptor setResourceOptions:MTLResourceStorageModePrivate];
-        [texture_descriptor
-            setUsage:MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead];
-    }
-    else
-    {
-        // annoyingly metal only allows BGRA for render targets
-        // rather than adding this to PixelFormat and generally muddying the
-        // user api we instead do a byte swap here to convert to BGRA this means
-        // that to a user everything is RGBA, but interally to metal all
-        // textures are BGRA
-        if ((pixel_format == iris::PixelFormat::RGBA) && !data.empty())
-        {
-            for (auto i = 0u; i < width * height * 4; i += 4)
-            {
-                std::swap(data_ptr[i], data_ptr[i + 2]);
-            }
-        }
-
-        const auto format = forma_to_metal(pixel_format);
-
-        // create metal texture descriptor
-        texture_descriptor = [MTLTextureDescriptor new];
-        texture_descriptor.textureType = MTLTextureType2D;
-        texture_descriptor.width = width;
-        texture_descriptor.height = height;
-        texture_descriptor.pixelFormat = format;
-        texture_descriptor.usage =
-            MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead;
+        case iris::TextureUsage::IMAGE:
+            texture_descriptor = image_texture_descriptor(width, height);
+            break;
+        case iris::TextureUsage::DATA:
+            texture_descriptor = data_texture_descriptor(width, height);
+            break;
+        case iris::TextureUsage::RENDER_TARGET:
+            texture_descriptor =
+                render_target_texture_descriptor(width, height);
+            break;
+        case iris::TextureUsage::DEPTH:
+            texture_descriptor = depth_texture_descriptor(width, height);
+            break;
+        default: throw iris::Exception("unknown texture usage");
     }
 
     auto *device = iris::core::utility::metal_device();
@@ -116,12 +184,12 @@ id<MTLTexture> create_texture(
     // create new texture
     auto texture = [device newTextureWithDescriptor:texture_descriptor];
 
-    auto region = MTLRegionMake2D(0, 0, width, height);
-    const auto bytes_per_row = width * 4u;
-
-    // special case for empty texture
+    // set data if it was supplied
     if (!data.empty())
     {
+        auto region = MTLRegionMake2D(0, 0, width, height);
+        const auto bytes_per_row = width * 4u;
+
         // set image data for texture
         [texture replaceRegion:region
                    mipmapLevel:0
@@ -141,11 +209,11 @@ MetalTexture::MetalTexture(
     const DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
-    PixelFormat pixel_format)
-    : Texture(data, width, height, pixel_format)
+    TextureUsage usage)
+    : Texture(data, width, height, usage)
     , texture_()
 {
-    texture_ = create_texture(data, width, height, pixel_format);
+    texture_ = create_texture(data, width, height, usage);
 
     LOG_ENGINE_INFO("texture", "loaded from data");
 }

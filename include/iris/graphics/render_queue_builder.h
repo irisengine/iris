@@ -25,8 +25,9 @@ class RenderQueueBuilder
 {
   public:
     // aliases for callbacks
-    using CreateMaterialCallback =
-        std::function<Material *(RenderGraph *, RenderEntity *, LightType)>;
+    using CreateMaterialCallback = std::function<
+        Material
+            *(RenderGraph *, RenderEntity *, const RenderTarget *, LightType)>;
     using CreateRenderTargetCallback =
         std::function<RenderTarget *(std::uint32_t, std::uint32_t)>;
 

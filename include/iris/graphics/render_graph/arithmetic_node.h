@@ -14,7 +14,8 @@ enum class ArithmeticOperator : std::uint8_t
     ADD,
     SUBTRACT,
     MULTIPLY,
-    DIVIDE
+    DIVIDE,
+    DOT
 };
 
 /**

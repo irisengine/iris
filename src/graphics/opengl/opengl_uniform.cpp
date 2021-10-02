@@ -50,6 +50,12 @@ void OpenGLUniform::set_value(const std::array<float, 4u> &value) const
     iris::check_opengl_error("could not set uniform data");
 }
 
+void OpenGLUniform::set_value(const std::array<float, 3u> &value) const
+{
+    ::glUniform1fv(location_, 3u, value.data());
+    iris::check_opengl_error("could not set uniform data");
+}
+
 void OpenGLUniform::set_value(std::int32_t value) const
 {
     ::glUniform1i(location_, value);
