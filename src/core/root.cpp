@@ -129,6 +129,11 @@ std::vector<std::string> Root::registered_jobs_apis()
     return instance().registered_jobs_apis_impl();
 }
 
+void Root::reset()
+{
+    instance().reset_impl();
+}
+
 WindowManager &Root::window_manager_impl() const
 {
     return *graphics_api_managers_.at(graphics_api_).window_manager;
@@ -263,6 +268,13 @@ std::vector<std::string> Root::registered_jobs_apis_impl() const
     }
 
     return apis;
+}
+
+void Root::reset_impl()
+{
+    physics_api_managers_.clear();
+    graphics_api_managers_.clear();
+    jobs_api_managers_.clear();
 }
 
 }

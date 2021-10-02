@@ -16,7 +16,8 @@ class WindowManager;
 
 /**
  * This class allows for the runtime registration and retrieval of various
- * manager classes. It is a singleton.
+ * manager classes. It is a singleton and therefore provides singleton access to
+ * the various components in owns without requiring them to be singletons.
  *
  * These managers are factory classes that can create engine components, the
  * reason for all this machinery is:
@@ -202,6 +203,15 @@ class Root
      */
     static std::vector<std::string> registered_jobs_apis();
 
+    /**
+     * Clear all registered components.
+     *
+     * This method exists to allow the engine to destroy the internal managers
+     * at a time of its choosing, rather than waiting for the singleton itself
+     * to be destroyed. There is no reason a user should have to call this.
+     */
+    static void reset();
+
   private:
     // private to force access through above public static methods
     Root();
@@ -252,14 +262,21 @@ class Root
 
     std::vector<std::string> registered_jobs_apis_impl() const;
 
+    void reset_impl();
+
     /**
      * Helper struct encapsulating all managers for a graphics api.
+     *
+     * Note that the member order is important, we want the WindowManager to
+     * be destroyed first as some implementations require the Renderer
+     * destructor to wait for gpu operations to finish before destroying other
+     * resources.
      */
     struct GraphicsApiManagers
     {
-        std::unique_ptr<WindowManager> window_manager;
         std::unique_ptr<MeshManager> mesh_manager;
         std::unique_ptr<TextureManager> texture_manager;
+        std::unique_ptr<WindowManager> window_manager;
     };
 
     /** Map of graphics api name to managers. */
