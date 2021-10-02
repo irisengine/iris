@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "graphics/pixel_format.h"
+#include "graphics/texture_usage.h"
 
 namespace iris
 {
@@ -11,12 +11,12 @@ Texture::Texture(
     const DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
-    PixelFormat pixel_format)
+    TextureUsage usage)
     : data_(data)
     , width_(width)
     , height_(height)
     , flip_(false)
-    , format_(pixel_format)
+    , usage_(usage)
 {
 }
 
@@ -37,9 +37,9 @@ std::uint32_t Texture::height() const
     return height_;
 }
 
-PixelFormat Texture::pixel_format() const
+TextureUsage Texture::usage() const
 {
-    return format_;
+    return usage_;
 }
 
 bool Texture::flip() const

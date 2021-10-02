@@ -3,7 +3,7 @@
 #include <cstdint>
 
 #include "core/data_buffer.h"
-#include "graphics/pixel_format.h"
+#include "graphics/texture_usage.h"
 
 namespace iris
 {
@@ -33,7 +33,7 @@ class Texture
         const DataBuffer &data,
         std::uint32_t width,
         std::uint32_t height,
-        PixelFormat pixel_format);
+        TextureUsage usage);
 
     virtual ~Texture() = 0;
 
@@ -65,12 +65,12 @@ class Texture
     std::uint32_t height() const;
 
     /**
-     * Get the pixel format.
+     * Get the texture usage.
      *
      * @returns
-     *   Pixel format.
+     *   Texture usage.
      */
-    PixelFormat pixel_format() const;
+    TextureUsage usage() const;
 
     /**
      * Should a texture be flipped vertically.
@@ -101,8 +101,8 @@ class Texture
     /** Should texture be flipped vertically. */
     bool flip_;
 
-    /** Pixel format. */
-    PixelFormat format_;
+    /** Texture usage. */
+    TextureUsage usage_;
 };
 
 }
