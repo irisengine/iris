@@ -3,7 +3,9 @@
 #include <sstream>
 #include <string>
 
+#include "core/colour.h"
 #include "core/exception.h"
+#include "core/vector3.h"
 #include "graphics/lights/lighting_rig.h"
 #include "graphics/opengl/compiler_strings.h"
 #include "graphics/opengl/opengl_texture.h"
@@ -350,6 +352,18 @@ void GLSLShaderCompiler::visit(const VertexPositionNode &)
 void GLSLShaderCompiler::visit(const ValueNode<float> &node)
 {
     *current_stream_ << std::to_string(node.value());
+}
+
+void GLSLShaderCompiler::visit(const ValueNode<Vector3> &node)
+{
+    *current_stream_ << "vec3(" << node.value().x << ", " << node.value().y
+                     << ", " << node.value().z << ")";
+}
+
+void GLSLShaderCompiler::visit(const ValueNode<Colour> &node)
+{
+    *current_stream_ << "vec4(" << node.value().g << ", " << node.value().g
+                     << ", " << node.value().b << ", " << node.value().a << ")";
 }
 
 void GLSLShaderCompiler::visit(const ArithmeticNode &node)

@@ -4,7 +4,9 @@
 #include <sstream>
 #include <string>
 
+#include "core/colour.h"
 #include "core/exception.h"
+#include "core/vector3.h"
 #include "graphics/lights/lighting_rig.h"
 #include "graphics/render_graph/arithmetic_node.h"
 #include "graphics/render_graph/blur_node.h"
@@ -485,6 +487,18 @@ void HLSLShaderCompiler::visit(const VertexPositionNode &)
 void HLSLShaderCompiler::visit(const ValueNode<float> &node)
 {
     *current_stream_ << std::to_string(node.value());
+}
+
+void HLSLShaderCompiler::visit(const ValueNode<Vector3> &node)
+{
+    *current_stream_ << "float3(" << node.value().x << ", " << node.value().y
+                     << ", " << node.value().z << ")";
+}
+
+void HLSLShaderCompiler::visit(const ValueNode<Colour> &node)
+{
+    *current_stream_ << "float4(" << node.value().g << ", " << node.value().g
+                     << ", " << node.value().b << ", " << node.value().a << ")";
 }
 
 void HLSLShaderCompiler::visit(const ArithmeticNode &node)

@@ -3,7 +3,9 @@
 #include <sstream>
 #include <string>
 
+#include "core/colour.h"
 #include "core/exception.h"
+#include "core/vector3.h"
 #include "graphics/lights/lighting_rig.h"
 #include "graphics/metal/compiler_strings.h"
 #include "graphics/render_graph/arithmetic_node.h"
@@ -342,6 +344,18 @@ void MSLShaderCompiler::visit(const VertexPositionNode &node)
 void MSLShaderCompiler::visit(const ValueNode<float> &node)
 {
     *current_stream_ << std::to_string(node.value());
+}
+
+void MSLShaderCompiler::visit(const ValueNode<Vector3> &node)
+{
+    *current_stream_ << "float3(" << node.value().x << ", " << node.value().y
+                     << ", " << node.value().z << ")";
+}
+
+void MSLShaderCompiler::visit(const ValueNode<Colour> &node)
+{
+    *current_stream_ << "float4(" << node.value().g << ", " << node.value().g
+                     << ", " << node.value().b << ", " << node.value().a << ")";
 }
 
 void MSLShaderCompiler::visit(const ArithmeticNode &node)

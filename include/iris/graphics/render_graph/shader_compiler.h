@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "core/colour.h"
+#include "core/vector3.h"
 #include "graphics/lights/light_type.h"
 #include "graphics/texture.h"
 
@@ -42,6 +44,8 @@ class ShaderCompiler
     virtual void visit(const CompositeNode &node) = 0;
     virtual void visit(const VertexPositionNode &node) = 0;
     virtual void visit(const ValueNode<float> &node) = 0;
+    virtual void visit(const ValueNode<Vector3> &node) = 0;
+    virtual void visit(const ValueNode<Colour> &node) = 0;
     virtual void visit(const ArithmeticNode &node) = 0;
     virtual void visit(const ConditionalNode &node) = 0;
     virtual void visit(const ComponentNode &node) = 0;

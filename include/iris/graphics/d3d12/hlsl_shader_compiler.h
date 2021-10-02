@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "core/colour.h"
+#include "core/vector3.h"
 #include "graphics/lights/light_type.h"
 #include "graphics/render_graph/render_graph.h"
 #include "graphics/render_graph/shader_compiler.h"
@@ -57,6 +59,8 @@ class HLSLShaderCompiler : public ShaderCompiler
     void visit(const CompositeNode &node) override;
     void visit(const VertexPositionNode &node) override;
     void visit(const ValueNode<float> &node) override;
+    void visit(const ValueNode<Vector3> &node) override;
+    void visit(const ValueNode<Colour> &node) override;
     void visit(const ArithmeticNode &node) override;
     void visit(const ConditionalNode &node) override;
     void visit(const ComponentNode &node) override;
