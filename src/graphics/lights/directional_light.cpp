@@ -25,7 +25,15 @@ LightType DirectionalLight::type() const
     return LightType::DIRECTIONAL;
 }
 
-std::array<float, 4u> DirectionalLight::data() const
+std::array<float, 4u> DirectionalLight::colour_data() const
+{
+    std::array<float, 4u> light_data{};
+    light_data.fill(1.0f);
+
+    return light_data;
+}
+
+std::array<float, 4u> DirectionalLight::world_space_data() const
 {
     std::array<float, 4u> light_data{};
     light_data.fill(0.0f);
@@ -35,6 +43,14 @@ std::array<float, 4u> DirectionalLight::data() const
         sizeof(direction_));
 
     std::memcpy(light_data.data(), &direction_, sizeof(direction_));
+
+    return light_data;
+}
+
+std::array<float, 3u> DirectionalLight::attenuation_data() const
+{
+    std::array<float, 3u> light_data{};
+    light_data.fill(1.0f);
 
     return light_data;
 }

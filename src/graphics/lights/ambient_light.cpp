@@ -20,7 +20,7 @@ LightType AmbientLight::type() const
     return LightType::AMBIENT;
 }
 
-std::array<float, 4u> AmbientLight::data() const
+std::array<float, 4u> AmbientLight::colour_data() const
 {
     std::array<float, 4u> light_data{};
     light_data.fill(0.0f);
@@ -32,6 +32,22 @@ std::array<float, 4u> AmbientLight::data() const
 
     // copy light data straight into buffer
     std::memcpy(light_data.data(), &colour_, sizeof(colour_));
+
+    return light_data;
+}
+
+std::array<float, 4u> AmbientLight::world_space_data() const
+{
+    std::array<float, 4u> light_data{};
+    light_data.fill(0.0f);
+
+    return light_data;
+}
+
+std::array<float, 3u> AmbientLight::attenuation_data() const
+{
+    std::array<float, 3u> light_data{};
+    light_data.fill(0.0f);
 
     return light_data;
 }

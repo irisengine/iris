@@ -43,12 +43,28 @@ class DirectionalLight : public Light
     LightType type() const override;
 
     /**
-     * Get the raw data of the light. This is the direction.
+     * Unused by this light type.
      *
      * @returns
-     *   Direction as raw data.
+     *   Array of 1.0f values.
      */
-    std::array<float, 4u> data() const override;
+    std::array<float, 4u> colour_data() const override;
+
+    /**
+     * Get the raw data for the lights world space property i.e direction.
+     *
+     * @returns
+     *   Raw data (as floats) for the world space property.
+     */
+    std::array<float, 4u> world_space_data() const override;
+
+    /**
+     * Unused by this light type.
+     *
+     * @returns
+     *   Array of 0.0f values.
+     */
+    std::array<float, 3u> attenuation_data() const override;
 
     /**
      * Get direction of light.
