@@ -109,6 +109,12 @@ class MetalRenderer : public Renderer
             constant_data_buffers;
     };
 
+    /** Width of window to render to. */
+    std::uint32_t width_;
+
+    /** Height of window to render to. */
+    std::uint32_t height_;
+
     /** Current command queue. */
     id<MTLCommandQueue> command_queue_;
 

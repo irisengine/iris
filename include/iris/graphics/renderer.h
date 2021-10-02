@@ -19,6 +19,7 @@ namespace iris
 class Renderer
 {
   public:
+    Renderer();
     virtual ~Renderer() = default;
 
     /**
@@ -75,6 +76,15 @@ class Renderer
      * objects.
      * */
     std::vector<RenderCommand> render_queue_;
+
+    /** Scene for the post processing step. */
+    std::unique_ptr<Scene> post_processing_scene_;
+
+    /** RenderTarget for the post processing step. */
+    RenderTarget *post_processing_target_;
+
+    /** Camera for the post processing step. */
+    std::unique_ptr<Camera> post_processing_camera_;
 };
 
 }

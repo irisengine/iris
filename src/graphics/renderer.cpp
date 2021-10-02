@@ -5,6 +5,15 @@
 namespace iris
 {
 
+Renderer::Renderer()
+    : render_passes_()
+    , render_queue_()
+    , post_processing_scene_()
+    , post_processing_target_(nullptr)
+    , post_processing_camera_()
+{
+}
+
 void Renderer::render()
 {
     pre_render();
