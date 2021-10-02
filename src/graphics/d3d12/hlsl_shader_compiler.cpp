@@ -489,6 +489,16 @@ void HLSLShaderCompiler::visit(const ValueNode<float> &node)
 void HLSLShaderCompiler::visit(const ArithmeticNode &node)
 {
     *current_stream_ << "(";
+    if (node.arithmetic_operator() == ArithmeticOperator::DOT)
+    {
+        *current_stream_ << "dot(";
+        node.value1()->accept(*this);
+        *current_stream_ << ", ";
+        node.value2()->accept(*this);
+        *current_stream_ << ")";
+    }
+    else
+    {
     node.value1()->accept(*this);
     switch (node.arithmetic_operator())
     {
@@ -496,8 +506,11 @@ void HLSLShaderCompiler::visit(const ArithmeticNode &node)
         case ArithmeticOperator::SUBTRACT: *current_stream_ << " - "; break;
         case ArithmeticOperator::MULTIPLY: *current_stream_ << " * "; break;
         case ArithmeticOperator::DIVIDE: *current_stream_ << " / "; break;
+            default: throw Exception("unknown arithmetic operator");
     }
     node.value2()->accept(*this);
+    }
+
     *current_stream_ << ")";
 }
 
