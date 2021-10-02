@@ -166,11 +166,9 @@ void set_constant_data(
     writer.write(camera->position());
     writer.write(0.0f);
 
-    const auto light_data = light->data();
-    writer.write(light_data[0]);
-    writer.write(light_data[1]);
-    writer.write(light_data[2]);
-    writer.write(light_data[3]);
+    writer.write(light->colour_data());
+    writer.write(light->world_space_data());
+    writer.write(light->attenuation_data());
 
     writer.write(0.0f);
 

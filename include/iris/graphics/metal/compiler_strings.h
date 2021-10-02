@@ -50,7 +50,9 @@ typedef struct
     float4x4 normal_matrix;
     float4x4 bones[100];
     float4 camera;
-    float4 light_data;
+    float4 light_colour;
+    float4 light_position;
+    float light_attenuation[3];
     float time;
 } DefaultUniform;
 )";
@@ -83,7 +85,7 @@ out.tex = vertices[vid].tex;
 
 const float3x3 tbn = calculate_tbn(uniform, bone_transform, vid, vertices);
 
-out.tangent_light_pos = tbn * uniform->light_data.xyz;
+out.tangent_light_pos = tbn * uniform->light_position.xyz;
 out.tangent_view_pos = tbn * uniform->camera.xyz;
 out.tangent_frag_pos = tbn * out.frag_position.xyz;
 )";

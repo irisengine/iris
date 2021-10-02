@@ -86,6 +86,7 @@ EXTERN void (*glDeleteFramebuffers)(GLsizei, const GLuint *);
 EXTERN GLint (*glGetUniformLocation)(GLuint, const GLchar *);
 EXTERN void (*glUniformMatrix4fv)(GLint, GLsizei, GLboolean, const GLfloat *);
 EXTERN void (*glUniform3f)(GLint, GLfloat, GLfloat, GLfloat);
+EXTERN void (*glUniform1fv)(GLint, GLsizei, const GLfloat *);
 EXTERN void (*glUniform4fv)(GLint, GLsizei, const GLfloat *);
 EXTERN void (*glActiveTexture)(GLenum);
 EXTERN void (*glUniform1i)(GLint, GLint);

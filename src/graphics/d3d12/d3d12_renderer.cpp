@@ -80,7 +80,7 @@ void write_vertex_data_constant_buffer(
     iris::D3D12ConstantBuffer &constant_buffer,
     const iris::Camera *camera,
     const iris::RenderEntity *entity,
-    const std::array<float, 4u> &light_data)
+    const iris::Light *light)
 {
     iris::ConstantBufferWriter writer(constant_buffer);
 
@@ -95,10 +95,9 @@ void write_vertex_data_constant_buffer(
     writer.write(bones);
     writer.advance((100u - bones.size()) * sizeof(iris::Matrix4));
 
-    writer.write(light_data[0]);
-    writer.write(light_data[1]);
-    writer.write(light_data[2]);
-    writer.write(light_data[3]);
+    writer.write(light->colour_data());
+    writer.write(light->world_space_data());
+    writer.write(light->attenuation_data());
 }
 
 /**
@@ -646,8 +645,7 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
     // create and write our constant data buffers
     auto &vertex_buffer =
         frame.constant_data_buffers.at(std::addressof(command)).next();
-    write_vertex_data_constant_buffer(
-        vertex_buffer, camera, entity, light->data());
+    write_vertex_data_constant_buffer(vertex_buffer, camera, entity, light);
 
     auto &light_buffer =
         frame.constant_data_buffers.at(std::addressof(command)).next();

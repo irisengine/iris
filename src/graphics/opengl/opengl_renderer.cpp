@@ -86,7 +86,9 @@ void set_uniforms(
     uniforms->view.set_value(camera->view());
     uniforms->model.set_value(entity->transform());
     uniforms->normal_matrix.set_value(entity->normal_transform());
-    uniforms->light_data.set_value(light->data());
+    uniforms->light_colour.set_value(light->colour_data());
+    uniforms->light_position.set_value(light->world_space_data());
+    uniforms->light_attenuation.set_value(light->attenuation_data());
 
     // set shadow map specific texture and uniforms, if it was provided
     if ((shadow_map != nullptr) &&
@@ -245,7 +247,9 @@ void OpenGLRenderer::set_render_passes(
                         OpenGLUniform(program, "view"),
                         OpenGLUniform(program, "model"),
                         OpenGLUniform(program, "normal_matrix", false),
-                        OpenGLUniform(program, "light_data"),
+                        OpenGLUniform(program, "light_colour", false),
+                        OpenGLUniform(program, "light_position", false),
+                        OpenGLUniform(program, "light_attenuation", false),
                         OpenGLUniform(program, "g_shadow_map", false),
                         OpenGLUniform(program, "light_projection", false),
                         OpenGLUniform(program, "light_view", false),

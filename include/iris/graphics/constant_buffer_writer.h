@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstddef>
 
 namespace iris
@@ -50,6 +51,19 @@ class ConstantBufferWriter
     void write(const std::vector<S> &objects)
     {
         buffer_.write(objects.data(), sizeof(S) * objects.size(), offset_);
+        offset_ += sizeof(S) * objects.size();
+    }
+
+    /**
+     * Write an array of objects to the buffer at the current position.
+     *
+     * @param objects
+     *   Objects to write.
+     */
+    template <class S, std::size_t N>
+    void write(const std::array<S, N> &objects)
+    {
+        buffer_.write(objects.data(), sizeof(S) * N, offset_);
         offset_ += sizeof(S) * objects.size();
     }
 

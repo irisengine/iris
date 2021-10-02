@@ -215,13 +215,13 @@ void MSLShaderCompiler::visit(const RenderNode &node)
     {
         case LightType::AMBIENT:
             *current_stream_
-                << "return uniform->light_data * fragment_colour;\n";
+                << "return uniform->light_colour * fragment_colour;\n";
             break;
         case LightType::DIRECTIONAL:
             *current_stream_ << "float3 light_dir = ";
             *current_stream_
                 << (node.normal_input() == nullptr
-                        ? "normalize(-uniform->light_data.xyz);\n"
+                        ? "normalize(-uniform->light_position.xyz);\n"
                         : "normalize(-in.tangent_light_pos.xyz);\n");
 
             *current_stream_ << "float shadow = 0.0;\n";
@@ -240,15 +240,22 @@ void MSLShaderCompiler::visit(const RenderNode &node)
             *current_stream_ << "float3 light_dir = ";
             *current_stream_
                 << (node.normal_input() == nullptr
-                        ? "normalize(uniform->light_data.xyz - "
+                        ? "normalize(uniform->light_position.xyz - "
                           "in.frag_position.xyz);\n"
                         : "normalize(in.tangent_light_pos.xyz - "
                           "in.tangent_frag_pos.xyz);\n");
             *current_stream_ << R"(
+                float distance  = length(uniform->light_position.xyz - in.frag_position.xyz);
+                float constant_term = uniform->light_attenuation[0];
+                float linear = uniform->light_attenuation[1];
+                float quadratic = uniform->light_attenuation[2];
+                float attenuation = 1.0 / (constant_term + linear * distance + quadratic * (distance * distance));    
+                float3 att = float3(attenuation, attenuation, attenuation);
+
                 float diff = max(dot(n, light_dir), 0.0);
                 float3 diffuse = float3(diff, diff, diff);
                 
-                return float4(diffuse * fragment_colour.xyz, 1.0);
+                return float4(diffuse * uniform->light_colour.xyz * fragment_colour.xyz * att, 1.0);
                 )";
             break;
     }

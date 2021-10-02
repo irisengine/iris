@@ -122,7 +122,7 @@ void build_tangent_values(std::stringstream &strm, iris::LightType light_type)
                 "frag_pos;\n";
     }
 
-    strm << "tangent_light_pos = tbn * light_data.xyz;\n";
+    strm << "tangent_light_pos = tbn * light_position.xyz;\n";
     strm << "tangent_view_pos = tbn * camera_.xyz;\n";
     strm << "tangent_frag_pos = tbn * frag_pos.xyz;\n";
 }
@@ -235,18 +235,18 @@ void GLSLShaderCompiler::visit(const RenderNode &node)
         {
             case LightType::AMBIENT:
                 *current_stream_ << R"(
-            outColour = light_data * fragment_colour;)";
+            outColour = light_colour * fragment_colour;)";
                 break;
             case LightType::DIRECTIONAL:
                 *current_stream_ << "vec3 light_dir = ";
                 *current_stream_
                     << (node.normal_input() == nullptr
-                            ? "normalize(-light_data.xyz);\n"
+                            ? "normalize(-light_position.xyz);\n"
                             : "normalize(-tangent_light_pos.xyz);\n");
 
                 *current_stream_ << "float shadow = 0.0;\n";
                 *current_stream_ <<
-                    R"(shadow = calculate_shadow(n, frag_pos_light_space, light_data.xyz, g_shadow_map);
+                    R"(shadow = calculate_shadow(n, frag_pos_light_space, light_position.xyz, g_shadow_map);
                 )";
 
                 *current_stream_ << R"(
@@ -260,14 +260,20 @@ void GLSLShaderCompiler::visit(const RenderNode &node)
                 *current_stream_ << "vec3 light_dir = ";
                 *current_stream_
                     << (node.normal_input() == nullptr
-                            ? "normalize(light_data.xyz - frag_pos.xyz);\n"
+                            ? "normalize(light_position.xyz - frag_pos.xyz);\n"
                             : "normalize(tangent_light_pos.xyz - "
                               "tangent_frag_pos.xyz);\n");
                 *current_stream_ << R"(
+                float distance  = length(light_position.xyz - frag_pos.xyz);
+                float constant = light_attenuation[0];
+                float linear = light_attenuation[1];
+                float quadratic = light_attenuation[2];
+                float attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));    
+
                 float diff = max(dot(n, light_dir), 0.0);
                 vec3 diffuse = vec3(diff);
                 
-                outColour = vec4(diffuse * fragment_colour.xyz, 1.0);
+                outColour = vec4(diffuse * light_colour.xyz * fragment_colour.xyz * vec3(attenuation), 1.0);
                 )";
                 break;
         }

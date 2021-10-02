@@ -33,7 +33,9 @@ cbuffer DefaultUniforms : register(b0)
     matrix model;
     matrix normal_matrix;
     matrix bones[100];
-    float4 light;
+    float4 light_colour;
+    float4 light_position;
+    float4 light_attenuation;
 };
 
 cbuffer DirectionalLight : register(b1)
@@ -318,7 +320,7 @@ PSInput main(
     result.frag_position = mul(position, bone_transform);
     result.frag_position = mul(result.frag_position, model);
 
-    result.tangent_light_pos = float4(mul(light.xyz, tbn), 0.0);
+    result.tangent_light_pos = float4(mul(light_position.xyz, tbn), 0.0);
     result.tangent_view_pos = float4(mul(camera.xyz, tbn), 0.0);
     result.tangent_frag_pos = float4(mul(result.frag_position, tbn), 0.0);
 )";
@@ -359,13 +361,13 @@ float4 main(PSInput input) : SV_TARGET
     switch (light_type_)
     {
         case LightType::AMBIENT:
-            *current_stream_ << "return light * fragment_colour;";
+            *current_stream_ << "return light_colour * fragment_colour;";
             break;
         case LightType::DIRECTIONAL:
             *current_stream_ << "float3 light_dir = ";
             *current_stream_
                 << (node.normal_input() == nullptr
-                        ? "normalize(-light.xyz);\n"
+                        ? "normalize(-light_position.xyz);\n"
                         : "normalize(-input.tangent_light_pos.xyz);\n");
 
             *current_stream_ << "float shadow = 0.0;\n";
@@ -384,14 +386,22 @@ float4 main(PSInput input) : SV_TARGET
             *current_stream_ << "float3 light_dir = ";
             *current_stream_
                 << (node.normal_input() == nullptr
-                        ? "normalize(light.xyz - input.frag_position.xyz);\n"
+                        ? "normalize(light_position.xyz - "
+                          "input.frag_position.xyz);\n"
                         : "normalize(input.tangent_light_pos.xyz - "
                           "input.tangent_frag_pos.xyz);\n");
             *current_stream_ << R"(
+                float distance  = length(light_position.xyz - input.frag_position.xyz);
+                float constant = light_attenuation.x;
+                float linear_term = light_attenuation.y;
+                float quadratic = light_attenuation.z;
+                float attenuation = 1.0 / (constant + linear_term * distance + quadratic * (distance * distance));    
+                float3 att = {attenuation, attenuation, attenuation};
+
                 float diff = max(dot(n, light_dir), 0.0);
                 float3 diffuse = {diff, diff, diff};
                 
-                return float4(diffuse * fragment_colour, 1.0);
+                return float4(diffuse * light_colour.xyz * fragment_colour.xyz * att, 1.0);
                 )";
             break;
         default: throw Exception("unknown light type");
