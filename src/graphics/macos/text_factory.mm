@@ -13,8 +13,8 @@
 #include "core/auto_release.h"
 #include "core/colour.h"
 #include "core/data_buffer.h"
-#include "core/root.h"
 #include "core/exception.h"
+#include "core/root.h"
 #include "graphics/texture.h"
 #include "graphics/texture_manager.h"
 #include "log/log.h"
@@ -174,8 +174,8 @@ Texture *create(
     ::CGContextFlush(context.get());
 
     // create a Texture from the rendered pixel data
-    auto *texture =
-        Root::texture_manager().load(pixel_data, width, height, PixelFormat::RGBA);
+    auto *texture = Root::texture_manager().create(
+        pixel_data, width, height, TextureUsage::IMAGE);
     texture->set_flip(true);
 
     return texture;
