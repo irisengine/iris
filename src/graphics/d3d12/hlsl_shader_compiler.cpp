@@ -84,7 +84,7 @@ float4 composite(float4 colour1, float4 colour2, float4 depth1, float4 depth2, f
 static constexpr auto blur_function = R"(
 float4 blur(Texture2D tex, float2 tex_coords)
 {
-    const float offset = 1.0 / 100.0;  
+    const float offset = 1.0 / 500.0;  
     float2 offsets[9] = {
         float2(-offset,  offset), // top-left
         float2( 0.0f,    offset), // top-center
@@ -571,16 +571,16 @@ void HLSLShaderCompiler::visit(const ArithmeticNode &node)
     }
     else
     {
-    node.value1()->accept(*this);
-    switch (node.arithmetic_operator())
-    {
-        case ArithmeticOperator::ADD: *current_stream_ << " + "; break;
-        case ArithmeticOperator::SUBTRACT: *current_stream_ << " - "; break;
-        case ArithmeticOperator::MULTIPLY: *current_stream_ << " * "; break;
-        case ArithmeticOperator::DIVIDE: *current_stream_ << " / "; break;
+        node.value1()->accept(*this);
+        switch (node.arithmetic_operator())
+        {
+            case ArithmeticOperator::ADD: *current_stream_ << " + "; break;
+            case ArithmeticOperator::SUBTRACT: *current_stream_ << " - "; break;
+            case ArithmeticOperator::MULTIPLY: *current_stream_ << " * "; break;
+            case ArithmeticOperator::DIVIDE: *current_stream_ << " / "; break;
             default: throw Exception("unknown arithmetic operator");
-    }
-    node.value2()->accept(*this);
+        }
+        node.value2()->accept(*this);
     }
 
     *current_stream_ << ")";

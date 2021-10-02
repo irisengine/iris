@@ -95,7 +95,7 @@ float4 blur(texture2d<float> texture, float2 tex_coords)
 {
     constexpr sampler s(coord::normalized, address::repeat, filter::linear);
 
-    const float offset = 1.0 / 100.0;  
+    const float offset = 1.0 / 500.0;  
     float2 offsets[9] = {
         float2(-offset,  offset), // top-left
         float2( 0.0f,    offset), // top-center

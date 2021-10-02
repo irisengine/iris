@@ -77,7 +77,7 @@ static constexpr auto vertex_begin = R"(
 static constexpr auto blur_function = R"(
 vec4 blur(sampler2D tex, vec2 tex_coords)
 {
-    const float offset = 1.0 / 100.0;  
+    const float offset = 1.0 / 500.0;  
     vec2 offsets[9] = vec2[](
         vec2(-offset,  offset), // top-left
         vec2( 0.0f,    offset), // top-center
