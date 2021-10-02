@@ -22,6 +22,7 @@ class BlurNode;
 class CompositeNode;
 class VertexPositionNode;
 class ArithmeticNode;
+class ConditionalNode;
 class ComponentNode;
 class CombineNode;
 class SinNode;
@@ -57,6 +58,7 @@ class MSLShaderCompiler : public ShaderCompiler
     void visit(const VertexPositionNode &node) override;
     void visit(const ValueNode<float> &node) override;
     void visit(const ArithmeticNode &node) override;
+    void visit(const ConditionalNode &node) override;
     void visit(const ComponentNode &node) override;
     void visit(const CombineNode &node) override;
     void visit(const SinNode &node) override;

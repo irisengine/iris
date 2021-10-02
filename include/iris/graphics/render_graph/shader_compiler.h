@@ -17,6 +17,7 @@ class BlurNode;
 class CompositeNode;
 class VertexPositionNode;
 class ArithmeticNode;
+class ConditionalNode;
 class ComponentNode;
 class CombineNode;
 class SinNode;
@@ -42,6 +43,7 @@ class ShaderCompiler
     virtual void visit(const VertexPositionNode &node) = 0;
     virtual void visit(const ValueNode<float> &node) = 0;
     virtual void visit(const ArithmeticNode &node) = 0;
+    virtual void visit(const ConditionalNode &node) = 0;
     virtual void visit(const ComponentNode &node) = 0;
     virtual void visit(const CombineNode &node) = 0;
     virtual void visit(const SinNode &node) = 0;

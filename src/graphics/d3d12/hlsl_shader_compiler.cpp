@@ -12,6 +12,7 @@
 #include "graphics/render_graph/combine_node.h"
 #include "graphics/render_graph/component_node.h"
 #include "graphics/render_graph/composite_node.h"
+#include "graphics/render_graph/conditional_node.h"
 #include "graphics/render_graph/invert_node.h"
 #include "graphics/render_graph/render_node.h"
 #include "graphics/render_graph/sin_node.h"
@@ -511,6 +512,25 @@ void HLSLShaderCompiler::visit(const ArithmeticNode &node)
     node.value2()->accept(*this);
     }
 
+    *current_stream_ << ")";
+}
+
+void HLSLShaderCompiler::visit(const ConditionalNode &node)
+{
+    *current_stream_ << "(";
+    node.input_value1()->accept(*this);
+
+    switch (node.conditional_operator())
+    {
+        case ConditionalOperator::GREATER: *current_stream_ << " > "; break;
+    }
+
+    node.input_value2()->accept(*this);
+
+    *current_stream_ << " ? ";
+    node.output_value1()->accept(*this);
+    *current_stream_ << " : ";
+    node.output_value2()->accept(*this);
     *current_stream_ << ")";
 }
 

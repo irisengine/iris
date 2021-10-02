@@ -372,6 +372,25 @@ void MSLShaderCompiler::visit(const ArithmeticNode &node)
     *current_stream_ << ")";
 }
 
+void MSLShaderCompiler::visit(const ConditionalNode &node)
+{
+    *current_stream_ << "(";
+    node.input_value1()->accept(*this);
+
+    switch (node.conditional_operator())
+    {
+        case ConditionalOperator::GREATER: *current_stream_ << " > "; break;
+    }
+
+    node.input_value2()->accept(*this);
+
+    *current_stream_ << " ? ";
+    node.output_value1()->accept(*this);
+    *current_stream_ << " : ";
+    node.output_value2()->accept(*this);
+    *current_stream_ << ")";
+}
+
 void MSLShaderCompiler::visit(const ComponentNode &node)
 {
     node.input_node()->accept(*this);
