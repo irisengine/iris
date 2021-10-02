@@ -14,7 +14,7 @@
 - (id)initWithRect:(NSRect)rect
 {
     // call the super init, perform custom initialisation if this succeeds
-    if(self = [super init])
+    if (self = [super init])
     {
         [self setWidth:rect.size.width];
         [self setHeight:rect.size.height];
@@ -24,17 +24,26 @@
         // create our window. It should have a title and render all content
         // to a buffer before being flushed, do not defer the creation of the
         // window
-        NSWindow *window = [[NSWindow alloc]
-            initWithContentRect:rect
-            styleMask:NSWindowStyleMaskTitled
-            backing:NSBackingStoreBuffered
-            defer:NO];
+        NSWindow *window =
+            [[NSWindow alloc] initWithContentRect:rect
+                                        styleMask:NSWindowStyleMaskTitled
+                                          backing:NSBackingStoreBuffered
+                                            defer:NO];
 
         // create and setup a metal view
-        MetalView* view = [[MetalView alloc] initWithFrame:rect device:MTLCreateSystemDefaultDevice()];
+        MetalView *view =
+            [[MetalView alloc] initWithFrame:rect
+                                      device:MTLCreateSystemDefaultDevice()];
         [view setClearColor:MTLClearColorMake(0, 0, 0, 1)];
-        [view setColorPixelFormat:MTLPixelFormatBGRA8Unorm];
+        [view setColorPixelFormat:MTLPixelFormatRGBA16Float];
         [view setDepthStencilPixelFormat:MTLPixelFormatDepth32Float];
+
+        CAMetalLayer *layer = (CAMetalLayer *)view.layer;
+
+        const CFStringRef name = kCGColorSpaceExtendedSRGB;
+        CGColorSpaceRef colorspace = CGColorSpaceCreateWithName(name);
+        layer.colorspace = colorspace;
+        layer.wantsExtendedDynamicRangeContent = YES;
 
         // add the view to the window
         [window setContentView:view];
@@ -50,22 +59,17 @@
 
         [window makeFirstResponder:view];
 
+        [window setColorSpace:[NSColorSpace genericRGBColorSpace]];
+
         // redraw the view before displaying
         [view setNeedsDisplay:YES];
-
-        // create and setup a metal layer
-        CAMetalLayer *layer = [[CAMetalLayer alloc] init];
-        [layer setDevice:[view device]];
-        [layer setPixelFormat:MTLPixelFormatBGRA8Unorm];
-        [layer setFrame:[view bounds]];
-        [view.layer addSublayer:layer];
 
         // create a tracking area the size of the screen
         NSTrackingArea *tracking = [[NSTrackingArea alloc]
             initWithRect:rect
-            options:NSTrackingMouseMoved|NSTrackingActiveAlways
-            owner:view
-            userInfo:nil];
+                 options:NSTrackingMouseMoved | NSTrackingActiveAlways
+                   owner:view
+                userInfo:nil];
 
         // add the tracking area
         [view addTrackingArea:tracking];
@@ -79,4 +83,3 @@
 }
 
 @end
-

@@ -82,7 +82,7 @@ MetalMaterial::MetalMaterial(
     [pipeline_state_descriptor setVertexFunction:vertex_program];
     [pipeline_state_descriptor setFragmentFunction:fragment_program];
     pipeline_state_descriptor.colorAttachments[0].pixelFormat =
-        MTLPixelFormatBGRA8Unorm;
+        MTLPixelFormatRGBA16Float;
     [pipeline_state_descriptor
         setDepthAttachmentPixelFormat:MTLPixelFormatDepth32Float];
     [pipeline_state_descriptor setVertexDescriptor:descriptors];
