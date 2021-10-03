@@ -31,7 +31,6 @@ target_sources(iris PRIVATE
     colour.cpp
     exception.cpp
     looper.cpp
-    matrix4.cpp
     quaternion.cpp
     random.cpp
     root.cpp
