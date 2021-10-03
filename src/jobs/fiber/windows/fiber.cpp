@@ -17,7 +17,7 @@ namespace iris
 #pragma optimize("", off)
 struct Fiber::implementation
 {
-    AutoRelease<LPVOID, NULL> handle;
+    AutoRelease<LPVOID, nullptr> handle;
 
     /**
      * Start function for win32 fiber.

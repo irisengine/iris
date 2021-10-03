@@ -14,7 +14,7 @@ include(GenerateExportHeader)
 # set options for library
 option(IRIS_BUILD_UNIT_TESTS "whether to build unit tests" ON)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(ASM_OPTIONS "-x assembler-with-cpp")
 
 # if a platform wasn't supplied then default to current platform
