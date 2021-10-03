@@ -36,5 +36,4 @@ target_sources(iris PRIVATE
     random.cpp
     root.cpp
     transform.cpp
-    utils.cpp
-    vector3.cpp)
+    utils.cpp)

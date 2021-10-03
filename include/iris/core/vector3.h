@@ -1,6 +1,11 @@
 #pragma once
 
+#include <algorithm>
+#include <cmath>
+#include <limits>
 #include <ostream>
+
+#include "core/utils.h"
 
 namespace iris
 {
@@ -8,6 +13,8 @@ namespace iris
 /**
  * Class representing a vector in 3D space. Comprises an x, y and z
  * component.
+ *
+ * This is a header only class to allow for constexpr methods.
  */
 class Vector3
 {
@@ -15,7 +22,10 @@ class Vector3
     /**
      * Constructs a new Vector3 with all components initialised to 0.
      */
-    Vector3();
+    constexpr Vector3()
+        : Vector3(0.0f)
+    {
+    }
 
     /**
      * Constructs a new Vector3 with all components initialised to the same
@@ -24,7 +34,10 @@ class Vector3
      * @param xyz
      *   Value for x, y and z.
      */
-    Vector3(float xyz);
+    constexpr Vector3(float xyz)
+        : Vector3(xyz, xyz, xyz)
+    {
+    }
 
     /**
      * Constructs a new Vector3 with the supplied components.
@@ -38,23 +51,14 @@ class Vector3
      * @param z
      *   z component.
      */
-    Vector3(float x, float y, float z);
+    constexpr Vector3(float x, float y, float z)
+        : x(x)
+        , y(y)
+        , z(z)
+    {
+    }
 
-    /**
-     * Write a Vector3 to a stream, useful for debugging.
-     *
-     * @param out
-     *   Stream to write to.
-     *
-     * @param v
-     *   Vector3 to write to stream.
-     *
-     * @return
-     *   Reference to input stream.
-     */
-    friend std::ostream &operator<<(std::ostream &out, const Vector3 &v);
-
-    /**
+    /**d221G
      * Multiply each component by a scalar value.
      *
      * @param scale
@@ -63,8 +67,14 @@ class Vector3
      * @return
      *   Reference to this vector3.
      */
-    Vector3 &operator*=(float scale);
+    constexpr Vector3 &operator*=(float scale)
+    {
+        x *= scale;
+        y *= scale;
+        z *= scale;
 
+        return *this;
+    }
     /**
      * Create a new Vector3 which is this Vector3 with each component
      * multiplied by a scalar value.
@@ -76,8 +86,10 @@ class Vector3
      *   Copy of this Vector3 with each component multiplied by a
      *   scalar value.
      */
-    Vector3 operator*(float scale) const;
-
+    constexpr Vector3 operator*(float scale) const
+    {
+        return Vector3(*this) *= scale;
+    }
     /**
      * Component wise add a Vector3 to this vector3.
      *
@@ -87,8 +99,14 @@ class Vector3
      * @return
      *   Reference to this vector3.
      */
-    Vector3 &operator+=(const Vector3 &vector);
+    constexpr Vector3 &operator+=(const Vector3 &vector)
+    {
+        x += vector.x;
+        y += vector.y;
+        z += vector.z;
 
+        return *this;
+    }
     /**
      * Create a new Vector3 which is this Vector3 added with a supplied
      * vector3.
@@ -100,8 +118,10 @@ class Vector3
      *   Copy of this Vector3 with each component added to the
      *   components of the supplied vector3.
      */
-    Vector3 operator+(const Vector3 &vector) const;
-
+    constexpr Vector3 operator+(const Vector3 &vector) const
+    {
+        return Vector3(*this) += vector;
+    }
     /**
      * Component wise subtract a Vector3 to this vector3.
      *
@@ -111,8 +131,11 @@ class Vector3
      * @return
      *   Reference to this vector3.
      */
-    Vector3 &operator-=(const Vector3 &vector);
-
+    constexpr Vector3 &operator-=(const Vector3 &vector)
+    {
+        *this += -vector;
+        return *this;
+    }
     /**
      * Create a new Vector3 which is this Vector3 subtracted with a
      * supplied vector3.
@@ -124,8 +147,10 @@ class Vector3
      *   Copy of this Vector3 with each component subtracted to the
      *   components of the supplied vector3.
      */
-    Vector3 operator-(const Vector3 &vector) const;
-
+    constexpr Vector3 operator-(const Vector3 &vector) const
+    {
+        return Vector3(*this) -= vector;
+    }
     /**
      * Component wise multiple a Vector3 to this vector3.
      *
@@ -135,8 +160,14 @@ class Vector3
      * @returns
      *   Reference to this vector3.
      */
-    Vector3 &operator*=(const Vector3 &vector);
+    constexpr Vector3 &operator*=(const Vector3 &vector)
+    {
+        x *= vector.x;
+        y *= vector.y;
+        z *= vector.z;
 
+        return *this;
+    }
     /**
      * Create a new Vector3 which us this Vector3 component wise multiplied
      * with a supplied vector3.
@@ -148,16 +179,20 @@ class Vector3
      *   Copy of this Vector3 component wise multiplied with the supplied
      *   vector3.
      */
-    Vector3 operator*(const Vector3 &vector) const;
-
+    constexpr Vector3 operator*(const Vector3 &vector) const
+    {
+        return Vector3{*this} *= vector;
+    }
     /**
      * Negate operator.
      *
      * @return
      *   Return a copy of this Vector3 with each component negated.
      */
-    Vector3 operator-() const;
-
+    constexpr Vector3 operator-() const
+    {
+        return Vector3{-x, -y, -z};
+    }
     /**
      * Equality operator.
      *
@@ -167,8 +202,11 @@ class Vector3
      * @returns
      *   True if both Vector3 objects are the same, false otherwise.
      */
-    bool operator==(const Vector3 &other) const;
-
+    bool operator==(const Vector3 &other) const
+    {
+        return compare(x, other.x) && compare(y, other.y) &&
+               compare(z, other.z);
+    }
     /**
      * Inequality operator.
      *
@@ -178,7 +216,10 @@ class Vector3
      * @returns
      *   True if both Vector3 objects are not the same, false otherwise.
      */
-    bool operator!=(const Vector3 &other) const;
+    bool operator!=(const Vector3 &other) const
+    {
+        return !(other == *this);
+    }
 
     /**
      * Calculate the vector dot product.
@@ -189,8 +230,10 @@ class Vector3
      * @returns
      *   Dot product of this vector with supplied one.
      */
-    float dot(const Vector3 &vector) const;
-
+    constexpr float dot(const Vector3 &vector) const
+    {
+        return x * vector.x + y * vector.y + z * vector.z;
+    }
     /**
      * Perform cross product of this Vector3 with a supplied one.
      *
@@ -200,24 +243,50 @@ class Vector3
      * @return
      *   Reference to this vector3.
      */
-    Vector3 &cross(const Vector3 &vector);
+    constexpr Vector3 &cross(const Vector3 &vector)
+    {
+        const auto i = (y * vector.z) - (z * vector.y);
+        const auto j = (x * vector.z) - (z * vector.x);
+        const auto k = (x * vector.y) - (y * vector.x);
 
+        x = i;
+        y = -j;
+        z = k;
+
+        return *this;
+    }
     /**
      * Normalises this vector3.
      *
      * @return
      *   Reference to this vector3.
      */
-    Vector3 &normalise();
+    Vector3 &normalise()
+    {
+        const auto length =
 
+            std::sqrt(
+                std::pow(x, 2.0f) + std::pow(y, 2.0f) + std::pow(z, 2.0f));
+
+        if (length != 0.0f)
+        {
+            x /= length;
+            y /= length;
+            z /= length;
+        }
+
+        return *this;
+    }
     /**
      * Get the magnitude of this vector.
      *
      * @return
      *   Vector magnitude.
      */
-    float magnitude() const;
-
+    float magnitude() const
+    {
+        return std::hypot(x, y, z);
+    }
     /**
      * Linear interpolate between this and another vector.
      *
@@ -227,8 +296,11 @@ class Vector3
      * @param amount
      *   Interpolation amount, must be in range [0.0, 1.0].
      */
-    void lerp(const Vector3 &other, float amount);
-
+    constexpr void lerp(const Vector3 &other, float amount)
+    {
+        *this *= (1.0f - amount);
+        *this += (other * amount);
+    }
     /**
      * Linear interpolate between two vectors.
      *
@@ -244,8 +316,16 @@ class Vector3
      * @returns
      *   Result of lerp.
      */
-    static Vector3 lerp(const Vector3 &start, const Vector3 &end, float amount);
+    constexpr static Vector3 lerp(
+        const Vector3 &start,
+        const Vector3 &end,
+        float amount)
+    {
+        auto tmp = start;
+        tmp.lerp(end, amount);
 
+        return tmp;
+    }
     /**
      * Cross two Vector3 objects with each other.
      *
@@ -258,8 +338,10 @@ class Vector3
      * @return
      *   v1 cross v2.
      */
-    static Vector3 cross(const Vector3 &v1, const Vector3 &v2);
-
+    constexpr static Vector3 cross(const Vector3 &v1, const Vector3 &v2)
+    {
+        return Vector3(v1).cross(v2);
+    }
     /**
      * Normalise a supplied vector3.
      *
@@ -269,10 +351,26 @@ class Vector3
      * @return
      *   Supplied Vector3 normalised.
      */
-    static Vector3 normalise(const Vector3 &vector);
-
-    static float distance(const Vector3 &a, const Vector3 &b);
-
+    static Vector3 normalise(const Vector3 &vector)
+    {
+        return Vector3(vector).normalise();
+    }
+    /**
+     * Get the Euclidian distance between two vectors.
+     *
+     * @param a
+     *   Point to calculate distance from.
+     *
+     * @param b
+     *   Point to calculate distance to.
+     *
+     * @returns
+     *   Distance between point a and b.
+     */
+    static float distance(const Vector3 &a, const Vector3 &b)
+    {
+        return (b - a).magnitude();
+    }
     /** x component */
     float x;
 
@@ -282,5 +380,26 @@ class Vector3
     /** z component */
     float z;
 };
+
+/**
+ * Write a Vector3 to a stream, useful for debugging.
+ *
+ * @param out
+ *   Stream to write to.
+ *
+ * @param v
+ *   Vector3 to write to stream.
+ *
+ * @return
+ *   Reference to input stream.
+ */
+inline std::ostream &operator<<(std::ostream &out, const Vector3 &v)
+{
+    out << "x: " << v.x << " "
+        << "y: " << v.y << " "
+        << "z: " << v.z;
+
+    return out;
+}
 
 }
