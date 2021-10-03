@@ -21,8 +21,8 @@ class Win32Window : public Window
 {
   public:
     // helper aliases
-    using AutoWindow = iris::AutoRelease<HWND, NULL>;
-    using AutoDC = iris::AutoRelease<HDC, NULL>;
+    using AutoWindow = iris::AutoRelease<HWND, nullptr>;
+    using AutoDC = iris::AutoRelease<HDC, nullptr>;
 
     /**
      * Construct a new Win32Window.

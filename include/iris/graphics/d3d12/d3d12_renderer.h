@@ -144,7 +144,7 @@ class D3D12Renderer : public Renderer
          * Event to signal frame completion, when event is set then frame is
          * safe to use.
          */
-        AutoRelease<HANDLE, NULL> fence_event;
+        AutoRelease<HANDLE, nullptr> fence_event;
 
         /** Map of RenderCommand objects to constant data buffer pools. */
         std::unordered_map<const RenderCommand *, D3D12ConstantBufferPool>

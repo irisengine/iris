@@ -1,9 +1,11 @@
 #pragma once
 
 #include <array>
+#include <cmath>
 #include <ostream>
 
 #include "core/quaternion.h"
+#include "core/utils.h"
 #include "core/vector3.h"
 
 namespace iris
@@ -12,7 +14,7 @@ namespace iris
 /**
  * Class represents a 4x4 matrix.
  *
- * Elements are stored in row-major order.
+ * This is a header only class to allow for constexpr methods.
  */
 class Matrix4
 {
@@ -20,7 +22,26 @@ class Matrix4
     /**
      * Constructs a new identity Matrix4.
      */
-    Matrix4();
+    constexpr Matrix4()
+        : elements_(
+              {{1.0f,
+                0.0f,
+                0.0f,
+                0.0f,
+                0.0f,
+                1.0f,
+                0.0f,
+                0.0f,
+                0.0f,
+                0.0f,
+                1.0f,
+                0.0f,
+                0.0f,
+                0.0f,
+                0.0f,
+                1.0f}})
+    {
+    }
 
     /**
      * Constructs a new matrix with the supplied (row-major) values.
@@ -28,7 +49,10 @@ class Matrix4
      * @param elements
      *   Row major elements.
      */
-    explicit Matrix4(const std::array<float, 16> &elements);
+    constexpr explicit Matrix4(const std::array<float, 16> &elements)
+        : elements_(elements)
+    {
+    }
 
     /**
      * Construct a new Matrix4 which represents a rotation by the
@@ -37,7 +61,32 @@ class Matrix4
      * @param rotation
      *   Rotation to represent.
      */
-    explicit Matrix4(const Quaternion &rotation);
+    constexpr explicit Matrix4(const Quaternion &rotation)
+        : Matrix4()
+    {
+        elements_[0] = 1.0f - 2.0f * rotation.y * rotation.y -
+                       2.0f * rotation.z * rotation.z;
+        elements_[1] =
+            2.0f * rotation.x * rotation.y - 2.0f * rotation.z * rotation.w;
+        elements_[2] =
+            2.0f * rotation.x * rotation.z + 2.0f * rotation.y * rotation.w;
+
+        elements_[4] =
+            2.0f * rotation.x * rotation.y + 2.0f * rotation.z * rotation.w;
+        elements_[5] = 1.0f - 2.0f * rotation.x * rotation.x -
+                       2.0f * rotation.z * rotation.z;
+        elements_[6] =
+            2.0f * rotation.y * rotation.z - 2.0f * rotation.x * rotation.w;
+
+        elements_[8] =
+            2.0f * rotation.x * rotation.z - 2.0f * rotation.y * rotation.w;
+        elements_[9] =
+            2.0f * rotation.y * rotation.z + 2.0f * rotation.x * rotation.w;
+        elements_[10] = 1.0f - 2.0f * rotation.x * rotation.x -
+                        2.0f * rotation.y * rotation.y;
+
+        elements_[15] = 1.0f;
+    }
 
     /**
      * Construct a new Matrix4 which represents a rotation and translation
@@ -49,7 +98,13 @@ class Matrix4
      * @param translation
      *   Translation to represent.
      */
-    Matrix4(const Quaternion &rotation, const Vector3 &translation);
+    constexpr Matrix4(const Quaternion &rotation, const Vector3 &translation)
+        : Matrix4(rotation)
+    {
+        elements_[3u] = translation.x;
+        elements_[7u] = translation.y;
+        elements_[11u] = translation.z;
+    }
 
     /**
      * Static method to create an orthographic projection matrix.
@@ -66,10 +121,40 @@ class Matrix4
      * @returns
      *   An orthographic projection matrix.
      */
-    static Matrix4 make_orthographic_projection(
+    constexpr static Matrix4 make_orthographic_projection(
         float width,
         float height,
-        float depth);
+        float depth)
+    {
+        Matrix4 m{};
+
+        const auto right = width;
+        const auto left = -right;
+        const auto top = height;
+        const auto bottom = -top;
+        const auto far_plane = depth;
+        const auto near_plane = -far_plane;
+
+        m.elements_ = {
+            {2.0f / (right - left),
+             0.0f,
+             0.0f,
+             -(right + left) / (right - left),
+             0.0f,
+             2.0f / (top - bottom),
+             0.0f,
+             -(top + bottom) / (top - bottom),
+             0.0f,
+             0.0f,
+             -2.0f / (far_plane - near_plane),
+             -(far_plane + near_plane) / (far_plane - near_plane),
+             0.0f,
+             0.0f,
+             0.0f,
+             1.0f}};
+
+        return m;
+    }
 
     /**
      * Static method to create a perspective projection matrix.
@@ -83,10 +168,10 @@ class Matrix4
      * @param height
      *   Height of projection.
      *
-     * @param near
+     * @param near_plane
      *   Near clipping plane.
      *
-     * @param far
+     * @param far_plane
      *   Far clipping plane.
      *
      * @returns
@@ -96,8 +181,38 @@ class Matrix4
         float fov,
         float width,
         float height,
-        float near,
-        float far);
+        float near_plane,
+        float far_plane)
+    {
+        Matrix4 m;
+
+        const auto aspect_ratio = width / height;
+        const auto tmp = std::tanf(fov / 2.0f);
+        const auto t = tmp * near_plane;
+        const auto b = -t;
+        const auto r = t * aspect_ratio;
+        const auto l = b * aspect_ratio;
+
+        m.elements_ = {
+            {(2.0f * near_plane) / (r - l),
+             0.0f,
+             (r + l) / (r - l),
+             0.0f,
+             0.0f,
+             (2.0f * near_plane) / (t - b),
+             (t + b) / (t - b),
+             0.0f,
+             0.0f,
+             0.0f,
+             -(far_plane + near_plane) / (far_plane - near_plane),
+             -(2.0f * far_plane * near_plane) / (far_plane - near_plane),
+             0.0f,
+             0.0f,
+             -1.0f,
+             0.0f}};
+
+        return m;
+    }
 
     /**
      * Make a Matrix4 that can be used as a view matrix for a camera.
@@ -117,7 +232,36 @@ class Matrix4
     static Matrix4 make_look_at(
         const Vector3 &eye,
         const Vector3 &look_at,
-        const Vector3 &up);
+        const Vector3 &up)
+    {
+        const auto f = Vector3::normalise(look_at - eye);
+        const auto up_normalised = Vector3::normalise(up);
+
+        const auto s = Vector3::cross(f, up_normalised).normalise();
+        const auto u = Vector3::cross(s, f).normalise();
+
+        Matrix4 m;
+
+        m.elements_ = {
+            {s.x,
+             s.y,
+             s.z,
+             0.0f,
+             u.x,
+             u.y,
+             u.z,
+             0.0f,
+             -f.x,
+             -f.y,
+             -f.z,
+             0.0f,
+             0.0f,
+             0.0f,
+             0.0f,
+             1.0f}};
+
+        return m * make_translate(-eye);
+    }
 
     /**
      * Static method to create a scale matrix.
@@ -128,7 +272,30 @@ class Matrix4
      * @returns
      *   Scale transformation matrix.
      */
-    static Matrix4 make_scale(const Vector3 &scale);
+    constexpr static Matrix4 make_scale(const Vector3 &scale)
+    {
+        Matrix4 m;
+
+        m.elements_ = {
+            {scale.x,
+             0.0f,
+             0.0f,
+             0.0f,
+             0.0f,
+             scale.y,
+             0.0f,
+             0.0f,
+             0.0f,
+             0.0f,
+             scale.z,
+             0.0f,
+             0.0f,
+             0.0f,
+             0.0f,
+             1.0f}};
+
+        return m;
+    }
 
     /**
      * Static method to create translation matrix.
@@ -136,7 +303,30 @@ class Matrix4
      * @param translate
      *   Vector to translate by.
      */
-    static Matrix4 make_translate(const Vector3 &translate);
+    constexpr static Matrix4 make_translate(const Vector3 &translate)
+    {
+        Matrix4 m;
+
+        m.elements_ = {
+            {1.0f,
+             0.0f,
+             0.0f,
+             translate.x,
+             0.0f,
+             1.0f,
+             0.0f,
+             translate.y,
+             0.0f,
+             0.0f,
+             1.0f,
+             translate.z,
+             0.0f,
+             0.0f,
+             0.0f,
+             1.0f}};
+
+        return m;
+    }
 
     /**
      * Invert a matrix. This produces a matrix such that:
@@ -148,18 +338,112 @@ class Matrix4
      * @returns
      *   Inverted matrix.
      */
-    static Matrix4 invert(const Matrix4 &m);
+    constexpr static Matrix4 invert(const Matrix4 &m)
+    {
+        Matrix4 inv{};
+
+        inv[0] = m[5] * m[10] * m[15] - m[5] * m[11] * m[14] -
+                 m[9] * m[6] * m[15] + m[9] * m[7] * m[14] +
+                 m[13] * m[6] * m[11] - m[13] * m[7] * m[10];
+
+        inv[4] = -m[4] * m[10] * m[15] + m[4] * m[11] * m[14] +
+                 m[8] * m[6] * m[15] - m[8] * m[7] * m[14] -
+                 m[12] * m[6] * m[11] + m[12] * m[7] * m[10];
+
+        inv[8] = m[4] * m[9] * m[15] - m[4] * m[11] * m[13] -
+                 m[8] * m[5] * m[15] + m[8] * m[7] * m[13] +
+                 m[12] * m[5] * m[11] - m[12] * m[7] * m[9];
+
+        inv[12] = -m[4] * m[9] * m[14] + m[4] * m[10] * m[13] +
+                  m[8] * m[5] * m[14] - m[8] * m[6] * m[13] -
+                  m[12] * m[5] * m[10] + m[12] * m[6] * m[9];
+
+        inv[1] = -m[1] * m[10] * m[15] + m[1] * m[11] * m[14] +
+                 m[9] * m[2] * m[15] - m[9] * m[3] * m[14] -
+                 m[13] * m[2] * m[11] + m[13] * m[3] * m[10];
+
+        inv[5] = m[0] * m[10] * m[15] - m[0] * m[11] * m[14] -
+                 m[8] * m[2] * m[15] + m[8] * m[3] * m[14] +
+                 m[12] * m[2] * m[11] - m[12] * m[3] * m[10];
+
+        inv[9] = -m[0] * m[9] * m[15] + m[0] * m[11] * m[13] +
+                 m[8] * m[1] * m[15] - m[8] * m[3] * m[13] -
+                 m[12] * m[1] * m[11] + m[12] * m[3] * m[9];
+
+        inv[13] = m[0] * m[9] * m[14] - m[0] * m[10] * m[13] -
+                  m[8] * m[1] * m[14] + m[8] * m[2] * m[13] +
+                  m[12] * m[1] * m[10] - m[12] * m[2] * m[9];
+
+        inv[2] = m[1] * m[6] * m[15] - m[1] * m[7] * m[14] -
+                 m[5] * m[2] * m[15] + m[5] * m[3] * m[14] +
+                 m[13] * m[2] * m[7] - m[13] * m[3] * m[6];
+
+        inv[6] = -m[0] * m[6] * m[15] + m[0] * m[7] * m[14] +
+                 m[4] * m[2] * m[15] - m[4] * m[3] * m[14] -
+                 m[12] * m[2] * m[7] + m[12] * m[3] * m[6];
+
+        inv[10] = m[0] * m[5] * m[15] - m[0] * m[7] * m[13] -
+                  m[4] * m[1] * m[15] + m[4] * m[3] * m[13] +
+                  m[12] * m[1] * m[7] - m[12] * m[3] * m[5];
+
+        inv[14] = -m[0] * m[5] * m[14] + m[0] * m[6] * m[13] +
+                  m[4] * m[1] * m[14] - m[4] * m[2] * m[13] -
+                  m[12] * m[1] * m[6] + m[12] * m[2] * m[5];
+
+        inv[3] = -m[1] * m[6] * m[11] + m[1] * m[7] * m[10] +
+                 m[5] * m[2] * m[11] - m[5] * m[3] * m[10] -
+                 m[9] * m[2] * m[7] + m[9] * m[3] * m[6];
+
+        inv[7] = m[0] * m[6] * m[11] - m[0] * m[7] * m[10] -
+                 m[4] * m[2] * m[11] + m[4] * m[3] * m[10] +
+                 m[8] * m[2] * m[7] - m[8] * m[3] * m[6];
+
+        inv[11] = -m[0] * m[5] * m[11] + m[0] * m[7] * m[9] +
+                  m[4] * m[1] * m[11] - m[4] * m[3] * m[9] -
+                  m[8] * m[1] * m[7] + m[8] * m[3] * m[5];
+
+        inv[15] = m[0] * m[5] * m[10] - m[0] * m[6] * m[9] -
+                  m[4] * m[1] * m[10] + m[4] * m[2] * m[9] +
+                  m[8] * m[1] * m[6] - m[8] * m[2] * m[5];
+
+        auto det =
+            m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
+
+        if (det != 0.0f)
+        {
+            det = 1.0f / det;
+
+            for (auto i = 0; i < 16; i++)
+            {
+                inv[i] *= det;
+            }
+        }
+
+        return inv;
+    }
 
     /**
      * Transpose a matrix.
      *
-     * @param m
+     * @param matrix
      *   Matrix to transpose.
      *
      * @returns
      *   Transposed matrix.
      */
-    static Matrix4 transpose(const Matrix4 &m);
+    constexpr static Matrix4 transpose(const Matrix4 &matrix)
+    {
+        auto m{matrix};
+
+        std::swap(m[1], m[4]);
+        std::swap(m[2], m[8]);
+        std::swap(m[3], m[12]);
+        std::swap(m[6], m[9]);
+        std::swap(m[7], m[13]);
+        std::swap(m[11], m[14]);
+
+        return m;
+    }
 
     /**
      * Performs matrix multiplication.
@@ -170,7 +454,40 @@ class Matrix4
      * @returns
      *   This Matrix4 multiplied the supplied Matrix4.
      */
-    Matrix4 &operator*=(const Matrix4 &matrix);
+    constexpr Matrix4 &operator*=(const Matrix4 &matrix)
+    {
+        const auto e = elements_;
+
+        const auto calculate_cell =
+            [&e, &matrix](std::size_t row_num, std::size_t col_num) {
+                return (e[row_num + 0u] * matrix[col_num + 0u]) +
+                       (e[row_num + 1u] * matrix[col_num + 4u]) +
+                       (e[row_num + 2u] * matrix[col_num + 8u]) +
+                       (e[row_num + 3u] * matrix[col_num + 12u]);
+            };
+
+        elements_[0u] = calculate_cell(0u, 0u);
+        elements_[1u] = calculate_cell(0u, 1u);
+        elements_[2u] = calculate_cell(0u, 2u);
+        elements_[3u] = calculate_cell(0u, 3u);
+
+        elements_[4u] = calculate_cell(4u, 0u);
+        elements_[5u] = calculate_cell(4u, 1u);
+        elements_[6u] = calculate_cell(4u, 2u);
+        elements_[7u] = calculate_cell(4u, 3u);
+
+        elements_[8u] = calculate_cell(8u, 0u);
+        elements_[9u] = calculate_cell(8u, 1u);
+        elements_[10u] = calculate_cell(8u, 2u);
+        elements_[11u] = calculate_cell(8u, 3u);
+
+        elements_[12u] = calculate_cell(12u, 0u);
+        elements_[13u] = calculate_cell(12u, 1u);
+        elements_[14u] = calculate_cell(12u, 2u);
+        elements_[15u] = calculate_cell(12u, 3u);
+
+        return *this;
+    }
 
     /**
      * Performs Matrix4 multiplication.
@@ -181,7 +498,10 @@ class Matrix4
      * @returns
      *   New Matrix4 which is this Matrix4 multiplied the supplied Matrix4.
      */
-    Matrix4 operator*(const Matrix4 &matrix) const;
+    constexpr Matrix4 operator*(const Matrix4 &matrix) const
+    {
+        return Matrix4(*this) *= matrix;
+    }
 
     /**
      * Multiply this matrix by a given vector3.
@@ -195,7 +515,19 @@ class Matrix4
      * @returns
      *   This matrix multiplied by the supplied vector3.
      */
-    Vector3 operator*(const Vector3 &vector) const;
+    constexpr Vector3 operator*(const Vector3 &vector) const
+    {
+        return {
+            vector.x * elements_[0] + vector.y * elements_[1] +
+                vector.z * elements_[2] + elements_[3],
+
+            vector.x * elements_[4] + vector.y * elements_[5] +
+                vector.z * elements_[6] + elements_[7],
+
+            vector.x * elements_[8] + vector.y * elements_[9] +
+                vector.z * elements_[10] + elements_[11],
+        };
+    }
 
     /**
      * Get a reference to the element at the supplied index.
@@ -206,7 +538,10 @@ class Matrix4
      * @returns
      *   Reference to element at supplied index.
      */
-    float &operator[](const size_t index);
+    constexpr float &operator[](const size_t index)
+    {
+        return elements_[index];
+    }
 
     /**
      * Get a copy of the element at the supplied index.
@@ -217,7 +552,10 @@ class Matrix4
      * @returns
      *   Copy of element at supplied index.
      */
-    float operator[](const size_t index) const;
+    constexpr float operator[](const size_t index) const
+    {
+        return elements_[index];
+    }
 
     /**
      * Equality operator.
@@ -228,7 +566,14 @@ class Matrix4
      * @returns
      *   True if both Matrix4 objects are the same, false otherwise.
      */
-    bool operator==(const Matrix4 &other) const;
+    bool operator==(const Matrix4 &other) const
+    {
+        return std::equal(
+            std::cbegin(elements_),
+            std::cend(elements_),
+            std::cbegin(other.elements_),
+            compare);
+    }
 
     /**
      * Inequality operator.
@@ -239,7 +584,10 @@ class Matrix4
      * @returns
      *   True if both Matrix4 objects are not the same, false otherwise.
      */
-    bool operator!=(const Matrix4 &other) const;
+    bool operator!=(const Matrix4 &other) const
+    {
+        return !(*this == other);
+    }
 
     /**
      * Get a pointer to the start of the internal Matrix4 data array.
@@ -247,7 +595,10 @@ class Matrix4
      * @returns
      *   Pointer to start if Matrix4 data.
      */
-    const float *data() const;
+    constexpr const float *data() const
+    {
+        return elements_.data();
+    }
 
     /**
      * Get a column from the matrix and return as a vector3. This ignores
@@ -259,26 +610,37 @@ class Matrix4
      * @returns
      *   The first three value of the supplied column.
      */
-    Vector3 column(const std::size_t index) const;
-
-    /**
-     * Writes the Matrix4 to the stream, useful for debugging.
-     *
-     * @param out
-     *   The stream to write to.
-     *
-     * @param m
-     *   The Matrix4 to write to the stream.
-     *
-     * @return
-     *   A reference to the supplied stream, after the Matrix4 has been
-     *   written.
-     */
-    friend std::ostream &operator<<(std::ostream &out, const Matrix4 &m);
+    constexpr Vector3 column(const std::size_t index) const
+    {
+        return {elements_[index], elements_[index + 4u], elements_[index + 8u]};
+    }
 
   private:
     /** Matrix4 data */
     std::array<float, 16u> elements_;
 };
+
+/**
+ * Writes the Matrix4 to the stream, useful for debugging.
+ *
+ * @param out
+ *   The stream to write to.
+ *
+ * @param m
+ *   The Matrix4 to write to the stream.
+ *
+ * @return
+ *   A reference to the supplied stream, after the Matrix4 has been
+ *   written.
+ */
+inline std::ostream &operator<<(std::ostream &out, const Matrix4 &m)
+{
+    out << m[0] << " " << m[1] << " " << m[2] << " " << m[3] << std::endl;
+    out << m[4] << " " << m[5] << " " << m[6] << " " << m[7] << std::endl;
+    out << m[8] << " " << m[9] << " " << m[10] << " " << m[11] << std::endl;
+    out << m[12] << " " << m[13] << " " << m[14] << " " << m[15];
+
+    return out;
+}
 
 }

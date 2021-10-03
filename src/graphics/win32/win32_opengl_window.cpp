@@ -179,7 +179,7 @@ void resolve_wgl_functions(HINSTANCE instance)
     }
 
     // get a wgl context
-    const iris::AutoRelease<HGLRC, NULL> context = {
+    const iris::AutoRelease<HGLRC, nullptr> context = {
         ::wglCreateContext(dc), ::wglDeleteContext};
     if (!context)
     {

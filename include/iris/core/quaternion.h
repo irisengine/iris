@@ -1,7 +1,9 @@
 #pragma once
 
+#include <cmath>
 #include <iosfwd>
 
+#include "core/utils.h"
 #include "core/vector3.h"
 
 namespace iris
@@ -11,6 +13,8 @@ namespace iris
  * Class representing a Quaternion.
  *
  * A Quaternion represents a rotation (w) about a vector (x, y, z).
+ *
+ * This is a header only class to allow for constexpr methods.
  */
 class Quaternion
 {
@@ -18,7 +22,13 @@ class Quaternion
     /**
      * Construct a new unit Quaternion.
      */
-    Quaternion();
+    constexpr Quaternion()
+        : w(1.0f)
+        , x(0.0f)
+        , y(0.0f)
+        , z(0.0f)
+    {
+    }
 
     /**
      * Construct a Quaternion which represents a rotation about an axis.
@@ -29,7 +39,22 @@ class Quaternion
      * @param angle
      *   The rotation in radians.
      */
-    Quaternion(const Vector3 &axis, float angle);
+    Quaternion(const Vector3 &axis, float angle)
+        : w(0.0f)
+        , x(0.0f)
+        , y(0.0f)
+        , z(0.0f)
+    {
+        const auto half_angle = angle / 2.0f;
+        const auto sin_angle = std::sin(half_angle);
+
+        w = std::cos(half_angle);
+        x = sin_angle * axis.x;
+        y = sin_angle * axis.y;
+        z = sin_angle * axis.z;
+
+        normalise();
+    }
 
     /**
      * Construct a Quaternion with supplied components.
@@ -46,7 +71,13 @@ class Quaternion
      * @param w
      *   x component.
      */
-    Quaternion(float x, float y, float z, float w);
+    constexpr Quaternion(float x, float y, float z, float w)
+        : w(w)
+        , x(x)
+        , y(y)
+        , z(z)
+    {
+    }
 
     /**
      * Construct a Quaternion with Euler angles.
@@ -60,21 +91,21 @@ class Quaternion
      * @param roll
      *   Roll angle in radians.
      */
-    Quaternion(float yaw, float pitch, float roll);
+    Quaternion(float yaw, float pitch, float roll)
+        : Quaternion()
+    {
+        const auto cy = std::cos(yaw * 0.5f);
+        const auto sy = std::sin(yaw * 0.5f);
+        const auto cp = std::cos(pitch * 0.5f);
+        const auto sp = std::sin(pitch * 0.5f);
+        const auto cr = std::cos(roll * 0.5f);
+        const auto sr = std::sin(roll * 0.5f);
 
-    /**
-     * Write a Quaternion to a stream, useful for debugging.
-     *
-     * @param out
-     *   Stream to write to.
-     *
-     * @param q
-     *   Quaternion to write to stream.
-     *
-     * @returns
-     *   Reference to input stream.
-     */
-    friend std::ostream &operator<<(std::ostream &out, const Quaternion &q);
+        w = cr * cp * cy + sr * sp * sy;
+        x = sr * cp * cy - cr * sp * sy;
+        y = cr * sp * cy + sr * cp * sy;
+        z = cr * cp * sy - sr * sp * cy;
+    }
 
     /**
      * Multiply this Quaternion by another, therefore applying a composition
@@ -86,19 +117,36 @@ class Quaternion
      * @returns
      *   Reference to this Quaternion.
      */
-    Quaternion &operator*=(const Quaternion &quaternion);
+    constexpr Quaternion &operator*=(const Quaternion &quaternion)
+    {
+        const Quaternion copy{*this};
+
+        w = copy.w * quaternion.w - copy.x * quaternion.x -
+            copy.y * quaternion.y - copy.z * quaternion.z;
+        x = copy.w * quaternion.x + copy.x * quaternion.w +
+            copy.y * quaternion.z - copy.z * quaternion.y;
+        y = copy.w * quaternion.y + copy.y * quaternion.w +
+            copy.z * quaternion.x - copy.x * quaternion.z;
+        z = copy.w * quaternion.z + copy.z * quaternion.w +
+            copy.x * quaternion.y - copy.y * quaternion.x;
+
+        return *this;
+    }
 
     /**
      * Create a new Quaternion which is the composition of this this
      * rotation with another.
      *
-     * @param q
+     * @param quaternion
      *   Quaternion to compose with this.
      *
      * @returns
      *   Copy of this Quaternion composed with the supplied one.
      */
-    Quaternion operator*(const Quaternion &quaternion) const;
+    constexpr Quaternion operator*(const Quaternion &quaternion) const
+    {
+        return Quaternion{*this} *= quaternion;
+    }
 
     /**
      * Add a rotation specified as a Vector3 to this Quaternion.
@@ -109,7 +157,23 @@ class Quaternion
      * @returns
      *   Reference to this Quaternion.
      */
-    Quaternion &operator+=(const Vector3 &vector);
+    constexpr Quaternion &operator+=(const Vector3 &vector)
+    {
+        Quaternion q{};
+        q.w = 0.0f;
+        q.x = vector.x;
+        q.y = vector.y;
+        q.z = vector.z;
+
+        q *= *this;
+
+        w += q.w / 2.0f;
+        x += q.x / 2.0f;
+        y += q.y / 2.0f;
+        z += q.z / 2.0f;
+
+        return *this;
+    }
 
     /**
      * Create a new Quaternion that is the composition of this rotation
@@ -121,7 +185,10 @@ class Quaternion
      * @returns
      *   Copy of this Quaternion composed with the Vector3 rotation.
      */
-    Quaternion operator+(const Vector3 &vector) const;
+    constexpr Quaternion operator+(const Vector3 &vector) const
+    {
+        return Quaternion{*this} += vector;
+    }
 
     /**
      * Create a new Quaternion that is this value scaled.
@@ -132,7 +199,10 @@ class Quaternion
      * @returns
      *   Scaled quaternion.
      */
-    Quaternion operator*(float scale) const;
+    constexpr Quaternion operator*(float scale) const
+    {
+        return Quaternion{*this} *= scale;
+    }
 
     /**
      * Scale quaternion.
@@ -143,7 +213,15 @@ class Quaternion
      * @returns
      *   Reference to this Quaternion.
      */
-    Quaternion &operator*=(float scale);
+    constexpr Quaternion &operator*=(float scale)
+    {
+        x *= scale;
+        y *= scale;
+        z *= scale;
+        w *= scale;
+
+        return *this;
+    }
 
     /**
      * Create a new Quaternion that is this Quaternion subtracted with a
@@ -155,7 +233,10 @@ class Quaternion
      * @returns
      *   Copy of this Quaternion after subtraction.
      */
-    Quaternion operator-(const Quaternion &other) const;
+    constexpr Quaternion operator-(const Quaternion &other) const
+    {
+        return Quaternion{*this} -= other;
+    }
 
     /**
      * Subtract a Quaternion from this.
@@ -166,7 +247,10 @@ class Quaternion
      * @returns
      *   Reference to this Quaternion.
      */
-    Quaternion &operator-=(const Quaternion &other);
+    constexpr Quaternion &operator-=(const Quaternion &other)
+    {
+        return *this += -other;
+    }
 
     /**
      * Create a new Quaternion that is this Quaternion added with a
@@ -178,7 +262,10 @@ class Quaternion
      * @returns
      *   Copy of this Quaternion after addition.
      */
-    Quaternion operator+(const Quaternion &other) const;
+    constexpr Quaternion operator+(const Quaternion &other) const
+    {
+        return Quaternion{*this} += other;
+    }
 
     /**
      * Add a Quaternion from this.
@@ -189,7 +276,15 @@ class Quaternion
      * @returns
      *   Reference to this Quaternion.
      */
-    Quaternion &operator+=(const Quaternion &other);
+    constexpr Quaternion &operator+=(const Quaternion &other)
+    {
+        x += other.x;
+        y += other.y;
+        z += other.z;
+        w += other.w;
+
+        return *this;
+    }
 
     /**
      * Negate operator.
@@ -197,7 +292,10 @@ class Quaternion
      * @returns
      *   Copy of this Quaternion with each component negated.
      */
-    Quaternion operator-() const;
+    constexpr Quaternion operator-() const
+    {
+        return {-x, -y, -z, -w};
+    }
 
     /**
      * Calculate the Quaternion dot product.
@@ -208,7 +306,10 @@ class Quaternion
      * @returns
      *   Dot product of this Quaternion with the supplied one.
      */
-    float dot(const Quaternion &other) const;
+    constexpr float dot(const Quaternion &other) const
+    {
+        return x * other.x + y * other.y + z * other.z + w * other.w;
+    }
 
     /**
      * Perform spherical linear interpolation toward target Quaternion.
@@ -219,7 +320,34 @@ class Quaternion
      * @param amount
      *   Amount to interpolate, must be in range [0.0, 1.0].
      */
-    void slerp(Quaternion target, float amount);
+    constexpr void slerp(Quaternion target, float amount)
+    {
+        auto dot = this->dot(target);
+        if (dot < 0.0f)
+        {
+            target = -target;
+            dot = -dot;
+        }
+
+        const auto threshold = 0.9995f;
+        if (dot > threshold)
+        {
+            *this = *this + ((target - *this) * amount);
+            normalise();
+        }
+        else
+        {
+            const auto theta_0 = std::acos(dot);
+            const auto theta = theta_0 * amount;
+            const auto sin_theta = std::sin(theta);
+            const auto sin_theta_0 = std::sin(theta_0);
+
+            const auto s0 = std::cos(theta) - dot * sin_theta / sin_theta_0;
+            const auto s1 = sin_theta / sin_theta_0;
+
+            *this = (*this * s0) + (target * s1);
+        }
+    }
 
     /**
      * Equality operator.
@@ -230,7 +358,11 @@ class Quaternion
      * @returns
      *   True if both Quaternion objects are the same, false otherwise.
      */
-    bool operator==(const Quaternion &other) const;
+    bool operator==(const Quaternion &other) const
+    {
+        return compare(w, other.w) && compare(x, other.x) &&
+               compare(y, other.y) && compare(z, other.z);
+    }
 
     /**
      * Inequality operator.
@@ -241,7 +373,10 @@ class Quaternion
      * @returns
      *   True if both Quaternion objects are not the same, false otherwise.
      */
-    bool operator!=(const Quaternion &other) const;
+    bool operator!=(const Quaternion &other) const
+    {
+        return !(*this == other);
+    }
 
     /**
      * Normalise this Quaternion.
@@ -249,7 +384,27 @@ class Quaternion
      * @returns
      *   A reference to this Quaternion.
      */
-    Quaternion &normalise();
+    Quaternion &normalise()
+    {
+        const auto magnitude = std::pow(w, 2.0f) + std::pow(x, 2.0f) +
+                               std::pow(y, 2.0f) + std::pow(z, 2.0f);
+
+        if (magnitude == 0.0f)
+        {
+            w = 1.0f;
+        }
+        else
+        {
+            const auto d = std::sqrt(magnitude);
+
+            w /= d;
+            x /= d;
+            y /= d;
+            z /= d;
+        }
+
+        return *this;
+    }
 
     /** Angle of rotation. */
     float w;
@@ -263,5 +418,27 @@ class Quaternion
     /** z axis of rotation. */
     float z;
 };
+
+/**
+ * Write a Quaternion to a stream, useful for debugging.
+ *
+ * @param out
+ *   Stream to write to.
+ *
+ * @param q
+ *   Quaternion to write to stream.
+ *
+ * @returns
+ *   Reference to input stream.
+ */
+inline std::ostream &operator<<(std::ostream &out, const Quaternion &q)
+{
+    out << "x: " << q.x << " "
+        << "y: " << q.y << " "
+        << "z: " << q.z << " "
+        << "w: " << q.w;
+
+    return out;
+}
 
 }
