@@ -28,7 +28,6 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/utils.h
     ${INCLUDE_ROOT}/vector3.h
     camera.cpp
-    colour.cpp
     exception.cpp
     looper.cpp
     random.cpp

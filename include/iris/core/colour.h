@@ -1,7 +1,10 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <ostream>
+
+#include "core/utils.h"
 
 namespace iris
 {
@@ -14,7 +17,10 @@ class Colour
     /**
      * Create a black colour.
      */
-    Colour();
+    constexpr Colour()
+        : Colour(0.0f, 0.0f, 0.0f, 1.0f)
+    {
+    }
 
     /**
      * Create a new colour with float components.
@@ -31,7 +37,13 @@ class Colour
      * @param a
      *   Alpha.
      */
-    Colour(float r, float g, float b, float a = 1.0f);
+    constexpr Colour(float r, float g, float b, float a = 1.0f)
+        : r(r)
+        , g(g)
+        , b(b)
+        , a(a)
+    {
+    }
 
     /**
      * Create a new colour with integer components.
@@ -51,25 +63,18 @@ class Colour
      * @param a
      *   Alpha.
      */
-    Colour(
+    constexpr Colour(
         std::int32_t r,
         std::int32_t g,
         std::int32_t b,
-        std::int32_t a = 255);
-
-    /**
-     * Write a Colour to a stream, useful for debugging.
-     *
-     * @param out
-     *   Stream to write to.
-     *
-     * @param c
-     *   Colour to write to stream.
-     *
-     * @return
-     *   Reference to input stream.
-     */
-    friend std::ostream &operator<<(std::ostream &out, const Colour &c);
+        std::int32_t a = 255)
+        : Colour(
+              static_cast<float>(r) / 255.0f,
+              static_cast<float>(g) / 255.0f,
+              static_cast<float>(b) / 255.0f,
+              static_cast<float>(a) / 255.0f)
+    {
+    }
 
     /**
      * Multiply each component by a scalar value.
@@ -80,7 +85,15 @@ class Colour
      * @return
      *   Reference to this Colour.
      */
-    Colour &operator*=(float scale);
+    constexpr Colour &operator*=(float scale)
+    {
+        r *= scale;
+        g *= scale;
+        b *= scale;
+        a *= scale;
+
+        return *this;
+    }
 
     /**
      * Create a new Colour which is this Colour with each component
@@ -93,7 +106,10 @@ class Colour
      *   Copy of this Colour with each component multiplied by a
      *   scalar value.
      */
-    Colour operator*(float scale) const;
+    constexpr Colour operator*(float scale) const
+    {
+        return Colour(*this) *= scale;
+    }
 
     /**
      * Component wise add a Colour to this Colour.
@@ -104,7 +120,15 @@ class Colour
      * @return
      *   Reference to this colour.
      */
-    Colour &operator+=(const Colour &colour);
+    constexpr Colour &operator+=(const Colour &colour)
+    {
+        r += colour.r;
+        g += colour.g;
+        b += colour.b;
+        a += colour.a;
+
+        return *this;
+    }
 
     /**
      * Create a new Colour which is this Colour added with a supplied
@@ -117,7 +141,10 @@ class Colour
      *   Copy of this Colour with each component added to the
      *   components of the supplied Colour.
      */
-    Colour operator+(const Colour &colour) const;
+    constexpr Colour operator+(const Colour &colour) const
+    {
+        return Colour(*this) += colour;
+    }
 
     /**
      * Component wise subtract a Colour to this Colour.
@@ -128,7 +155,15 @@ class Colour
      * @return
      *   Reference to this Colour.
      */
-    Colour &operator-=(const Colour &colour);
+    constexpr Colour &operator-=(const Colour &colour)
+    {
+        r -= colour.r;
+        g -= colour.g;
+        b -= colour.b;
+        a -= colour.a;
+
+        return *this;
+    }
 
     /**
      * Create a new Colour which is this Colour subtracted with a
@@ -141,7 +176,10 @@ class Colour
      *   Copy of this Colour with each component subtracted to the
      *   components of the supplied Colour.
      */
-    Colour operator-(const Colour &colour) const;
+    constexpr Colour operator-(const Colour &colour) const
+    {
+        return Colour(*this) -= colour;
+    }
 
     /**
      * Component wise multiple a Colour to this Colour.
@@ -152,7 +190,15 @@ class Colour
      * @returns
      *   Reference to this Colour.
      */
-    Colour &operator*=(const Colour &colour);
+    constexpr Colour &operator*=(const Colour &colour)
+    {
+        r *= colour.r;
+        g *= colour.g;
+        b *= colour.b;
+        a *= colour.a;
+
+        return *this;
+    }
 
     /**
      * Create a new Colour which us this Colour component wise multiplied
@@ -165,7 +211,10 @@ class Colour
      *   Copy of this Colour component wise multiplied with the supplied
      *   Colour.
      */
-    Colour operator*(const Colour &colour) const;
+    constexpr Colour operator*(const Colour &colour) const
+    {
+        return Colour{*this} *= colour;
+    }
 
     /**
      * Check if this colour is equal to another.
@@ -176,7 +225,11 @@ class Colour
      * @returns
      *   True if both Colours are equal, otherwise false.
      */
-    bool operator==(const Colour &other) const;
+    bool operator==(const Colour &other) const
+    {
+        return compare(r, other.r) && compare(g, other.g) &&
+               compare(b, other.b) && compare(a, other.a);
+    }
 
     /**
      * Check if this colour is not equal to another.
@@ -187,7 +240,10 @@ class Colour
      * @returns
      *   True if both Colours are unequal, otherwise false.
      */
-    bool operator!=(const Colour &other) const;
+    bool operator!=(const Colour &other) const
+    {
+        return !(other == *this);
+    }
 
     /** Red. */
     float r;
@@ -201,4 +257,27 @@ class Colour
     /** Alpha. */
     float a;
 };
+
+/**
+ * Write a Colour to a stream, useful for debugging.
+ *
+ * @param out
+ *   Stream to write to.
+ *
+ * @param c
+ *   Colour to write to stream.
+ *
+ * @return
+ *   Reference to input stream.
+ */
+inline std::ostream &operator<<(std::ostream &out, const Colour &c)
+{
+    out << "r: " << c.r << " "
+        << "g: " << c.g << " "
+        << "b: " << c.b << " "
+        << "a: " << c.a;
+
+    return out;
+}
+
 }
