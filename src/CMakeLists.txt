@@ -46,8 +46,8 @@ elseif(IRIS_PLATFORM MATCHES "IOS")
   if(NOT IRIS_JOBS_API)
     set(IRIS_JOBS_API "THREADS")
   endif()
-elseif(IRIS_PLATFORM MATCHES "WINDOWS")
-  target_compile_definitions(iris PUBLIC IRIS_PLATFORM_WINDOWS)
+elseif(IRIS_PLATFORM MATCHES "WIN32")
+  target_compile_definitions(iris PUBLIC IRIS_PLATFORM_WIN32)
   target_compile_definitions(iris PUBLIC IRIS_ARCH_X86_64)
   target_compile_definitions(iris PUBLIC NOMINMAX)
   if(NOT IRIS_JOBS_API)
@@ -73,7 +73,7 @@ message(STATUS "Building iris-${CMAKE_PROJECT_VERSION} for ${IRIS_PLATFORM} (${I
 
 target_link_libraries(iris PUBLIC LinearMath BulletDynamics BulletCollision assimp)
 
-if(IRIS_PLATFORM MATCHES "WINDOWS")
+if(IRIS_PLATFORM MATCHES "WIN32")
   # on windows SYSTEM includes do not prevent warnings - so we add bullet using
   # the /external flag
   target_compile_options(iris PRIVATE /W4 /WX /experimental:external

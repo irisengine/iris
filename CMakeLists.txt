@@ -23,7 +23,7 @@ if(NOT IRIS_PLATFORM)
     set(IRIS_PLATFORM "MACOS")
     set(IRIS_ARCH "X86_64")
   elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(IRIS_PLATFORM "WINDOWS")
+    set(IRIS_PLATFORM "WIN32")
     set(IRIS_ARCH "X86_64")
   else()
     message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_NAME}")
@@ -94,7 +94,7 @@ if(NOT googletest_POPULATED)
   add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif()
 
-if(IRIS_PLATFORM MATCHES "WINDOWS")
+if(IRIS_PLATFORM MATCHES "WIN32")
   FetchContent_Declare(
     directx-headers
     GIT_REPOSITORY https://github.com/microsoft/DirectX-Headers.git
