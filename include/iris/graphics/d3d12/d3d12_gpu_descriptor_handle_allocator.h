@@ -15,10 +15,10 @@ namespace iris
 {
 
 /**
- * This class provides the mechanisms for allocating gpu descriptor heaps and
- * descriptor handles. An instance of this class will pre-allocate a fixed sized
- * pool of descriptors for a given d3d12 heap type, it then provides methods for
- * allocating handles from this pool.
+ * This class provides the mechanisms for allocating gpu descriptor heaps
+ * and descriptor handles. An instance of this class will pre-allocate a
+ * fixed sized pool of descriptors for a given d3d12 heap type, it then
+ * provides methods for allocating handles from this pool.
  */
 class D3D12GPUDescriptorHandleAllocator
 {
@@ -81,8 +81,8 @@ class D3D12GPUDescriptorHandleAllocator
     ID3D12DescriptorHeap *heap() const;
 
     /**
-     * Reset the allocation. This means future calls to allocate could return
-     * handles that have been previously allocated.
+     * Reset the allocation. This means future calls to allocate could
+     * return handles that have been previously allocated.
      */
     void reset();
 
@@ -105,5 +105,4 @@ class D3D12GPUDescriptorHandleAllocator
     /** Maximum number of handles. */
     std::uint32_t capacity_;
 };
-
 }

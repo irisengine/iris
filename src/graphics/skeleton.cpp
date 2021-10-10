@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "core/matrix4.h"
 #include "graphics/animation.h"
 #include "graphics/bone.h"
@@ -101,18 +101,17 @@ Skeleton::Skeleton(
     , current_animation_()
 {
     // a root bone is one without a parent, only support one
-    if (std::count_if(
-            std::cbegin(bones), std::cend(bones), [](const Bone &bone) {
-                return bone.parent().empty();
-            }) != 1)
-    {
-        throw Exception("only support one root bones");
-    }
+    ensure(
+        std::count_if(
+            std::cbegin(bones),
+            std::cend(bones),
+            [](const Bone &bone) { return bone.parent().empty(); }) == 1,
+        "only support one root bones");
 
-    auto root =
-        std::find_if(std::begin(bones), std::end(bones), [](const Bone &bone) {
-            return bone.parent().empty();
-        });
+    auto root = std::find_if(
+        std::begin(bones),
+        std::end(bones),
+        [](const Bone &bone) { return bone.parent().empty(); });
 
     // we need to copy the supplied bones in a specific order
     // the aim is to flatten the hierarchy so that the root node is first,
@@ -169,14 +168,10 @@ void Skeleton::set_animation(const std::string &name)
     auto animation = std::find_if(
         std::begin(animations_),
         std::end(animations_),
-        [this](const Animation &element) {
-            return element.name() == current_animation_;
-        });
+        [this](const Animation &element)
+        { return element.name() == current_animation_; });
 
-    if (animation == std::cend(animations_))
-    {
-        throw Exception("unknown animation");
-    }
+    expect(animation != std::cend(animations_), "unknown animation");
 
     animation->reset();
 
@@ -189,9 +184,8 @@ Animation &Skeleton::animation()
     auto animation = std::find_if(
         std::begin(animations_),
         std::end(animations_),
-        [this](const Animation &element) {
-            return element.name() == current_animation_;
-        });
+        [this](const Animation &element)
+        { return element.name() == current_animation_; });
 
     return *animation;
 }
@@ -201,14 +195,10 @@ void Skeleton::advance()
     auto animation = std::find_if(
         std::begin(animations_),
         std::end(animations_),
-        [this](const Animation &element) {
-            return element.name() == current_animation_;
-        });
+        [this](const Animation &element)
+        { return element.name() == current_animation_; });
 
-    if (animation == std::end(animations_))
-    {
-        throw Exception("unknown animation");
-    }
+    expect(animation != std::end(animations_), "unknown animation");
 
     animation->advance();
 
@@ -219,14 +209,11 @@ void Skeleton::advance()
 std::size_t Skeleton::bone_index(const std::string &name) const
 {
     const auto bone = std::find_if(
-        std::cbegin(bones_), std::cend(bones_), [&name](const Bone &bone) {
-            return bone.name() == name;
-        });
+        std::cbegin(bones_),
+        std::cend(bones_),
+        [&name](const Bone &bone) { return bone.name() == name; });
 
-    if (bone == std::cend(bones_))
-    {
-        throw Exception("unknown bone");
-    }
+    expect(bone != std::cend(bones_), "unknown bone");
 
     return std::distance(std::cbegin(bones_), bone);
 }

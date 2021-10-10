@@ -12,7 +12,7 @@
 
 #include "core/auto_release.h"
 #include "core/data_buffer.h"
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "core/resource_loader.h"
 #include "graphics/texture.h"
 #include "graphics/texture_usage.h"
@@ -51,10 +51,7 @@ std::tuple<iris::DataBuffer, std::uint32_t, std::uint32_t> parse_image(
             0),
         ::stbi_image_free);
 
-    if (!raw_data || (num_channels == 0))
-    {
-        throw iris::Exception("failed to load image");
-    }
+    iris::ensure(raw_data && (num_channels != 0), "failed to load image");
 
     // calculate the total number of bytes needed for the raw data
     const auto size = width * height * num_channels;
@@ -100,10 +97,9 @@ namespace iris
 
 Texture *TextureManager::load(const std::string &resource, TextureUsage usage)
 {
-    if ((usage != TextureUsage::IMAGE) && (usage != TextureUsage::DATA))
-    {
-        throw Exception("can only load IMAGE or DATA from file");
-    }
+    expect(
+        (usage == TextureUsage::IMAGE) || (usage == TextureUsage::DATA),
+        "can only load IMAGE or DATA from file");
 
     // check if texture has been loaded before, if not then load it
     auto loaded = loaded_textures_.find(resource);
@@ -158,14 +154,12 @@ void TextureManager::unload(Texture *texture)
         auto loaded = std::find_if(
             std::begin(loaded_textures_),
             std::end(loaded_textures_),
-            [texture](const auto &element) {
-                return element.second.texture.get() == texture;
-            });
+            [texture](const auto &element)
+            { return element.second.texture.get() == texture; });
 
-        if (loaded == std::cend(loaded_textures_))
-        {
-            throw Exception("texture has not been loaded");
-        }
+        expect(
+            loaded != std::cend(loaded_textures_),
+            "texture has not been loaded");
 
         // decrement reference count and, if 0, unload
         --loaded->second.ref_count;

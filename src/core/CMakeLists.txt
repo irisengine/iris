@@ -14,6 +14,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/camera_type.h
     ${INCLUDE_ROOT}/colour.h
     ${INCLUDE_ROOT}/data_buffer.h
+    ${INCLUDE_ROOT}/error_handling.h
     ${INCLUDE_ROOT}/exception.h
     ${INCLUDE_ROOT}/looper.h
     ${INCLUDE_ROOT}/matrix4.h

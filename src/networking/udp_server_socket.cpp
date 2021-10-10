@@ -6,7 +6,7 @@
 
 #include "core/auto_release.h"
 #include "core/data_buffer.h"
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "log/log.h"
 #include "networking/networking.h"
 #include "networking/server_socket_data.h"
@@ -25,10 +25,7 @@ UdpServerSocket::UdpServerSocket(const std::string &address, std::uint32_t port)
 
     // create socket
     socket_ = {::socket(AF_INET, SOCK_DGRAM, 0), CloseSocket};
-    if (socket_ == INVALID_SOCKET)
-    {
-        throw Exception("socket failed");
-    }
+    ensure(socket_ == INVALID_SOCKET, "socket failed");
 
     // configure address
     struct sockaddr_in address_storage = {0};
@@ -41,24 +38,22 @@ UdpServerSocket::UdpServerSocket(const std::string &address, std::uint32_t port)
 
     // enable multicast
     int reuse = 1;
-    if (::setsockopt(
+    ensure(
+        ::setsockopt(
             socket_,
             SOL_SOCKET,
             SO_REUSEADDR,
             reinterpret_cast<const char *>(&reuse),
-            sizeof(reuse)) < 0)
-    {
-        throw iris::Exception("setsockopt failed");
-    }
+            sizeof(reuse)) == 0,
+        "setsockopt failed");
 
     // bind socket so we can accept connections
-    if (::bind(
+    ensure(
+        ::bind(
             socket_,
             reinterpret_cast<struct sockaddr *>(&address_storage),
-            address_length) == -1)
-    {
-        throw Exception("bind failed");
-    }
+            address_length) == 0,
+        "bind failed");
 
     LOG_ENGINE_INFO("udp_server_socket", "connected!");
 }
@@ -80,10 +75,7 @@ ServerSocketData UdpServerSocket::read()
         reinterpret_cast<struct sockaddr *>(&address),
         &length);
 
-    if (read == -1)
-    {
-        throw Exception("recvfrom failed");
-    }
+    ensure(read != -1, "recvfrom failed");
 
     // resize buffer to amount of data read
     buffer.resize(read);

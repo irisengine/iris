@@ -8,7 +8,7 @@
 #include "directx/d3d12.h"
 
 #include "core/data_buffer.h"
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "graphics/d3d12/d3d12_context.h"
 #include "graphics/vertex_data.h"
 
@@ -36,25 +36,23 @@ Microsoft::WRL::ComPtr<ID3D12Resource> create_resource(
         CD3DX12_RESOURCE_DESC::Buffer(static_cast<UINT>(size));
     Microsoft::WRL::ComPtr<ID3D12Resource> resource = nullptr;
 
-    if (device->CreateCommittedResource(
-            &heap_properties,
-            D3D12_HEAP_FLAG_NONE,
-            &buffer_descriptor,
-            D3D12_RESOURCE_STATE_GENERIC_READ,
-            nullptr,
-            IID_PPV_ARGS(&resource)) != S_OK)
-    {
-        throw iris::Exception("could not create committed resource");
-    }
+    const auto commit_resource = device->CreateCommittedResource(
+        &heap_properties,
+        D3D12_HEAP_FLAG_NONE,
+        &buffer_descriptor,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(&resource));
+    iris::expect(
+        commit_resource == S_OK, "could not create committed resource");
 
     CD3DX12_RANGE read_range(0, 0);
 
     // map the gpu buffer to the cpu, so it can be written to
-    if (resource->Map(
-            0u, &read_range, reinterpret_cast<void **>(mapped_memory)) != S_OK)
-    {
-        throw iris::Exception("could not map buffer");
-    }
+    iris::expect(
+        resource->Map(
+            0u, &read_range, reinterpret_cast<void **>(mapped_memory)) == S_OK,
+        "could not map buffer");
 
     return resource;
 }

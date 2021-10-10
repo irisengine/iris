@@ -7,7 +7,7 @@
 #include <ostream>
 
 #include "core/data_buffer.h"
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "networking/channel/channel_type.h"
 #include "networking/packet_type.h"
 
@@ -24,10 +24,7 @@ Packet::Packet(PacketType type, ChannelType channel, const DataBuffer &body)
     , body_()
     , size_(body.size())
 {
-    if (body.size() > sizeof(body_))
-    {
-        throw Exception("body too large");
-    }
+    expect(body.size() <= sizeof(body_), "body too large");
 
     std::memcpy(body_, body.data(), body.size());
 }

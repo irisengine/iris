@@ -10,7 +10,7 @@
 #include <hidusage.h>
 
 #include "core/auto_release.h"
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "events/event.h"
 #include "events/quit_event.h"
 #define DONT_MAKE_GL_FUNCTIONS_EXTERN // get concrete function pointers for all
@@ -42,10 +42,7 @@ template <class T>
 void resolve_opengl_function(T &function, const std::string &name)
 {
     const auto address = ::wglGetProcAddress(name.c_str());
-    if (address == NULL)
-    {
-        throw iris::Exception("could not resolve: " + name);
-    }
+    iris::ensure(address != NULL, "could not resolve: " + name);
 
     function = reinterpret_cast<T>(address);
 }
@@ -120,10 +117,7 @@ void resolve_wgl_functions(HINSTANCE instance)
     wc.lpszClassName = "dummy window class";
     wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
 
-    if (::RegisterClassA(&wc) == 0)
-    {
-        throw iris::Exception("could not register class");
-    }
+    iris::ensure(::RegisterClassA(&wc) != 0, "could not register class");
 
     // create dummy window
     const iris::Win32OpenGLWindow::AutoWindow dummy_window = {
@@ -142,18 +136,12 @@ void resolve_wgl_functions(HINSTANCE instance)
             0),
         ::DestroyWindow};
 
-    if (!dummy_window)
-    {
-        throw iris::Exception("could not create window");
-    }
+    iris::ensure(dummy_window, "could not create window");
 
     iris::Win32OpenGLWindow::AutoDC dc = {
         ::GetDC(dummy_window),
         [&dummy_window](HDC dc) { ::ReleaseDC(dummy_window, dc); }};
-    if (!dc)
-    {
-        throw iris::Exception("could not get dc");
-    }
+    iris::ensure(dc, "could not get dc");
 
     // pixel format descriptor for dummy window
     PIXELFORMATDESCRIPTOR pfd = {0};
@@ -168,10 +156,7 @@ void resolve_wgl_functions(HINSTANCE instance)
     pfd.cStencilBits = 8;
 
     const auto pixel_format = ::ChoosePixelFormat(dc, &pfd);
-    if (pixel_format == 0)
-    {
-        throw iris::Exception("could not choose pixel format");
-    }
+    iris::ensure(pixel_format != 0, "could not choose pixel format");
 
     if (::SetPixelFormat(dc, pixel_format, &pfd) == FALSE)
     {
@@ -181,15 +166,11 @@ void resolve_wgl_functions(HINSTANCE instance)
     // get a wgl context
     const iris::AutoRelease<HGLRC, nullptr> context = {
         ::wglCreateContext(dc), ::wglDeleteContext};
-    if (!context)
-    {
-        throw iris::Exception("could not create gl context");
-    }
+    iris::ensure(context, "could not create gl context");
 
-    if (::wglMakeCurrent(dc, context) == FALSE)
-    {
-        throw iris::Exception("could not make current context");
-    }
+    iris::ensure(
+        ::wglMakeCurrent(dc, context) == TRUE,
+        "could not make current context");
 
     // resolve our needed functions
     resolve_opengl_function(wglChoosePixelFormatARB, "wglChoosePixelFormatARB");
@@ -232,23 +213,18 @@ void init_opengl(HDC dc)
     ::wglChoosePixelFormatARB(
         dc, pixel_format_attribs, 0, 1, &pixel_format, &num_formats);
 
-    if (num_formats == 0)
-    {
-        throw iris::Exception("could not choose pixel format");
-    }
+    iris::ensure(num_formats != 0, "could not choose pixel format");
 
     // set pixel format
 
     PIXELFORMATDESCRIPTOR pfd;
-    if (::DescribePixelFormat(dc, pixel_format, sizeof(pfd), &pfd) == 0)
-    {
-        throw iris::Exception("could not describe pixel format");
-    }
+    iris::ensure(
+        ::DescribePixelFormat(dc, pixel_format, sizeof(pfd), &pfd) != 0,
+        "could not describe pixel format");
 
-    if (::SetPixelFormat(dc, pixel_format, &pfd) == FALSE)
-    {
-        throw iris::Exception("could not set pixel format");
-    }
+    iris::ensure(
+        ::SetPixelFormat(dc, pixel_format, &pfd) == TRUE,
+        "could not set pixel format");
 
     // opengl 3.3
     int gl_attribs[] = {
@@ -262,21 +238,14 @@ void init_opengl(HDC dc)
     };
 
     const auto context = ::wglCreateContextAttribsARB(dc, 0, gl_attribs);
-    if (context == NULL)
-    {
-        throw iris::Exception("could not create gl context");
-    }
+    iris::ensure(context != NULL, "could not create gl context");
 
-    if (!::wglMakeCurrent(dc, context))
-    {
-        throw iris::Exception("could not set make current context");
-    }
+    iris::ensure(
+        ::wglMakeCurrent(dc, context) == TRUE,
+        "could not set make current context");
 
     // disable vsync
-    if (::wglSwapIntervalEXT(0) == FALSE)
-    {
-        throw iris::Exception("could not disable vsync");
-    }
+    iris::ensure(::wglSwapIntervalEXT(0) == TRUE, "could not disable vsync");
 }
 }
 

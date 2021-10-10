@@ -6,7 +6,7 @@
 #include <Windows.h>
 
 #include "core/auto_release.h"
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "jobs/job.h"
 
 namespace iris
@@ -72,10 +72,7 @@ Fiber::Fiber(Job job, Counter *counter)
             static_cast<void *>(this)),
         ::DeleteFiber};
 
-    if (!impl_->handle)
-    {
-        throw Exception("create fiber failed");
-    }
+    expect(impl_->handle, "create fiber failed");
 }
 
 Fiber::~Fiber() = default;
@@ -165,10 +162,7 @@ std::exception_ptr Fiber::exception() const
 
 void Fiber::thread_to_fiber()
 {
-    if (*this_fiber() != nullptr)
-    {
-        throw Exception("thread already a fiber");
-    }
+    expect(*this_fiber() == nullptr, "thread already a fiber");
 
     // thread will clean this up when it ends
     auto *fiber = new Fiber{nullptr, nullptr};
@@ -177,10 +171,7 @@ void Fiber::thread_to_fiber()
         ::ConvertThreadToFiberEx(NULL, FIBER_FLAG_FLOAT_SWITCH),
         [fiber](auto) { ::ConvertFiberToThread(); }};
 
-    if (!fiber->impl_->handle)
-    {
-        throw Exception("convert thread to fiber failed");
-    }
+    expect(fiber->impl_->handle, "convert thread to fiber failed");
 
     *this_fiber() = fiber;
 }

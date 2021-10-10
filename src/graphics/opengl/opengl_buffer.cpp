@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "graphics/opengl/opengl.h"
 #include "graphics/vertex_data.h"
 
@@ -29,20 +29,20 @@ GLuint create_buffer(const std::vector<T> &data, GLenum target)
     GLuint handle = 0u;
 
     ::glGenBuffers(1, &handle);
-    iris::check_opengl_error("could not generate opengl buffer");
+    iris::expect(iris::check_opengl_error, "could not generate opengl buffer");
 
     // bind so we can copy data
     ::glBindBuffer(target, handle);
-    iris::check_opengl_error("could not bind buffer");
+    iris::expect(iris::check_opengl_error, "could not bind buffer");
 
     // copy data to buffer
     ::glBufferData(
         target, data.size() * sizeof(T), data.data(), GL_STATIC_DRAW);
-    iris::check_opengl_error("could not buffer data");
+    iris::expect(iris::check_opengl_error, "could not buffer data");
 
     // unbind buffer
     ::glBindBuffer(target, 0u);
-    iris::check_opengl_error("could not unbind buffer");
+    iris::expect(iris::check_opengl_error, "could not unbind buffer");
 
     return handle;
 }
@@ -71,25 +71,25 @@ void update_buffer(
 {
     // bind so we can copy data
     ::glBindBuffer(target, handle);
-    iris::check_opengl_error("could not bind buffer");
+    iris::expect(iris::check_opengl_error, "could not bind buffer");
 
     if (data.size() > element_count)
     {
         // if we don't have enough space in buffer then create a new data store
         ::glBufferData(
             target, data.size() * sizeof(T), data.data(), GL_STATIC_DRAW);
-        iris::check_opengl_error("could not buffer data");
+        iris::expect(iris::check_opengl_error, "could not buffer data");
     }
     else
     {
         // if we do have enough space then update existing data store
         ::glBufferSubData(target, 0u, data.size() * sizeof(T), data.data());
-        iris::check_opengl_error("could not sub-buffer data");
+        iris::expect(iris::check_opengl_error, "could not sub-buffer data");
     }
 
     // unbind buffer
     ::glBindBuffer(target, 0u);
-    iris::check_opengl_error("could not unbind buffer");
+    iris::expect(iris::check_opengl_error, "could not unbind buffer");
 }
 
 }

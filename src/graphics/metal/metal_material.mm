@@ -7,7 +7,7 @@
 
 #import <Metal/Metal.h>
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "core/macos/macos_ios_utility.h"
 #include "graphics/lights/lighting_rig.h"
 #include "graphics/mesh.h"
@@ -115,10 +115,7 @@ MetalMaterial::MetalMaterial(
         [device newRenderPipelineStateWithDescriptor:pipeline_state_descriptor
                                                error:&error];
 
-    if (error != nullptr)
-    {
-        throw Exception("failed to create pipeline state");
-    }
+    expect(error == nullptr, "failed to create pipeline state");
 
     textures_ = compiler.textures();
 }

@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "graphics/opengl/glsl_shader_compiler.h"
 #include "graphics/opengl/opengl.h"
 #include "graphics/opengl/opengl_shader.h"
@@ -31,7 +31,7 @@ GLuint create_program(
     const std::string &fragment_shader_source)
 {
     const auto program = ::glCreateProgram();
-    iris::check_opengl_error("could not create new program");
+    iris::expect(iris::check_opengl_error, "could not create new program");
 
     const iris::OpenGLShader vertex_shader{
         vertex_shader_source, iris::ShaderType::VERTEX};
@@ -39,10 +39,10 @@ GLuint create_program(
         fragment_shader_source, iris::ShaderType::FRAGMENT};
 
     ::glAttachShader(program, vertex_shader.native_handle());
-    iris::check_opengl_error("could not attach vertex shader");
+    iris::expect(iris::check_opengl_error, "could not attach vertex shader");
 
     ::glAttachShader(program, fragment_shader.native_handle());
-    iris::check_opengl_error("could not attach fragment shader");
+    iris::expect(iris::check_opengl_error, "could not attach fragment shader");
 
     ::glLinkProgram(program);
 
@@ -53,7 +53,8 @@ GLuint create_program(
     if (programparam != GL_TRUE)
     {
         ::glGetProgramiv(program, GL_INFO_LOG_LENGTH, &programparam);
-        iris::check_opengl_error("could not get program log length");
+        iris::expect(
+            iris::check_opengl_error, "could not get program log length");
 
         if (programparam == 0)
         {
@@ -70,7 +71,7 @@ GLuint create_program(
                 static_cast<std::int32_t>(error_log.size()),
                 &log_length,
                 error_log.data());
-            iris::check_opengl_error("failed to get error log");
+            iris::expect(iris::check_opengl_error, "failed to get error log");
 
             const std::string error(error_log.data(), log_length);
             throw iris::Exception("program link failed: " + error);
@@ -106,7 +107,7 @@ OpenGLMaterial::~OpenGLMaterial()
 void OpenGLMaterial::bind() const
 {
     ::glUseProgram(handle_);
-    check_opengl_error("could not bind program");
+    expect(check_opengl_error, "could not bind program");
 }
 
 GLuint OpenGLMaterial::handle() const

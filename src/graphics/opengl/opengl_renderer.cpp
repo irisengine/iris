@@ -5,6 +5,7 @@
 #include <utility>
 
 #include "core/camera.h"
+#include "core/error_handling.h"
 #include "core/root.h"
 #include "core/vector3.h"
 #include "graphics/lights/lighting_rig.h"
@@ -51,7 +52,7 @@ void render_setup(const iris::OpenGLRenderTarget *target)
             0,
             target->colour_texture()->width(),
             target->colour_texture()->height());
-        iris::check_opengl_error("could not set viewport");
+        iris::expect(iris::check_opengl_error, "could not set viewport");
 
         target->bind(GL_FRAMEBUFFER);
     }
@@ -104,10 +105,10 @@ void set_uniforms(
         const auto tex_handle = opengl_texture->handle();
 
         ::glActiveTexture(opengl_texture->id());
-        iris::check_opengl_error("could not activate texture");
+        iris::expect(iris::check_opengl_error, "could not activate texture");
 
         ::glBindTexture(GL_TEXTURE_2D, tex_handle);
-        iris::check_opengl_error("could not bind texture``");
+        iris::expect(iris::check_opengl_error, "could not bind texture``");
 
         uniforms->shadow_map.set_value(opengl_texture->id() - GL_TEXTURE0);
         uniforms->light_projection.set_value(
@@ -140,10 +141,10 @@ void bind_textures(
         const auto tex_handle = opengl_texture->handle();
 
         ::glActiveTexture(opengl_texture->id());
-        iris::check_opengl_error("could not activate texture");
+        iris::expect(iris::check_opengl_error, "could not activate texture");
 
         ::glBindTexture(GL_TEXTURE_2D, tex_handle);
-        iris::check_opengl_error("could not bind texture``");
+        iris::expect(iris::check_opengl_error, "could not bind texture``");
 
         uniforms->textures[i].set_value(opengl_texture->id() - GL_TEXTURE0);
     }
@@ -166,7 +167,7 @@ void draw_meshes(const iris::RenderEntity *entity)
 
     // draw!
     ::glDrawElements(type, mesh->element_count(), GL_UNSIGNED_INT, 0);
-    iris::check_opengl_error("could not draw triangles");
+    iris::expect(iris::check_opengl_error, "could not draw triangles");
 
     mesh->unbind();
 
@@ -190,13 +191,13 @@ OpenGLRenderer::OpenGLRenderer(std::uint32_t width, std::uint32_t height)
     , height_(height)
 {
     ::glClearColor(0.39f, 0.58f, 0.93f, 1.0f);
-    check_opengl_error("could not set clear colour");
+    expect(check_opengl_error, "could not set clear colour");
 
     ::glEnable(GL_DEPTH_TEST);
-    check_opengl_error("could not enable depth testing");
+    expect(check_opengl_error, "could not enable depth testing");
 
     ::glDepthFunc(GL_LEQUAL);
-    check_opengl_error("could not set depth test function");
+    expect(check_opengl_error, "could not set depth test function");
 
     LOG_ENGINE_INFO("render_system", "constructed opengl renderer");
 }
@@ -214,10 +215,7 @@ void OpenGLRenderer::set_render_passes(
         std::end(render_passes_),
         [](const RenderPass &pass) { return pass.render_target == nullptr; });
 
-    if (final_pass == std::cend(render_passes_))
-    {
-        throw Exception("no final pass");
-    }
+    ensure(final_pass != std::cend(render_passes_), "no final pass");
 
     // deferred creating of render target to ensure this class is full
     // constructed
@@ -255,7 +253,8 @@ void OpenGLRenderer::set_render_passes(
             RenderGraph *render_graph,
             RenderEntity *,
             const RenderTarget *,
-            LightType light_type) {
+            LightType light_type)
+        {
             if (materials_.count(render_graph) == 0u ||
                 materials_[render_graph].count(light_type) == 0u)
             {
@@ -265,9 +264,8 @@ void OpenGLRenderer::set_render_passes(
 
             return materials_[render_graph][light_type].get();
         },
-        [this](std::uint32_t width, std::uint32_t height) {
-            return create_render_target(width, height);
-        });
+        [this](std::uint32_t width, std::uint32_t height)
+        { return create_render_target(width, height); });
 
     render_queue_ = queue_builder.build(render_passes_);
 
@@ -354,10 +352,10 @@ void OpenGLRenderer::execute_pass_start(RenderCommand &command)
             Root::window_manager().current_window()->screen_scale();
 
         ::glViewport(0, 0, width_ * scale, height_ * scale);
-        check_opengl_error("could not set viewport");
+        expect(check_opengl_error, "could not set viewport");
 
         ::glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        check_opengl_error("could not bind default buffer");
+        expect(check_opengl_error, "could not bind default buffer");
     }
     else
     {
@@ -366,14 +364,14 @@ void OpenGLRenderer::execute_pass_start(RenderCommand &command)
             0,
             target->colour_texture()->width(),
             target->colour_texture()->height());
-        check_opengl_error("could not set viewport");
+        expect(check_opengl_error, "could not set viewport");
 
         target->bind(GL_FRAMEBUFFER);
     }
 
     // clear current target
     ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    check_opengl_error("could not clear");
+    expect(check_opengl_error, "could not clear");
 }
 
 void OpenGLRenderer::execute_draw(RenderCommand &command)

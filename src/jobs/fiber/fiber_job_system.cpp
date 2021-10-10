@@ -12,7 +12,6 @@
 #include <vector>
 
 #include "core/auto_release.h"
-#include "core/exception.h"
 #include "core/semaphore.h"
 #include "core/thread.h"
 #include "jobs/concurrent_queue.h"
@@ -142,26 +141,27 @@ void bootstrap_first_job(
     std::exception_ptr exception;
 
     // wrap everything up in a fire-and-forget job
-    js->add_jobs({{[&cv, &done, &jobs, &exception, js]() {
-        LOG_ENGINE_INFO("job_system", "bootstrap started");
+    js->add_jobs({{[&cv, &done, &jobs, &exception, js]()
+                   {
+                       LOG_ENGINE_INFO("job_system", "bootstrap started");
 
-        try
-        {
-            // we can now call wait for jobs because we are within another
-            // fiber
-            js->wait_for_jobs(jobs);
-        }
-        catch (...)
-        {
-            // capture any exception
-            exception = std::current_exception();
-        }
+                       try
+                       {
+                           // we can now call wait for jobs because we are
+                           // within another fiber
+                           js->wait_for_jobs(jobs);
+                       }
+                       catch (...)
+                       {
+                           // capture any exception
+                           exception = std::current_exception();
+                       }
 
-        // signal calling thread we are finished
-        done = true;
-        cv.notify_one();
-        LOG_ENGINE_INFO("job_system", "bootstrap lambda done");
-    }}});
+                       // signal calling thread we are finished
+                       done = true;
+                       cv.notify_one();
+                       LOG_ENGINE_INFO("job_system", "bootstrap lambda done");
+                   }}});
 
     // block and wait for wrapping fiber to finish
     if (!done)

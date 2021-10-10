@@ -4,7 +4,7 @@
 #include <ws2tcpip.h>
 #pragma comment(lib, "Ws2_32.lib")
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 
 namespace iris
 {
@@ -12,10 +12,7 @@ Winsock::Winsock()
 {
     WSADATA data = {0};
 
-    if (::WSAStartup(MAKEWORD(2, 2), &data) != 0)
-    {
-        throw Exception("failed to init winsock");
-    }
+    ensure(::WSAStartup(MAKEWORD(2, 2), &data) == 0, "failed to init winsock");
 }
 
 /**

@@ -4,7 +4,7 @@
 
 #include <Windows.h>
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 
 namespace iris
 {
@@ -32,10 +32,10 @@ std::thread::id Thread::get_id() const
 void Thread::bind_to_core(std::size_t core)
 {
     DWORD affinity_mask = (1u << core);
-    if (::SetThreadAffinityMask(thread_.native_handle(), affinity_mask) == 0)
-    {
-        throw Exception("could not bind thread to core");
-    }
+
+    expect(
+        ::SetThreadAffinityMask(thread_.native_handle(), affinity_mask) != 0u,
+        "could not bind thread to core");
 }
 
 }

@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "core/data_buffer.h"
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "core/resource_loader.h"
 #include "graphics/opengl/opengl.h"
 #include "graphics/texture_usage.h"
@@ -45,10 +45,11 @@ void specify_image_texture(
         GL_RGBA,
         GL_UNSIGNED_BYTE,
         data_ptr);
-    iris::check_opengl_error("could not set specify image texture");
+    iris::expect(
+        iris::check_opengl_error, "could not set specify image texture");
 
     ::glGenerateMipmap(GL_TEXTURE_2D);
-    iris::check_opengl_error("could not generate mipmaps");
+    iris::expect(iris::check_opengl_error, "could not generate mipmaps");
 }
 
 /**
@@ -79,7 +80,8 @@ void specify_data_texture(
         GL_RGBA,
         GL_UNSIGNED_BYTE,
         data_ptr);
-    iris::check_opengl_error("could not set specify data texture");
+    iris::expect(
+        iris::check_opengl_error, "could not set specify data texture");
 
     ::glGenerateMipmap(GL_TEXTURE_2D);
 }
@@ -106,7 +108,9 @@ void specify_render_target_texture(std::uint32_t width, std::uint32_t height)
         GL_RGBA,
         GL_FLOAT,
         nullptr);
-    iris::check_opengl_error("could not set specify render target texture");
+    iris::expect(
+        iris::check_opengl_error,
+        "could not set specify render target texture");
 }
 
 /**
@@ -131,7 +135,8 @@ void specify_depth_texture(std::uint32_t width, std::uint32_t height)
         GL_DEPTH_COMPONENT,
         GL_UNSIGNED_SHORT,
         nullptr);
-    iris::check_opengl_error("could not set specify depth texture");
+    iris::expect(
+        iris::check_opengl_error, "could not set specify depth texture");
 }
 
 /**
@@ -162,26 +167,28 @@ GLuint create_texture(
     auto texture = 0u;
 
     ::glGenTextures(1, &texture);
-    iris::check_opengl_error("could not generate texture");
+    iris::expect(iris::check_opengl_error, "could not generate texture");
 
     ::glActiveTexture(id);
-    iris::check_opengl_error("could not activate texture");
+    iris::expect(iris::check_opengl_error, "could not activate texture");
 
     ::glBindTexture(GL_TEXTURE_2D, texture);
-    iris::check_opengl_error("could not bind texture");
+    iris::expect(iris::check_opengl_error, "could not bind texture");
 
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    iris::check_opengl_error("could not set min filter parameter");
+    iris::expect(
+        iris::check_opengl_error, "could not set min filter parameter");
 
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    iris::check_opengl_error("could not set max filter parameter");
+    iris::expect(
+        iris::check_opengl_error, "could not set max filter parameter");
 
     const float border_colour[] = {1.0f, 1.0f, 1.0f, 1.0f};
     ::glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border_colour);
-    iris::check_opengl_error("could not set border colour");
+    iris::expect(iris::check_opengl_error, "could not set border colour");
 
     // opengl requires a nullptr if there is no data
     const auto *data_ptr = (data.empty()) ? nullptr : data.data();

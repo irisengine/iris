@@ -10,7 +10,7 @@
 #include "directx/d3dx12.h"
 
 #include "core/colour.h"
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "graphics/d3d12/d3d12_context.h"
 #include "graphics/d3d12/d3d12_descriptor_handle.h"
 #include "graphics/d3d12/d3d12_descriptor_manager.h"
@@ -81,16 +81,15 @@ D3D12_RESOURCE_DESC image_texture_descriptor(
     texture_description.Alignment = 0;
 
     // create a resource where image data will be coped to
-    if (device->CreateCommittedResource(
+    iris::expect(
+        device->CreateCommittedResource(
             &default_heap,
             D3D12_HEAP_FLAG_NONE,
             &texture_description,
             D3D12_RESOURCE_STATE_COPY_DEST,
             nullptr,
-            IID_PPV_ARGS(&resource)) != S_OK)
-    {
-        throw iris::Exception("could not create resource");
-    }
+            IID_PPV_ARGS(&resource)) == S_OK,
+        "could not create resource");
 
     set_name<iris::TextureUsage::IMAGE>(L"tex", resource.Get());
 
@@ -135,16 +134,15 @@ D3D12_RESOURCE_DESC data_texture_descriptor(
     texture_description.Alignment = 0;
 
     // create a resource where image data will be coped to
-    if (device->CreateCommittedResource(
+    iris::expect(
+        device->CreateCommittedResource(
             &default_heap,
             D3D12_HEAP_FLAG_NONE,
             &texture_description,
             D3D12_RESOURCE_STATE_COPY_DEST,
             nullptr,
-            IID_PPV_ARGS(&resource)) != S_OK)
-    {
-        throw iris::Exception("could not create resource");
-    }
+            IID_PPV_ARGS(&resource)) == S_OK,
+        "could not create resource");
 
     set_name<iris::TextureUsage::IMAGE>(L"tex", resource.Get());
 
@@ -195,16 +193,15 @@ render_target_texture_descriptor(
     std::memcpy(&clear_value.Color, &clear_colour, sizeof(clear_colour));
 
     // create a resource where image data will be coped to
-    if (device->CreateCommittedResource(
+    iris::expect(
+        device->CreateCommittedResource(
             &default_heap,
             D3D12_HEAP_FLAG_NONE,
             &texture_description,
             D3D12_RESOURCE_STATE_RENDER_TARGET,
             &clear_value,
-            IID_PPV_ARGS(&resource)) != S_OK)
-    {
-        throw iris::Exception("could not create resource");
-    }
+            IID_PPV_ARGS(&resource)) == S_OK,
+        "could not create resource");
 
     set_name<iris::TextureUsage::IMAGE>(L"rt", resource.Get());
 
@@ -253,16 +250,15 @@ D3D12_RESOURCE_DESC depth_texture_descriptor(
     clear_value.DepthStencil.Depth = 1.0f;
     clear_value.DepthStencil.Stencil = 0u;
 
-    if (device->CreateCommittedResource(
+    iris::expect(
+        device->CreateCommittedResource(
             &default_heap,
             D3D12_HEAP_FLAG_NONE,
             &texture_description,
             D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
             &clear_value,
-            IID_PPV_ARGS(&resource)) != S_OK)
-    {
-        throw iris::Exception("could not create resource");
-    }
+            IID_PPV_ARGS(&resource)) == S_OK,
+        "could not create resource");
 
     set_name<iris::TextureUsage::IMAGE>(L"depth", resource.Get());
 
@@ -324,16 +320,15 @@ D3D12Texture::D3D12Texture(
         const auto heap_description = CD3DX12_RESOURCE_DESC::Buffer(capacity);
 
         // create resource for initial upload of texture data
-        if (device->CreateCommittedResource(
+        expect(
+            device->CreateCommittedResource(
                 &upload_heap,
                 D3D12_HEAP_FLAG_NONE,
                 &heap_description,
                 D3D12_RESOURCE_STATE_GENERIC_READ,
                 nullptr,
-                IID_PPV_ARGS(&upload_)) != S_OK)
-        {
-            throw Exception("could not create resource");
-        }
+                IID_PPV_ARGS(&upload_)) == S_OK,
+            "could not create resource");
 
         type_ = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
@@ -345,11 +340,10 @@ D3D12Texture::D3D12Texture(
 
         // map the upload buffer so we can write to it
         void *mapped_buffer = nullptr;
-        if (upload_->Map(0u, NULL, reinterpret_cast<void **>(&mapped_buffer)) !=
-            S_OK)
-        {
-            throw Exception("failed to map constant buffer");
-        }
+        expect(
+            upload_->Map(0u, NULL, reinterpret_cast<void **>(&mapped_buffer)) ==
+                S_OK,
+            "failed to map constant buffer");
 
         if (!data.empty())
         {

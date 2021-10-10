@@ -22,22 +22,4 @@ PhysicsSystem *BulletPhysicsManager::current_physics_system()
     return physics_system_.get();
 }
 
-// RigidBody *BulletPhysicsManager::create_rigid_body(
-//    const Vector3 &position,
-//    std::unique_ptr<CollisionShape> collision_shape,
-//    RigidBodyType type)
-//{
-//    auto rigid_body = std::make_unique<BulletRigidBody>(
-//        position, std::move(collision_shape), type);
-//    return physics_system_->add(std::move(rigid_body));
-//}
-
-// CharacterController
-// *BulletPhysicsManager::create_basic_character_controller()
-//{
-//    return physics_system_
-//        ->create_character_controller<BasicCharacterController>(
-//            current_physics_system());
-//}
-
 }

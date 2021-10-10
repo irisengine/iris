@@ -20,7 +20,6 @@
 #include "graphics/render_graph/render_node.h"
 #include "graphics/render_graph/sin_node.h"
 #include "graphics/render_graph/texture_node.h"
-#include "graphics/render_graph/utils.h"
 #include "graphics/render_graph/value_node.h"
 #include "graphics/render_graph/vertex_position_node.h"
 #include "graphics/texture.h"
@@ -481,8 +480,7 @@ void HLSLShaderCompiler::visit(const TextureNode &node)
 {
     const auto id = texture_id(node.texture(), textures_);
 
-    *current_stream_ << iris::replace_index(
-        "g_texture{}.Sample(g_sampler,", id);
+    *current_stream_ << "g_texture" << id << ".Sample(g_sampler,";
 
     if (node.texture()->flip())
     {
@@ -510,7 +508,7 @@ void HLSLShaderCompiler::visit(const BlurNode &node)
 
     current_functions_->emplace(blur_function);
 
-    *current_stream_ << replace_index("blur(g_texture{},", id);
+    *current_stream_ << "blur(g_texture" << id << ",";
     if (node.input_node()->texture()->flip())
     {
         *current_stream_
@@ -657,8 +655,8 @@ std::string HLSLShaderCompiler::fragment_shader() const
 
     for (auto i = 0u; i < textures_.size(); ++i)
     {
-        strm << iris::replace_index(
-            "Texture2D g_texture{} : register(t{});\n", i + 1u);
+        strm << "Texture2D g_texture" << i + 1u << " : register(t" << i + 1u
+             << ");\n";
     }
 
     for (const auto &function : fragment_functions_)

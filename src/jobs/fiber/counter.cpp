@@ -3,8 +3,6 @@
 #include <atomic>
 #include <mutex>
 
-#include "core/exception.h"
-
 namespace iris
 {
 

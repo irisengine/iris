@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/texture_manager.h"
 #include "graphics/window_manager.h"
@@ -180,10 +180,7 @@ std::string Root::graphics_api_impl() const
 
 void Root::set_graphics_api_impl(const std::string &api)
 {
-    if (graphics_api_managers_.count(api) == 0u)
-    {
-        throw Exception("api not registered");
-    }
+    ensure(graphics_api_managers_.count(api) != 0u, "api not registered");
 
     graphics_api_ = api;
 }
@@ -214,10 +211,7 @@ std::string Root::physics_api_impl() const
 
 void Root::set_physics_api_impl(const std::string &api)
 {
-    if (physics_api_managers_.count(api) == 0u)
-    {
-        throw Exception("api not registered");
-    }
+    ensure(physics_api_managers_.count(api) != 0u, "api not registered");
 
     physics_api_ = api;
 }
@@ -248,10 +242,7 @@ std::string Root::jobs_api_impl() const
 
 void Root::set_jobs_api_impl(const std::string &api)
 {
-    if (jobs_api_managers_.count(api) == 0u)
-    {
-        throw Exception("api not registered");
-    }
+    ensure(jobs_api_managers_.count(api) != 0u, "api not registered");
 
     jobs_api_ = api;
 

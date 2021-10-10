@@ -12,7 +12,7 @@
 #include "directx/d3d12.h"
 #include "directx/d3dx12.h"
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "graphics/d3d12/d3d12_context.h"
 #include "graphics/d3d12/hlsl_shader_compiler.h"
 #include "graphics/lights/lighting_rig.h"
@@ -146,11 +146,10 @@ D3D12Material::D3D12Material(
     }
 
     // create pipeline state
-    if (device->CreateGraphicsPipelineState(&descriptor, IID_PPV_ARGS(&pso_)) !=
-        S_OK)
-    {
-        throw Exception("could not create pso");
-    }
+    expect(
+        device->CreateGraphicsPipelineState(&descriptor, IID_PPV_ARGS(&pso_)) ==
+            S_OK,
+        "could not create pso");
 
     static int counter = 0;
     std::wstringstream strm{};

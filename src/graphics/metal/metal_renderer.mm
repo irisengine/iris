@@ -10,7 +10,7 @@
 #import <MetalPerformanceShaders/MetalPerformanceShaders.h>
 #import <QuartzCore/QuartzCore.h>
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "core/macos/macos_ios_utility.h"
 #include "core/matrix4.h"
 #include "core/vector3.h"
@@ -251,10 +251,7 @@ MetalRenderer::MetalRenderer(std::uint32_t width, std::uint32_t height)
     const auto *device = iris::core::utility::metal_device();
 
     command_queue_ = [device newCommandQueue];
-    if (command_queue_ == nullptr)
-    {
-        throw iris::Exception("could not create command queue");
-    }
+    ensure(command_queue_ != nullptr, "could not create command queue");
 
     const auto scale = 2;
 
@@ -282,7 +279,7 @@ MetalRenderer::MetalRenderer(std::uint32_t width, std::uint32_t height)
     [[[descriptor_ colorAttachments] objectAtIndexedSubscript:0]
         setLoadAction:MTLLoadActionClear];
     [[[descriptor_ colorAttachments] objectAtIndexedSubscript:0]
-        setClearColor:MTLClearColorMake(0.77f, 0.83f, 0.9f, 1.0f)];
+        setClearColor:MTLClearColorMake(0.39f, 0.58f, 0.93f, 1.0f)];
     [[[descriptor_ colorAttachments] objectAtIndexedSubscript:0]
         setStoreAction:MTLStoreActionStore];
     [[[descriptor_ colorAttachments] objectAtIndexedSubscript:0]
@@ -333,10 +330,7 @@ void MetalRenderer::set_render_passes(
         std::end(render_passes_),
         [](const RenderPass &pass) { return pass.render_target == nullptr; });
 
-    if (final_pass == std::cend(render_passes_))
-    {
-        throw Exception("no final pass");
-    }
+    ensure(final_pass != std::cend(render_passes_), "no final pass");
 
     // deferred creating of render target to ensure this class is full
     // constructed
@@ -374,7 +368,8 @@ void MetalRenderer::set_render_passes(
             RenderGraph *render_graph,
             RenderEntity *entity,
             const RenderTarget *target,
-            LightType light_type) {
+            LightType light_type)
+        {
             if (materials_.count(render_graph) == 0u ||
                 materials_[render_graph].count(light_type) == 0u)
             {
@@ -387,9 +382,8 @@ void MetalRenderer::set_render_passes(
 
             return materials_[render_graph][light_type].get();
         },
-        [this](std::uint32_t width, std::uint32_t height) {
-            return create_render_target(width, height);
-        });
+        [this](std::uint32_t width, std::uint32_t height)
+        { return create_render_target(width, height); });
 
     render_queue_ = queue_builder.build(render_passes_);
 

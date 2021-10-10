@@ -228,11 +228,6 @@ void BulletRigidBody::apply_impulse(const Vector3 &impulse)
 btCollisionObject *BulletRigidBody::handle() const
 {
     return body_.get();
-    //// we return the derived type, it is assumed that someone calling
-    //// native_handle knows they type they are expecting
-    // return (type_ == RigidBodyType::GHOST)
-    //           ? std::any{static_cast<::btGhostObject *>(body_.get())}
-    //           : std::any{static_cast<::btRigidBody *>(body_.get())};
 }
 
 }

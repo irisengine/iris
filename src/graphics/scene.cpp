@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "core/colour.h"
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "graphics/lights/lighting_rig.h"
 #include "graphics/render_entity.h"
 #include "graphics/render_graph/render_graph.h"
@@ -78,14 +78,10 @@ RenderGraph *Scene::render_graph(RenderEntity *entity) const
     auto found = std::find_if(
         std::cbegin(entities_),
         std::cend(entities_),
-        [entity](const auto &element) {
-            return std::get<1>(element).get() == entity;
-        });
+        [entity](const auto &element)
+        { return std::get<1>(element).get() == entity; });
 
-    if (found == std::cend(entities_))
-    {
-        throw Exception("entity not in scene");
-    }
+    expect(found == std::cend(entities_), "entity not in scene");
 
     return std::get<0>(*found);
 }
