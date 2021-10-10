@@ -4,7 +4,7 @@
 #include <string>
 #include <tuple>
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "core/matrix4.h"
 #include "core/quaternion.h"
 #include "core/vector3.h"
@@ -34,10 +34,7 @@ std::string Animation::name() const
 
 Transform Animation::transform(const std::string &bone) const
 {
-    if (!bone_exists(bone))
-    {
-        throw Exception("no animation for bone");
-    }
+    expect(bone_exists(bone), "no animation for bone");
 
     const auto &keyframes = frames_.at(bone);
 
@@ -47,10 +44,7 @@ Transform Animation::transform(const std::string &bone) const
         std::cend(keyframes),
         [this](const KeyFrame &kf) { return kf.time >= time_; });
 
-    if (second_keyframe == std::cend(keyframes))
-    {
-        throw Exception("cannot find keyframe");
-    }
+    expect(second_keyframe != std::cend(keyframes), "cannot find keyframe");
 
     const auto first_keyframe = second_keyframe - 1u;
 

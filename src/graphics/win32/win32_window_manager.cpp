@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <memory>
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "core/root.h"
 #include "graphics/win32/win32_d3d12_window.h"
 #include "graphics/win32/win32_opengl_window.h"
@@ -18,10 +18,7 @@ Window *Win32WindowManager::create_window(
     std::uint32_t height)
 {
     // only support onw window at the moment
-    if (current_window_)
-    {
-        throw Exception("window already created");
-    }
+    ensure(!current_window_, "window already created");
 
     const auto graphics_api = Root::graphics_api();
 
@@ -45,5 +42,4 @@ Window *Win32WindowManager::current_window() const
 {
     return current_window_.get();
 }
-
 }

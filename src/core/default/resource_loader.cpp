@@ -4,6 +4,8 @@
 #include <fstream>
 #include <sstream>
 
+#include "core/error_handling.h"
+
 namespace iris
 {
 
@@ -31,7 +33,10 @@ const DataBuffer &ResourceLoader::load(const std::string &resource)
         std::fstream f(
             root_ / std::filesystem::path(resource),
             std::ios::in | std::ios::binary);
+
         strm << f.rdbuf();
+
+        ensure(f.good() && !f.bad(), "failed to read file");
 
         const auto str = strm.str();
         const auto *str_ptr = reinterpret_cast<const std::byte *>(str.data());

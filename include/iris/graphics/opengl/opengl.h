@@ -1,6 +1,9 @@
 #pragma once
 
+#include <functional>
+#include <optional>
 #include <string>
+#include <string_view>
 
 // platform specific opengl includes
 
@@ -33,11 +36,19 @@ namespace iris
 {
 
 /**
- * Throws an exception if an OpenGl error has occured.
+ * Throws an exception if an OpenGl error has occurred.
  *
  * @param error_message
  *   The message to include in the exception.
+ *
+ * @returns
+ *   Empty optional if no error occurred, otherwise an error string.
  */
-void check_opengl_error(const std::string &error_message);
+std::optional<std::string> do_check_opengl_error(
+    std::string_view error_message);
+
+// create std::function so it can be passed to ensure/expect
+static const std::function<std::optional<std::string>(std::string_view)>
+    check_opengl_error = do_check_opengl_error;
 
 }

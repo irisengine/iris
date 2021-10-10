@@ -15,7 +15,7 @@
 #include <LinearMath/btVector3.h>
 #include <btBulletDynamicsCommon.h>
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "core/quaternion.h"
 #include "core/vector3.h"
 #include "graphics/render_entity.h"
@@ -228,9 +228,8 @@ void BulletPhysicsSystem::remove(CharacterController *character)
         std::remove_if(
             std::begin(character_controllers_),
             std::end(character_controllers_),
-            [character](const auto &element) {
-                return element.get() == character;
-            }),
+            [character](const auto &element)
+            { return element.get() == character; }),
         std::end(character_controllers_));
 }
 
@@ -339,10 +338,7 @@ void BulletPhysicsSystem::load(const PhysicsState *state)
 
 void BulletPhysicsSystem::enable_debug_draw(RenderEntity *entity)
 {
-    if (debug_draw_)
-    {
-        throw Exception("debug draw already enabled");
-    }
+    expect(!debug_draw_, "debug draw already enabled");
 
     // create debug drawer, only draw wireframe as that's what we support
     debug_draw_ = std::make_unique<DebugDraw>(entity);

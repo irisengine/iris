@@ -2,7 +2,7 @@
 
 #include <btBulletDynamicsCommon.h>
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "core/vector3.h"
 #include "log/log.h"
 #include "physics/bullet/bullet_rigid_body.h"
@@ -28,11 +28,9 @@ BasicCharacterController::BasicCharacterController(
 
     auto *bullet_body = static_cast<BulletRigidBody *>(body_);
 
-    if (bullet_body->type() != RigidBodyType::NORMAL)
-    {
-        throw Exception(
-            "can only create BasicCharacterController with a NORMAL RigidBody");
-    }
+    expect(
+        bullet_body->type() == RigidBodyType::NORMAL,
+        "can only create BasicCharacterController with a NORMAL RigidBody");
 
     auto *rigid_body = static_cast<btRigidBody *>(bullet_body->handle());
 

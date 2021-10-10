@@ -5,7 +5,7 @@
 #include <stack>
 
 #include "core/data_buffer.h"
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "graphics/opengl/opengl.h"
 #include "graphics/opengl/opengl_texture.h"
 #include "graphics/texture_manager.h"
@@ -26,10 +26,7 @@ OpenGLTextureManager::OpenGLTextureManager()
 
 GLuint OpenGLTextureManager::next_id()
 {
-    if (id_pool_.empty())
-    {
-        throw Exception("texture id pool empty");
-    }
+    expect(!id_pool_.empty(), "texture id pool empty");
 
     const auto id = id_pool_.top();
     id_pool_.pop();

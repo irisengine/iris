@@ -6,7 +6,7 @@
 #include <exception>
 #include <memory>
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "core/static_buffer.h"
 #include "jobs/context.h"
 #include "jobs/job.h"
@@ -211,10 +211,7 @@ std::exception_ptr Fiber::exception() const
 
 void Fiber::thread_to_fiber()
 {
-    if (*this_fiber() != nullptr)
-    {
-        throw Exception("thread already a fiber");
-    }
+    expect(*this_fiber() == nullptr, "thread already a fiber");
 
     // thread will clean this up when it ends
     *this_fiber() = new Fiber(nullptr);

@@ -8,7 +8,7 @@
 #include <OpenGL/gl3.h>
 #include <OpenGL/gl3ext.h>
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "core/root.h"
 #include "events/keyboard_event.h"
 #include "events/mouse_button_event.h"
@@ -235,10 +235,7 @@ MacosWindow::MacosWindow(std::uint32_t width, std::uint32_t height)
     }
 
     // check that we created the delegate
-    if (app_delegate == nil)
-    {
-        throw Exception("failed to create AppDelegate");
-    }
+    ensure(app_delegate != nil, "failed to create AppDelegate");
 
     // set the delegate
     [app setDelegate:app_delegate];

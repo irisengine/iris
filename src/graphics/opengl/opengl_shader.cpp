@@ -6,7 +6,7 @@
 #include <utility>
 #include <vector>
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "graphics/opengl/opengl.h"
 #include "graphics/shader_type.h"
 
@@ -20,25 +20,25 @@ OpenGLShader::OpenGLShader(const std::string &source, ShaderType type)
         (type == ShaderType::VERTEX) ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER;
 
     shader_ = ::glCreateShader(native_type);
-    check_opengl_error("could not create vertex shader");
+    expect(check_opengl_error, "could not create vertex shader");
 
     auto shader_c_str = source.data();
 
     ::glShaderSource(shader_, 1, &shader_c_str, nullptr);
-    iris::check_opengl_error("could not set shader source");
+    expect(check_opengl_error, "could not set shader source");
 
     ::glCompileShader(shader_);
 
     GLint shader_param = 0;
 
     ::glGetShaderiv(shader_, GL_COMPILE_STATUS, &shader_param);
-    iris::check_opengl_error("could not get shader parameter");
+    expect(check_opengl_error, "could not get shader parameter");
 
     // if shader failed to compile then get the opengl error
     if (shader_param != GL_TRUE)
     {
         ::glGetShaderiv(shader_, GL_INFO_LOG_LENGTH, &shader_param);
-        iris::check_opengl_error("could not get shader log length");
+        expect(check_opengl_error, "could not get shader log length");
 
         if (shader_param == 0)
         {
@@ -55,7 +55,7 @@ OpenGLShader::OpenGLShader(const std::string &source, ShaderType type)
                 static_cast<std::int32_t>(error_log.size()),
                 &log_length,
                 error_log.data());
-            iris::check_opengl_error("failed to get error log");
+            expect(check_opengl_error, "failed to get error log");
 
             std::cout << source << std::endl;
 

@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "core/colour.h"
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "core/resource_loader.h"
 #include "core/transform.h"
 #include "core/vector3.h"
@@ -172,10 +172,7 @@ Mesh *MeshManager::cube(const Colour &colour)
 
 Mesh *MeshManager::plane(const Colour &colour, std::uint32_t divisions)
 {
-    if (divisions == 0)
-    {
-        throw Exception("divisions must be >= 0");
-    }
+    expect(divisions != 0, "divisions must be >= 0");
 
     // create a unique for this mesh
     std::stringstream strm{};

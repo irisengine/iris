@@ -9,7 +9,7 @@
 #include "directx/d3d12.h"
 #include "directx/d3dx12.h"
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "graphics/d3d12/d3d12_context.h"
 #include "graphics/d3d12/d3d12_descriptor_handle.h"
 
@@ -41,11 +41,10 @@ D3D12CPUDescriptorHandleAllocator::D3D12CPUDescriptorHandleAllocator(
     heap_description.NodeMask = 0;
 
     // create heap
-    if (device->CreateDescriptorHeap(
-            &heap_description, IID_PPV_ARGS(&descriptor_heap_)) != S_OK)
-    {
-        throw Exception("could not create descriptor heap");
-    }
+    expect(
+        device->CreateDescriptorHeap(
+            &heap_description, IID_PPV_ARGS(&descriptor_heap_)) == S_OK,
+        "could not create descriptor heap");
 
     descriptor_size_ = device->GetDescriptorHandleIncrementSize(type);
 
@@ -54,10 +53,7 @@ D3D12CPUDescriptorHandleAllocator::D3D12CPUDescriptorHandleAllocator(
 
 D3D12DescriptorHandle D3D12CPUDescriptorHandleAllocator::allocate_static()
 {
-    if (static_index_ == static_capacity_)
-    {
-        throw Exception("heap too small");
-    }
+    expect(static_index_ < static_capacity_, "heap too small");
 
     // get next free descriptor form static pool
     D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle = heap_start_;
@@ -70,10 +66,7 @@ D3D12DescriptorHandle D3D12CPUDescriptorHandleAllocator::allocate_static()
 
 D3D12DescriptorHandle D3D12CPUDescriptorHandleAllocator::allocate_dynamic()
 {
-    if (dynamic_index_ == dynamic_capacity_)
-    {
-        throw Exception("heap too small");
-    }
+    expect(dynamic_index_ < dynamic_capacity_, "heap too small");
 
     // get next free descriptor form dynamic pool
     D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle = heap_start_;
@@ -93,5 +86,4 @@ void D3D12CPUDescriptorHandleAllocator::reset_dynamic()
 {
     dynamic_index_ = 0u;
 }
-
 }

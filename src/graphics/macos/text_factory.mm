@@ -13,7 +13,7 @@
 #include "core/auto_release.h"
 #include "core/colour.h"
 #include "core/data_buffer.h"
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "core/root.h"
 #include "graphics/texture.h"
 #include "graphics/texture_manager.h"
@@ -34,10 +34,7 @@ Texture *create(
             kCFAllocatorDefault, font_name.c_str(), kCFStringEncodingASCII),
         ::CFRelease};
 
-    if (!font_name_cf)
-    {
-        throw Exception("failed to create CF string");
-    }
+    expect(font_name_cf, "failed to create CF string");
 
     // create Font object
     AutoRelease<CTFontRef, nullptr> font = {
@@ -45,29 +42,20 @@ Texture *create(
             font_name_cf.get(), static_cast<CGFloat>(size), nullptr),
         ::CFRelease};
 
-    if (!font)
-    {
-        throw Exception("failed to create font");
-    }
+    ensure(font, "failed to create font");
 
     // create a device dependant colour space
     AutoRelease<CGColorSpaceRef, nullptr> colour_space = {
         ::CGColorSpaceCreateDeviceRGB(), ::CGColorSpaceRelease};
 
-    if (!colour_space)
-    {
-        throw Exception("failed to create colour space");
-    }
+    expect(colour_space, "failed to create colour space");
 
     // create a CoreFoundation colour object from supplied colour
     const CGFloat components[] = {colour.r, colour.g, colour.b, colour.a};
     AutoRelease<CGColorRef, nullptr> font_colour = {
         ::CGColorCreate(colour_space.get(), components), ::CGColorRelease};
 
-    if (!font_colour)
-    {
-        throw Exception("failed to create colour");
-    }
+    expect(font_colour, "failed to create colour");
 
     std::array<CFStringRef, 2> keys = {
         {kCTFontAttributeName, kCTForegroundColorAttributeName}};
@@ -84,10 +72,7 @@ Texture *create(
             &kCFTypeDictionaryValueCallBacks),
         ::CFRelease};
 
-    if (!attributes)
-    {
-        throw Exception("failed to create attributes");
-    }
+    expect(attributes, "failed to create attributes");
 
     LOG_DEBUG("font", "creating sprites for string: {}", text);
 
@@ -123,10 +108,7 @@ Texture *create(
             nullptr),
         nullptr};
 
-    if (!path)
-    {
-        throw Exception("failed to create path");
-    }
+    expect(path, "failed to create path");
 
     // create a frame to render text
     const auto frame = AutoRelease<CTFrameRef, nullptr>{
@@ -134,10 +116,7 @@ Texture *create(
             frame_setter.get(), range, path.get(), nullptr),
         ::CFRelease};
 
-    if (!frame)
-    {
-        throw Exception("failed to create frame");
-    }
+    expect(frame, "failed to create frame");
 
     const auto scale = 2u;
 
@@ -164,10 +143,7 @@ Texture *create(
             nullptr),
         nullptr};
 
-    if (!context)
-    {
-        throw Exception("failed to create context");
-    }
+    expect(context, "failed to create context");
 
     // render text, pixel data will be stored in our pixel data buffer
     ::CTFrameDraw(frame.get(), context.get());

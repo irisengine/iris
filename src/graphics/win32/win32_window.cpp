@@ -11,7 +11,7 @@
 #include <hidusage.h>
 
 #include "core/auto_release.h"
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "events/event.h"
 #include "events/quit_event.h"
 
@@ -197,10 +197,9 @@ Win32Window::Win32Window(std::uint32_t width, std::uint32_t height)
     , wc_()
 {
     // ensure process is aware of high dpi monitors
-    if (::SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE) != S_OK)
-    {
-        throw Exception("could not set process dpi awareness");
-    }
+    ensure(
+        ::SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE) == S_OK,
+        "could not set process dpi awareness");
 
     const auto instance = ::GetModuleHandleA(NULL);
 
@@ -211,20 +210,16 @@ Win32Window::Win32Window(std::uint32_t width, std::uint32_t height)
     wc_.lpszClassName = "window class";
     wc_.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
 
-    if (::RegisterClassA(&wc_) == 0)
-    {
-        throw Exception("could not register class");
-    }
+    ensure(::RegisterClassA(&wc_) != 0, "could not register class");
 
     // create RECT for specified window size
     RECT rect = {0};
     rect.right = static_cast<int>(width_);
     rect.bottom = static_cast<int>(height_);
 
-    if (::AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false) == 0)
-    {
-        throw Exception("could not resize window");
-    }
+    ensure(
+        ::AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false) != 0,
+        "could not resize window");
 
     // create window, we will resize it after for current dpi
     window_ = {
@@ -242,31 +237,24 @@ Win32Window::Win32Window(std::uint32_t width, std::uint32_t height)
             wc_.hInstance,
             NULL),
         ::DestroyWindow};
-    if (!window_)
-    {
-        throw Exception("could not create window");
-    }
+    ensure(window_, "could not create window");
 
     const auto scale = screen_scale();
 
     // ensure window size is correctly scaled for current dpi
-    if (::SetWindowPos(
+    ensure(
+        ::SetWindowPos(
             window_,
             window_,
             0,
             0,
             width_ * scale,
             height_ * scale,
-            SWP_NOZORDER | SWP_NOACTIVATE) == 0)
-    {
-        throw Exception("could not set window position");
-    }
+            SWP_NOZORDER | SWP_NOACTIVATE) != 0,
+        "could not set window position");
 
     dc_ = {::GetDC(window_), [this](HDC dc) { ::ReleaseDC(window_, dc); }};
-    if (!dc_)
-    {
-        throw iris::Exception("could not get dc");
-    }
+    ensure(dc_, "could not get dc");
 
     ::ShowWindow(window_, SW_SHOW);
     ::UpdateWindow(window_);
@@ -278,10 +266,9 @@ Win32Window::Win32Window(std::uint32_t width, std::uint32_t height)
     rid.dwFlags = RIDEV_INPUTSINK;
     rid.hwndTarget = window_;
 
-    if (::RegisterRawInputDevices(&rid, 1, sizeof(rid)) == FALSE)
-    {
-        throw Exception("could not register raw input device");
-    }
+    ensure(
+        ::RegisterRawInputDevices(&rid, 1, sizeof(rid)) == TRUE,
+        "could not register raw input device");
 
     // ensure mouse visibility reference count is 0 (mouse is hidden)
     while (::ShowCursor(FALSE) >= 0)

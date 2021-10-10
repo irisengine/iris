@@ -16,7 +16,6 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/shader_compiler.h
     ${INCLUDE_ROOT}/sin_node.h
     ${INCLUDE_ROOT}/texture_node.h
-    ${INCLUDE_ROOT}/utils.h
     ${INCLUDE_ROOT}/vertex_position_node.h
     arithmetic_node.cpp
     blur_node.cpp
@@ -31,5 +30,4 @@ target_sources(iris PRIVATE
     render_node.cpp
     sin_node.cpp
     texture_node.cpp
-    utils.cpp
     vertex_position_node.cpp)

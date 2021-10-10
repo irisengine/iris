@@ -8,7 +8,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 
 namespace iris
 {
@@ -35,25 +35,19 @@ StaticBuffer::StaticBuffer(std::size_t pages)
         -1,
         0));
 
-    if (impl_->allocated_region == MAP_FAILED)
-    {
-        throw Exception("failed to mmap memory");
-    }
+    expect(impl_->allocated_region != MAP_FAILED, "failed to mmap memory");
 
     // set head guard page
-    if (::mprotect(impl_->allocated_region, page_size(), PROT_NONE) == -1)
-    {
-        throw Exception("failed to set head guard page");
-    }
+    const auto remove_protection =
+        ::mprotect(impl_->allocated_region, page_size(), PROT_NONE);
+    expect(remove_protection != -1, "failed to set head guard page");
 
     // set tail guard page
-    if (::mprotect(
-            impl_->allocated_region + ((pages + 1u) * page_size()),
-            page_size(),
-            PROT_NONE) == -1)
-    {
-        throw Exception("failed to set tail guard page");
-    }
+    const auto set_protection = ::mprotect(
+        impl_->allocated_region + ((pages + 1u) * page_size()),
+        page_size(),
+        PROT_NONE);
+    expect(set_protection != -1, "failed to set tail guard page");
 
     // calculate usable region pointer and size
     impl_->usable_region = impl_->allocated_region + page_size();

@@ -7,7 +7,7 @@
 #include "directx/d3d12.h"
 #include "directx/d3dx12.h"
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "graphics/d3d12/d3d12_context.h"
 #include "graphics/d3d12/d3d12_cpu_descriptor_handle_allocator.h"
 #include "graphics/d3d12/d3d12_descriptor_handle.h"
@@ -40,16 +40,14 @@ iris::D3D12DescriptorHandle create_resource(
     auto *device = iris::D3D12Context::device();
 
     // create the buffer
-    if (device->CreateCommittedResource(
-            &upload_heap,
-            D3D12_HEAP_FLAG_NONE,
-            &heap_descriptor,
-            D3D12_RESOURCE_STATE_GENERIC_READ,
-            nullptr,
-            IID_PPV_ARGS(&resource)) != S_OK)
-    {
-        throw iris::Exception("could not create constant buffer");
-    }
+    const auto commit_resource = device->CreateCommittedResource(
+        &upload_heap,
+        D3D12_HEAP_FLAG_NONE,
+        &heap_descriptor,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(&resource));
+    iris::expect(commit_resource == S_OK, "could not create constant buffer");
 
     // allocate descriptor for buffer
     return iris::D3D12DescriptorManager::cpu_allocator(
@@ -93,11 +91,9 @@ D3D12ConstantBuffer::D3D12ConstantBuffer(std::uint32_t capacity)
         &cbv_descriptor, descriptor_handle_.cpu_handle());
 
     // map the buffer to the cpu so we can write to it
-    if (resource_->Map(0u, NULL, reinterpret_cast<void **>(&mapped_buffer_)) !=
-        S_OK)
-    {
-        throw Exception("failed to map constant buffer");
-    }
+    const auto map_resource =
+        resource_->Map(0u, NULL, reinterpret_cast<void **>(&mapped_buffer_));
+    expect(map_resource == S_OK, "failed to map constant buffer");
 }
 
 D3D12DescriptorHandle D3D12ConstantBuffer::descriptor_handle() const

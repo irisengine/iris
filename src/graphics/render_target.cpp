@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <memory>
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "graphics/texture.h"
 #include "graphics/texture_manager.h"
 
@@ -16,11 +16,10 @@ RenderTarget::RenderTarget(
     : colour_texture_(std::move(colour_texture))
     , depth_texture_(std::move(depth_texture))
 {
-    if ((colour_texture_->width() != depth_texture_->width()) ||
-        (colour_texture_->height() != depth_texture_->height()))
-    {
-        throw Exception("colour and depth dimensions must match");
-    }
+    expect(
+        (colour_texture_->width() == depth_texture_->width()) &&
+            (colour_texture_->height() == depth_texture_->height()),
+        "colour and depth dimensions must match");
 }
 
 RenderTarget::~RenderTarget() = default;

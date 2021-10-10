@@ -1,6 +1,9 @@
 #include "networking/channel/reliable_ordered_channel.h"
+
 #include <algorithm>
 #include <vector>
+
+#include "networking/packet.h"
 
 namespace iris
 {
@@ -31,7 +34,8 @@ void ReliableOrderedChannel::enqueue_receive(Packet packet)
             std::remove_if(
                 std::begin(send_queue_),
                 std::end(send_queue_),
-                [&packet](const Packet &p) {
+                [&packet](const Packet &p)
+                {
                     return (p.type() == PacketType::ACK) ||
                            (p.sequence() == packet.sequence());
                 }),

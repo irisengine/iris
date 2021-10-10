@@ -11,7 +11,7 @@
 #include <windows.h>
 
 #include "core/auto_release.h"
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "core/root.h"
 #include "graphics/texture.h"
 #include "graphics/texture_manager.h"
@@ -43,24 +43,20 @@ std::wstring widen(const std::string &str)
         NULL,
         0);
 
-    if (expected_size == 0)
-    {
-        throw iris::Exception("could not get wstring size");
-    }
+    iris::ensure(expected_size != 0, "could not get wstring size");
 
     std::wstring wide_str(expected_size, L'\0');
 
     // widen
-    if (::MultiByteToWideChar(
+    iris::ensure(
+        ::MultiByteToWideChar(
             CP_UTF8,
             MB_PRECOMPOSED,
             str.c_str(),
             static_cast<int>(str.length()),
             wide_str.data(),
-            static_cast<int>(wide_str.length())) != expected_size)
-    {
-        throw iris::Exception("could not widen string");
-    }
+            static_cast<int>(wide_str.length())) == expected_size,
+        "could not widen string");
 
     return wide_str;
 }
@@ -93,28 +89,27 @@ Texture *create(
 {
     // create factory for creating Direct2d objects
     ID2D1Factory *direct2d_factory = nullptr;
-    if (::D2D1CreateFactory(
-            D2D1_FACTORY_TYPE_SINGLE_THREADED, &direct2d_factory) != S_OK)
-    {
-        throw Exception("failed to create d2d factory");
-    }
+    expect(
+        ::D2D1CreateFactory(
+            D2D1_FACTORY_TYPE_SINGLE_THREADED, &direct2d_factory) == S_OK,
+        "failed to create d2d factory");
 
     // create factory for creating DirectWrite objects
     IDWriteFactory *write_factory = nullptr;
-    if (::DWriteCreateFactory(
+    expect(
+        ::DWriteCreateFactory(
             DWRITE_FACTORY_TYPE_SHARED,
             __uuidof(IDWriteFactory),
-            reinterpret_cast<IUnknown **>(&write_factory)) != S_OK)
-    {
-        throw Exception("failed to create write factory");
-    }
+            reinterpret_cast<IUnknown **>(&write_factory)) == S_OK,
+        "failed to create write factory");
 
     // widen font name for win32 api calls
     const auto font_name_wide = widen(font_name);
 
     // create object describing text format
     IDWriteTextFormat *text_format = nullptr;
-    if (write_factory->CreateTextFormat(
+    ensure(
+        write_factory->CreateTextFormat(
             font_name_wide.c_str(),
             NULL,
             DWRITE_FONT_WEIGHT_REGULAR,
@@ -122,10 +117,8 @@ Texture *create(
             DWRITE_FONT_STRETCH_NORMAL,
             static_cast<float>(size),
             L"en-us",
-            &text_format) != S_OK)
-    {
-        throw Exception("failed to create text format");
-    }
+            &text_format) == S_OK,
+        "failed to create text format");
 
     // widen text for win32 api calls
     const auto text_wide = widen(text);
@@ -134,16 +127,15 @@ Texture *create(
     // we assume a very large size, but can query after this call for actual
     // size
     IDWriteTextLayout *text_layout = nullptr;
-    if (write_factory->CreateTextLayout(
+    expect(
+        write_factory->CreateTextLayout(
             text_wide.c_str(),
             static_cast<UINT32>(text_wide.length()),
             text_format,
             99999.0f,
             99999.0f,
-            &text_layout) != S_OK)
-    {
-        throw Exception("failed to create text layout");
-    }
+            &text_layout) == S_OK,
+        "failed to create text layout");
 
     // get actual text dimension
     DWRITE_TEXT_METRICS metrics = {0};
@@ -154,27 +146,25 @@ Texture *create(
 
     // create factory for creating WIC objects
     IWICImagingFactory *image_factory = nullptr;
-    if (::CoCreateInstance(
+    expect(
+        ::CoCreateInstance(
             CLSID_WICImagingFactory2,
             NULL,
             CLSCTX_INPROC_SERVER,
             __uuidof(IWICImagingFactory2),
-            reinterpret_cast<LPVOID *>(&image_factory)) != S_OK)
-    {
-        throw Exception("failed to create image factory");
-    }
+            reinterpret_cast<LPVOID *>(&image_factory)) == S_OK,
+        "failed to create image factory");
 
     // create a bitmap to render text to
     IWICBitmap *bitmap = nullptr;
-    if (image_factory->CreateBitmap(
+    expect(
+        image_factory->CreateBitmap(
             width,
             height,
             GUID_WICPixelFormat32bppPBGRA,
             WICBitmapCacheOnDemand,
-            &bitmap) != S_OK)
-    {
-        throw Exception("failed to create bitmap");
-    }
+            &bitmap) == S_OK,
+        "failed to create bitmap");
 
     // default render properties
     const auto properties = ::D2D1::RenderTargetProperties(
@@ -188,22 +178,20 @@ Texture *create(
     // create a render target to render font to bitmap
     AutoRelease<ID2D1RenderTarget *, nullptr> render_target = {
         nullptr, &SafeRelease<ID2D1RenderTarget *>};
-    if (direct2d_factory->CreateWicBitmapRenderTarget(
-            bitmap, &properties, &render_target) != S_OK)
-    {
-        throw Exception("failed to create render target");
-    }
+    expect(
+        direct2d_factory->CreateWicBitmapRenderTarget(
+            bitmap, &properties, &render_target) == S_OK,
+        "failed to create render target");
 
     // create a brush with supplied colour
     AutoRelease<ID2D1SolidColorBrush *, nullptr> brush = {
         nullptr, &SafeRelease<ID2D1SolidColorBrush *>};
-    if (render_target.get()->CreateSolidColorBrush(
+    expect(
+        render_target.get()->CreateSolidColorBrush(
             ::D2D1::ColorF(
                 ::D2D1::ColorF::ColorF(colour.r, colour.g, colour.b)),
-            &brush) != S_OK)
-    {
-        throw Exception("failed to create brush");
-    }
+            &brush) == S_OK,
+        "failed to create brush");
 
     const auto origin = ::D2D1::Point2F(0.0f, 0.0f);
 
@@ -215,10 +203,9 @@ Texture *create(
     // get size of bitmap
     UINT bitmap_width = 0u;
     UINT bitmap_height = 0u;
-    if (bitmap->GetSize(&bitmap_width, &bitmap_height) != S_OK)
-    {
-        throw Exception("failed to get bitmap size");
-    }
+    expect(
+        bitmap->GetSize(&bitmap_width, &bitmap_height) == S_OK,
+        "failed to get bitmap size");
 
     WICRect rect = {0, 0, (INT)bitmap_width, (INT)bitmap_height};
 
@@ -226,19 +213,17 @@ Texture *create(
     // will auto release lock at end of function scope
     AutoRelease<IWICBitmapLock *, nullptr> lock = {
         nullptr, [](IWICBitmapLock *lock) { lock->Release(); }};
-    if (bitmap->Lock(&rect, WICBitmapLockRead, &lock) != S_OK)
-    {
-        throw Exception("failed to get lock");
-    }
+    expect(
+        bitmap->Lock(&rect, WICBitmapLockRead, &lock) == S_OK,
+        "failed to get lock");
 
     // get pointer to raw bitmap data
     UINT buffer_size = 0u;
     std::byte *buffer = nullptr;
-    if (lock.get()->GetDataPointer(
-            &buffer_size, reinterpret_cast<BYTE **>(&buffer)) != S_OK)
-    {
-        throw Exception("failed to get data pointer");
-    }
+    expect(
+        lock.get()->GetDataPointer(
+            &buffer_size, reinterpret_cast<BYTE **>(&buffer)) == S_OK,
+        "failed to get data pointer");
 
     DataBuffer pixel_data(buffer, buffer + buffer_size);
 

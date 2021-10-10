@@ -6,7 +6,7 @@
 #include "directx/d3d12.h"
 #include "directx/d3dx12.h"
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 
 namespace iris
 {
@@ -20,18 +20,16 @@ D3D12Context::D3D12Context()
 {
     // create and enable a debug layer
     Microsoft::WRL::ComPtr<ID3D12Debug> debug_interface = nullptr;
-    if (::D3D12GetDebugInterface(IID_PPV_ARGS(&debug_interface)) != S_OK)
-    {
-        throw Exception("could not create debug interface");
-    }
+    expect(
+        ::D3D12GetDebugInterface(IID_PPV_ARGS(&debug_interface)) == S_OK,
+        "could not create debug interface");
 
     debug_interface->EnableDebugLayer();
 
-    if (::CreateDXGIFactory2(
-            DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&dxgi_factory_)) != S_OK)
-    {
-        throw Exception("could not create dxgi factory");
-    }
+    expect(
+        ::CreateDXGIFactory2(
+            DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&dxgi_factory_)) == S_OK,
+        "could not create dxgi factory");
 
     Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgi_adaptor_tmp = nullptr;
     Microsoft::WRL::ComPtr<IDXGIAdapter4> dxgi_adaptor = nullptr;
@@ -60,10 +58,8 @@ D3D12Context::D3D12Context()
                 if (adaptor_descriptor.DedicatedVideoMemory >
                     max_dedicated_memory)
                 {
-                    if (dxgi_adaptor_tmp.As(&dxgi_adaptor) != S_OK)
-                    {
-                        throw Exception("failed to case dxgi adaptor");
-                    }
+                    const auto cast = dxgi_adaptor_tmp.As(&dxgi_adaptor);
+                    expect(cast == S_OK, "failed to cast dxgi adaptor");
 
                     max_dedicated_memory =
                         adaptor_descriptor.DedicatedVideoMemory;
@@ -72,24 +68,19 @@ D3D12Context::D3D12Context()
         }
     }
 
-    if (dxgi_adaptor == nullptr)
-    {
-        throw Exception("could not find a directx12 adaptor");
-    }
+    ensure(dxgi_adaptor != nullptr, "could not find a directx12 adapter");
 
     // create actual d3d12 device
-    if (::D3D12CreateDevice(
+    expect(
+        ::D3D12CreateDevice(
             dxgi_adaptor.Get(),
             D3D_FEATURE_LEVEL_11_0,
-            IID_PPV_ARGS(&device_)) != S_OK)
-    {
-        throw Exception("could not create directx12 device");
-    }
+            IID_PPV_ARGS(&device_)) == S_OK,
+        "could not create directx12 device");
 
-    if (device_.As(&info_queue_) != S_OK)
-    {
-        throw Exception("could not cast device to info queue");
-    }
+    expect(
+        device_.As(&info_queue_) == S_OK,
+        "could not cast device to info queue");
 
     // set break on error and warning
     info_queue_->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
@@ -170,14 +161,13 @@ D3D12Context::D3D12Context()
             "root signature serialization failed: " + error_message);
     }
 
-    if (device_->CreateRootSignature(
+    expect(
+        device_->CreateRootSignature(
             0,
             signature->GetBufferPointer(),
             signature->GetBufferSize(),
-            IID_PPV_ARGS(&root_signature_)) != S_OK)
-    {
-        throw Exception("could not create root signature");
-    }
+            IID_PPV_ARGS(&root_signature_)) == S_OK,
+        "could not create root signature");
 }
 
 D3D12Context &D3D12Context::instance()

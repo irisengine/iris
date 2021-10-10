@@ -10,7 +10,7 @@
 #include <assimp/scene.h>
 
 #include "core/colour.h"
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "core/matrix4.h"
 #include "core/quaternion.h"
 #include "core/resource_loader.h"
@@ -94,11 +94,10 @@ std::vector<iris::Animation> process_animations(const ::aiScene *scene)
 
             // sanity check we have an equal number of keys for position,
             // rotation and scale
-            if ((channel->mNumPositionKeys != channel->mNumRotationKeys) &&
-                (channel->mNumRotationKeys != channel->mNumScalingKeys))
-            {
-                throw iris::Exception("incomplete frame data");
-            }
+            iris::ensure(
+                (channel->mNumPositionKeys == channel->mNumRotationKeys) ||
+                    (channel->mNumRotationKeys == channel->mNumScalingKeys),
+                "incomplete frame data");
 
             std::vector<iris::KeyFrame> keyframes{};
 
@@ -324,12 +323,10 @@ LoadedData load(const std::string &mesh_name)
         file_data.size(),
         ::aiProcess_Triangulate | ::aiProcess_CalcTangentSpace);
 
-    if ((scene == nullptr) || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) ||
-        (scene->mRootNode == nullptr))
-    {
-        throw Exception(
-            std::string{"could not load mesh: "} + importer.GetErrorString());
-    }
+    ensure(
+        (scene != nullptr) && !(scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) &&
+            (scene->mRootNode != nullptr),
+        std::string{"could not load mesh: "} + importer.GetErrorString());
 
     const auto *root = scene->mRootNode;
     aiMesh *mesh = nullptr;
@@ -359,10 +356,7 @@ LoadedData load(const std::string &mesh_name)
     } while (!to_process.empty());
 
     // check if we found a node with a single mesh
-    if (mesh == nullptr)
-    {
-        throw Exception("only support single mesh in file");
-    }
+    ensure(mesh != nullptr, "only support single mesh in file");
 
     const auto *material = scene->mMaterials[mesh->mMaterialIndex];
 

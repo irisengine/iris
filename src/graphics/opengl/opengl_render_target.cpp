@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "graphics/opengl/opengl.h"
 #include "graphics/opengl/opengl_texture.h"
 
@@ -17,7 +17,7 @@ OpenGLRenderTarget::OpenGLRenderTarget(
 {
     // create a frame buffer for our target
     ::glGenFramebuffers(1, &handle_);
-    check_opengl_error("could not generate fbo");
+    expect(check_opengl_error, "could not generate fbo");
 
     bind(GL_FRAMEBUFFER);
 
@@ -27,7 +27,7 @@ OpenGLRenderTarget::OpenGLRenderTarget(
     // set colour texture
     ::glFramebufferTexture2D(
         GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colour_handle, 0);
-    check_opengl_error("could not attach colour texture");
+    expect(check_opengl_error, "could not attach colour texture");
 
     const auto depth_handle =
         static_cast<OpenGLTexture *>(depth_texture_.get())->handle();
@@ -35,14 +35,13 @@ OpenGLRenderTarget::OpenGLRenderTarget(
     // set depth texture
     ::glFramebufferTexture2D(
         GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_handle, 0);
-    check_opengl_error("could not attach depth texture");
+    expect(check_opengl_error, "could not attach depth texture");
 
     // check everything worked
-    if (const auto status = ::glCheckFramebufferStatus(GL_FRAMEBUFFER);
-        status != GL_FRAMEBUFFER_COMPLETE)
-    {
-        throw Exception("fbo in invalid state: " + std::to_string(status));
-    }
+    const auto status = ::glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    expect(
+        status == GL_FRAMEBUFFER_COMPLETE,
+        "fbo in invalid state: " + std::to_string(status));
 
     unbind(GL_FRAMEBUFFER);
 }
@@ -55,13 +54,13 @@ OpenGLRenderTarget::~OpenGLRenderTarget()
 void OpenGLRenderTarget::bind(GLenum target) const
 {
     ::glBindFramebuffer(target, handle_);
-    iris::check_opengl_error("could not bind framebuffer");
+    expect(check_opengl_error, "could not bind framebuffer");
 }
 
 void OpenGLRenderTarget::unbind(GLenum target) const
 {
     ::glBindFramebuffer(target, 0u);
-    iris::check_opengl_error("could not bind framebuffer");
+    expect(check_opengl_error, "could not bind framebuffer");
 }
 
 }

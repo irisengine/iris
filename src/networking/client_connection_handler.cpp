@@ -14,7 +14,7 @@
 #include <string>
 
 #include "core/data_buffer.h"
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "core/root.h"
 #include "jobs/concurrent_queue.h"
 #include "jobs/job.h"
@@ -73,9 +73,8 @@ std::uint32_t handshake(iris::Socket *socket, iris::Channel *channel)
         const auto connected = std::find_if(
             std::cbegin(responses),
             std::cend(responses),
-            [](const iris::Packet &p) {
-                return p.type() == iris::PacketType::CONNECTED;
-            });
+            [](const iris::Packet &p)
+            { return p.type() == iris::PacketType::CONNECTED; });
 
         // if we got it then get the id from the server and stop looping
         if (connected != std::cend(responses))
@@ -86,10 +85,8 @@ std::uint32_t handshake(iris::Socket *socket, iris::Channel *channel)
         }
     }
 
-    if (id == std::numeric_limits<std::uint32_t>::max())
-    {
-        throw iris::Exception("connection timeout");
-    }
+    iris::ensure(
+        id == std::numeric_limits<std::uint32_t>::max(), "connection timeout");
 
     LOG_ENGINE_INFO("client_connection_handler", "i am: {}", id);
 
@@ -190,43 +187,46 @@ ClientConnectionHandler::ClientConnectionHandler(std::unique_ptr<Socket> socket)
     // a background job
     // this will handle any protocol packets and stick data into queues, which
     // can then be retrieved by calls to try_read
-    Root::jobs_manager().add({[this]() {
-        for (;;)
-        {
-            // block and read the next Packet
-            const auto raw_packet = socket_->read(sizeof(Packet));
-            iris::Packet packet{raw_packet};
+    Root::jobs_manager().add(
+        {[this]()
+         {
+             for (;;)
+             {
+                 // block and read the next Packet
+                 const auto raw_packet = socket_->read(sizeof(Packet));
+                 iris::Packet packet{raw_packet};
 
-            // enqueue the packet into the right channel
-            const auto channel_type = packet.channel();
-            auto *channel = channels_.at(channel_type).get();
-            channel->enqueue_receive(std::move(packet));
+                 // enqueue the packet into the right channel
+                 const auto channel_type = packet.channel();
+                 auto *channel = channels_.at(channel_type).get();
+                 channel->enqueue_receive(std::move(packet));
 
-            // handle all received packets from that channel
-            for (const auto &p : channel->yield_receive_queue())
-            {
-                switch (p.type())
-                {
-                    case PacketType::DATA:
-                        // we got data, stick it in the queue for this channel
-                        queues_[channel_type]->enqueue(p.body_buffer());
-                        break;
-                    case PacketType::SYNC_START:
-                        handle_sync_start(channel, socket_.get());
-                        break;
-                    case PacketType::SYNC_FINISH:
-                        lag_ = handle_sync_finish(packet);
-                        break;
-                    default:
-                        LOG_ERROR(
-                            "client_connection_handler",
-                            "unknown packet type {}",
-                            static_cast<int>(p.type()));
-                        break;
-                }
-            }
-        }
-    }});
+                 // handle all received packets from that channel
+                 for (const auto &p : channel->yield_receive_queue())
+                 {
+                     switch (p.type())
+                     {
+                         case PacketType::DATA:
+                             // we got data, stick it in the queue for this
+                             // channel
+                             queues_[channel_type]->enqueue(p.body_buffer());
+                             break;
+                         case PacketType::SYNC_START:
+                             handle_sync_start(channel, socket_.get());
+                             break;
+                         case PacketType::SYNC_FINISH:
+                             lag_ = handle_sync_finish(packet);
+                             break;
+                         default:
+                             LOG_ERROR(
+                                 "client_connection_handler",
+                                 "unknown packet type {}",
+                                 static_cast<int>(p.type()));
+                             break;
+                     }
+                 }
+             }
+         }});
 }
 
 std::optional<DataBuffer> ClientConnectionHandler::try_read(

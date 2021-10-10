@@ -9,7 +9,7 @@
 #include "directx/d3d12.h"
 #include "directx/d3dx12.h"
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "graphics/d3d12/d3d12_context.h"
 #include "graphics/d3d12/d3d12_descriptor_handle.h"
 
@@ -36,11 +36,10 @@ D3D12GPUDescriptorHandleAllocator::D3D12GPUDescriptorHandleAllocator(
     heap_description.NodeMask = 0;
 
     // create heap
-    if (device->CreateDescriptorHeap(
-            &heap_description, IID_PPV_ARGS(&descriptor_heap_)) != S_OK)
-    {
-        throw Exception("could not create descriptor heap");
-    }
+    expect(
+        device->CreateDescriptorHeap(
+            &heap_description, IID_PPV_ARGS(&descriptor_heap_)) == S_OK,
+        "could not create descriptor heap");
 
     cpu_start_ = descriptor_heap_->GetCPUDescriptorHandleForHeapStart();
     gpu_start_ = descriptor_heap_->GetGPUDescriptorHandleForHeapStart();
@@ -51,10 +50,7 @@ D3D12GPUDescriptorHandleAllocator::D3D12GPUDescriptorHandleAllocator(
 D3D12DescriptorHandle D3D12GPUDescriptorHandleAllocator::allocate(
     std::uint32_t count)
 {
-    if (index_ + count > capacity_)
-    {
-        throw Exception("heap too small");
-    }
+    expect(index_ + count <= capacity_, "heap too small");
 
     auto cpu_handle = cpu_start_;
     cpu_handle.ptr += descriptor_size_ * index_;

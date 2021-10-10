@@ -13,7 +13,6 @@
 #include <vector>
 
 #include "core/data_buffer.h"
-#include "core/exception.h"
 #include "core/root.h"
 #include "jobs/concurrent_queue.h"
 #include "jobs/job.h"
@@ -157,79 +156,84 @@ ServerConnectionHandler::ServerConnectionHandler(
 {
     // we want to always be accepting connections, so we do this in a background
     // job
-    Root::jobs_manager().add({[this]() {
-        for (;;)
-        {
-            auto [client_socket, raw_packet, new_connection] = socket_->read();
+    Root::jobs_manager().add(
+        {[this]()
+         {
+             for (;;)
+             {
+                 auto [client_socket, raw_packet, new_connection] =
+                     socket_->read();
 
-            std::hash<Socket *> hash{};
+                 std::hash<Socket *> hash{};
 
-            const auto id = hash(client_socket);
+                 const auto id = hash(client_socket);
 
-            if (new_connection)
-            {
-                // setup internal struct to manage connection
-                auto connection = std::make_unique<Connection>();
-                connection->socket = client_socket;
-                connection->channels[ChannelType::UNRELIABLE_UNORDERED] =
-                    std::make_unique<UnreliableUnorderedChannel>();
-                connection->channels[ChannelType::UNRELIABLE_SEQUENCED] =
-                    std::make_unique<UnreliableSequencedChannel>();
-                connection->channels[ChannelType::RELIABLE_ORDERED] =
-                    std::make_unique<ReliableOrderedChannel>();
+                 if (new_connection)
+                 {
+                     // setup internal struct to manage connection
+                     auto connection = std::make_unique<Connection>();
+                     connection->socket = client_socket;
+                     connection->channels[ChannelType::UNRELIABLE_UNORDERED] =
+                         std::make_unique<UnreliableUnorderedChannel>();
+                     connection->channels[ChannelType::UNRELIABLE_SEQUENCED] =
+                         std::make_unique<UnreliableSequencedChannel>();
+                     connection->channels[ChannelType::RELIABLE_ORDERED] =
+                         std::make_unique<ReliableOrderedChannel>();
 
-                connections_[id] = std::move(connection);
-            }
+                     connections_[id] = std::move(connection);
+                 }
 
-            auto *connection = connections_[id].get();
+                 auto *connection = connections_[id].get();
 
-            iris::Packet packet{raw_packet};
+                 iris::Packet packet{raw_packet};
 
-            // enqueue the packet into the right channel
-            const auto channel_type = packet.channel();
-            auto *channel = connection->channels.at(channel_type).get();
+                 // enqueue the packet into the right channel
+                 const auto channel_type = packet.channel();
+                 auto *channel = connection->channels.at(channel_type).get();
 
-            std::vector<Packet> receive_queue{};
+                 std::vector<Packet> receive_queue{};
 
-            {
-                std::unique_lock lock(mutex_);
-                channel->enqueue_receive(std::move(packet));
-                receive_queue = channel->yield_receive_queue();
-            }
+                 {
+                     std::unique_lock lock(mutex_);
+                     channel->enqueue_receive(std::move(packet));
+                     receive_queue = channel->yield_receive_queue();
+                 }
 
-            // handle all received packets from that channel
-            for (const auto &p : receive_queue)
-            {
-                switch (p.type())
-                {
-                    case PacketType::HELLO:
-                    {
-                        handle_hello(id, channel, connection->socket, mutex_);
+                 // handle all received packets from that channel
+                 for (const auto &p : receive_queue)
+                 {
+                     switch (p.type())
+                     {
+                         case PacketType::HELLO:
+                         {
+                             handle_hello(
+                                 id, channel, connection->socket, mutex_);
 
-                        // we got a new client, fire it back to the
-                        // application
-                        new_connection_callback_(id);
-                        break;
-                    }
-                    case PacketType::DATA:
-                    {
-                        // we got data, fire it back to the application
-                        recv_callback_(id, p.body_buffer(), p.channel());
-                        break;
-                    }
-                    case PacketType::SYNC_RESPONSE:
-                    {
-                        handle_sync_response(
-                            channel, connection->socket, packet, mutex_);
-                        break;
-                    }
-                    default:
-                        LOG_ENGINE_ERROR(
-                            "server_connection_handler", "unknown packet type");
-                }
-            }
-        }
-    }});
+                             // we got a new client, fire it back to the
+                             // application
+                             new_connection_callback_(id);
+                             break;
+                         }
+                         case PacketType::DATA:
+                         {
+                             // we got data, fire it back to the application
+                             recv_callback_(id, p.body_buffer(), p.channel());
+                             break;
+                         }
+                         case PacketType::SYNC_RESPONSE:
+                         {
+                             handle_sync_response(
+                                 channel, connection->socket, packet, mutex_);
+                             break;
+                         }
+                         default:
+                             LOG_ENGINE_ERROR(
+                                 "server_connection_handler",
+                                 "unknown packet type");
+                     }
+                 }
+             }
+         }});
 }
 
 ServerConnectionHandler::~ServerConnectionHandler() = default;

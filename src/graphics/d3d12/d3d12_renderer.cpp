@@ -18,6 +18,7 @@
 #include "directx/d3d12.h"
 #include "directx/d3dx12.h"
 
+#include "core/error_handling.h"
 #include "core/root.h"
 #include "graphics/constant_buffer_writer.h"
 #include "graphics/d3d12/d3d12_constant_buffer.h"
@@ -229,11 +230,10 @@ D3D12Renderer::D3D12Renderer(
     auto *dxgi_factory = D3D12Context::dxgi_factory();
 
     // create command queue
-    if (device->CreateCommandQueue(&desc, IID_PPV_ARGS(&command_queue_)) !=
-        S_OK)
-    {
-        throw Exception("could not create command queue");
-    }
+    ensure(
+        device->CreateCommandQueue(&desc, IID_PPV_ARGS(&command_queue_)) ==
+            S_OK,
+        "could not create command queue");
 
     // build swap chain description
     DXGI_SWAP_CHAIN_DESC1 swap_chain_descriptor = {0};
@@ -251,22 +251,19 @@ D3D12Renderer::D3D12Renderer(
 
     // create swap chain for window
     Microsoft::WRL::ComPtr<IDXGISwapChain1> swap_chain_tmp = nullptr;
-    if (dxgi_factory->CreateSwapChainForHwnd(
+    ensure(
+        dxgi_factory->CreateSwapChainForHwnd(
             command_queue_.Get(),
             window,
             &swap_chain_descriptor,
             nullptr,
             nullptr,
-            &swap_chain_tmp) != S_OK)
-    {
-        throw Exception("could not create swap chain");
-    }
+            &swap_chain_tmp) == S_OK,
+        "could not create swap chain");
 
     // cast to type we want to use
-    if (swap_chain_tmp.As(&swap_chain_) != S_OK)
-    {
-        throw Exception("could not cast swap chain");
-    }
+    ensure(
+        swap_chain_tmp.As(&swap_chain_) == S_OK, "could not cast swap chain");
 
     // get initial frame index
     frame_index_ = swap_chain_->GetCurrentBackBufferIndex();
@@ -276,10 +273,9 @@ D3D12Renderer::D3D12Renderer(
     {
         // get a back buffer
         Microsoft::WRL::ComPtr<ID3D12Resource> frame = nullptr;
-        if (swap_chain_->GetBuffer(i, IID_PPV_ARGS(&frame)) != S_OK)
-        {
-            throw Exception("could not get back buffer");
-        }
+        ensure(
+            swap_chain_->GetBuffer(i, IID_PPV_ARGS(&frame)) == S_OK,
+            "could not get back buffer");
 
         static int counter = 0;
         std::wstringstream strm{};
@@ -300,20 +296,18 @@ D3D12Renderer::D3D12Renderer(
 
         // create command allocator, we use one per frame but have a single
         // command queue
-        if (device->CreateCommandAllocator(
+        ensure(
+            device->CreateCommandAllocator(
                 D3D12_COMMAND_LIST_TYPE_DIRECT,
-                IID_PPV_ARGS(&command_allocator)) != S_OK)
-        {
-            throw Exception("could not create command allocator");
-        }
+                IID_PPV_ARGS(&command_allocator)) == S_OK,
+            "could not create command allocator");
 
         // create a fence, used to signal when gpu has completed a frame
         Microsoft::WRL::ComPtr<ID3D12Fence> fence = nullptr;
-        if (device->CreateFence(
-                0u, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)) != S_OK)
-        {
-            throw Exception("could not create fence");
-        }
+        ensure(
+            device->CreateFence(
+                0u, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)) == S_OK,
+            "could not create fence");
 
         frames_.emplace_back(
             frame,
@@ -328,15 +322,14 @@ D3D12Renderer::D3D12Renderer(
             ::CreateEvent(NULL, FALSE, TRUE, NULL));
     }
 
-    if (device->CreateCommandList(
+    ensure(
+        device->CreateCommandList(
             0u,
             D3D12_COMMAND_LIST_TYPE_DIRECT,
             frames_[frame_index_].command_allocator.Get(),
             nullptr,
-            IID_PPV_ARGS(&command_list_)) != S_OK)
-    {
-        throw Exception("could not create command list");
-    }
+            IID_PPV_ARGS(&command_list_)) == S_OK,
+        "could not create command list");
 
     // create a single null buffer, used for padding buffer arrays
     null_buffer_ = std::make_unique<D3D12ConstantBuffer>();
@@ -377,10 +370,7 @@ void D3D12Renderer::set_render_passes(
         std::end(render_passes_),
         [](const RenderPass &pass) { return pass.render_target == nullptr; });
 
-    if (final_pass == std::cend(render_passes_))
-    {
-        throw Exception("no final pass");
-    }
+    ensure(final_pass != std::cend(render_passes_), "no final pass");
 
     // deferred creating of render target to ensure this class is full
     // constructed
@@ -782,16 +772,12 @@ void D3D12Renderer::execute_present(RenderCommand &)
     command_queue_->ExecuteCommandLists(1u, command_lists);
 
     // present frame to window
-    if (swap_chain_->Present(0u, 0u) != S_OK)
-    {
-        throw Exception("could not present");
-    }
+    expect(swap_chain_->Present(0u, 0u) == S_OK, "could not present");
 
     // enqueue signal so future render passes know when the frame is safe to use
-    if (command_queue_->Signal(frame.fence.Get(), 1u) != S_OK)
-    {
-        throw Exception("could not signal");
-    }
+    expect(
+        command_queue_->Signal(frame.fence.Get(), 1u) == S_OK,
+        "could not signal");
     frame.fence->SetEventOnCompletion(1u, frame.fence_event);
 
     frame_index_ = swap_chain_->GetCurrentBackBufferIndex();

@@ -3,7 +3,7 @@
 #include <memory>
 #include <tuple>
 
-#include "core/exception.h"
+#include "core/error_handling.h"
 #include "graphics/opengl/opengl.h"
 #include "graphics/vertex_attributes.h"
 
@@ -55,15 +55,15 @@ OpenGLMesh::OpenGLMesh(
 {
     // create vao
     ::glGenVertexArrays(1, &vao_);
-    check_opengl_error("could not generate vao");
+    expect(check_opengl_error, "could not generate vao");
 
     bind();
 
     // ensure both buffers are bound for the vao
     ::glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_.handle());
-    iris::check_opengl_error("could not bind buffer");
+    expect(check_opengl_error, "could not bind buffer");
     ::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_.handle());
-    iris::check_opengl_error("could not bind buffer");
+    expect(check_opengl_error, "could not bind buffer");
 
     auto index = 0u;
 
@@ -73,7 +73,7 @@ OpenGLMesh::OpenGLMesh(
         const auto &[type, components, _, offset] = attribute;
 
         ::glEnableVertexAttribArray(index);
-        check_opengl_error("could not enable attribute");
+        expect(check_opengl_error, "could not enable attribute");
 
         const auto &[open_gl_type, is_float] = to_opengl_format(type);
 
@@ -86,7 +86,7 @@ OpenGLMesh::OpenGLMesh(
                 GL_FALSE,
                 static_cast<GLsizei>(attributes.size()),
                 reinterpret_cast<void *>(offset));
-            check_opengl_error("could not set attributes");
+            expect(check_opengl_error, "could not set attributes");
         }
         else
         {
@@ -96,7 +96,7 @@ OpenGLMesh::OpenGLMesh(
                 open_gl_type,
                 static_cast<GLsizei>(attributes.size()),
                 reinterpret_cast<void *>(offset));
-            check_opengl_error("could not set attributes");
+            expect(check_opengl_error, "could not set attributes");
         }
 
         ++index;
@@ -128,13 +128,13 @@ GLsizei OpenGLMesh::element_count() const
 void OpenGLMesh::bind() const
 {
     ::glBindVertexArray(vao_);
-    iris::check_opengl_error("could not bind vao");
+    expect(check_opengl_error, "could not bind vao");
 }
 
 void OpenGLMesh::unbind() const
 {
     ::glBindVertexArray(0u);
-    iris::check_opengl_error("could not unbind vao");
+    expect(check_opengl_error, "could not unbind vao");
 }
 
 }
