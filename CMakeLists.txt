@@ -13,6 +13,7 @@ include(GenerateExportHeader)
 
 # set options for library
 option(IRIS_BUILD_UNIT_TESTS "whether to build unit tests" ON)
+option(IRIS_ASAN "whether to build with asan" OFF)
 
 set(CMAKE_CXX_STANDARD 20)
 set(ASM_OPTIONS "-x assembler-with-cpp")
