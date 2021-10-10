@@ -40,9 +40,7 @@ namespace
  * @returns
  *   D3D12 handle to created shader.
  */
-Microsoft::WRL::ComPtr<ID3DBlob> create_shader(
-    const std::string &source,
-    iris::ShaderType type)
+Microsoft::WRL::ComPtr<ID3DBlob> create_shader(const std::string &source, iris::ShaderType type)
 {
     const auto target = type == iris::ShaderType::VERTEX ? "vs_5_0" : "ps_5_0";
 
@@ -61,9 +59,7 @@ Microsoft::WRL::ComPtr<ID3DBlob> create_shader(
             &shader,
             &error) != S_OK)
     {
-        const std::string error_message(
-            static_cast<char *>(error->GetBufferPointer()),
-            error->GetBufferSize());
+        const std::string error_message(static_cast<char *>(error->GetBufferPointer()), error->GetBufferSize());
 
         throw iris::Exception("shader compile failed: " + error_message);
     }
@@ -90,8 +86,7 @@ D3D12Material::D3D12Material(
     const auto fragment_source = compiler.fragment_shader();
 
     const auto vertex_shader = create_shader(vertex_source, ShaderType::VERTEX);
-    const auto fragment_shader =
-        create_shader(fragment_source, ShaderType::FRAGMENT);
+    const auto fragment_shader = create_shader(fragment_source, ShaderType::FRAGMENT);
 
     textures_ = compiler.textures();
 
@@ -106,8 +101,7 @@ D3D12Material::D3D12Material(
     // ambient is always rendered first (no blending)
     // directional and point are always rendered after (blending)
     blend_state.RenderTarget[0].BlendEnable = TRUE;
-    blend_state.RenderTarget[0].DestBlend =
-        (light_type == LightType::AMBIENT) ? D3D12_BLEND_ZERO : D3D12_BLEND_ONE;
+    blend_state.RenderTarget[0].DestBlend = (light_type == LightType::AMBIENT) ? D3D12_BLEND_ZERO : D3D12_BLEND_ONE;
     blend_state.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
 
     auto depth_state = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
@@ -118,12 +112,10 @@ D3D12Material::D3D12Material(
     rasterizer_description.CullMode = D3D12_CULL_MODE_BACK;
     rasterizer_description.FrontCounterClockwise = TRUE;
     rasterizer_description.DepthClipEnable = TRUE;
-    rasterizer_description.ConservativeRaster =
-        D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+    rasterizer_description.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC descriptor = {};
-    descriptor.InputLayout = {
-        input_descriptors.data(), static_cast<UINT>(input_descriptors.size())};
+    descriptor.InputLayout = {input_descriptors.data(), static_cast<UINT>(input_descriptors.size())};
     descriptor.pRootSignature = root_signature;
     descriptor.VS = CD3DX12_SHADER_BYTECODE(vertex_shader.Get());
     descriptor.PS = CD3DX12_SHADER_BYTECODE(fragment_shader.Get());
@@ -134,28 +126,17 @@ D3D12Material::D3D12Material(
     descriptor.SampleMask = UINT_MAX;
     descriptor.RasterizerState = rasterizer_description;
     descriptor.NumRenderTargets = 1;
-    descriptor.RTVFormats[0] = !render_to_swapchain
-                                   ? DXGI_FORMAT_R16G16B16A16_FLOAT
-                                   : DXGI_FORMAT_R8G8B8A8_UNORM;
+    descriptor.RTVFormats[0] = !render_to_swapchain ? DXGI_FORMAT_R16G16B16A16_FLOAT : DXGI_FORMAT_R8G8B8A8_UNORM;
     descriptor.SampleDesc.Count = 1;
 
     switch (primitive_type)
     {
-        case PrimitiveType::TRIANGLES:
-            descriptor.PrimitiveTopologyType =
-                D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-            break;
-        case PrimitiveType::LINES:
-            descriptor.PrimitiveTopologyType =
-                D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
-            break;
+        case PrimitiveType::TRIANGLES: descriptor.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE; break;
+        case PrimitiveType::LINES: descriptor.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE; break;
     }
 
     // create pipeline state
-    expect(
-        device->CreateGraphicsPipelineState(&descriptor, IID_PPV_ARGS(&pso_)) ==
-            S_OK,
-        "could not create pso");
+    expect(device->CreateGraphicsPipelineState(&descriptor, IID_PPV_ARGS(&pso_)) == S_OK, "could not create pso");
 
     static int counter = 0;
     std::wstringstream strm{};

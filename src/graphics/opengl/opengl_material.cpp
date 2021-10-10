@@ -32,17 +32,13 @@ namespace
  * @returns
  *   Opengl program object.
  */
-GLuint create_program(
-    const std::string &vertex_shader_source,
-    const std::string &fragment_shader_source)
+GLuint create_program(const std::string &vertex_shader_source, const std::string &fragment_shader_source)
 {
     const auto program = ::glCreateProgram();
     iris::expect(iris::check_opengl_error, "could not create new program");
 
-    const iris::OpenGLShader vertex_shader{
-        vertex_shader_source, iris::ShaderType::VERTEX};
-    const iris::OpenGLShader fragment_shader{
-        fragment_shader_source, iris::ShaderType::FRAGMENT};
+    const iris::OpenGLShader vertex_shader{vertex_shader_source, iris::ShaderType::VERTEX};
+    const iris::OpenGLShader fragment_shader{fragment_shader_source, iris::ShaderType::FRAGMENT};
 
     ::glAttachShader(program, vertex_shader.native_handle());
     iris::expect(iris::check_opengl_error, "could not attach vertex shader");
@@ -59,8 +55,7 @@ GLuint create_program(
     if (programparam != GL_TRUE)
     {
         ::glGetProgramiv(program, GL_INFO_LOG_LENGTH, &programparam);
-        iris::expect(
-            iris::check_opengl_error, "could not get program log length");
+        iris::expect(iris::check_opengl_error, "could not get program log length");
 
         if (programparam == 0)
         {
@@ -72,11 +67,7 @@ GLuint create_program(
 
             // get opengl error log
             GLsizei log_length = 0;
-            ::glGetProgramInfoLog(
-                program,
-                static_cast<std::int32_t>(error_log.size()),
-                &log_length,
-                error_log.data());
+            ::glGetProgramInfoLog(program, static_cast<std::int32_t>(error_log.size()), &log_length, error_log.data());
             iris::expect(iris::check_opengl_error, "failed to get error log");
 
             const std::string error(error_log.data(), log_length);
@@ -92,16 +83,13 @@ GLuint create_program(
 namespace iris
 {
 
-OpenGLMaterial::OpenGLMaterial(
-    const RenderGraph *render_graph,
-    LightType light_type)
+OpenGLMaterial::OpenGLMaterial(const RenderGraph *render_graph, LightType light_type)
     : handle_(0u)
     , textures_()
 {
     GLSLShaderCompiler compiler{render_graph, light_type};
 
-    handle_ =
-        create_program(compiler.vertex_shader(), compiler.fragment_shader());
+    handle_ = create_program(compiler.vertex_shader(), compiler.fragment_shader());
     textures_ = compiler.textures();
 }
 

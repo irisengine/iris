@@ -39,9 +39,7 @@ class D3D12GPUDescriptorHandleAllocator
      *   Number of descriptors to create in heap (static + dynamic).
      *
      */
-    D3D12GPUDescriptorHandleAllocator(
-        D3D12_DESCRIPTOR_HEAP_TYPE type,
-        std::uint32_t num_descriptors);
+    D3D12GPUDescriptorHandleAllocator(D3D12_DESCRIPTOR_HEAP_TYPE type, std::uint32_t num_descriptors);
 
     /**
      * Allocate a contiguous range of descriptor handles.

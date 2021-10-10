@@ -34,8 +34,7 @@ ServerSocketData SimulatedServerSocket::read()
 
     if (!client_)
     {
-        client_ = std::make_unique<SimulatedSocket>(
-            delay_, jitter_, drop_rate_, client_socket);
+        client_ = std::make_unique<SimulatedSocket>(delay_, jitter_, drop_rate_, client_socket);
     }
 
     return {client_.get(), data, new_client};

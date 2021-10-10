@@ -10,7 +10,7 @@ AllowAllConstructorInitializersOnNextLine: true
 BreakConstructorInitializers: BeforeComma
 AllowShortBlocksOnASingleLine: Never
 AlignTrailingComments: true
-ColumnLimit: 80
+ColumnLimit: 120
 AllowShortFunctionsOnASingleLine: None
 BinPackArguments: false
 BinPackParameters: false

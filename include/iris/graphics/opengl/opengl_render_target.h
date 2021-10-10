@@ -30,9 +30,7 @@ class OpenGLRenderTarget : public RenderTarget
      * @param depth_texture
      *   Texture to render depth data to.
      */
-    OpenGLRenderTarget(
-        std::unique_ptr<Texture> colour_texture,
-        std::unique_ptr<Texture> depth_texture);
+    OpenGLRenderTarget(std::unique_ptr<Texture> colour_texture, std::unique_ptr<Texture> depth_texture);
 
     /**
      * Clean up OpenGL objects.

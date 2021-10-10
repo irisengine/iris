@@ -144,9 +144,7 @@ class Root
      * @param physics_manager
      *   New PhysicsManager.
      */
-    static void register_physics_api(
-        const std::string &api,
-        std::unique_ptr<PhysicsManager> physics_manager);
+    static void register_physics_api(const std::string &api, std::unique_ptr<PhysicsManager> physics_manager);
 
     /**
      * Get the currently set physics api.
@@ -181,9 +179,7 @@ class Root
      * @param jobs_manager
      *   New JobSystemManager.
      */
-    static void register_jobs_api(
-        const std::string &api,
-        std::unique_ptr<JobSystemManager> jobs_manager);
+    static void register_jobs_api(const std::string &api, std::unique_ptr<JobSystemManager> jobs_manager);
 
     /**
      * Get the currently set jobs api.
@@ -248,9 +244,7 @@ class Root
 
     std::vector<std::string> registered_graphics_apis_impl() const;
 
-    void register_physics_api_impl(
-        const std::string &api,
-        std::unique_ptr<PhysicsManager> physics_manager);
+    void register_physics_api_impl(const std::string &api, std::unique_ptr<PhysicsManager> physics_manager);
 
     std::string physics_api_impl() const;
 
@@ -258,9 +252,7 @@ class Root
 
     std::vector<std::string> registered_physics_apis_impl() const;
 
-    void register_jobs_api_impl(
-        const std::string &api,
-        std::unique_ptr<JobSystemManager> jobs_manager);
+    void register_jobs_api_impl(const std::string &api, std::unique_ptr<JobSystemManager> jobs_manager);
 
     std::string jobs_api_impl() const;
 
@@ -292,15 +284,13 @@ class Root
     std::string graphics_api_;
 
     /** Map of physics api name to managers. */
-    std::unordered_map<std::string, std::unique_ptr<PhysicsManager>>
-        physics_api_managers_;
+    std::unordered_map<std::string, std::unique_ptr<PhysicsManager>> physics_api_managers_;
 
     /** Name of current physics api. */
     std::string physics_api_;
 
     /** Map of jobs api name to managers. */
-    std::unordered_map<std::string, std::unique_ptr<JobSystemManager>>
-        jobs_api_managers_;
+    std::unordered_map<std::string, std::unique_ptr<JobSystemManager>> jobs_api_managers_;
 
     /** Name of current jobs api. */
     std::string jobs_api_;

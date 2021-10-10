@@ -69,8 +69,7 @@ class MetalConstantBuffer
             throw Exception("write would overflow");
         }
 
-        std::memcpy(
-            static_cast<std::byte *>(buffer_.contents) + offset, object, size);
+        std::memcpy(static_cast<std::byte *>(buffer_.contents) + offset, object, size);
     }
 
     /**

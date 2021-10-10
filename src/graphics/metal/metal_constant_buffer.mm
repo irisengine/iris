@@ -22,8 +22,7 @@ MetalConstantBuffer::MetalConstantBuffer(std::size_t capacity)
     auto *device = iris::core::utility::metal_device();
 
     // create buffer with data
-    buffer_ = [device newBufferWithLength:capacity_
-                                  options:MTLResourceOptionCPUCacheModeDefault];
+    buffer_ = [device newBufferWithLength:capacity_ options:MTLResourceOptionCPUCacheModeDefault];
 }
 
 id<MTLBuffer> MetalConstantBuffer::handle() const

@@ -14,7 +14,7 @@ namespace iris::core::utility
 
 // common utilities
 
-NSString* string_to_nsstring(const std::string &str)
+NSString *string_to_nsstring(const std::string &str)
 {
     return [NSString stringWithUTF8String:str.c_str()];
 }

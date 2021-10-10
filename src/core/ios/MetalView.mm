@@ -17,12 +17,14 @@
 
 CADisplayLink *_displayLink;
 
-+ (id)layerClass {
++ (id)layerClass
+{
     // we need to change the backing layer so metal can be used
     return [CAMetalLayer class];
 }
 
-- (instancetype)init {
+- (instancetype)init
+{
     if ((self = [super initWithFrame:[[UIScreen mainScreen] bounds]]))
     {
         // basic metal setup

@@ -32,14 +32,10 @@ D3D12RenderTarget::D3D12RenderTarget(
 
     auto *device = D3D12Context::device();
 
-    handle_ =
-        D3D12DescriptorManager::cpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_RTV)
-            .allocate_static();
+    handle_ = D3D12DescriptorManager::cpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).allocate_static();
 
     device->CreateRenderTargetView(
-        static_cast<D3D12Texture *>(colour_texture_.get())->resource(),
-        nullptr,
-        handle_.cpu_handle());
+        static_cast<D3D12Texture *>(colour_texture_.get())->resource(), nullptr, handle_.cpu_handle());
 }
 
 D3D12DescriptorHandle D3D12RenderTarget::handle() const

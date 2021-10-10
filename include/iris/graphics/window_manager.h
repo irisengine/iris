@@ -30,9 +30,7 @@ class WindowManager
      * @param height
      *   Height of window.
      */
-    virtual Window *create_window(
-        std::uint32_t width,
-        std::uint32_t height) = 0;
+    virtual Window *create_window(std::uint32_t width, std::uint32_t height) = 0;
 
     /**
      * Get the currently active window.

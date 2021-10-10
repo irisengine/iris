@@ -63,11 +63,7 @@ class D3D12Renderer : public Renderer
      * @param initial_screen_scale
      *   The natural scale of the screen with window is currently on.
      */
-    D3D12Renderer(
-        HWND window,
-        std::uint32_t width,
-        std::uint32_t height,
-        std::uint32_t initial_screen_scale);
+    D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t height, std::uint32_t initial_screen_scale);
 
     /**
      * Destructor, will block until all inflight frames have finished rendering.
@@ -80,8 +76,7 @@ class D3D12Renderer : public Renderer
      * @param render_passes
      *   Collection of RenderPass objects to render.
      */
-    void set_render_passes(
-        const std::vector<RenderPass> &render_passes) override;
+    void set_render_passes(const std::vector<RenderPass> &render_passes) override;
 
     /**
      * Create a RenderTarget with custom dimensions.
@@ -95,9 +90,7 @@ class D3D12Renderer : public Renderer
      * @returns
      *   RenderTarget.
      */
-    RenderTarget *create_render_target(
-        std::uint32_t width,
-        std::uint32_t height) override;
+    RenderTarget *create_render_target(std::uint32_t width, std::uint32_t height) override;
 
   protected:
     // handlers for the supported RenderCommandTypes
@@ -153,8 +146,7 @@ class D3D12Renderer : public Renderer
         AutoRelease<HANDLE, nullptr> fence_event;
 
         /** Map of RenderCommand objects to constant data buffer pools. */
-        std::unordered_map<const RenderCommand *, D3D12ConstantBufferPool>
-            constant_data_buffers;
+        std::unordered_map<const RenderCommand *, D3D12ConstantBufferPool> constant_data_buffers;
     };
 
     /** Width of window to present to. */
@@ -191,10 +183,7 @@ class D3D12Renderer : public Renderer
     std::vector<std::unique_ptr<RenderTarget>> render_targets_;
 
     /** This collection stores materials per light type per render graph. */
-    std::unordered_map<
-        RenderGraph *,
-        std::unordered_map<LightType, std::unique_ptr<D3D12Material>>>
-        materials_;
+    std::unordered_map<RenderGraph *, std::unordered_map<LightType, std::unique_ptr<D3D12Material>>> materials_;
 
     /** Collection of textures that have been uploaded. */
     std::set<const D3D12Texture *> uploaded_;

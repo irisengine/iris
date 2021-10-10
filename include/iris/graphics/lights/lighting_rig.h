@@ -7,9 +7,9 @@
 #pragma once
 
 #include "core/colour.h"
+#include "graphics/lights/ambient_light.h"
 #include "graphics/lights/directional_light.h"
 #include "graphics/lights/point_light.h"
-#include "graphics/lights/ambient_light.h"
 
 #include <memory>
 #include <vector>

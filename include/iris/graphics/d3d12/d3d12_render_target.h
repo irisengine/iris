@@ -30,9 +30,7 @@ class D3D12RenderTarget : public RenderTarget
      * @param depth_texture
      *   Texture to render depth data to.
      */
-    D3D12RenderTarget(
-        std::unique_ptr<D3D12Texture> colour_texture,
-        std::unique_ptr<D3D12Texture> depth_texture);
+    D3D12RenderTarget(std::unique_ptr<D3D12Texture> colour_texture, std::unique_ptr<D3D12Texture> depth_texture);
 
     ~D3D12RenderTarget() override = default;
 

@@ -90,8 +90,7 @@ class PhysicsSystem
      * @returns
      *   Pointer to newly created CollisionShape.
      */
-    virtual CollisionShape *create_box_collision_shape(
-        const Vector3 &half_size) = 0;
+    virtual CollisionShape *create_box_collision_shape(const Vector3 &half_size) = 0;
 
     /**
      * Create a CollisionShape for a capsule.
@@ -105,9 +104,7 @@ class PhysicsSystem
      * @returns
      *   Pointer to newly created CollisionShape.
      */
-    virtual CollisionShape *create_capsule_collision_shape(
-        float width,
-        float height) = 0;
+    virtual CollisionShape *create_capsule_collision_shape(float width, float height) = 0;
 
     /**
      * Remove a body from the physics system.
@@ -144,9 +141,8 @@ class PhysicsSystem
      *   If ray hits an object then a tuple [object hit, point of intersection],
      *   else empty optional.
      */
-    virtual std::optional<std::tuple<RigidBody *, Vector3>> ray_cast(
-        const Vector3 &origin,
-        const Vector3 &direction) const = 0;
+    virtual std::optional<std::tuple<RigidBody *, Vector3>> ray_cast(const Vector3 &origin, const Vector3 &direction)
+        const = 0;
 
     /**
      * Add a body to be excluded from ray_casts

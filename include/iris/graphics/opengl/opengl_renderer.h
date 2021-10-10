@@ -45,8 +45,7 @@ class OpenGLRenderer : public Renderer
      * @param render_passes
      *   Collection of RenderPass objects to render.
      */
-    void set_render_passes(
-        const std::vector<RenderPass> &render_passes) override;
+    void set_render_passes(const std::vector<RenderPass> &render_passes) override;
 
     /**
      * Create a RenderTarget with custom dimensions.
@@ -60,9 +59,7 @@ class OpenGLRenderer : public Renderer
      * @returns
      *   RenderTarget.
      */
-    RenderTarget *create_render_target(
-        std::uint32_t width,
-        std::uint32_t height) override;
+    RenderTarget *create_render_target(std::uint32_t width, std::uint32_t height) override;
 
   protected:
     // handlers for the supported RenderCommandTypes
@@ -75,10 +72,8 @@ class OpenGLRenderer : public Renderer
 
   private:
     // helper aliases to try and simplify the verbose types
-    using LightMaterialMap =
-        std::unordered_map<LightType, std::unique_ptr<OpenGLMaterial>>;
-    using EntityUniformMap = std::
-        unordered_map<const RenderEntity *, std::unique_ptr<DefaultUniforms>>;
+    using LightMaterialMap = std::unordered_map<LightType, std::unique_ptr<OpenGLMaterial>>;
+    using EntityUniformMap = std::unordered_map<const RenderEntity *, std::unique_ptr<DefaultUniforms>>;
 
     /** Collection of created RenderTarget objects. */
     std::vector<std::unique_ptr<OpenGLRenderTarget>> render_targets_;

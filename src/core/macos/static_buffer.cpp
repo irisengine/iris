@@ -33,26 +33,18 @@ StaticBuffer::StaticBuffer(std::size_t pages)
     // calculate amount of bytes to allocate, including guard pages
     impl_->allocated_size = (pages + 2u) * page_size();
 
-    impl_->allocated_region = static_cast<std::byte *>(::mmap(
-        0,
-        impl_->allocated_size,
-        PROT_READ | PROT_WRITE,
-        MAP_PRIVATE | MAP_ANON,
-        -1,
-        0));
+    impl_->allocated_region = static_cast<std::byte *>(
+        ::mmap(0, impl_->allocated_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0));
 
     expect(impl_->allocated_region != MAP_FAILED, "failed to mmap memory");
 
     // set head guard page
-    const auto remove_protection =
-        ::mprotect(impl_->allocated_region, page_size(), PROT_NONE);
+    const auto remove_protection = ::mprotect(impl_->allocated_region, page_size(), PROT_NONE);
     expect(remove_protection != -1, "failed to set head guard page");
 
     // set tail guard page
-    const auto set_protection = ::mprotect(
-        impl_->allocated_region + ((pages + 1u) * page_size()),
-        page_size(),
-        PROT_NONE);
+    const auto set_protection =
+        ::mprotect(impl_->allocated_region + ((pages + 1u) * page_size()), page_size(), PROT_NONE);
     expect(set_protection != -1, "failed to set tail guard page");
 
     // calculate usable region pointer and size

@@ -45,11 +45,7 @@ namespace detail
  *   The stream to write to.
  */
 template <class T>
-void format(
-    const std::string &format_str,
-    T &&obj,
-    std::size_t &pos,
-    std::stringstream &strm)
+void format(const std::string &format_str, T &&obj, std::size_t &pos, std::stringstream &strm)
 {
     static const std::string format_pattern{"{}"};
 
@@ -85,11 +81,7 @@ void format(
  *   The object to write.
  */
 template <class Head>
-void unpack(
-    const std::string &message,
-    std::size_t &pos,
-    std::stringstream &strm,
-    Head &&head)
+void unpack(const std::string &message, std::size_t &pos, std::stringstream &strm, Head &&head)
 {
     // write object to stream (if '{}' is in message)
     format(message, head, pos, strm);
@@ -123,12 +115,7 @@ void unpack(
  *   Remaining arguments
  */
 template <class Head, class... Tail>
-void unpack(
-    const std::string &message,
-    std::size_t &pos,
-    std::stringstream &strm,
-    Head &&head,
-    Tail &&... tail)
+void unpack(const std::string &message, std::size_t &pos, std::stringstream &strm, Head &&head, Tail &&...tail)
 {
     format(message, std::forward<Head>(head), pos, strm);
     unpack(message, pos, strm, std::forward<Tail>(tail)...);
@@ -236,11 +223,8 @@ class Logger
      * @param args
      *   Varaidic list of arguments for Formatter constructor.
      */
-    template <
-        class T,
-        class... Args,
-        typename = std::enable_if_t<std::is_base_of<Formatter, T>::value>>
-    void set_Formatter(Args &&... args)
+    template <class T, class... Args, typename = std::enable_if_t<std::is_base_of<Formatter, T>::value>>
+    void set_Formatter(Args &&...args)
     {
         formatter_ = std::make_unique<T>(std::forward<Args>(args)...);
     }
@@ -253,11 +237,8 @@ class Logger
      * @param args
      *   Varaidic list of arguments for Outputter constructor.
      */
-    template <
-        class T,
-        class... Args,
-        typename = std::enable_if_t<std::is_base_of<Outputter, T>::value>>
-    void set_Outputter(Args &&... args)
+    template <class T, class... Args, typename = std::enable_if_t<std::is_base_of<Outputter, T>::value>>
+    void set_Outputter(Args &&...args)
     {
         outputter_ = std::make_unique<T>(std::forward<Args>(args)...);
     }
@@ -294,14 +275,12 @@ class Logger
         const std::string &message)
     {
         // check if we want to process this log message
-        if ((!engine || log_engine_) && (level >= min_level_) &&
-            (ignore_.find(tag) == std::cend(ignore_)))
+        if ((!engine || log_engine_) && (level >= min_level_) && (ignore_.find(tag) == std::cend(ignore_)))
         {
             std::stringstream strm{};
             strm << message;
 
-            const auto log =
-                formatter_->format(level, tag, strm.str(), filename, line);
+            const auto log = formatter_->format(level, tag, strm.str(), filename, line);
 
             std::unique_lock lock(mutex_);
             outputter_->output(log);
@@ -342,7 +321,7 @@ class Logger
         const int line,
         const bool engine,
         const std::string &message,
-        Args &&... args)
+        Args &&...args)
     {
         std::stringstream strm{};
 

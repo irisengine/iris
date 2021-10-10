@@ -17,9 +17,7 @@ FileOutputter::FileOutputter(const std::string &filename)
     : file_(filename, std::ios::out | std::ios::app)
 {
     // better check all of these
-    ensure(
-        file_.is_open() && !file_.bad() && file_.good() && !file_.fail(),
-        "failed to open log file");
+    ensure(file_.is_open() && !file_.bad() && file_.good() && !file_.fail(), "failed to open log file");
 }
 
 void FileOutputter::output(const std::string &log)

@@ -34,18 +34,10 @@ MTLVertexFormat to_metal_format(iris::VertexAttributeType type)
 
     switch (type)
     {
-        case iris::VertexAttributeType::FLOAT_3:
-            format = MTLVertexFormatFloat3;
-            break;
-        case iris::VertexAttributeType::FLOAT_4:
-            format = MTLVertexFormatFloat4;
-            break;
-        case iris::VertexAttributeType::UINT32_1:
-            format = MTLVertexFormatUInt;
-            break;
-        case iris::VertexAttributeType::UINT32_4:
-            format = MTLVertexFormatUInt4;
-            break;
+        case iris::VertexAttributeType::FLOAT_3: format = MTLVertexFormatFloat3; break;
+        case iris::VertexAttributeType::FLOAT_4: format = MTLVertexFormatFloat4; break;
+        case iris::VertexAttributeType::UINT32_1: format = MTLVertexFormatUInt; break;
+        case iris::VertexAttributeType::UINT32_4: format = MTLVertexFormatUInt4; break;
         default: throw iris::Exception("unknown vertex attribute type");
     }
 

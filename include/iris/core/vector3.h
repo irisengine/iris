@@ -210,8 +210,7 @@ class Vector3
      */
     bool operator==(const Vector3 &other) const
     {
-        return compare(x, other.x) && compare(y, other.y) &&
-               compare(z, other.z);
+        return compare(x, other.x) && compare(y, other.y) && compare(z, other.z);
     }
     /**
      * Inequality operator.
@@ -271,8 +270,7 @@ class Vector3
     {
         const auto length =
 
-            std::sqrt(
-                std::pow(x, 2.0f) + std::pow(y, 2.0f) + std::pow(z, 2.0f));
+            std::sqrt(std::pow(x, 2.0f) + std::pow(y, 2.0f) + std::pow(z, 2.0f));
 
         if (length != 0.0f)
         {
@@ -322,10 +320,7 @@ class Vector3
      * @returns
      *   Result of lerp.
      */
-    constexpr static Vector3 lerp(
-        const Vector3 &start,
-        const Vector3 &end,
-        float amount)
+    constexpr static Vector3 lerp(const Vector3 &start, const Vector3 &end, float amount)
     {
         auto tmp = start;
         tmp.lerp(end, amount);

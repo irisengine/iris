@@ -50,12 +50,7 @@ UdpSocket::UdpSocket(const std::string &address, std::uint16_t port)
 
     // enable socket reuse
     int reuse = 1;
-    if (::setsockopt(
-            socket_,
-            SOL_SOCKET,
-            SO_REUSEADDR,
-            reinterpret_cast<const char *>(&reuse),
-            sizeof(reuse)) < 0)
+    if (::setsockopt(socket_, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char *>(&reuse), sizeof(reuse)) < 0)
     {
         throw iris::Exception("setsockopt failed");
     }
@@ -63,10 +58,7 @@ UdpSocket::UdpSocket(const std::string &address, std::uint16_t port)
     LOG_ENGINE_INFO("udp_socket", "connected!");
 }
 
-UdpSocket::UdpSocket(
-    struct sockaddr_in socket_address,
-    socklen_t socket_length,
-    SocketHandle socket)
+UdpSocket::UdpSocket(struct sockaddr_in socket_address, socklen_t socket_length, SocketHandle socket)
     : socket_(socket, nullptr)
     , address_(socket_address)
     , address_length_(socket_length)

@@ -30,20 +30,11 @@ std::string ColourFormatter::format(
     // apply an ANSI escape sequence to start colour output
     switch (level)
     {
-        case LogLevel::DEBUG:
-            strm << "\x1b[35m";
-            break;
-        case LogLevel::INFO:
-            strm << "\x1b[34m";
-            break;
-        case LogLevel::WARN:
-            strm << "\x1b[33m";
-            break;
-        case LogLevel::ERR:
-            strm << "\x1b[31m";
-            break;
-        default:
-            break;
+        case LogLevel::DEBUG: strm << "\x1b[35m"; break;
+        case LogLevel::INFO: strm << "\x1b[34m"; break;
+        case LogLevel::WARN: strm << "\x1b[33m"; break;
+        case LogLevel::ERR: strm << "\x1b[31m"; break;
+        default: break;
     }
 
     // write message and reset ANSI escape code

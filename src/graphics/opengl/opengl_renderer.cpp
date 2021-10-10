@@ -53,11 +53,7 @@ void render_setup(const iris::OpenGLRenderTarget *target)
     }
     else
     {
-        ::glViewport(
-            0,
-            0,
-            target->colour_texture()->width(),
-            target->colour_texture()->height());
+        ::glViewport(0, 0, target->colour_texture()->width(), target->colour_texture()->height());
         iris::expect(iris::check_opengl_error, "could not set viewport");
 
         target->bind(GL_FRAMEBUFFER);
@@ -101,13 +97,10 @@ void set_uniforms(
     uniforms->light_attenuation.set_value(light->attenuation_data());
 
     // set shadow map specific texture and uniforms, if it was provided
-    if ((shadow_map != nullptr) &&
-        (light->type() == iris::LightType::DIRECTIONAL))
+    if ((shadow_map != nullptr) && (light->type() == iris::LightType::DIRECTIONAL))
     {
-        const auto *directional_light =
-            static_cast<const iris::DirectionalLight *>(light);
-        const auto *opengl_texture = static_cast<const iris::OpenGLTexture *>(
-            shadow_map->depth_texture());
+        const auto *directional_light = static_cast<const iris::DirectionalLight *>(light);
+        const auto *opengl_texture = static_cast<const iris::OpenGLTexture *>(shadow_map->depth_texture());
         const auto tex_handle = opengl_texture->handle();
 
         ::glActiveTexture(opengl_texture->id());
@@ -117,10 +110,8 @@ void set_uniforms(
         iris::expect(iris::check_opengl_error, "could not bind texture``");
 
         uniforms->shadow_map.set_value(opengl_texture->id() - GL_TEXTURE0);
-        uniforms->light_projection.set_value(
-            directional_light->shadow_camera().projection());
-        uniforms->light_view.set_value(
-            directional_light->shadow_camera().view());
+        uniforms->light_projection.set_value(directional_light->shadow_camera().projection());
+        uniforms->light_view.set_value(directional_light->shadow_camera().view());
     }
 
     uniforms->bones.set_value(entity->skeleton().transforms());
@@ -135,15 +126,12 @@ void set_uniforms(
  * @param material
  *   Material to bind textures for.
  */
-void bind_textures(
-    const iris::DefaultUniforms *uniforms,
-    const iris::OpenGLMaterial *material)
+void bind_textures(const iris::DefaultUniforms *uniforms, const iris::OpenGLMaterial *material)
 {
     const auto textures = material->textures();
     for (auto i = 0u; i < textures.size(); ++i)
     {
-        const auto *opengl_texture =
-            static_cast<const iris::OpenGLTexture *>(textures[i]);
+        const auto *opengl_texture = static_cast<const iris::OpenGLTexture *>(textures[i]);
         const auto tex_handle = opengl_texture->handle();
 
         ::glActiveTexture(opengl_texture->id());
@@ -167,9 +155,7 @@ void draw_meshes(const iris::RenderEntity *entity)
     const auto *mesh = static_cast<iris::OpenGLMesh *>(entity->mesh());
     mesh->bind();
 
-    const auto type = entity->primitive_type() == iris::PrimitiveType::TRIANGLES
-                          ? GL_TRIANGLES
-                          : GL_LINES;
+    const auto type = entity->primitive_type() == iris::PrimitiveType::TRIANGLES ? GL_TRIANGLES : GL_LINES;
 
     // draw!
     ::glDrawElements(type, mesh->element_count(), GL_UNSIGNED_INT, 0);
@@ -208,8 +194,7 @@ OpenGLRenderer::OpenGLRenderer(std::uint32_t width, std::uint32_t height)
     LOG_ENGINE_INFO("render_system", "constructed opengl renderer");
 }
 
-void OpenGLRenderer::set_render_passes(
-    const std::vector<RenderPass> &render_passes)
+void OpenGLRenderer::set_render_passes(const std::vector<RenderPass> &render_passes)
 {
     render_passes_ = render_passes;
 
@@ -228,8 +213,7 @@ void OpenGLRenderer::set_render_passes(
     if (post_processing_target_ == nullptr)
     {
         post_processing_target_ = create_render_target(width_, height_);
-        post_processing_camera_ =
-            std::make_unique<Camera>(CameraType::ORTHOGRAPHIC, width_, height_);
+        post_processing_camera_ = std::make_unique<Camera>(CameraType::ORTHOGRAPHIC, width_, height_);
     }
 
     post_processing_scene_ = std::make_unique<Scene>();
@@ -237,41 +221,29 @@ void OpenGLRenderer::set_render_passes(
     // create a full screen quad which renders the final stage with the post
     // processing node
     auto *rg = post_processing_scene_->create_render_graph();
-    rg->set_render_node<PostProcessingNode>(
-        rg->create<TextureNode>(post_processing_target_->colour_texture()));
+    rg->set_render_node<PostProcessingNode>(rg->create<TextureNode>(post_processing_target_->colour_texture()));
     post_processing_scene_->create_entity(
         rg,
         Root::mesh_manager().sprite({}),
-        Transform(
-            {},
-            {},
-            {static_cast<float>(width_), static_cast<float>(height_), 1.0}));
+        Transform({}, {}, {static_cast<float>(width_), static_cast<float>(height_), 1.0}));
 
     // wire up this pass
     final_pass->render_target = post_processing_target_;
-    render_passes_.emplace_back(
-        post_processing_scene_.get(), post_processing_camera_.get(), nullptr);
+    render_passes_.emplace_back(post_processing_scene_.get(), post_processing_camera_.get(), nullptr);
 
     // build the render queue from the provided passes
 
     RenderQueueBuilder queue_builder(
-        [this](
-            RenderGraph *render_graph,
-            RenderEntity *,
-            const RenderTarget *,
-            LightType light_type)
+        [this](RenderGraph *render_graph, RenderEntity *, const RenderTarget *, LightType light_type)
         {
-            if (materials_.count(render_graph) == 0u ||
-                materials_[render_graph].count(light_type) == 0u)
+            if (materials_.count(render_graph) == 0u || materials_[render_graph].count(light_type) == 0u)
             {
-                materials_[render_graph][light_type] =
-                    std::make_unique<OpenGLMaterial>(render_graph, light_type);
+                materials_[render_graph][light_type] = std::make_unique<OpenGLMaterial>(render_graph, light_type);
             }
 
             return materials_[render_graph][light_type].get();
         },
-        [this](std::uint32_t width, std::uint32_t height)
-        { return create_render_target(width, height); });
+        [this](std::uint32_t width, std::uint32_t height) { return create_render_target(width, height); });
 
     render_queue_ = queue_builder.build(render_passes_);
 
@@ -283,8 +255,7 @@ void OpenGLRenderer::set_render_passes(
     {
         if (command.type() == RenderCommandType::DRAW)
         {
-            const auto *material =
-                static_cast<const OpenGLMaterial *>(command.material());
+            const auto *material = static_cast<const OpenGLMaterial *>(command.material());
             const auto *render_entity = command.render_entity();
 
             // we store uniforms per entity per material
@@ -293,69 +264,54 @@ void OpenGLRenderer::set_render_passes(
                 const auto program = material->handle();
 
                 // create default uniforms
-                uniforms_[material][render_entity] =
-                    std::make_unique<DefaultUniforms>(
-                        OpenGLUniform(program, "projection"),
-                        OpenGLUniform(program, "view"),
-                        OpenGLUniform(program, "model"),
-                        OpenGLUniform(program, "normal_matrix", false),
-                        OpenGLUniform(program, "light_colour", false),
-                        OpenGLUniform(program, "light_position", false),
-                        OpenGLUniform(program, "light_attenuation", false),
-                        OpenGLUniform(program, "g_shadow_map", false),
-                        OpenGLUniform(program, "light_projection", false),
-                        OpenGLUniform(program, "light_view", false),
-                        OpenGLUniform(program, "bones"));
+                uniforms_[material][render_entity] = std::make_unique<DefaultUniforms>(
+                    OpenGLUniform(program, "projection"),
+                    OpenGLUniform(program, "view"),
+                    OpenGLUniform(program, "model"),
+                    OpenGLUniform(program, "normal_matrix", false),
+                    OpenGLUniform(program, "light_colour", false),
+                    OpenGLUniform(program, "light_position", false),
+                    OpenGLUniform(program, "light_attenuation", false),
+                    OpenGLUniform(program, "g_shadow_map", false),
+                    OpenGLUniform(program, "light_projection", false),
+                    OpenGLUniform(program, "light_view", false),
+                    OpenGLUniform(program, "bones"));
 
                 // create uniforms for each texture
                 for (auto i = 0u; i < material->textures().size(); ++i)
                 {
                     uniforms_[material][render_entity]->textures.emplace_back(
-                        OpenGLUniform{
-                            program, "texture" + std::to_string(i), false});
+                        OpenGLUniform{program, "texture" + std::to_string(i), false});
                 }
             }
         }
     }
 }
 
-RenderTarget *OpenGLRenderer::create_render_target(
-    std::uint32_t width,
-    std::uint32_t height)
+RenderTarget *OpenGLRenderer::create_render_target(std::uint32_t width, std::uint32_t height)
 {
-    auto &tex_man =
-        static_cast<OpenGLTextureManager &>(Root::texture_manager());
+    auto &tex_man = static_cast<OpenGLTextureManager &>(Root::texture_manager());
 
     const auto scale = Root::window_manager().current_window()->screen_scale();
 
     render_targets_.emplace_back(std::make_unique<OpenGLRenderTarget>(
         std::make_unique<OpenGLTexture>(
-            DataBuffer{},
-            width * scale,
-            height * scale,
-            TextureUsage::RENDER_TARGET,
-            tex_man.next_id()),
+            DataBuffer{}, width * scale, height * scale, TextureUsage::RENDER_TARGET, tex_man.next_id()),
         std::make_unique<OpenGLTexture>(
-            DataBuffer{},
-            width * scale,
-            height * scale,
-            TextureUsage::DEPTH,
-            tex_man.next_id())));
+            DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH, tex_man.next_id())));
 
     return render_targets_.back().get();
 }
 
 void OpenGLRenderer::execute_pass_start(RenderCommand &command)
 {
-    const auto *target = static_cast<const OpenGLRenderTarget *>(
-        command.render_pass()->render_target);
+    const auto *target = static_cast<const OpenGLRenderTarget *>(command.render_pass()->render_target);
 
     // if we have no target then we render to the default framebuffer
     // else we bind the supplied target
     if (target == nullptr)
     {
-        const auto scale =
-            Root::window_manager().current_window()->screen_scale();
+        const auto scale = Root::window_manager().current_window()->screen_scale();
 
         ::glViewport(0, 0, width_ * scale, height_ * scale);
         expect(check_opengl_error, "could not set viewport");
@@ -365,11 +321,7 @@ void OpenGLRenderer::execute_pass_start(RenderCommand &command)
     }
     else
     {
-        ::glViewport(
-            0,
-            0,
-            target->colour_texture()->width(),
-            target->colour_texture()->height());
+        ::glViewport(0, 0, target->colour_texture()->width(), target->colour_texture()->height());
         expect(check_opengl_error, "could not set viewport");
 
         target->bind(GL_FRAMEBUFFER);
@@ -387,8 +339,7 @@ void OpenGLRenderer::execute_draw(RenderCommand &command)
     const auto *light = command.light();
 
     static const OpenGLRenderTarget *previous_target = nullptr;
-    const auto *target = static_cast<const OpenGLRenderTarget *>(
-        command.render_pass()->render_target);
+    const auto *target = static_cast<const OpenGLRenderTarget *>(command.render_pass()->render_target);
 
     // optimisation, we only call render_setup when the target changes
     if (target != previous_target)
@@ -438,8 +389,7 @@ void OpenGLRenderer::execute_present(RenderCommand &)
 #if defined(IRIS_PLATFORM_MACOS)
     ::glSwapAPPLE();
 #elif defined(IRIS_PLATFORM_WIN32)
-    const auto *window = static_cast<Win32OpenGLWindow *>(
-        Root::window_manager().current_window());
+    const auto *window = static_cast<Win32OpenGLWindow *>(Root::window_manager().current_window());
     ::SwapBuffers(window->device_context());
 #endif
 }

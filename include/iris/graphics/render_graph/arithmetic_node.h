@@ -56,10 +56,7 @@ class ArithmeticNode : public Node
      * @param arithmetic_operator
      *   Operator to apply to value1 and value2.
      */
-    ArithmeticNode(
-        Node *value1,
-        Node *value2,
-        ArithmeticOperator arithmetic_operator);
+    ArithmeticNode(Node *value1, Node *value2, ArithmeticOperator arithmetic_operator);
 
     ~ArithmeticNode() override = default;
 

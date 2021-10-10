@@ -36,23 +36,10 @@ namespace
  * @param data_ptr
  *   Pointer to image data.
  */
-void specify_image_texture(
-    std::uint32_t width,
-    std::uint32_t height,
-    const std::byte *data_ptr)
+void specify_image_texture(std::uint32_t width, std::uint32_t height, const std::byte *data_ptr)
 {
-    ::glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        GL_SRGB_ALPHA,
-        width,
-        height,
-        0,
-        GL_RGBA,
-        GL_UNSIGNED_BYTE,
-        data_ptr);
-    iris::expect(
-        iris::check_opengl_error, "could not set specify image texture");
+    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data_ptr);
+    iris::expect(iris::check_opengl_error, "could not set specify image texture");
 
     ::glGenerateMipmap(GL_TEXTURE_2D);
     iris::expect(iris::check_opengl_error, "could not generate mipmaps");
@@ -71,23 +58,10 @@ void specify_image_texture(
  * @param data_ptr
  *   Pointer to image data.
  */
-void specify_data_texture(
-    std::uint32_t width,
-    std::uint32_t height,
-    const std::byte *data_ptr)
+void specify_data_texture(std::uint32_t width, std::uint32_t height, const std::byte *data_ptr)
 {
-    ::glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        GL_RGBA,
-        width,
-        height,
-        0,
-        GL_RGBA,
-        GL_UNSIGNED_BYTE,
-        data_ptr);
-    iris::expect(
-        iris::check_opengl_error, "could not set specify data texture");
+    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data_ptr);
+    iris::expect(iris::check_opengl_error, "could not set specify data texture");
 
     ::glGenerateMipmap(GL_TEXTURE_2D);
 }
@@ -104,19 +78,8 @@ void specify_data_texture(
  */
 void specify_render_target_texture(std::uint32_t width, std::uint32_t height)
 {
-    ::glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        GL_RGBA16F,
-        width,
-        height,
-        0,
-        GL_RGBA,
-        GL_FLOAT,
-        nullptr);
-    iris::expect(
-        iris::check_opengl_error,
-        "could not set specify render target texture");
+    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
+    iris::expect(iris::check_opengl_error, "could not set specify render target texture");
 }
 
 /**
@@ -132,17 +95,8 @@ void specify_render_target_texture(std::uint32_t width, std::uint32_t height)
 void specify_depth_texture(std::uint32_t width, std::uint32_t height)
 {
     ::glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        GL_DEPTH_COMPONENT,
-        width,
-        height,
-        0,
-        GL_DEPTH_COMPONENT,
-        GL_UNSIGNED_SHORT,
-        nullptr);
-    iris::expect(
-        iris::check_opengl_error, "could not set specify depth texture");
+        GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, nullptr);
+    iris::expect(iris::check_opengl_error, "could not set specify depth texture");
 }
 
 /**
@@ -185,12 +139,10 @@ GLuint create_texture(
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    iris::expect(
-        iris::check_opengl_error, "could not set min filter parameter");
+    iris::expect(iris::check_opengl_error, "could not set min filter parameter");
 
     ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    iris::expect(
-        iris::check_opengl_error, "could not set max filter parameter");
+    iris::expect(iris::check_opengl_error, "could not set max filter parameter");
 
     const float border_colour[] = {1.0f, 1.0f, 1.0f, 1.0f};
     ::glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border_colour);
@@ -201,18 +153,10 @@ GLuint create_texture(
 
     switch (usage)
     {
-        case iris::TextureUsage::IMAGE:
-            specify_image_texture(width, height, data_ptr);
-            break;
-        case iris::TextureUsage::DATA:
-            specify_data_texture(width, height, data_ptr);
-            break;
-        case iris::TextureUsage::RENDER_TARGET:
-            specify_render_target_texture(width, height);
-            break;
-        case iris::TextureUsage::DEPTH:
-            specify_depth_texture(width, height);
-            break;
+        case iris::TextureUsage::IMAGE: specify_image_texture(width, height, data_ptr); break;
+        case iris::TextureUsage::DATA: specify_data_texture(width, height, data_ptr); break;
+        case iris::TextureUsage::RENDER_TARGET: specify_render_target_texture(width, height); break;
+        case iris::TextureUsage::DEPTH: specify_depth_texture(width, height); break;
         default: throw iris::Exception("unknown usage");
     }
 

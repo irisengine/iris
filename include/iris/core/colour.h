@@ -69,11 +69,7 @@ class Colour
      * @param a
      *   Alpha.
      */
-    constexpr Colour(
-        std::int32_t r,
-        std::int32_t g,
-        std::int32_t b,
-        std::int32_t a = 255)
+    constexpr Colour(std::int32_t r, std::int32_t g, std::int32_t b, std::int32_t a = 255)
         : Colour(
               static_cast<float>(r) / 255.0f,
               static_cast<float>(g) / 255.0f,
@@ -233,8 +229,7 @@ class Colour
      */
     bool operator==(const Colour &other) const
     {
-        return compare(r, other.r) && compare(g, other.g) &&
-               compare(b, other.b) && compare(a, other.a);
+        return compare(r, other.r) && compare(g, other.g) && compare(b, other.b) && compare(a, other.a);
     }
 
     /**

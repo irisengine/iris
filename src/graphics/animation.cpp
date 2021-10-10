@@ -46,9 +46,7 @@ Transform Animation::transform(const std::string &bone) const
 
     // find the first keyframe *after* current time
     const auto &second_keyframe = std::find_if(
-        std::cbegin(keyframes) + 1u,
-        std::cend(keyframes),
-        [this](const KeyFrame &kf) { return kf.time >= time_; });
+        std::cbegin(keyframes) + 1u, std::cend(keyframes), [this](const KeyFrame &kf) { return kf.time >= time_; });
 
     expect(second_keyframe != std::cend(keyframes), "cannot find keyframe");
 
@@ -57,8 +55,7 @@ Transform Animation::transform(const std::string &bone) const
     // calculate interpolation amount
     const auto delta1 = second_keyframe->time - first_keyframe->time;
     const auto delta2 = time_ - first_keyframe->time;
-    const auto interpolation =
-        static_cast<float>(delta2.count()) / static_cast<float>(delta1.count());
+    const auto interpolation = static_cast<float>(delta2.count()) / static_cast<float>(delta1.count());
 
     // interpolate between frames
     auto transform = first_keyframe->transform;
@@ -75,8 +72,7 @@ bool Animation::bone_exists(const std::string &bone) const
 void Animation::advance()
 {
     const auto now = std::chrono::steady_clock::now();
-    const auto delta = std::chrono::duration_cast<std::chrono::milliseconds>(
-        now - last_advance_);
+    const auto delta = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_advance_);
 
     // update time, ensuring we wrap around so animation loops
     time_ = (time_ + delta) % duration_;

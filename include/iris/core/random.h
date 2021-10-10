@@ -55,10 +55,10 @@ float random_float(float min, float max);
 
 /**
  * Flip a (biased) coin.
- * 
+ *
  * @param bias
  *   Possibility of heads [0.0, 1.0]. A value of 0.5 is a fair coin toss.
- * 
+ *
  * @returns
  *   True if heads, false if tails.
  */

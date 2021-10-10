@@ -30,16 +30,13 @@ namespace
  * @param mapped_memory
  *   Out pointer (to a pointer) where the buffer will be mapped to the CPU.
  */
-Microsoft::WRL::ComPtr<ID3D12Resource> create_resource(
-    std::size_t size,
-    std::byte **mapped_memory)
+Microsoft::WRL::ComPtr<ID3D12Resource> create_resource(std::size_t size, std::byte **mapped_memory)
 {
     auto *device = iris::D3D12Context::device();
 
     // create the buffer on the upload heap
     CD3DX12_HEAP_PROPERTIES heap_properties(D3D12_HEAP_TYPE_UPLOAD);
-    const auto buffer_descriptor =
-        CD3DX12_RESOURCE_DESC::Buffer(static_cast<UINT>(size));
+    const auto buffer_descriptor = CD3DX12_RESOURCE_DESC::Buffer(static_cast<UINT>(size));
     Microsoft::WRL::ComPtr<ID3D12Resource> resource = nullptr;
 
     const auto commit_resource = device->CreateCommittedResource(
@@ -49,16 +46,13 @@ Microsoft::WRL::ComPtr<ID3D12Resource> create_resource(
         D3D12_RESOURCE_STATE_GENERIC_READ,
         nullptr,
         IID_PPV_ARGS(&resource));
-    iris::expect(
-        commit_resource == S_OK, "could not create committed resource");
+    iris::expect(commit_resource == S_OK, "could not create committed resource");
 
     CD3DX12_RANGE read_range(0, 0);
 
     // map the gpu buffer to the cpu, so it can be written to
     iris::expect(
-        resource->Map(
-            0u, &read_range, reinterpret_cast<void **>(mapped_memory)) == S_OK,
-        "could not map buffer");
+        resource->Map(0u, &read_range, reinterpret_cast<void **>(mapped_memory)) == S_OK, "could not map buffer");
 
     return resource;
 }
@@ -76,14 +70,12 @@ D3D12Buffer::D3D12Buffer(const std::vector<VertexData> &vertex_data)
     , capacity_(element_count_)
     , mapped_memory_(nullptr)
 {
-    resource_ =
-        create_resource(capacity_ * sizeof(VertexData), &mapped_memory_);
+    resource_ = create_resource(capacity_ * sizeof(VertexData), &mapped_memory_);
 
     write(vertex_data);
 
     vertex_buffer_view_.BufferLocation = resource_->GetGPUVirtualAddress();
-    vertex_buffer_view_.SizeInBytes =
-        static_cast<UINT>(element_count_ * sizeof(VertexData));
+    vertex_buffer_view_.SizeInBytes = static_cast<UINT>(element_count_ * sizeof(VertexData));
     vertex_buffer_view_.StrideInBytes = sizeof(VertexData);
 }
 
@@ -95,14 +87,12 @@ D3D12Buffer::D3D12Buffer(const std::vector<std::uint32_t> &index_data)
     , capacity_(element_count_)
     , mapped_memory_(nullptr)
 {
-    resource_ =
-        create_resource(capacity_ * sizeof(std::uint32_t), &mapped_memory_);
+    resource_ = create_resource(capacity_ * sizeof(std::uint32_t), &mapped_memory_);
 
     write(index_data);
 
     index_buffer_view_.BufferLocation = resource_->GetGPUVirtualAddress();
-    index_buffer_view_.SizeInBytes =
-        static_cast<UINT>(element_count_ * sizeof(std::uint32_t));
+    index_buffer_view_.SizeInBytes = static_cast<UINT>(element_count_ * sizeof(std::uint32_t));
     index_buffer_view_.Format = DXGI_FORMAT_R32_UINT;
 }
 
@@ -129,20 +119,15 @@ void D3D12Buffer::write(const std::vector<VertexData> &vertex_data)
     if (element_count_ > capacity_)
     {
         capacity_ = element_count_;
-        resource_ =
-            create_resource(capacity_ * sizeof(VertexData), &mapped_memory_);
+        resource_ = create_resource(capacity_ * sizeof(VertexData), &mapped_memory_);
 
         vertex_buffer_view_.BufferLocation = resource_->GetGPUVirtualAddress();
-        vertex_buffer_view_.SizeInBytes =
-            static_cast<UINT>(capacity_ * sizeof(VertexData));
+        vertex_buffer_view_.SizeInBytes = static_cast<UINT>(capacity_ * sizeof(VertexData));
         vertex_buffer_view_.StrideInBytes = sizeof(VertexData);
     }
 
     // copy new data
-    std::memcpy(
-        mapped_memory_,
-        vertex_data.data(),
-        element_count_ * sizeof(VertexData));
+    std::memcpy(mapped_memory_, vertex_data.data(), element_count_ * sizeof(VertexData));
 }
 
 void D3D12Buffer::write(const std::vector<std::uint32_t> &index_data)
@@ -153,20 +138,15 @@ void D3D12Buffer::write(const std::vector<std::uint32_t> &index_data)
     if (element_count_ > capacity_)
     {
         capacity_ = element_count_;
-        resource_ =
-            create_resource(capacity_ * sizeof(std::uint32_t), &mapped_memory_);
+        resource_ = create_resource(capacity_ * sizeof(std::uint32_t), &mapped_memory_);
 
         index_buffer_view_.BufferLocation = resource_->GetGPUVirtualAddress();
-        index_buffer_view_.SizeInBytes =
-            static_cast<UINT>(capacity_ * sizeof(std::uint32_t));
+        index_buffer_view_.SizeInBytes = static_cast<UINT>(capacity_ * sizeof(std::uint32_t));
         index_buffer_view_.Format = DXGI_FORMAT_R32_UINT;
     }
 
     // copy new data
-    std::memcpy(
-        mapped_memory_,
-        index_data.data(),
-        element_count_ * sizeof(std::uint32_t));
+    std::memcpy(mapped_memory_, index_data.data(), element_count_ * sizeof(std::uint32_t));
 }
 
 }

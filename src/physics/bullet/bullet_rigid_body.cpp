@@ -30,10 +30,7 @@
 namespace iris
 {
 
-BulletRigidBody::BulletRigidBody(
-    const Vector3 &position,
-    BulletCollisionShape *collision_shape,
-    RigidBodyType type)
+BulletRigidBody::BulletRigidBody(const Vector3 &position, BulletCollisionShape *collision_shape, RigidBodyType type)
     : name_()
     , type_(type)
     , collision_shape_(collision_shape)
@@ -69,8 +66,7 @@ BulletRigidBody::BulletRigidBody(
 
         motion_state_ = std::make_unique<btDefaultMotionState>(start_transform);
 
-        btRigidBody::btRigidBodyConstructionInfo rbInfo(
-            mass, motion_state_.get(), shape, localInertia);
+        btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, motion_state_.get(), shape, localInertia);
 
         body_ = std::make_unique<btRigidBody>(rbInfo);
 
@@ -86,10 +82,7 @@ Vector3 BulletRigidBody::position() const
 {
     const auto transform = body_->getWorldTransform();
 
-    return {
-        transform.getOrigin().x(),
-        transform.getOrigin().y(),
-        transform.getOrigin().z()};
+    return {transform.getOrigin().x(), transform.getOrigin().y(), transform.getOrigin().z()};
 }
 
 Quaternion BulletRigidBody::orientation() const
@@ -106,11 +99,9 @@ Vector3 BulletRigidBody::linear_velocity() const
 
     if (type_ != RigidBodyType::GHOST)
     {
-        const auto bullet_velocity =
-            static_cast<btRigidBody *>(body_.get())->getLinearVelocity();
+        const auto bullet_velocity = static_cast<btRigidBody *>(body_.get())->getLinearVelocity();
 
-        velocity = {
-            bullet_velocity.x(), bullet_velocity.y(), bullet_velocity.z()};
+        velocity = {bullet_velocity.x(), bullet_velocity.y(), bullet_velocity.z()};
     }
     else
     {
@@ -126,11 +117,9 @@ Vector3 BulletRigidBody::angular_velocity() const
 
     if (type_ != RigidBodyType::GHOST)
     {
-        const auto bullet_velocity =
-            static_cast<btRigidBody *>(body_.get())->getAngularVelocity();
+        const auto bullet_velocity = static_cast<btRigidBody *>(body_.get())->getAngularVelocity();
 
-        velocity = {
-            bullet_velocity.x(), bullet_velocity.y(), bullet_velocity.z()};
+        velocity = {bullet_velocity.x(), bullet_velocity.y(), bullet_velocity.z()};
     }
     else
     {
@@ -144,15 +133,13 @@ void BulletRigidBody::set_linear_velocity(const Vector3 &linear_velocity)
 {
     if (type_ != RigidBodyType::GHOST)
     {
-        btVector3 velocity{
-            linear_velocity.x, linear_velocity.y, linear_velocity.z};
+        btVector3 velocity{linear_velocity.x, linear_velocity.y, linear_velocity.z};
 
         static_cast<btRigidBody *>(body_.get())->setLinearVelocity(velocity);
     }
     else
     {
-        LOG_ENGINE_WARN(
-            "physics", "calling set_linear_velocity on ghost object");
+        LOG_ENGINE_WARN("physics", "calling set_linear_velocity on ghost object");
     }
 }
 
@@ -160,26 +147,21 @@ void BulletRigidBody::set_angular_velocity(const Vector3 &angular_velocity)
 {
     if (type_ != RigidBodyType::GHOST)
     {
-        btVector3 velocity{
-            angular_velocity.x, angular_velocity.y, angular_velocity.z};
+        btVector3 velocity{angular_velocity.x, angular_velocity.y, angular_velocity.z};
 
         static_cast<btRigidBody *>(body_.get())->setAngularVelocity(velocity);
     }
     else
     {
-        LOG_ENGINE_WARN(
-            "physics", "calling set_angular_velocity on ghost object");
+        LOG_ENGINE_WARN("physics", "calling set_angular_velocity on ghost object");
     }
 }
 
-void BulletRigidBody::reposition(
-    const Vector3 &position,
-    const Quaternion &orientation)
+void BulletRigidBody::reposition(const Vector3 &position, const Quaternion &orientation)
 {
     btTransform transform;
     transform.setOrigin(btVector3(position.x, position.y, position.z));
-    transform.setRotation(btQuaternion(
-        orientation.x, orientation.y, orientation.z, orientation.w));
+    transform.setRotation(btQuaternion(orientation.x, orientation.y, orientation.z, orientation.w));
 
     body_->setWorldTransform(transform);
 
@@ -222,8 +204,7 @@ void BulletRigidBody::apply_impulse(const Vector3 &impulse)
     if (type_ != RigidBodyType::GHOST)
     {
         static_cast<btRigidBody *>(body_.get())
-            ->applyImpulse(
-                btVector3{impulse.x, impulse.y, impulse.z}, ::btVector3{});
+            ->applyImpulse(btVector3{impulse.x, impulse.y, impulse.z}, ::btVector3{});
     }
     else
     {

@@ -16,9 +16,7 @@
 namespace iris
 {
 
-RenderTarget::RenderTarget(
-    std::unique_ptr<Texture> colour_texture,
-    std::unique_ptr<Texture> depth_texture)
+RenderTarget::RenderTarget(std::unique_ptr<Texture> colour_texture, std::unique_ptr<Texture> depth_texture)
     : colour_texture_(std::move(colour_texture))
     , depth_texture_(std::move(depth_texture))
 {

@@ -20,8 +20,7 @@ D3D12DescriptorHandle::D3D12DescriptorHandle()
     gpu_handle_.ptr = NULL;
 }
 
-D3D12DescriptorHandle::D3D12DescriptorHandle(
-    D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle)
+D3D12DescriptorHandle::D3D12DescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle)
     : cpu_handle_(cpu_handle)
     , gpu_handle_()
 {

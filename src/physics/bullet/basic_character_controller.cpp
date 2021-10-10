@@ -19,8 +19,7 @@
 namespace iris
 {
 
-BasicCharacterController::BasicCharacterController(
-    PhysicsSystem *physics_system)
+BasicCharacterController::BasicCharacterController(PhysicsSystem *physics_system)
     : speed_(12.0f)
     , mass_(62.0f)
     , physics_system_(physics_system)
@@ -28,9 +27,7 @@ BasicCharacterController::BasicCharacterController(
 {
     // use capsule shape for character
     body_ = physics_system_->create_rigid_body(
-        Vector3{0.0f, 0.0f, 10.0f},
-        physics_system_->create_capsule_collision_shape(0.5f, 1.7f),
-        RigidBodyType::NORMAL);
+        Vector3{0.0f, 0.0f, 10.0f}, physics_system_->create_capsule_collision_shape(0.5f, 1.7f), RigidBodyType::NORMAL);
 
     auto *bullet_body = static_cast<BulletRigidBody *>(body_);
 
@@ -77,14 +74,12 @@ Vector3 BasicCharacterController::angular_velocity() const
     return body_->angular_velocity();
 }
 
-void BasicCharacterController::set_linear_velocity(
-    const Vector3 &linear_velocity)
+void BasicCharacterController::set_linear_velocity(const Vector3 &linear_velocity)
 {
     body_->set_linear_velocity(linear_velocity);
 }
 
-void BasicCharacterController::set_angular_velocity(
-    const Vector3 &angular_velocity)
+void BasicCharacterController::set_angular_velocity(const Vector3 &angular_velocity)
 {
     body_->set_angular_velocity(angular_velocity);
 }
@@ -94,9 +89,7 @@ void BasicCharacterController::set_speed(float speed)
     speed_ = speed;
 }
 
-void BasicCharacterController::reposition(
-    const Vector3 &position,
-    const Quaternion &orientation)
+void BasicCharacterController::reposition(const Vector3 &position, const Quaternion &orientation)
 {
     body_->reposition(position, orientation);
 }
@@ -131,8 +124,7 @@ RigidBody *BasicCharacterController::rigid_body() const
     return body_;
 }
 
-void BasicCharacterController::set_collision_shape(
-    CollisionShape *collision_shape)
+void BasicCharacterController::set_collision_shape(CollisionShape *collision_shape)
 {
     body_->set_collision_shape(collision_shape);
 }

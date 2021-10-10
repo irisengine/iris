@@ -50,11 +50,8 @@ void encode_light_pass_commands(
     // create commands for each entity in the scene
     for (const auto &[render_graph, render_entity] : scene->entities())
     {
-        auto *material = create_material_callback(
-            render_graph,
-            render_entity.get(),
-            cmd.render_pass()->render_target,
-            light_type);
+        auto *material =
+            create_material_callback(render_graph, render_entity.get(), cmd.render_pass()->render_target, light_type);
         cmd.set_material(material);
 
         // renderer implementation will handle duplicate checking
@@ -90,9 +87,7 @@ void encode_light_pass_commands(
                     // set shadow map in render command
                     if (render_entity->receive_shadow())
                     {
-                        auto *shadow_map = shadow_maps.count(light.get()) == 0u
-                                               ? nullptr
-                                               : shadow_maps.at(light.get());
+                        auto *shadow_map = shadow_maps.count(light.get()) == 0u ? nullptr : shadow_maps.at(light.get());
                         cmd.set_shadow_map(shadow_map);
                     }
 
@@ -116,8 +111,7 @@ RenderQueueBuilder::RenderQueueBuilder(
 {
 }
 
-std::vector<RenderCommand> RenderQueueBuilder::build(
-    std::vector<RenderPass> &render_passes) const
+std::vector<RenderCommand> RenderQueueBuilder::build(std::vector<RenderPass> &render_passes) const
 {
     std::map<DirectionalLight *, RenderTarget *> shadow_maps;
     std::vector<RenderPass> shadow_passes{};
@@ -144,10 +138,7 @@ std::vector<RenderCommand> RenderQueueBuilder::build(
     }
 
     // insert shadow passes into the queue
-    render_passes.insert(
-        std::cbegin(render_passes),
-        std::cbegin(shadow_passes),
-        std::cend(shadow_passes));
+    render_passes.insert(std::cbegin(render_passes), std::cbegin(shadow_passes), std::cend(shadow_passes));
 
     std::vector<RenderCommand> render_queue;
 
@@ -157,11 +148,8 @@ std::vector<RenderCommand> RenderQueueBuilder::build(
     for (auto &pass : render_passes)
     {
         const auto has_directional_light_pass =
-            !pass.depth_only &&
-            !pass.scene->lighting_rig()->directional_lights.empty();
-        const auto has_point_light_pass =
-            !pass.depth_only &&
-            !pass.scene->lighting_rig()->point_lights.empty();
+            !pass.depth_only && !pass.scene->lighting_rig()->directional_lights.empty();
+        const auto has_point_light_pass = !pass.depth_only && !pass.scene->lighting_rig()->point_lights.empty();
 
         cmd.set_render_pass(std::addressof(pass));
 
@@ -170,35 +158,20 @@ std::vector<RenderCommand> RenderQueueBuilder::build(
 
         // always encode ambient light pass
         encode_light_pass_commands(
-            pass.scene,
-            LightType::AMBIENT,
-            cmd,
-            create_material_callback_,
-            render_queue,
-            shadow_maps);
+            pass.scene, LightType::AMBIENT, cmd, create_material_callback_, render_queue, shadow_maps);
 
         // encode point lights if there are any
         if (has_point_light_pass)
         {
             encode_light_pass_commands(
-                pass.scene,
-                LightType::POINT,
-                cmd,
-                create_material_callback_,
-                render_queue,
-                shadow_maps);
+                pass.scene, LightType::POINT, cmd, create_material_callback_, render_queue, shadow_maps);
         }
 
         // encode directional lights if there are any
         if (has_directional_light_pass)
         {
             encode_light_pass_commands(
-                pass.scene,
-                LightType::DIRECTIONAL,
-                cmd,
-                create_material_callback_,
-                render_queue,
-                shadow_maps);
+                pass.scene, LightType::DIRECTIONAL, cmd, create_material_callback_, render_queue, shadow_maps);
         }
 
         cmd.set_type(RenderCommandType::PASS_END);

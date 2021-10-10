@@ -22,8 +22,7 @@ std::unique_ptr<Mesh> MetalMeshManager::create_mesh(
     const std::vector<iris::VertexData> &vertices,
     const std::vector<std::uint32_t> &indices) const
 {
-    return std::make_unique<MetalMesh>(
-        vertices, indices, DefaultVertexAttributes);
+    return std::make_unique<MetalMesh>(vertices, indices, DefaultVertexAttributes);
 }
 
 }

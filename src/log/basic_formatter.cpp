@@ -30,8 +30,7 @@ namespace
 std::string format_filename(const std::string &filename)
 {
     // find last occurrence of file separator
-    const auto index =
-        filename.rfind(std::filesystem::path::preferred_separator);
+    const auto index = filename.rfind(std::filesystem::path::preferred_separator);
 
     return std::string{filename.substr(index + 1)};
 }
@@ -68,14 +67,12 @@ std::string BasicFormatter::format(
     const int line)
 {
     const auto now = std::chrono::system_clock::now();
-    const auto seconds = std::chrono::duration_cast<std::chrono::seconds>(
-        now.time_since_epoch());
+    const auto seconds = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch());
 
     std::stringstream strm{};
 
-    strm << first_char_of_level(level) << " " << seconds.count() << " [" << tag
-         << "] " << format_filename(filename) << ":" << line << " | "
-         << message;
+    strm << first_char_of_level(level) << " " << seconds.count() << " [" << tag << "] " << format_filename(filename)
+         << ":" << line << " | " << message;
     return strm.str();
 }
 

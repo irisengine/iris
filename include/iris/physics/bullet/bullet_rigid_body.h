@@ -42,10 +42,7 @@ class BulletRigidBody : public RigidBody
      *   The type of rigid body, this effects how this body interacts with
      *   others.
      */
-    BulletRigidBody(
-        const Vector3 &position,
-        BulletCollisionShape *collision_shape,
-        RigidBodyType type);
+    BulletRigidBody(const Vector3 &position, BulletCollisionShape *collision_shape, RigidBodyType type);
 
     ~BulletRigidBody() override = default;
 
@@ -114,8 +111,7 @@ class BulletRigidBody : public RigidBody
      * @param orientation
      *   New orientation.
      */
-    void reposition(const Vector3 &position, const Quaternion &orientation)
-        override;
+    void reposition(const Vector3 &position, const Quaternion &orientation) override;
 
     /**
      * Get the name of the rigid body. This is an optional trait and will return

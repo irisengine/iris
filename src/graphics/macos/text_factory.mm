@@ -28,43 +28,32 @@
 namespace iris::text_factory
 {
 
-Texture *create(
-    const std::string &font_name,
-    const std::uint32_t size,
-    const std::string &text,
-    const Colour &colour)
+Texture *create(const std::string &font_name, const std::uint32_t size, const std::string &text, const Colour &colour)
 {
     // create a CoreFoundation string object from supplied Font name
     const auto font_name_cf = AutoRelease<CFStringRef, nullptr>{
-        ::CFStringCreateWithCString(
-            kCFAllocatorDefault, font_name.c_str(), kCFStringEncodingASCII),
-        ::CFRelease};
+        ::CFStringCreateWithCString(kCFAllocatorDefault, font_name.c_str(), kCFStringEncodingASCII), ::CFRelease};
 
     expect(font_name_cf, "failed to create CF string");
 
     // create Font object
     AutoRelease<CTFontRef, nullptr> font = {
-        ::CTFontCreateWithName(
-            font_name_cf.get(), static_cast<CGFloat>(size), nullptr),
-        ::CFRelease};
+        ::CTFontCreateWithName(font_name_cf.get(), static_cast<CGFloat>(size), nullptr), ::CFRelease};
 
     ensure(font, "failed to create font");
 
     // create a device dependant colour space
-    AutoRelease<CGColorSpaceRef, nullptr> colour_space = {
-        ::CGColorSpaceCreateDeviceRGB(), ::CGColorSpaceRelease};
+    AutoRelease<CGColorSpaceRef, nullptr> colour_space = {::CGColorSpaceCreateDeviceRGB(), ::CGColorSpaceRelease};
 
     expect(colour_space, "failed to create colour space");
 
     // create a CoreFoundation colour object from supplied colour
     const CGFloat components[] = {colour.r, colour.g, colour.b, colour.a};
-    AutoRelease<CGColorRef, nullptr> font_colour = {
-        ::CGColorCreate(colour_space.get(), components), ::CGColorRelease};
+    AutoRelease<CGColorRef, nullptr> font_colour = {::CGColorCreate(colour_space.get(), components), ::CGColorRelease};
 
     expect(font_colour, "failed to create colour");
 
-    std::array<CFStringRef, 2> keys = {
-        {kCTFontAttributeName, kCTForegroundColorAttributeName}};
+    std::array<CFStringRef, 2> keys = {{kCTFontAttributeName, kCTForegroundColorAttributeName}};
     std::array<CFTypeRef, 2> values = {{font.get(), font_colour.get()}};
 
     // create string attributes dictionary, containing Font name and colour
@@ -84,43 +73,29 @@ Texture *create(
 
     // create CoreFoundation string object from supplied text
     const auto text_cf = AutoRelease<CFStringRef, nullptr>{
-        ::CFStringCreateWithCString(
-            kCFAllocatorDefault, text.c_str(), kCFStringEncodingASCII),
-        ::CFRelease};
+        ::CFStringCreateWithCString(kCFAllocatorDefault, text.c_str(), kCFStringEncodingASCII), ::CFRelease};
 
     // create a CoreFoundation attributed string object
     const auto attr_string = AutoRelease<CFAttributedStringRef, nullptr>{
-        ::CFAttributedStringCreate(
-            kCFAllocatorDefault, text_cf.get(), attributes.get()),
-        ::CFRelease};
+        ::CFAttributedStringCreate(kCFAllocatorDefault, text_cf.get(), attributes.get()), ::CFRelease};
 
     const auto frame_setter = AutoRelease<CTFramesetterRef, nullptr>{
-        ::CTFramesetterCreateWithAttributedString(attr_string.get()),
-        ::CFRelease};
+        ::CTFramesetterCreateWithAttributedString(attr_string.get()), ::CFRelease};
 
     // calculate minimal size required to render text
     CFRange range;
     const auto rect = ::CTFramesetterSuggestFrameSizeWithConstraints(
-        frame_setter.get(),
-        CFRangeMake(0, 0),
-        nullptr,
-        CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX),
-        &range);
+        frame_setter.get(), CFRangeMake(0, 0), nullptr, CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX), &range);
 
     // create a path object to render text
     const auto path = AutoRelease<CGPathRef, nullptr>{
-        ::CGPathCreateWithRect(
-            CGRectMake(0, 0, std::ceil(rect.width), std::ceil(rect.height)),
-            nullptr),
-        nullptr};
+        ::CGPathCreateWithRect(CGRectMake(0, 0, std::ceil(rect.width), std::ceil(rect.height)), nullptr), nullptr};
 
     expect(path, "failed to create path");
 
     // create a frame to render text
     const auto frame = AutoRelease<CTFrameRef, nullptr>{
-        ::CTFramesetterCreateFrame(
-            frame_setter.get(), range, path.get(), nullptr),
-        ::CFRelease};
+        ::CTFramesetterCreateFrame(frame_setter.get(), range, path.get(), nullptr), ::CFRelease};
 
     expect(frame, "failed to create frame");
 
@@ -156,8 +131,7 @@ Texture *create(
     ::CGContextFlush(context.get());
 
     // create a Texture from the rendered pixel data
-    auto *texture = Root::texture_manager().create(
-        pixel_data, width, height, TextureUsage::IMAGE);
+    auto *texture = Root::texture_manager().create(pixel_data, width, height, TextureUsage::IMAGE);
     texture->set_flip(true);
 
     return texture;

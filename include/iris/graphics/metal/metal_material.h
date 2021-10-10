@@ -36,10 +36,7 @@ class MetalMaterial : public Material
      * @param light_type
      *   Type of light for this material.
      */
-    MetalMaterial(
-        const RenderGraph *render_graph,
-        MTLVertexDescriptor *descriptors,
-        LightType light_type);
+    MetalMaterial(const RenderGraph *render_graph, MTLVertexDescriptor *descriptors, LightType light_type);
 
     ~MetalMaterial() override = default;
 

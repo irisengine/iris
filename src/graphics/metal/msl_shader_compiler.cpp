@@ -47,14 +47,11 @@ namespace
  * @returns
  *   Unique variable name for the texture.
  */
-std::string texture_name(
-    iris::Texture *texture,
-    std::vector<iris::Texture *> &textures)
+std::string texture_name(iris::Texture *texture, std::vector<iris::Texture *> &textures)
 {
     std::size_t id = 0u;
 
-    const auto find =
-        std::find(std::cbegin(textures), std::cend(textures), texture);
+    const auto find = std::find(std::cbegin(textures), std::cend(textures), texture);
 
     if (find != std::cend(textures))
     {
@@ -124,10 +121,7 @@ void visit_or_default(
  * @param visitor
  *   Visitor for node.
  */
-void build_fragment_colour(
-    std::stringstream &strm,
-    const iris::Node *colour,
-    iris::MSLShaderCompiler *visitor)
+void build_fragment_colour(std::stringstream &strm, const iris::Node *colour, iris::MSLShaderCompiler *visitor)
 {
     strm << "float4 fragment_colour = ";
     visit_or_default(strm, colour, visitor, "in.color");
@@ -145,10 +139,7 @@ void build_fragment_colour(
  * @param visitor
  *   Visitor for node.
  */
-void build_normal(
-    std::stringstream &strm,
-    const iris::Node *normal,
-    iris::MSLShaderCompiler *visitor)
+void build_normal(std::stringstream &strm, const iris::Node *normal, iris::MSLShaderCompiler *visitor)
 {
     strm << "float3 n = ";
     if (normal == nullptr)
@@ -169,9 +160,7 @@ void build_normal(
 namespace iris
 {
 
-MSLShaderCompiler::MSLShaderCompiler(
-    const RenderGraph *render_graph,
-    LightType light_type)
+MSLShaderCompiler::MSLShaderCompiler(const RenderGraph *render_graph, LightType light_type)
     : vertex_stream_()
     , fragment_stream_()
     , current_stream_(nullptr)
@@ -222,16 +211,12 @@ void MSLShaderCompiler::visit(const RenderNode &node)
     // uniform and how we calculate lighting
     switch (light_type_)
     {
-        case LightType::AMBIENT:
-            *current_stream_
-                << "return uniform->light_colour * fragment_colour;\n";
-            break;
+        case LightType::AMBIENT: *current_stream_ << "return uniform->light_colour * fragment_colour;\n"; break;
         case LightType::DIRECTIONAL:
             *current_stream_ << "float3 light_dir = ";
             *current_stream_
-                << (node.normal_input() == nullptr
-                        ? "normalize(-uniform->light_position.xyz);\n"
-                        : "normalize(-in.tangent_light_pos.xyz);\n");
+                << (node.normal_input() == nullptr ? "normalize(-uniform->light_position.xyz);\n"
+                                                   : "normalize(-in.tangent_light_pos.xyz);\n");
 
             *current_stream_ << "float shadow = 0.0;\n";
             *current_stream_ <<
@@ -248,11 +233,10 @@ void MSLShaderCompiler::visit(const RenderNode &node)
         case LightType::POINT:
             *current_stream_ << "float3 light_dir = ";
             *current_stream_
-                << (node.normal_input() == nullptr
-                        ? "normalize(uniform->light_position.xyz - "
-                          "in.frag_position.xyz);\n"
-                        : "normalize(in.tangent_light_pos.xyz - "
-                          "in.tangent_frag_pos.xyz);\n");
+                << (node.normal_input() == nullptr ? "normalize(uniform->light_position.xyz - "
+                                                     "in.frag_position.xyz);\n"
+                                                   : "normalize(in.tangent_light_pos.xyz - "
+                                                     "in.tangent_frag_pos.xyz);\n");
             *current_stream_ << R"(
                 float distance  = length(uniform->light_position.xyz - in.frag_position.xyz);
                 float constant_term = uniform->light_attenuation[0];
@@ -306,8 +290,7 @@ void MSLShaderCompiler::visit(const PostProcessingNode &node)
 void MSLShaderCompiler::visit(const ColourNode &node)
 {
     const auto colour = node.colour();
-    *current_stream_ << "float4(" << colour.r << ", " << colour.g << ", "
-                     << colour.b << ", " << colour.a << ")";
+    *current_stream_ << "float4(" << colour.r << ", " << colour.g << ", " << colour.b << ", " << colour.a << ")";
 }
 
 void MSLShaderCompiler::visit(const TextureNode &node)
@@ -320,8 +303,7 @@ float4 sample_texture(texture2d<float> texture, float2 coord)
 }
 )");
 
-    *current_stream_ << "sample_texture("
-                     << texture_name(node.texture(), textures_);
+    *current_stream_ << "sample_texture(" << texture_name(node.texture(), textures_);
 
     if (node.texture()->flip())
     {
@@ -346,8 +328,7 @@ void MSLShaderCompiler::visit(const BlurNode &node)
 {
     current_functions_->emplace(blur_function);
 
-    *current_stream_ << "blur("
-                     << texture_name(node.input_node()->texture(), textures_);
+    *current_stream_ << "blur(" << texture_name(node.input_node()->texture(), textures_);
 
     if (node.input_node()->texture()->flip())
     {
@@ -386,14 +367,13 @@ void MSLShaderCompiler::visit(const ValueNode<float> &node)
 
 void MSLShaderCompiler::visit(const ValueNode<Vector3> &node)
 {
-    *current_stream_ << "float3(" << node.value().x << ", " << node.value().y
-                     << ", " << node.value().z << ")";
+    *current_stream_ << "float3(" << node.value().x << ", " << node.value().y << ", " << node.value().z << ")";
 }
 
 void MSLShaderCompiler::visit(const ValueNode<Colour> &node)
 {
-    *current_stream_ << "float4(" << node.value().g << ", " << node.value().g
-                     << ", " << node.value().b << ", " << node.value().a << ")";
+    *current_stream_ << "float4(" << node.value().g << ", " << node.value().g << ", " << node.value().b << ", "
+                     << node.value().a << ")";
 }
 
 void MSLShaderCompiler::visit(const ArithmeticNode &node)
@@ -493,8 +473,7 @@ std::string MSLShaderCompiler::vertex_shader() const
     uint vid [[vertex_id]])";
     for (auto i = 0u; i < textures_.size(); ++i)
     {
-        stream << "    ,texture2d<float> tex" << i << " [[texture(" << i
-               << ")]]" << '\n';
+        stream << "    ,texture2d<float> tex" << i << " [[texture(" << i << ")]]" << '\n';
     }
     stream << R"() {)";
 
@@ -529,8 +508,7 @@ fragment float4 fragment_main(
 
     for (auto i = 0u; i < textures_.size(); ++i)
     {
-        stream << "    ,texture2d<float> tex" << i << " [[texture(" << i + 1
-               << ")]]" << '\n';
+        stream << "    ,texture2d<float> tex" << i << " [[texture(" << i + 1 << ")]]" << '\n';
     }
     stream << R"(
     )

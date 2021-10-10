@@ -12,10 +12,7 @@
 namespace iris
 {
 
-ArithmeticNode::ArithmeticNode(
-    Node *value1,
-    Node *value2,
-    ArithmeticOperator arithmetic_operator)
+ArithmeticNode::ArithmeticNode(Node *value1, Node *value2, ArithmeticOperator arithmetic_operator)
     : value1_(value1)
     , value2_(value2)
     , arithmetic_operator_(arithmetic_operator)

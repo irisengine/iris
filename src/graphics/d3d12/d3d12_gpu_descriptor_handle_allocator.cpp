@@ -43,8 +43,7 @@ D3D12GPUDescriptorHandleAllocator::D3D12GPUDescriptorHandleAllocator(
 
     // create heap
     expect(
-        device->CreateDescriptorHeap(
-            &heap_description, IID_PPV_ARGS(&descriptor_heap_)) == S_OK,
+        device->CreateDescriptorHeap(&heap_description, IID_PPV_ARGS(&descriptor_heap_)) == S_OK,
         "could not create descriptor heap");
 
     cpu_start_ = descriptor_heap_->GetCPUDescriptorHandleForHeapStart();
@@ -53,8 +52,7 @@ D3D12GPUDescriptorHandleAllocator::D3D12GPUDescriptorHandleAllocator(
     descriptor_size_ = device->GetDescriptorHandleIncrementSize(type);
 }
 
-D3D12DescriptorHandle D3D12GPUDescriptorHandleAllocator::allocate(
-    std::uint32_t count)
+D3D12DescriptorHandle D3D12GPUDescriptorHandleAllocator::allocate(std::uint32_t count)
 {
     expect(index_ + count <= capacity_, "heap too small");
 

@@ -159,14 +159,11 @@ float calculate_shadow(float3 n, float4 frag_pos_light_space, float3 light_dir, 
  * @returns
  *   Unique id for the texture.
  */
-std::size_t texture_id(
-    iris::Texture *texture,
-    std::vector<iris::Texture *> &textures)
+std::size_t texture_id(iris::Texture *texture, std::vector<iris::Texture *> &textures)
 {
     std::size_t id = 0u;
 
-    const auto find =
-        std::find(std::cbegin(textures), std::cend(textures), texture);
+    const auto find = std::find(std::cbegin(textures), std::cend(textures), texture);
 
     if (find != std::cend(textures))
     {
@@ -236,10 +233,7 @@ void visit_or_default(
  * @param visitor
  *   Visitor for node.
  */
-void build_fragment_colour(
-    std::stringstream &strm,
-    const iris::Node *colour,
-    iris::HLSLShaderCompiler *visitor)
+void build_fragment_colour(std::stringstream &strm, const iris::Node *colour, iris::HLSLShaderCompiler *visitor)
 {
     strm << "float4 fragment_colour = ";
     visit_or_default(strm, colour, visitor, "input.colour");
@@ -257,10 +251,7 @@ void build_fragment_colour(
  * @param visitor
  *   Visitor for node.
  */
-void build_normal(
-    std::stringstream &strm,
-    const iris::Node *normal,
-    iris::HLSLShaderCompiler *visitor)
+void build_normal(std::stringstream &strm, const iris::Node *normal, iris::HLSLShaderCompiler *visitor)
 {
     strm << "float3 n = ";
     if (normal == nullptr)
@@ -280,9 +271,7 @@ void build_normal(
 
 namespace iris
 {
-HLSLShaderCompiler::HLSLShaderCompiler(
-    const RenderGraph *render_graph,
-    LightType light_type)
+HLSLShaderCompiler::HLSLShaderCompiler(const RenderGraph *render_graph, LightType light_type)
     : vertex_stream_()
     , fragment_stream_()
     , current_stream_(nullptr)
@@ -369,15 +358,12 @@ float4 main(PSInput input) : SV_TARGET
     // constant data and how we calculate lighting
     switch (light_type_)
     {
-        case LightType::AMBIENT:
-            *current_stream_ << "return light_colour * fragment_colour;";
-            break;
+        case LightType::AMBIENT: *current_stream_ << "return light_colour * fragment_colour;"; break;
         case LightType::DIRECTIONAL:
             *current_stream_ << "float3 light_dir = ";
             *current_stream_
-                << (node.normal_input() == nullptr
-                        ? "normalize(-light_position.xyz);\n"
-                        : "normalize(-input.tangent_light_pos.xyz);\n");
+                << (node.normal_input() == nullptr ? "normalize(-light_position.xyz);\n"
+                                                   : "normalize(-input.tangent_light_pos.xyz);\n");
 
             *current_stream_ << "float shadow = 0.0;\n";
             *current_stream_ <<
@@ -394,11 +380,10 @@ float4 main(PSInput input) : SV_TARGET
         case LightType::POINT:
             *current_stream_ << "float3 light_dir = ";
             *current_stream_
-                << (node.normal_input() == nullptr
-                        ? "normalize(light_position.xyz - "
-                          "input.frag_position.xyz);\n"
-                        : "normalize(input.tangent_light_pos.xyz - "
-                          "input.tangent_frag_pos.xyz);\n");
+                << (node.normal_input() == nullptr ? "normalize(light_position.xyz - "
+                                                     "input.frag_position.xyz);\n"
+                                                   : "normalize(input.tangent_light_pos.xyz - "
+                                                     "input.tangent_frag_pos.xyz);\n");
             *current_stream_ << R"(
                 float distance  = length(light_position.xyz - input.frag_position.xyz);
                 float constant = light_attenuation.x;
@@ -478,8 +463,7 @@ float4 main(PSInput input) : SV_TARGET
 void HLSLShaderCompiler::visit(const ColourNode &node)
 {
     const auto colour = node.colour();
-    *current_stream_ << "float4(" << colour.r << ", " << colour.g << ", "
-                     << colour.b << ", " << colour.a << ")";
+    *current_stream_ << "float4(" << colour.r << ", " << colour.g << ", " << colour.b << ", " << colour.a << ")";
 }
 
 void HLSLShaderCompiler::visit(const TextureNode &node)
@@ -490,8 +474,7 @@ void HLSLShaderCompiler::visit(const TextureNode &node)
 
     if (node.texture()->flip())
     {
-        *current_stream_
-            << "float2(input.tex_coord.x, 1.0 - input.tex_coord.y))";
+        *current_stream_ << "float2(input.tex_coord.x, 1.0 - input.tex_coord.y))";
     }
     else
     {
@@ -517,8 +500,7 @@ void HLSLShaderCompiler::visit(const BlurNode &node)
     *current_stream_ << "blur(g_texture" << id << ",";
     if (node.input_node()->texture()->flip())
     {
-        *current_stream_
-            << "float2(input.tex_coord.x, 1.0 - input.tex_coord.y))";
+        *current_stream_ << "float2(input.tex_coord.x, 1.0 - input.tex_coord.y))";
     }
     else
     {
@@ -552,14 +534,13 @@ void HLSLShaderCompiler::visit(const ValueNode<float> &node)
 
 void HLSLShaderCompiler::visit(const ValueNode<Vector3> &node)
 {
-    *current_stream_ << "float3(" << node.value().x << ", " << node.value().y
-                     << ", " << node.value().z << ")";
+    *current_stream_ << "float3(" << node.value().x << ", " << node.value().y << ", " << node.value().z << ")";
 }
 
 void HLSLShaderCompiler::visit(const ValueNode<Colour> &node)
 {
-    *current_stream_ << "float4(" << node.value().g << ", " << node.value().g
-                     << ", " << node.value().b << ", " << node.value().a << ")";
+    *current_stream_ << "float4(" << node.value().g << ", " << node.value().g << ", " << node.value().b << ", "
+                     << node.value().a << ")";
 }
 
 void HLSLShaderCompiler::visit(const ArithmeticNode &node)
@@ -661,8 +642,7 @@ std::string HLSLShaderCompiler::fragment_shader() const
 
     for (auto i = 0u; i < textures_.size(); ++i)
     {
-        strm << "Texture2D g_texture" << i + 1u << " : register(t" << i + 1u
-             << ");\n";
+        strm << "Texture2D g_texture" << i + 1u << " : register(t" << i + 1u << ");\n";
     }
 
     for (const auto &function : fragment_functions_)

@@ -16,8 +16,7 @@ namespace iris
 {
 
 BulletBoxCollisionShape::BulletBoxCollisionShape(const Vector3 &half_size)
-    : shape_(std::make_unique<btBoxShape>(
-          btVector3{half_size.x, half_size.y, half_size.z}))
+    : shape_(std::make_unique<btBoxShape>(btVector3{half_size.x, half_size.y, half_size.z}))
 {
 }
 

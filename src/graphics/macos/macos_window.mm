@@ -174,9 +174,7 @@ iris::KeyboardEvent handle_keyboard_event(NSEvent *event)
     const std::uint16_t key_code = [event keyCode];
 
     // convert the NSEventType to our Event state
-    const auto type = ([event type] == NSEventTypeKeyDown)
-                          ? iris::KeyState::DOWN
-                          : iris::KeyState::UP;
+    const auto type = ([event type] == NSEventTypeKeyDown) ? iris::KeyState::DOWN : iris::KeyState::UP;
 
     // convert Key code and dispatch
     const auto key = macos_key_to_engine_Key(key_code);
@@ -225,14 +223,12 @@ MacosWindow::MacosWindow(std::uint32_t width, std::uint32_t height)
     // create a graphics api specific Renderer and app delegate
     if (api == "metal")
     {
-        app_delegate = [[MetalAppDelegate alloc]
-            initWithRect:NSMakeRect(0.0f, 0.0f, width_, height_)];
+        app_delegate = [[MetalAppDelegate alloc] initWithRect:NSMakeRect(0.0f, 0.0f, width_, height_)];
         renderer_ = std::make_unique<MetalRenderer>(width_, height_);
     }
     else if (api == "opengl")
     {
-        app_delegate = [[OpenGLAppDelegate alloc]
-            initWithRect:NSMakeRect(0.0f, 0.0f, width_, height_)];
+        app_delegate = [[OpenGLAppDelegate alloc] initWithRect:NSMakeRect(0.0f, 0.0f, width_, height_)];
         renderer_ = std::make_unique<OpenGLRenderer>(width_, height_);
     }
     else
@@ -284,21 +280,10 @@ std::optional<Event> MacosWindow::pump_event()
             case NSEventTypeKeyDown: [[fallthrough]];
             case NSEventTypeKeyUp: evt = handle_keyboard_event(event); break;
             case NSEventTypeMouseMoved: evt = handle_mouse_event(event); break;
-            case NSEventTypeLeftMouseDown:
-                evt =
-                    MouseButtonEvent{MouseButton::LEFT, MouseButtonState::DOWN};
-                break;
-            case NSEventTypeLeftMouseUp:
-                evt = MouseButtonEvent{MouseButton::LEFT, MouseButtonState::UP};
-                break;
-            case NSEventTypeRightMouseDown:
-                evt = MouseButtonEvent{
-                    MouseButton::RIGHT, MouseButtonState::DOWN};
-                break;
-            case NSEventTypeRightMouseUp:
-                evt =
-                    MouseButtonEvent{MouseButton::RIGHT, MouseButtonState::UP};
-                break;
+            case NSEventTypeLeftMouseDown: evt = MouseButtonEvent{MouseButton::LEFT, MouseButtonState::DOWN}; break;
+            case NSEventTypeLeftMouseUp: evt = MouseButtonEvent{MouseButton::LEFT, MouseButtonState::UP}; break;
+            case NSEventTypeRightMouseDown: evt = MouseButtonEvent{MouseButton::RIGHT, MouseButtonState::DOWN}; break;
+            case NSEventTypeRightMouseUp: evt = MouseButtonEvent{MouseButton::RIGHT, MouseButtonState::UP}; break;
             default: break;
         }
 

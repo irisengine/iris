@@ -72,10 +72,7 @@ class BulletPhysicsSystem : public PhysicsSystem
      * @returns
      *   A pointer to the newly created RigidBody.
      */
-    RigidBody *create_rigid_body(
-        const Vector3 &position,
-        CollisionShape *collision_shape,
-        RigidBodyType type) override;
+    RigidBody *create_rigid_body(const Vector3 &position, CollisionShape *collision_shape, RigidBodyType type) override;
 
     /**
      * Create a CharacterController and add it to the simulation.
@@ -94,8 +91,7 @@ class BulletPhysicsSystem : public PhysicsSystem
      * @returns
      *   Pointer to newly created CollisionShape.
      */
-    CollisionShape *create_box_collision_shape(
-        const Vector3 &half_size) override;
+    CollisionShape *create_box_collision_shape(const Vector3 &half_size) override;
 
     /**
      * Create a CollisionShape for a capsule.
@@ -109,8 +105,7 @@ class BulletPhysicsSystem : public PhysicsSystem
      * @returns
      *   Pointer to newly created CollisionShape.
      */
-    CollisionShape *create_capsule_collision_shape(float width, float height)
-        override;
+    CollisionShape *create_capsule_collision_shape(float width, float height) override;
 
     /**
      * Remove a body from the physics system.
@@ -147,9 +142,8 @@ class BulletPhysicsSystem : public PhysicsSystem
      *   If ray hits an object then a tuple [object hit, point of intersection],
      *   else empty optional.
      */
-    std::optional<std::tuple<RigidBody *, Vector3>> ray_cast(
-        const Vector3 &origin,
-        const Vector3 &direction) const override;
+    std::optional<std::tuple<RigidBody *, Vector3>> ray_cast(const Vector3 &origin, const Vector3 &direction)
+        const override;
 
     /**
      * Add a body to be excluded from ray_casts

@@ -237,10 +237,7 @@ class Packet
             , sequence(0u)
         {
             // check the header has no padding
-            static_assert(
-                sizeof(Header) ==
-                    sizeof(type) + sizeof(channel) + sizeof(sequence),
-                "header has padding");
+            static_assert(sizeof(Header) == sizeof(type) + sizeof(channel) + sizeof(sequence), "header has padding");
         }
 
         /** Type of packet. */

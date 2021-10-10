@@ -33,8 +33,7 @@ class D3D12DescriptorManager
      * @returns
      *   Heap allocator for provided type.
      */
-    static D3D12CPUDescriptorHandleAllocator &cpu_allocator(
-        D3D12_DESCRIPTOR_HEAP_TYPE type);
+    static D3D12CPUDescriptorHandleAllocator &cpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE type);
 
     /**
      * Get the gpu allocator for a given heap type.
@@ -45,8 +44,7 @@ class D3D12DescriptorManager
      * @returns
      *   Heap allocator for provided type.
      */
-    static D3D12GPUDescriptorHandleAllocator &gpu_allocator(
-        D3D12_DESCRIPTOR_HEAP_TYPE type);
+    static D3D12GPUDescriptorHandleAllocator &gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE type);
 
   private:
     // private to force access through above public static methods
@@ -56,23 +54,15 @@ class D3D12DescriptorManager
     // these are the member function equivalents of the above static methods
     // see their docs for details
 
-    D3D12CPUDescriptorHandleAllocator &cpu_allocator_impl(
-        D3D12_DESCRIPTOR_HEAP_TYPE type);
+    D3D12CPUDescriptorHandleAllocator &cpu_allocator_impl(D3D12_DESCRIPTOR_HEAP_TYPE type);
 
-    D3D12GPUDescriptorHandleAllocator &gpu_allocator_impl(
-        D3D12_DESCRIPTOR_HEAP_TYPE type);
+    D3D12GPUDescriptorHandleAllocator &gpu_allocator_impl(D3D12_DESCRIPTOR_HEAP_TYPE type);
 
     /** Map of D3D12 heap type to heap allocator. */
-    std::unordered_map<
-        D3D12_DESCRIPTOR_HEAP_TYPE,
-        D3D12CPUDescriptorHandleAllocator>
-        cpu_allocators_;
+    std::unordered_map<D3D12_DESCRIPTOR_HEAP_TYPE, D3D12CPUDescriptorHandleAllocator> cpu_allocators_;
 
     /** Map of D3D12 heap type to heap allocator. */
-    std::unordered_map<
-        D3D12_DESCRIPTOR_HEAP_TYPE,
-        D3D12GPUDescriptorHandleAllocator>
-        gpu_allocators_;
+    std::unordered_map<D3D12_DESCRIPTOR_HEAP_TYPE, D3D12GPUDescriptorHandleAllocator> gpu_allocators_;
 };
 
 }

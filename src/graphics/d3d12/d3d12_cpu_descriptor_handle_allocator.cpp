@@ -41,15 +41,13 @@ D3D12CPUDescriptorHandleAllocator::D3D12CPUDescriptorHandleAllocator(
     D3D12_DESCRIPTOR_HEAP_DESC heap_description;
     heap_description.NumDescriptors = num_descriptors;
     heap_description.Type = type;
-    heap_description.Flags = shader_visible
-                                 ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
-                                 : D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+    heap_description.Flags =
+        shader_visible ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
     heap_description.NodeMask = 0;
 
     // create heap
     expect(
-        device->CreateDescriptorHeap(
-            &heap_description, IID_PPV_ARGS(&descriptor_heap_)) == S_OK,
+        device->CreateDescriptorHeap(&heap_description, IID_PPV_ARGS(&descriptor_heap_)) == S_OK,
         "could not create descriptor heap");
 
     descriptor_size_ = device->GetDescriptorHandleIncrementSize(type);

@@ -42,27 +42,17 @@ iris::Matrix4 create_normal_transform(const iris::Matrix4 &model)
 
 namespace iris
 {
-RenderEntity::RenderEntity(
-    Mesh *mesh,
-    const Vector3 &position,
-    PrimitiveType primitive_type)
+RenderEntity::RenderEntity(Mesh *mesh, const Vector3 &position, PrimitiveType primitive_type)
     : RenderEntity(mesh, {position, {}, {1.0f}}, primitive_type)
 {
 }
 
-RenderEntity::RenderEntity(
-    Mesh *mesh,
-    const Transform &transform,
-    PrimitiveType primitive_type)
+RenderEntity::RenderEntity(Mesh *mesh, const Transform &transform, PrimitiveType primitive_type)
     : RenderEntity(mesh, transform, Skeleton{}, primitive_type)
 {
 }
 
-RenderEntity::RenderEntity(
-    Mesh *mesh,
-    const Transform &transform,
-    Skeleton skeleton,
-    PrimitiveType primitive_type)
+RenderEntity::RenderEntity(Mesh *mesh, const Transform &transform, Skeleton skeleton, PrimitiveType primitive_type)
     : mesh_(mesh)
     , transform_(transform)
     , normal_()

@@ -29,23 +29,7 @@ class Matrix4
      * Constructs a new identity Matrix4.
      */
     constexpr Matrix4()
-        : elements_(
-              {{1.0f,
-                0.0f,
-                0.0f,
-                0.0f,
-                0.0f,
-                1.0f,
-                0.0f,
-                0.0f,
-                0.0f,
-                0.0f,
-                1.0f,
-                0.0f,
-                0.0f,
-                0.0f,
-                0.0f,
-                1.0f}})
+        : elements_({{1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f}})
     {
     }
 
@@ -70,26 +54,17 @@ class Matrix4
     constexpr explicit Matrix4(const Quaternion &rotation)
         : Matrix4()
     {
-        elements_[0] = 1.0f - 2.0f * rotation.y * rotation.y -
-                       2.0f * rotation.z * rotation.z;
-        elements_[1] =
-            2.0f * rotation.x * rotation.y - 2.0f * rotation.z * rotation.w;
-        elements_[2] =
-            2.0f * rotation.x * rotation.z + 2.0f * rotation.y * rotation.w;
+        elements_[0] = 1.0f - 2.0f * rotation.y * rotation.y - 2.0f * rotation.z * rotation.z;
+        elements_[1] = 2.0f * rotation.x * rotation.y - 2.0f * rotation.z * rotation.w;
+        elements_[2] = 2.0f * rotation.x * rotation.z + 2.0f * rotation.y * rotation.w;
 
-        elements_[4] =
-            2.0f * rotation.x * rotation.y + 2.0f * rotation.z * rotation.w;
-        elements_[5] = 1.0f - 2.0f * rotation.x * rotation.x -
-                       2.0f * rotation.z * rotation.z;
-        elements_[6] =
-            2.0f * rotation.y * rotation.z - 2.0f * rotation.x * rotation.w;
+        elements_[4] = 2.0f * rotation.x * rotation.y + 2.0f * rotation.z * rotation.w;
+        elements_[5] = 1.0f - 2.0f * rotation.x * rotation.x - 2.0f * rotation.z * rotation.z;
+        elements_[6] = 2.0f * rotation.y * rotation.z - 2.0f * rotation.x * rotation.w;
 
-        elements_[8] =
-            2.0f * rotation.x * rotation.z - 2.0f * rotation.y * rotation.w;
-        elements_[9] =
-            2.0f * rotation.y * rotation.z + 2.0f * rotation.x * rotation.w;
-        elements_[10] = 1.0f - 2.0f * rotation.x * rotation.x -
-                        2.0f * rotation.y * rotation.y;
+        elements_[8] = 2.0f * rotation.x * rotation.z - 2.0f * rotation.y * rotation.w;
+        elements_[9] = 2.0f * rotation.y * rotation.z + 2.0f * rotation.x * rotation.w;
+        elements_[10] = 1.0f - 2.0f * rotation.x * rotation.x - 2.0f * rotation.y * rotation.y;
 
         elements_[15] = 1.0f;
     }
@@ -127,10 +102,7 @@ class Matrix4
      * @returns
      *   An orthographic projection matrix.
      */
-    constexpr static Matrix4 make_orthographic_projection(
-        float width,
-        float height,
-        float depth)
+    constexpr static Matrix4 make_orthographic_projection(float width, float height, float depth)
     {
         Matrix4 m{};
 
@@ -183,12 +155,7 @@ class Matrix4
      * @returns
      *   A perspective projection matrix.
      */
-    static Matrix4 make_perspective_projection(
-        float fov,
-        float width,
-        float height,
-        float near_plane,
-        float far_plane)
+    static Matrix4 make_perspective_projection(float fov, float width, float height, float near_plane, float far_plane)
     {
         Matrix4 m;
 
@@ -235,10 +202,7 @@ class Matrix4
      * @returns
      *   A Matrix4 that can be used as a camera view matrix.
      */
-    static Matrix4 make_look_at(
-        const Vector3 &eye,
-        const Vector3 &look_at,
-        const Vector3 &up)
+    static Matrix4 make_look_at(const Vector3 &eye, const Vector3 &look_at, const Vector3 &up)
     {
         const auto f = Vector3::normalise(look_at - eye);
         const auto up_normalised = Vector3::normalise(up);
@@ -248,23 +212,7 @@ class Matrix4
 
         Matrix4 m;
 
-        m.elements_ = {
-            {s.x,
-             s.y,
-             s.z,
-             0.0f,
-             u.x,
-             u.y,
-             u.z,
-             0.0f,
-             -f.x,
-             -f.y,
-             -f.z,
-             0.0f,
-             0.0f,
-             0.0f,
-             0.0f,
-             1.0f}};
+        m.elements_ = {{s.x, s.y, s.z, 0.0f, u.x, u.y, u.z, 0.0f, -f.x, -f.y, -f.z, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f}};
 
         return m * make_translate(-eye);
     }
@@ -283,22 +231,7 @@ class Matrix4
         Matrix4 m;
 
         m.elements_ = {
-            {scale.x,
-             0.0f,
-             0.0f,
-             0.0f,
-             0.0f,
-             scale.y,
-             0.0f,
-             0.0f,
-             0.0f,
-             0.0f,
-             scale.z,
-             0.0f,
-             0.0f,
-             0.0f,
-             0.0f,
-             1.0f}};
+            {scale.x, 0.0f, 0.0f, 0.0f, 0.0f, scale.y, 0.0f, 0.0f, 0.0f, 0.0f, scale.z, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f}};
 
         return m;
     }
@@ -348,72 +281,55 @@ class Matrix4
     {
         Matrix4 inv{};
 
-        inv[0] = m[5] * m[10] * m[15] - m[5] * m[11] * m[14] -
-                 m[9] * m[6] * m[15] + m[9] * m[7] * m[14] +
+        inv[0] = m[5] * m[10] * m[15] - m[5] * m[11] * m[14] - m[9] * m[6] * m[15] + m[9] * m[7] * m[14] +
                  m[13] * m[6] * m[11] - m[13] * m[7] * m[10];
 
-        inv[4] = -m[4] * m[10] * m[15] + m[4] * m[11] * m[14] +
-                 m[8] * m[6] * m[15] - m[8] * m[7] * m[14] -
+        inv[4] = -m[4] * m[10] * m[15] + m[4] * m[11] * m[14] + m[8] * m[6] * m[15] - m[8] * m[7] * m[14] -
                  m[12] * m[6] * m[11] + m[12] * m[7] * m[10];
 
-        inv[8] = m[4] * m[9] * m[15] - m[4] * m[11] * m[13] -
-                 m[8] * m[5] * m[15] + m[8] * m[7] * m[13] +
+        inv[8] = m[4] * m[9] * m[15] - m[4] * m[11] * m[13] - m[8] * m[5] * m[15] + m[8] * m[7] * m[13] +
                  m[12] * m[5] * m[11] - m[12] * m[7] * m[9];
 
-        inv[12] = -m[4] * m[9] * m[14] + m[4] * m[10] * m[13] +
-                  m[8] * m[5] * m[14] - m[8] * m[6] * m[13] -
+        inv[12] = -m[4] * m[9] * m[14] + m[4] * m[10] * m[13] + m[8] * m[5] * m[14] - m[8] * m[6] * m[13] -
                   m[12] * m[5] * m[10] + m[12] * m[6] * m[9];
 
-        inv[1] = -m[1] * m[10] * m[15] + m[1] * m[11] * m[14] +
-                 m[9] * m[2] * m[15] - m[9] * m[3] * m[14] -
+        inv[1] = -m[1] * m[10] * m[15] + m[1] * m[11] * m[14] + m[9] * m[2] * m[15] - m[9] * m[3] * m[14] -
                  m[13] * m[2] * m[11] + m[13] * m[3] * m[10];
 
-        inv[5] = m[0] * m[10] * m[15] - m[0] * m[11] * m[14] -
-                 m[8] * m[2] * m[15] + m[8] * m[3] * m[14] +
+        inv[5] = m[0] * m[10] * m[15] - m[0] * m[11] * m[14] - m[8] * m[2] * m[15] + m[8] * m[3] * m[14] +
                  m[12] * m[2] * m[11] - m[12] * m[3] * m[10];
 
-        inv[9] = -m[0] * m[9] * m[15] + m[0] * m[11] * m[13] +
-                 m[8] * m[1] * m[15] - m[8] * m[3] * m[13] -
+        inv[9] = -m[0] * m[9] * m[15] + m[0] * m[11] * m[13] + m[8] * m[1] * m[15] - m[8] * m[3] * m[13] -
                  m[12] * m[1] * m[11] + m[12] * m[3] * m[9];
 
-        inv[13] = m[0] * m[9] * m[14] - m[0] * m[10] * m[13] -
-                  m[8] * m[1] * m[14] + m[8] * m[2] * m[13] +
+        inv[13] = m[0] * m[9] * m[14] - m[0] * m[10] * m[13] - m[8] * m[1] * m[14] + m[8] * m[2] * m[13] +
                   m[12] * m[1] * m[10] - m[12] * m[2] * m[9];
 
-        inv[2] = m[1] * m[6] * m[15] - m[1] * m[7] * m[14] -
-                 m[5] * m[2] * m[15] + m[5] * m[3] * m[14] +
+        inv[2] = m[1] * m[6] * m[15] - m[1] * m[7] * m[14] - m[5] * m[2] * m[15] + m[5] * m[3] * m[14] +
                  m[13] * m[2] * m[7] - m[13] * m[3] * m[6];
 
-        inv[6] = -m[0] * m[6] * m[15] + m[0] * m[7] * m[14] +
-                 m[4] * m[2] * m[15] - m[4] * m[3] * m[14] -
+        inv[6] = -m[0] * m[6] * m[15] + m[0] * m[7] * m[14] + m[4] * m[2] * m[15] - m[4] * m[3] * m[14] -
                  m[12] * m[2] * m[7] + m[12] * m[3] * m[6];
 
-        inv[10] = m[0] * m[5] * m[15] - m[0] * m[7] * m[13] -
-                  m[4] * m[1] * m[15] + m[4] * m[3] * m[13] +
+        inv[10] = m[0] * m[5] * m[15] - m[0] * m[7] * m[13] - m[4] * m[1] * m[15] + m[4] * m[3] * m[13] +
                   m[12] * m[1] * m[7] - m[12] * m[3] * m[5];
 
-        inv[14] = -m[0] * m[5] * m[14] + m[0] * m[6] * m[13] +
-                  m[4] * m[1] * m[14] - m[4] * m[2] * m[13] -
+        inv[14] = -m[0] * m[5] * m[14] + m[0] * m[6] * m[13] + m[4] * m[1] * m[14] - m[4] * m[2] * m[13] -
                   m[12] * m[1] * m[6] + m[12] * m[2] * m[5];
 
-        inv[3] = -m[1] * m[6] * m[11] + m[1] * m[7] * m[10] +
-                 m[5] * m[2] * m[11] - m[5] * m[3] * m[10] -
+        inv[3] = -m[1] * m[6] * m[11] + m[1] * m[7] * m[10] + m[5] * m[2] * m[11] - m[5] * m[3] * m[10] -
                  m[9] * m[2] * m[7] + m[9] * m[3] * m[6];
 
-        inv[7] = m[0] * m[6] * m[11] - m[0] * m[7] * m[10] -
-                 m[4] * m[2] * m[11] + m[4] * m[3] * m[10] +
+        inv[7] = m[0] * m[6] * m[11] - m[0] * m[7] * m[10] - m[4] * m[2] * m[11] + m[4] * m[3] * m[10] +
                  m[8] * m[2] * m[7] - m[8] * m[3] * m[6];
 
-        inv[11] = -m[0] * m[5] * m[11] + m[0] * m[7] * m[9] +
-                  m[4] * m[1] * m[11] - m[4] * m[3] * m[9] -
+        inv[11] = -m[0] * m[5] * m[11] + m[0] * m[7] * m[9] + m[4] * m[1] * m[11] - m[4] * m[3] * m[9] -
                   m[8] * m[1] * m[7] + m[8] * m[3] * m[5];
 
-        inv[15] = m[0] * m[5] * m[10] - m[0] * m[6] * m[9] -
-                  m[4] * m[1] * m[10] + m[4] * m[2] * m[9] +
+        inv[15] = m[0] * m[5] * m[10] - m[0] * m[6] * m[9] - m[4] * m[1] * m[10] + m[4] * m[2] * m[9] +
                   m[8] * m[1] * m[6] - m[8] * m[2] * m[5];
 
-        auto det =
-            m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
+        auto det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
 
         if (det != 0.0f)
         {
@@ -464,13 +380,11 @@ class Matrix4
     {
         const auto e = elements_;
 
-        const auto calculate_cell =
-            [&e, &matrix](std::size_t row_num, std::size_t col_num) {
-                return (e[row_num + 0u] * matrix[col_num + 0u]) +
-                       (e[row_num + 1u] * matrix[col_num + 4u]) +
-                       (e[row_num + 2u] * matrix[col_num + 8u]) +
-                       (e[row_num + 3u] * matrix[col_num + 12u]);
-            };
+        const auto calculate_cell = [&e, &matrix](std::size_t row_num, std::size_t col_num)
+        {
+            return (e[row_num + 0u] * matrix[col_num + 0u]) + (e[row_num + 1u] * matrix[col_num + 4u]) +
+                   (e[row_num + 2u] * matrix[col_num + 8u]) + (e[row_num + 3u] * matrix[col_num + 12u]);
+        };
 
         elements_[0u] = calculate_cell(0u, 0u);
         elements_[1u] = calculate_cell(0u, 1u);
@@ -524,14 +438,11 @@ class Matrix4
     constexpr Vector3 operator*(const Vector3 &vector) const
     {
         return {
-            vector.x * elements_[0] + vector.y * elements_[1] +
-                vector.z * elements_[2] + elements_[3],
+            vector.x * elements_[0] + vector.y * elements_[1] + vector.z * elements_[2] + elements_[3],
 
-            vector.x * elements_[4] + vector.y * elements_[5] +
-                vector.z * elements_[6] + elements_[7],
+            vector.x * elements_[4] + vector.y * elements_[5] + vector.z * elements_[6] + elements_[7],
 
-            vector.x * elements_[8] + vector.y * elements_[9] +
-                vector.z * elements_[10] + elements_[11],
+            vector.x * elements_[8] + vector.y * elements_[9] + vector.z * elements_[10] + elements_[11],
         };
     }
 
@@ -574,11 +485,7 @@ class Matrix4
      */
     bool operator==(const Matrix4 &other) const
     {
-        return std::equal(
-            std::cbegin(elements_),
-            std::cend(elements_),
-            std::cbegin(other.elements_),
-            compare);
+        return std::equal(std::cbegin(elements_), std::cend(elements_), std::cbegin(other.elements_), compare);
     }
 
     /**

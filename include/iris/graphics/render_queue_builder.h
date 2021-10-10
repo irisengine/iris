@@ -31,11 +31,9 @@ class RenderQueueBuilder
 {
   public:
     // aliases for callbacks
-    using CreateMaterialCallback = std::function<
-        Material
-            *(RenderGraph *, RenderEntity *, const RenderTarget *, LightType)>;
-    using CreateRenderTargetCallback =
-        std::function<RenderTarget *(std::uint32_t, std::uint32_t)>;
+    using CreateMaterialCallback =
+        std::function<Material *(RenderGraph *, RenderEntity *, const RenderTarget *, LightType)>;
+    using CreateRenderTargetCallback = std::function<RenderTarget *(std::uint32_t, std::uint32_t)>;
 
     /**
      * Construct a new RenderQueueBuilder
@@ -61,8 +59,7 @@ class RenderQueueBuilder
      *   Collection of RenderCommand objects which when executed will render the
      *   supplied passes.
      */
-    std::vector<RenderCommand> build(
-        std::vector<RenderPass> &render_passes) const;
+    std::vector<RenderCommand> build(std::vector<RenderPass> &render_passes) const;
 
   private:
     /**   Callback fro creating a Material object. */

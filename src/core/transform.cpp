@@ -22,17 +22,14 @@
  * @returns
  *   Tuple of <translation, rotation, scale>
  */
-std::tuple<iris::Vector3, iris::Quaternion, iris::Vector3> decompose(
-    iris::Matrix4 matrix)
+std::tuple<iris::Vector3, iris::Quaternion, iris::Vector3> decompose(iris::Matrix4 matrix)
 {
     // extract translation
     const iris::Vector3 translation = matrix.column(3u);
 
     // extract scale
     const iris::Vector3 scale = {
-        matrix.column(0u).magnitude(),
-        matrix.column(1u).magnitude(),
-        matrix.column(2u).magnitude()};
+        matrix.column(0u).magnitude(), matrix.column(1u).magnitude(), matrix.column(2u).magnitude()};
 
     // convert upper left 3x3 matrix to rotation matrix
     matrix[0] /= scale.x;
@@ -87,9 +84,7 @@ std::tuple<iris::Vector3, iris::Quaternion, iris::Vector3> decompose(
         const auto j = next[i];
         const auto k = next[j];
 
-        root = std::sqrt(
-            matrix[(i * 4u) + i] - matrix[(j * 4u) + j] - matrix[(k * 4u) + k] +
-            1.0f);
+        root = std::sqrt(matrix[(i * 4u) + i] - matrix[(j * 4u) + j] - matrix[(k * 4u) + k] + 1.0f);
 
         float *quat[3] = {&rotation.x, &rotation.y, &rotation.z};
 
@@ -121,10 +116,7 @@ Transform::Transform(const Matrix4 &matrix)
     scale_ = scale;
 }
 
-Transform::Transform(
-    const Vector3 &translation,
-    const Quaternion &rotation,
-    const Vector3 &scale)
+Transform::Transform(const Vector3 &translation, const Quaternion &rotation, const Vector3 &scale)
     : translation_(translation)
     , rotation_(rotation)
     , scale_(scale)
@@ -133,8 +125,7 @@ Transform::Transform(
 
 Matrix4 Transform::matrix() const
 {
-    return Matrix4::make_translate(translation_) * Matrix4(rotation_) *
-           Matrix4::make_scale(scale_);
+    return Matrix4::make_translate(translation_) * Matrix4(rotation_) * Matrix4::make_scale(scale_);
 }
 
 void Transform::set_matrix(const Matrix4 &matrix)
@@ -185,8 +176,7 @@ void Transform::set_scale(const Vector3 &scale)
 
 bool Transform::operator==(const Transform &other) const
 {
-    return (translation_ == other.translation_) &&
-           (rotation_ == other.rotation_) && (scale_ == other.scale_);
+    return (translation_ == other.translation_) && (rotation_ == other.rotation_) && (scale_ == other.scale_);
 }
 
 bool Transform::operator!=(const Transform &other) const

@@ -21,8 +21,7 @@ std::unique_ptr<Mesh> D3D12MeshManager::create_mesh(
     const std::vector<iris::VertexData> &vertices,
     const std::vector<std::uint32_t> &indices) const
 {
-    return std::make_unique<D3D12Mesh>(
-        vertices, indices, DefaultVertexAttributes);
+    return std::make_unique<D3D12Mesh>(vertices, indices, DefaultVertexAttributes);
 }
 
 }

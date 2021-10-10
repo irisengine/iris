@@ -41,21 +41,11 @@ inline std::ostream &operator<<(std::ostream &out, const LogLevel level)
 {
     switch (level)
     {
-        case LogLevel::DEBUG:
-            out << "DEBUG";
-            break;
-        case LogLevel::INFO:
-            out << "INFO";
-            break;
-        case LogLevel::WARN:
-            out << "WARN";
-            break;
-        case LogLevel::ERR:
-            out << "ERROR";
-            break;
-        default:
-            out << "UNKNOWN";
-            break;
+        case LogLevel::DEBUG: out << "DEBUG"; break;
+        case LogLevel::INFO: out << "INFO"; break;
+        case LogLevel::WARN: out << "WARN"; break;
+        case LogLevel::ERR: out << "ERROR"; break;
+        default: out << "UNKNOWN"; break;
     }
 
     return out;

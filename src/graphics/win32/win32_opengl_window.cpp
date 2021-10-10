@@ -64,8 +64,7 @@ void resolve_global_opengl_functions()
     resolve_opengl_function(glGenVertexArrays, "glGenVertexArrays");
     resolve_opengl_function(glDeleteVertexArrays, "glDeleteVertexArrays");
     resolve_opengl_function(glBindVertexArray, "glBindVertexArray");
-    resolve_opengl_function(
-        glEnableVertexAttribArray, "glEnableVertexAttribArray");
+    resolve_opengl_function(glEnableVertexAttribArray, "glEnableVertexAttribArray");
     resolve_opengl_function(glVertexAttribPointer, "glVertexAttribPointer");
     resolve_opengl_function(glVertexAttribIPointer, "glVertexAttribIPointer");
     resolve_opengl_function(glCreateProgram, "glCreateProgram");
@@ -81,8 +80,7 @@ void resolve_global_opengl_functions()
     resolve_opengl_function(glGenFramebuffers, "glGenFramebuffers");
     resolve_opengl_function(glBindFramebuffer, "glBindFramebuffer");
     resolve_opengl_function(glFramebufferTexture2D, "glFramebufferTexture2D");
-    resolve_opengl_function(
-        glCheckFramebufferStatus, "glCheckFramebufferStatus");
+    resolve_opengl_function(glCheckFramebufferStatus, "glCheckFramebufferStatus");
     resolve_opengl_function(glDeleteFramebuffers, "glDeleteFramebuffers");
     resolve_opengl_function(glGetUniformLocation, "glGetUniformLocation");
     resolve_opengl_function(glUniformMatrix4fv, "glUniformMatrix4fv");
@@ -144,9 +142,9 @@ void resolve_wgl_functions(HINSTANCE instance)
 
     iris::ensure(dummy_window, "could not create window");
 
-    iris::Win32OpenGLWindow::AutoDC dc = {
-        ::GetDC(dummy_window),
-        [&dummy_window](HDC dc) { ::ReleaseDC(dummy_window, dc); }};
+    iris::Win32OpenGLWindow::AutoDC dc = {::GetDC(dummy_window), [&dummy_window](HDC dc) {
+                                              ::ReleaseDC(dummy_window, dc);
+                                          }};
     iris::ensure(dc, "could not get dc");
 
     // pixel format descriptor for dummy window
@@ -170,18 +168,14 @@ void resolve_wgl_functions(HINSTANCE instance)
     }
 
     // get a wgl context
-    const iris::AutoRelease<HGLRC, nullptr> context = {
-        ::wglCreateContext(dc), ::wglDeleteContext};
+    const iris::AutoRelease<HGLRC, nullptr> context = {::wglCreateContext(dc), ::wglDeleteContext};
     iris::ensure(context, "could not create gl context");
 
-    iris::ensure(
-        ::wglMakeCurrent(dc, context) == TRUE,
-        "could not make current context");
+    iris::ensure(::wglMakeCurrent(dc, context) == TRUE, "could not make current context");
 
     // resolve our needed functions
     resolve_opengl_function(wglChoosePixelFormatARB, "wglChoosePixelFormatARB");
-    resolve_opengl_function(
-        wglCreateContextAttribsARB, "wglCreateContextAttribsARB");
+    resolve_opengl_function(wglCreateContextAttribsARB, "wglCreateContextAttribsARB");
     resolve_opengl_function(wglSwapIntervalEXT, "wglSwapIntervalEXT");
 
     ::wglMakeCurrent(dc, 0);
@@ -216,21 +210,16 @@ void init_opengl(HDC dc)
 
     int pixel_format = 0;
     UINT num_formats = 0u;
-    ::wglChoosePixelFormatARB(
-        dc, pixel_format_attribs, 0, 1, &pixel_format, &num_formats);
+    ::wglChoosePixelFormatARB(dc, pixel_format_attribs, 0, 1, &pixel_format, &num_formats);
 
     iris::ensure(num_formats != 0, "could not choose pixel format");
 
     // set pixel format
 
     PIXELFORMATDESCRIPTOR pfd;
-    iris::ensure(
-        ::DescribePixelFormat(dc, pixel_format, sizeof(pfd), &pfd) != 0,
-        "could not describe pixel format");
+    iris::ensure(::DescribePixelFormat(dc, pixel_format, sizeof(pfd), &pfd) != 0, "could not describe pixel format");
 
-    iris::ensure(
-        ::SetPixelFormat(dc, pixel_format, &pfd) == TRUE,
-        "could not set pixel format");
+    iris::ensure(::SetPixelFormat(dc, pixel_format, &pfd) == TRUE, "could not set pixel format");
 
     // opengl 3.3
     int gl_attribs[] = {
@@ -246,9 +235,7 @@ void init_opengl(HDC dc)
     const auto context = ::wglCreateContextAttribsARB(dc, 0, gl_attribs);
     iris::ensure(context != NULL, "could not create gl context");
 
-    iris::ensure(
-        ::wglMakeCurrent(dc, context) == TRUE,
-        "could not set make current context");
+    iris::ensure(::wglMakeCurrent(dc, context) == TRUE, "could not set make current context");
 
     // disable vsync
     iris::ensure(::wglSwapIntervalEXT(0) == TRUE, "could not disable vsync");

@@ -38,11 +38,7 @@ class MetalTexture : public Texture
      * @param usage
      *   Texture usage.
      */
-    MetalTexture(
-        const DataBuffer &data,
-        std::uint32_t width,
-        std::uint32_t height,
-        TextureUsage usage);
+    MetalTexture(const DataBuffer &data, std::uint32_t width, std::uint32_t height, TextureUsage usage);
 
     ~MetalTexture() override = default;
 

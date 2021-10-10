@@ -21,8 +21,7 @@ Scene::Scene()
     , render_graphs_()
     , lighting_rig_()
 {
-    lighting_rig_.ambient_light =
-        std::make_unique<AmbientLight>(Colour{1.0f, 1.0f, 1.0f});
+    lighting_rig_.ambient_light = std::make_unique<AmbientLight>(Colour{1.0f, 1.0f, 1.0f});
 }
 
 RenderGraph *Scene::add(std::unique_ptr<RenderGraph> graph)
@@ -31,9 +30,7 @@ RenderGraph *Scene::add(std::unique_ptr<RenderGraph> graph)
     return render_graphs_.back().get();
 }
 
-RenderEntity *Scene::add(
-    RenderGraph *render_graph,
-    std::unique_ptr<RenderEntity> entity)
+RenderEntity *Scene::add(RenderGraph *render_graph, std::unique_ptr<RenderEntity> entity)
 {
     if (render_graph == nullptr)
     {
@@ -84,22 +81,19 @@ RenderGraph *Scene::render_graph(RenderEntity *entity) const
     auto found = std::find_if(
         std::cbegin(entities_),
         std::cend(entities_),
-        [entity](const auto &element)
-        { return std::get<1>(element).get() == entity; });
+        [entity](const auto &element) { return std::get<1>(element).get() == entity; });
 
     expect(found == std::cend(entities_), "entity not in scene");
 
     return std::get<0>(*found);
 }
 
-std::vector<std::tuple<RenderGraph *, std::unique_ptr<RenderEntity>>>
-    &Scene::entities()
+std::vector<std::tuple<RenderGraph *, std::unique_ptr<RenderEntity>>> &Scene::entities()
 {
     return entities_;
 }
 
-const std::vector<std::tuple<RenderGraph *, std::unique_ptr<RenderEntity>>>
-    &Scene::entities() const
+const std::vector<std::tuple<RenderGraph *, std::unique_ptr<RenderEntity>>> &Scene::entities() const
 {
     return entities_;
 }

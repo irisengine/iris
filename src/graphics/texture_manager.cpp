@@ -35,8 +35,7 @@ namespace
  * @returns
  *   Tuple of <data, width, height, number of channels>.
  */
-std::tuple<iris::DataBuffer, std::uint32_t, std::uint32_t> parse_image(
-    const iris::DataBuffer &data)
+std::tuple<iris::DataBuffer, std::uint32_t, std::uint32_t> parse_image(const iris::DataBuffer &data)
 {
     int width = 0;
     int height = 0;
@@ -72,16 +71,14 @@ std::tuple<iris::DataBuffer, std::uint32_t, std::uint32_t> parse_image(
 
     auto dst_ptr = padded_data.data();
     auto *src_ptr = reinterpret_cast<const std::byte *>(raw_data.get());
-    const auto *end_ptr =
-        reinterpret_cast<const std::byte *>(raw_data.get() + size);
+    const auto *end_ptr = reinterpret_cast<const std::byte *>(raw_data.get() + size);
 
     while (src_ptr != end_ptr)
     {
         // default pixel value (black with alpha)
         // this allows us to memcpy over the data we do have and leaves the
         // correct defaults if we have less than four channels
-        std::byte rgba[] = {
-            std::byte{0x0}, std::byte{0x0}, std::byte{0x0}, std::byte{0xff}};
+        std::byte rgba[] = {std::byte{0x0}, std::byte{0x0}, std::byte{0x0}, std::byte{0xff}};
 
         std::memcpy(rgba, src_ptr, num_channels);
         std::memcpy(dst_ptr, rgba, output_channels);
@@ -91,9 +88,7 @@ std::tuple<iris::DataBuffer, std::uint32_t, std::uint32_t> parse_image(
     }
 
     return std::make_tuple(
-        std::move(padded_data),
-        static_cast<std::uint32_t>(width),
-        static_cast<std::uint32_t>(height));
+        std::move(padded_data), static_cast<std::uint32_t>(width), static_cast<std::uint32_t>(height));
 }
 
 }
@@ -103,9 +98,7 @@ namespace iris
 
 Texture *TextureManager::load(const std::string &resource, TextureUsage usage)
 {
-    expect(
-        (usage == TextureUsage::IMAGE) || (usage == TextureUsage::DATA),
-        "can only load IMAGE or DATA from file");
+    expect((usage == TextureUsage::IMAGE) || (usage == TextureUsage::DATA), "can only load IMAGE or DATA from file");
 
     // check if texture has been loaded before, if not then load it
     auto loaded = loaded_textures_.find(resource);
@@ -126,11 +119,7 @@ Texture *TextureManager::load(const std::string &resource, TextureUsage usage)
     return loaded_textures_[resource].texture.get();
 }
 
-Texture *TextureManager::create(
-    const DataBuffer &data,
-    std::uint32_t width,
-    std::uint32_t height,
-    TextureUsage usage)
+Texture *TextureManager::create(const DataBuffer &data, std::uint32_t width, std::uint32_t height, TextureUsage usage)
 {
     static std::uint32_t counter = 0u;
 
@@ -160,12 +149,9 @@ void TextureManager::unload(Texture *texture)
         auto loaded = std::find_if(
             std::begin(loaded_textures_),
             std::end(loaded_textures_),
-            [texture](const auto &element)
-            { return element.second.texture.get() == texture; });
+            [texture](const auto &element) { return element.second.texture.get() == texture; });
 
-        expect(
-            loaded != std::cend(loaded_textures_),
-            "texture has not been loaded");
+        expect(loaded != std::cend(loaded_textures_), "texture has not been loaded");
 
         // decrement reference count and, if 0, unload
         --loaded->second.ref_count;
@@ -178,11 +164,8 @@ void TextureManager::unload(Texture *texture)
 
 Texture *TextureManager::blank()
 {
-    static Texture *texture = create(
-        {std::byte{0xff}, std::byte{0xff}, std::byte{0xff}, std::byte{0xff}},
-        1u,
-        1u,
-        TextureUsage::IMAGE);
+    static Texture *texture =
+        create({std::byte{0xff}, std::byte{0xff}, std::byte{0xff}, std::byte{0xff}}, 1u, 1u, TextureUsage::IMAGE);
 
     return texture;
 }

@@ -19,7 +19,7 @@ namespace iris
 
 JobSystem *ThreadJobSystemManager::create_job_system()
 {
-   ensure (job_system_,"job system already created");
+    ensure(job_system_, "job system already created");
 
     job_system_ = std::make_unique<ThreadJobSystem>();
     return job_system_.get();

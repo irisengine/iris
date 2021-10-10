@@ -86,10 +86,8 @@ std::vector<iris::Animation> process_animations(const ::aiScene *scene)
             ticks_per_second = 33.0f;
         }
 
-        const std::chrono::milliseconds tick_time{
-            static_cast<std::uint32_t>((1.0f / ticks_per_second) * 1000u)};
-        const auto duration =
-            tick_time * static_cast<std::uint32_t>(animation->mDuration);
+        const std::chrono::milliseconds tick_time{static_cast<std::uint32_t>((1.0f / ticks_per_second) * 1000u)};
+        const auto duration = tick_time * static_cast<std::uint32_t>(animation->mDuration);
 
         std::map<std::string, std::vector<iris::KeyFrame>> nodes;
 
@@ -113,16 +111,12 @@ std::vector<iris::Animation> process_animations(const ::aiScene *scene)
                 const auto assimp_pos = channel->mPositionKeys[k].mValue;
                 const auto assimp_rot = channel->mRotationKeys[k].mValue;
                 const auto assimp_scale = channel->mScalingKeys[k].mValue;
-                const auto time =
-                    static_cast<std::uint32_t>(channel->mPositionKeys[k].mTime);
+                const auto time = static_cast<std::uint32_t>(channel->mPositionKeys[k].mTime);
 
                 keyframes.emplace_back(
                     iris::Transform{
                         {assimp_pos.x, assimp_pos.y, assimp_pos.z},
-                        {assimp_rot.x,
-                         assimp_rot.y,
-                         assimp_rot.z,
-                         assimp_rot.w},
+                        {assimp_rot.x, assimp_rot.y, assimp_rot.z, assimp_rot.w},
                         {assimp_scale.x, assimp_scale.y, assimp_scale.z}},
                     time * tick_time);
             }
@@ -157,9 +151,7 @@ std::vector<iris::Animation> process_animations(const ::aiScene *scene)
  * @returns
  *   Bones.
  */
-std::vector<iris::Bone> process_bones(
-    const ::aiMesh *mesh,
-    const ::aiNode *root)
+std::vector<iris::Bone> process_bones(const ::aiMesh *mesh, const ::aiNode *root)
 {
     std::vector<iris::Bone> bones{};
 
@@ -176,8 +168,7 @@ std::vector<iris::Bone> process_bones(
 
         // create a bone which represents the nodes transformation but effects
         // no vertices
-        iris::Bone bone{
-            name, parent_name, {}, {}, convert_matrix(node->mTransformation)};
+        iris::Bone bone{name, parent_name, {}, {}, convert_matrix(node->mTransformation)};
 
         // see if this node represents an assimp bone
         for (auto i = 0u; i < mesh->mNumBones; ++i)
@@ -217,12 +208,7 @@ std::vector<iris::Bone> process_bones(
     // always return at least one default bone
     if (bones.empty())
     {
-        bones.emplace_back(
-            "root",
-            "",
-            std::vector<iris::Weight>{{0u, 1.0f}},
-            iris::Matrix4{},
-            iris::Matrix4{});
+        bones.emplace_back("root", "", std::vector<iris::Weight>{{0u, 1.0f}}, iris::Matrix4{}, iris::Matrix4{});
     }
 
     return bones;
@@ -265,9 +251,7 @@ std::vector<std::uint32_t> process_indices(const ::aiMesh *mesh)
  * @returns
  *   Vertex data.
  */
-std::vector<iris::VertexData> process_vertices(
-    const ::aiMesh *mesh,
-    const ::aiMaterial *material)
+std::vector<iris::VertexData> process_vertices(const ::aiMesh *mesh, const ::aiMaterial *material)
 {
     std::vector<iris::VertexData> vertices{};
 
@@ -325,13 +309,10 @@ LoadedData load(const std::string &mesh_name)
     // parse file using assimp
     ::Assimp::Importer importer{};
     const auto *scene = importer.ReadFileFromMemory(
-        file_data.data(),
-        file_data.size(),
-        ::aiProcess_Triangulate | ::aiProcess_CalcTangentSpace);
+        file_data.data(), file_data.size(), ::aiProcess_Triangulate | ::aiProcess_CalcTangentSpace);
 
     ensure(
-        (scene != nullptr) && !(scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) &&
-            (scene->mRootNode != nullptr),
+        (scene != nullptr) && !(scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) && (scene->mRootNode != nullptr),
         std::string{"could not load mesh: "} + importer.GetErrorString());
 
     const auto *root = scene->mRootNode;
@@ -370,8 +351,7 @@ LoadedData load(const std::string &mesh_name)
 
     loaded_data.vertices = process_vertices(mesh, material);
     loaded_data.indices = process_indices(mesh);
-    loaded_data.skeleton = {
-        process_bones(mesh, root), process_animations(scene)};
+    loaded_data.skeleton = {process_bones(mesh, root), process_animations(scene)};
 
     // stamp in bone data into vertices
     // each vertex supports four bones, so keep a track of the next
@@ -394,12 +374,10 @@ LoadedData load(const std::string &mesh_name)
                 continue;
             }
 
-            const auto bone_index =
-                loaded_data.skeleton.bone_index(bone.name());
+            const auto bone_index = loaded_data.skeleton.bone_index(bone.name());
 
             // update vertex data with bone data
-            loaded_data.vertices[id].bone_ids[bone_indices[id]] =
-                static_cast<std::uint32_t>(bone_index);
+            loaded_data.vertices[id].bone_ids[bone_indices[id]] = static_cast<std::uint32_t>(bone_index);
             loaded_data.vertices[id].bone_weights[bone_indices[id]] = weight;
 
             ++bone_indices[id];

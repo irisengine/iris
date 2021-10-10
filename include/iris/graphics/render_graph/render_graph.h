@@ -27,8 +27,7 @@ class RenderGraph
   public:
     // helper trait
     template <class T>
-    using is_node = std::enable_if_t<
-        std::is_base_of_v<Node, T> && !std::is_same_v<RenderNode, T>>;
+    using is_node = std::enable_if_t<std::is_base_of_v<Node, T> && !std::is_same_v<RenderNode, T>>;
 
     /**
      * Create a new RenderGraph.
@@ -54,7 +53,7 @@ class RenderGraph
      *   A pointer to the newly created Node.
      */
     template <class T, class... Args, typename = is_node<T>>
-    T *create(Args &&... args)
+    T *create(Args &&...args)
     {
         auto node = std::make_unique<T>(std::forward<Args>(args)...);
         return static_cast<T *>(add(std::move(node)));
@@ -70,7 +69,7 @@ class RenderGraph
      *   A pointer to the newly created Node.
      */
     template <class T, class... Args, typename = is_node<T>>
-    RenderNode *set_render_node(Args &&... args)
+    RenderNode *set_render_node(Args &&...args)
     {
         nodes_[0] = std::make_unique<T>(std::forward<Args>(args)...);
         return render_node();

@@ -203,13 +203,7 @@ class Event
     EventType type_;
 
     /** Variant of possible Event types. */
-    std::variant<
-        QuitEvent,
-        KeyboardEvent,
-        MouseEvent,
-        MouseButtonEvent,
-        TouchEvent>
-        event_;
+    std::variant<QuitEvent, KeyboardEvent, MouseEvent, MouseButtonEvent, TouchEvent> event_;
 };
 
 }

@@ -22,8 +22,7 @@ namespace
 
 MetalView *get_view()
 {
-    const auto *window =
-        [[[UIApplication sharedApplication] windows] objectAtIndex:0];
+    const auto *window = [[[UIApplication sharedApplication] windows] objectAtIndex:0];
     if (window == nullptr)
     {
         throw iris::Exception("unable to get main window");

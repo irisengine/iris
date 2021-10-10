@@ -98,9 +98,7 @@ class CharacterController
      * @param orientation
      *   New orientation.
      */
-    virtual void reposition(
-        const Vector3 &position,
-        const Quaternion &orientation) = 0;
+    virtual void reposition(const Vector3 &position, const Quaternion &orientation) = 0;
 
     /**
      * Make the character jump.

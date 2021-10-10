@@ -41,10 +41,7 @@ class OpenGLUniform
      *   If true then an exception will be thrown if the uniform does not
      *   exists, else construction continues as normal.
      */
-    OpenGLUniform(
-        GLuint program,
-        const std::string &name,
-        bool ensure_exists = true);
+    OpenGLUniform(GLuint program, const std::string &name, bool ensure_exists = true);
 
     /**
      * Set a matrix value for the uniform.

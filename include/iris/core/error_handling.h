@@ -69,8 +69,7 @@ inline void check_and_handle(
         std::stringstream strm{};
 
         // combine the user supplied message with the source location
-        strm << message << " -> " << file_name << "(" << line << ") `"
-             << function_name << "`";
+        strm << message << " -> " << file_name << "(" << line << ") `" << function_name << "`";
 
         if (drop_mic)
         {
@@ -92,23 +91,23 @@ inline void check_and_handle(
 // this is useful if we cannot set a breakpoint in an IDE, for example as of
 // writing VSCode cannot set a breakpoint in an objc++ (.mm) file
 #if defined(IRIS_PLATFORM_WIN32)
-#define IRIS_DEBUG_BREAK()                                                     \
-    do                                                                         \
-    {                                                                          \
-        DebugBreak();                                                          \
+#define IRIS_DEBUG_BREAK()                                                                                             \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        DebugBreak();                                                                                                  \
     } while (false)
 #else
 #if defined(IRIS_ARCH_X86_64)
-#define IRIS_DEBUG_BREAK()                                                     \
-    do                                                                         \
-    {                                                                          \
-        asm("int3");                                                           \
+#define IRIS_DEBUG_BREAK()                                                                                             \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        asm("int3");                                                                                                   \
     } while (false)
 #elif defined(IRIS_ARCH_ARM64)
-#define IRIS_DEBUG_BREAK()                                                     \
-    do                                                                         \
-    {                                                                          \
-        asm("BKPT");                                                           \
+#define IRIS_DEBUG_BREAK()                                                                                             \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        asm("BKPT");                                                                                                   \
     } while (false)
 #else
 #error unsupported architecture
@@ -149,8 +148,7 @@ inline void expect(
     const char *file_name = __builtin_FILE(),
     const char *function_name = __builtin_FUNCTION())
 {
-    impl::check_and_handle(
-        expectation, message, line, file_name, function_name, true);
+    impl::check_and_handle(expectation, message, line, file_name, function_name, true);
 }
 
 /**
@@ -175,8 +173,7 @@ inline void expect(
 {
     if (const auto final_message = check_error(message); final_message)
     {
-        impl::check_and_handle(
-            false, *final_message, line, file_name, function_name, true);
+        impl::check_and_handle(false, *final_message, line, file_name, function_name, true);
     }
 }
 
@@ -198,8 +195,7 @@ inline void expect(
     const char *file_name = __builtin_FILE(),
     const char *function_name = __builtin_FUNCTION())
 {
-    impl::check_and_handle(
-        !!ptr, message, line, file_name, function_name, true);
+    impl::check_and_handle(!!ptr, message, line, file_name, function_name, true);
 }
 
 /**
@@ -220,8 +216,7 @@ inline void expect(
     const char *file_name = __builtin_FILE(),
     const char *function_name = __builtin_FUNCTION())
 {
-    impl::check_and_handle(
-        !!auto_release, message, line, file_name, function_name, true);
+    impl::check_and_handle(!!auto_release, message, line, file_name, function_name, true);
 }
 
 #else
@@ -233,13 +228,7 @@ inline void expect(
     std::string_view message,
     std::source_location location = std::source_location::current())
 {
-    impl::check_and_handle(
-        expectation,
-        message,
-        location.line(),
-        location.file_name(),
-        location.function_name(),
-        true);
+    impl::check_and_handle(expectation, message, location.line(), location.file_name(), location.function_name(), true);
 }
 
 inline void expect(
@@ -250,12 +239,7 @@ inline void expect(
     if (const auto final_message = check_error(message); final_message)
     {
         impl::check_and_handle(
-            false,
-            *final_message,
-            location.line(),
-            location.file_name(),
-            location.function_name(),
-            true);
+            false, *final_message, location.line(), location.file_name(), location.function_name(), true);
     }
 }
 
@@ -265,13 +249,7 @@ inline void expect(
     std::string_view message,
     std::source_location location = std::source_location::current())
 {
-    impl::check_and_handle(
-        !!ptr,
-        message,
-        location.line(),
-        location.file_name(),
-        location.function_name(),
-        true);
+    impl::check_and_handle(!!ptr, message, location.line(), location.file_name(), location.function_name(), true);
 }
 
 template <class T, T Invalid>
@@ -281,12 +259,7 @@ inline void expect(
     std::source_location location = std::source_location::current())
 {
     impl::check_and_handle(
-        !!auto_release,
-        message,
-        location.line(),
-        location.file_name(),
-        location.function_name(),
-        true);
+        !!auto_release, message, location.line(), location.file_name(), location.function_name(), true);
 }
 
 #endif
@@ -335,10 +308,7 @@ inline void expect(
 
 #else
 
-inline void expect(
-    bool,
-    std::string_view,
-    std::source_location = std::source_location::current())
+inline void expect(bool, std::string_view, std::source_location = std::source_location::current())
 {
 }
 
@@ -350,10 +320,7 @@ inline void expect(
 }
 
 template <class T>
-inline void expect(
-    const std::unique_ptr<T> &,
-    std::string_view,
-    std::source_location = std::source_location::current())
+inline void expect(const std::unique_ptr<T> &, std::string_view, std::source_location = std::source_location::current())
 {
 }
 
@@ -387,8 +354,7 @@ inline void ensure(
     const char *file_name = __builtin_FILE(),
     const char *function_name = __builtin_FUNCTION())
 {
-    impl::check_and_handle(
-        expectation, message, line, file_name, function_name, false);
+    impl::check_and_handle(expectation, message, line, file_name, function_name, false);
 }
 
 /**
@@ -414,8 +380,7 @@ inline void ensure(
 {
     if (const auto final_message = check_error(message); final_message)
     {
-        impl::check_and_handle(
-            false, *final_message, line, file_name, function_name, false);
+        impl::check_and_handle(false, *final_message, line, file_name, function_name, false);
     }
 }
 
@@ -437,8 +402,7 @@ inline void ensure(
     const char *file_name = __builtin_FILE(),
     const char *function_name = __builtin_FUNCTION())
 {
-    impl::check_and_handle(
-        !!ptr, message, line, file_name, function_name, false);
+    impl::check_and_handle(!!ptr, message, line, file_name, function_name, false);
 }
 
 /**
@@ -459,8 +423,7 @@ inline void ensure(
     const char *file_name = __builtin_FILE(),
     const char *function_name = __builtin_FUNCTION())
 {
-    impl::check_and_handle(
-        !!auto_release, message, line, file_name, function_name, false);
+    impl::check_and_handle(!!auto_release, message, line, file_name, function_name, false);
 }
 
 #else
@@ -482,12 +445,7 @@ inline void ensure(
     std::source_location location = std::source_location::current())
 {
     impl::check_and_handle(
-        expectation,
-        message,
-        location.line(),
-        location.file_name(),
-        location.function_name(),
-        false);
+        expectation, message, location.line(), location.file_name(), location.function_name(), false);
 }
 
 inline void ensure(
@@ -498,12 +456,7 @@ inline void ensure(
     if (const auto final_message = check_error(message); final_message)
     {
         impl::check_and_handle(
-            false,
-            *final_message,
-            location.line(),
-            location.file_name(),
-            location.function_name(),
-            false);
+            false, *final_message, location.line(), location.file_name(), location.function_name(), false);
     }
 }
 
@@ -513,13 +466,7 @@ inline void ensure(
     std::string_view message,
     std::source_location location = std::source_location::current())
 {
-    impl::check_and_handle(
-        !!ptr,
-        message,
-        location.line(),
-        location.file_name(),
-        location.function_name(),
-        false);
+    impl::check_and_handle(!!ptr, message, location.line(), location.file_name(), location.function_name(), false);
 }
 
 template <class T, T Invalid>
@@ -529,12 +476,7 @@ inline void ensure(
     std::source_location location = std::source_location::current())
 {
     impl::check_and_handle(
-        !!auto_release,
-        message,
-        location.line(),
-        location.file_name(),
-        location.function_name(),
-        false);
+        !!auto_release, message, location.line(), location.file_name(), location.function_name(), false);
 }
 
 #endif
