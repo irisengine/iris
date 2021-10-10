@@ -26,7 +26,7 @@
 #include "graphics/window_manager.h"
 #include "log/log.h"
 
-#if defined(IRIS_PLATFORM_WINDOWS)
+#if defined(IRIS_PLATFORM_WIN32)
 #include "graphics/win32/win32_opengl_window.h"
 #endif
 
@@ -431,7 +431,7 @@ void OpenGLRenderer::execute_present(RenderCommand &)
 {
 #if defined(IRIS_PLATFORM_MACOS)
     ::glSwapAPPLE();
-#elif defined(IRIS_PLATFORM_WINDOWS)
+#elif defined(IRIS_PLATFORM_WIN32)
     const auto *window = static_cast<Win32OpenGLWindow *>(
         Root::window_manager().current_window());
     ::SwapBuffers(window->device_context());

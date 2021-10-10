@@ -4,7 +4,7 @@ if(IRIS_PLATFORM MATCHES "MACOS")
   add_subdirectory("macos")
 elseif(IRIS_PLATFORM MATCHES "IOS")
   add_subdirectory("ios")
-elseif(IRIS_PLATFORM MATCHES "WINDOWS")
+elseif(IRIS_PLATFORM MATCHES "WIN32")
   add_subdirectory("win32")
 endif()
 

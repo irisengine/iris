@@ -14,7 +14,7 @@
 #include <source_location>
 #endif
 
-#if defined(IRIS_PLATFORM_WINDOWS)
+#if defined(IRIS_PLATFORM_WIN32)
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #endif
@@ -85,7 +85,7 @@ inline void check_and_handle(
 // define a platform specific macro that will break to an attached debugger
 // this is useful if we cannot set a breakpoint in an IDE, for example as of
 // writing VSCode cannot set a breakpoint in an objc++ (.mm) file
-#if defined(IRIS_PLATFORM_WINDOWS)
+#if defined(IRIS_PLATFORM_WIN32)
 #define IRIS_DEBUG_BREAK()                                                     \
     do                                                                         \
     {                                                                          \

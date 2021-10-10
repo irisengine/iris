@@ -28,6 +28,6 @@ target_sources(iris PRIVATE
     opengl_texture_manager.cpp
     opengl_uniform.cpp)
 
-if(IRIS_PLATFORM MATCHES "WINDOWS")
+if(IRIS_PLATFORM MATCHES "WIN32")
   target_sources(iris PRIVATE ${INCLUDE_ROOT}/opengl_windows.h)
 endif()

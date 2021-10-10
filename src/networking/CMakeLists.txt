@@ -1,7 +1,7 @@
 set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/networking")
 
-if(IRIS_PLATFORM MATCHES "WINDOWS")
-  add_subdirectory("windows")
+if(IRIS_PLATFORM MATCHES "WIN32")
+  add_subdirectory("win32")
 endif()
 
 target_sources(iris PRIVATE

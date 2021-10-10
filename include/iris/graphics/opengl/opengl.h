@@ -10,7 +10,7 @@
 #if defined(IRIS_PLATFORM_MACOS)
 #include <OpenGL/gl3.h>
 #include <OpenGL/gl3ext.h>
-#elif defined(IRIS_PLATFORM_WINDOWS)
+#elif defined(IRIS_PLATFORM_WIN32)
 // clang-format off
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>

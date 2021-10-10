@@ -6,11 +6,11 @@
 
 #include <functional>
 
-#if defined(IRIS_PLATFORM_WINDOWS)
+#if defined(IRIS_PLATFORM_WIN32)
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #pragma comment(lib, "Ws2_32.lib")
-#include "networking/windows/winsock.h"
+#include "networking/win32/winsock.h"
 static iris::Winsock ws_init;
 #else
 #include <arpa/inet.h>
@@ -28,7 +28,7 @@ static iris::Winsock ws_init;
 namespace iris
 {
 
-#if defined(IRIS_PLATFORM_WINDOWS)
+#if defined(IRIS_PLATFORM_WIN32)
 
 using SocketHandle = SOCKET;
 static std::function<int(SocketHandle)> CloseSocket = ::closesocket;
