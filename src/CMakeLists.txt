@@ -69,7 +69,7 @@ if(IRIS_PLATFORM MATCHES "MACOS" OR IRIS_PLATFORM MATCHES "WINDOWS")
   endif()
 endif()
 
-message(STATUS "Building iris-${CMAKE_PROJECT_VERSION} for ${IRIS_PLATFORM} (${IRIS_JOBS_API})")
+message(STATUS "Building iris-${CMAKE_PROJECT_VERSION} for ${IRIS_PLATFORM} (${IRIS_JOBS_API}) (asan: ${IRIS_ASAN})")
 
 target_link_libraries(iris PUBLIC LinearMath BulletDynamics BulletCollision assimp)
 
@@ -102,6 +102,11 @@ if(IRIS_PLATFORM MATCHES "WINDOWS")
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 else()
   target_compile_options(iris PRIVATE -Wall -Werror -pedantic -glldb -fobjc-arc)
+
+  if(IRIS_ASAN)
+    target_compile_options(iris PUBLIC -fsanitize=address)
+    target_link_options(iris PUBLIC -fsanitize=address)
+  endif()
 
   install(
     TARGETS iris assimp zlibstatic IrrXML BulletDynamics BulletCollision LinearMath
