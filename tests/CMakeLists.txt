@@ -21,4 +21,5 @@ if(IRIS_PLATFORM MATCHES "WINDOWS")
 endif()
 
 target_link_libraries(unit_tests iris gmock_main)
+target_compile_definitions(unit_tests PRIVATE IRIS_FORCE_EXPECT)
 gtest_discover_tests(unit_tests)
