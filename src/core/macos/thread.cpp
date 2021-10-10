@@ -46,11 +46,8 @@ void Thread::bind_to_core(std::size_t core)
     const auto mach_thread = pthread_mach_thread_np(thread_.native_handle());
 
     // set affinity policy, this is merely a suggestion to the kernel
-    const auto set_policy = ::thread_policy_set(
-        mach_thread,
-        THREAD_AFFINITY_POLICY,
-        reinterpret_cast<thread_policy_t>(&policy),
-        1);
+    const auto set_policy =
+        ::thread_policy_set(mach_thread, THREAD_AFFINITY_POLICY, reinterpret_cast<thread_policy_t>(&policy), 1);
     expect(set_policy == KERN_SUCCESS, "failed to bind thread to core");
 }
 

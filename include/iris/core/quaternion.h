@@ -127,14 +127,10 @@ class Quaternion
     {
         const Quaternion copy{*this};
 
-        w = copy.w * quaternion.w - copy.x * quaternion.x -
-            copy.y * quaternion.y - copy.z * quaternion.z;
-        x = copy.w * quaternion.x + copy.x * quaternion.w +
-            copy.y * quaternion.z - copy.z * quaternion.y;
-        y = copy.w * quaternion.y + copy.y * quaternion.w +
-            copy.z * quaternion.x - copy.x * quaternion.z;
-        z = copy.w * quaternion.z + copy.z * quaternion.w +
-            copy.x * quaternion.y - copy.y * quaternion.x;
+        w = copy.w * quaternion.w - copy.x * quaternion.x - copy.y * quaternion.y - copy.z * quaternion.z;
+        x = copy.w * quaternion.x + copy.x * quaternion.w + copy.y * quaternion.z - copy.z * quaternion.y;
+        y = copy.w * quaternion.y + copy.y * quaternion.w + copy.z * quaternion.x - copy.x * quaternion.z;
+        z = copy.w * quaternion.z + copy.z * quaternion.w + copy.x * quaternion.y - copy.y * quaternion.x;
 
         return *this;
     }
@@ -366,8 +362,7 @@ class Quaternion
      */
     bool operator==(const Quaternion &other) const
     {
-        return compare(w, other.w) && compare(x, other.x) &&
-               compare(y, other.y) && compare(z, other.z);
+        return compare(w, other.w) && compare(x, other.x) && compare(y, other.y) && compare(z, other.z);
     }
 
     /**
@@ -392,8 +387,7 @@ class Quaternion
      */
     Quaternion &normalise()
     {
-        const auto magnitude = std::pow(w, 2.0f) + std::pow(x, 2.0f) +
-                               std::pow(y, 2.0f) + std::pow(z, 2.0f);
+        const auto magnitude = std::pow(w, 2.0f) + std::pow(x, 2.0f) + std::pow(y, 2.0f) + std::pow(z, 2.0f);
 
         if (magnitude == 0.0f)
         {

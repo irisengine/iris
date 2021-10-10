@@ -70,15 +70,8 @@ EXTERN void (*glGenVertexArrays)(GLsizei, GLuint *);
 EXTERN void (*glDeleteVertexArrays)(GLsizei, GLuint *);
 EXTERN void (*glBindVertexArray)(GLuint);
 EXTERN void (*glEnableVertexAttribArray)(GLuint);
-EXTERN void (*glVertexAttribPointer)(
-    GLuint,
-    GLint,
-    GLenum,
-    GLboolean,
-    GLsizei,
-    const void *);
-EXTERN void (
-    *glVertexAttribIPointer)(GLuint, GLint, GLenum, GLsizei, const void *);
+EXTERN void (*glVertexAttribPointer)(GLuint, GLint, GLenum, GLboolean, GLsizei, const void *);
+EXTERN void (*glVertexAttribIPointer)(GLuint, GLint, GLenum, GLsizei, const void *);
 EXTERN GLuint (*glCreateProgram)(void);
 EXTERN void (*glAttachShader)(GLuint, GLuint);
 EXTERN void (*glGenBuffers)(GLsizei, GLuint *);
@@ -100,17 +93,7 @@ EXTERN void (*glUniform1fv)(GLint, GLsizei, const GLfloat *);
 EXTERN void (*glUniform4fv)(GLint, GLsizei, const GLfloat *);
 EXTERN void (*glActiveTexture)(GLenum);
 EXTERN void (*glUniform1i)(GLint, GLint);
-EXTERN void (*glBlitFramebuffer)(
-    GLint,
-    GLint,
-    GLint,
-    GLint,
-    GLint,
-    GLint,
-    GLint,
-    GLint,
-    GLbitfield,
-    GLenum);
+EXTERN void (*glBlitFramebuffer)(GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLbitfield, GLenum);
 EXTERN GLuint (*glCreateShader)(GLenum);
 EXTERN void (*glShaderSource)(GLuint, GLsizei, const GLchar **, const GLint *);
 EXTERN void (*glCompileShader)(GLuint);

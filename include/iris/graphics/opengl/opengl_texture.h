@@ -41,12 +41,7 @@ class OpenGLTexture : public Texture
      * @param id
      *    OpenGL texture unit.
      */
-    OpenGLTexture(
-        const DataBuffer &data,
-        std::uint32_t width,
-        std::uint32_t height,
-        TextureUsage usage,
-        GLuint id);
+    OpenGLTexture(const DataBuffer &data, std::uint32_t width, std::uint32_t height, TextureUsage usage, GLuint id);
 
     /**
      * Clean up OpenGL objects.

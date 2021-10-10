@@ -39,8 +39,7 @@ class Renderer
      * @param render_passes
      *   Collection of RenderPass objects to render.
      */
-    virtual void set_render_passes(
-        const std::vector<RenderPass> &render_passes) = 0;
+    virtual void set_render_passes(const std::vector<RenderPass> &render_passes) = 0;
 
     /**
      * Create a RenderTarget with custom dimensions.
@@ -54,9 +53,7 @@ class Renderer
      * @returns
      *   RenderTarget.
      */
-    virtual RenderTarget *create_render_target(
-        std::uint32_t width,
-        std::uint32_t height) = 0;
+    virtual RenderTarget *create_render_target(std::uint32_t width, std::uint32_t height) = 0;
 
   protected:
     // these functions provide implementors a chance to handle each

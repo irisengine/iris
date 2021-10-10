@@ -32,9 +32,7 @@ std::array<float, 4u> AmbientLight::colour_data() const
     light_data.fill(0.0f);
 
     // sanity check we have enough space
-    static_assert(
-        light_data.size() * sizeof(decltype(light_data)::value_type) >=
-        sizeof(colour_));
+    static_assert(light_data.size() * sizeof(decltype(light_data)::value_type) >= sizeof(colour_));
 
     // copy light data straight into buffer
     std::memcpy(light_data.data(), &colour_, sizeof(colour_));

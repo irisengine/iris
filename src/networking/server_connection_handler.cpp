@@ -50,23 +50,15 @@ namespace
  * @param socket
  *   Socket for the connection.
  */
-void handle_hello(
-    std::size_t id,
-    iris::Channel *channel,
-    iris::Socket *socket,
-    std::mutex &mutex)
+void handle_hello(std::size_t id, iris::Channel *channel, iris::Socket *socket, std::mutex &mutex)
 {
     // we will send the client their id
     iris::DataBufferSerialiser serialiser{};
     serialiser.push(static_cast<std::uint32_t>(id));
 
     // create and enqueue response packets
-    iris::Packet connected{
-        iris::PacketType::CONNECTED,
-        iris::ChannelType::RELIABLE_ORDERED,
-        serialiser.data()};
-    iris::Packet sync_start{
-        iris::PacketType::SYNC_START, iris::ChannelType::RELIABLE_ORDERED, {}};
+    iris::Packet connected{iris::PacketType::CONNECTED, iris::ChannelType::RELIABLE_ORDERED, serialiser.data()};
+    iris::Packet sync_start{iris::PacketType::SYNC_START, iris::ChannelType::RELIABLE_ORDERED, {}};
 
     std::vector<iris::Packet> send_queue{};
 
@@ -97,26 +89,19 @@ void handle_hello(
  * @param packet
  *   The received SYNC_RESPONSE packet.
  */
-void handle_sync_response(
-    iris::Channel *channel,
-    iris::Socket *socket,
-    const iris::Packet &packet,
-    std::mutex &mutex)
+void handle_sync_response(iris::Channel *channel, iris::Socket *socket, const iris::Packet &packet, std::mutex &mutex)
 {
     // get the client time and our time
     iris::DataBufferDeserialiser deserialiser{packet.body_buffer()};
     const auto client_time_raw = deserialiser.pop<std::uint32_t>();
-    const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::steady_clock::now().time_since_epoch());
+    const auto now =
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
 
     // send the client back their time and out time
     iris::DataBufferSerialiser serialiser{};
     serialiser.push(client_time_raw);
     serialiser.push(static_cast<std::uint32_t>(now.count()));
-    iris::Packet sync_finish{
-        iris::PacketType::SYNC_FINISH,
-        iris::ChannelType::RELIABLE_ORDERED,
-        serialiser.data()};
+    iris::Packet sync_finish{iris::PacketType::SYNC_FINISH, iris::ChannelType::RELIABLE_ORDERED, serialiser.data()};
 
     std::vector<iris::Packet> send_queue{};
 
@@ -162,84 +147,78 @@ ServerConnectionHandler::ServerConnectionHandler(
 {
     // we want to always be accepting connections, so we do this in a background
     // job
-    Root::jobs_manager().add(
-        {[this]()
-         {
-             for (;;)
-             {
-                 auto [client_socket, raw_packet, new_connection] =
-                     socket_->read();
+    Root::jobs_manager().add({[this]()
+                              {
+                                  for (;;)
+                                  {
+                                      auto [client_socket, raw_packet, new_connection] = socket_->read();
 
-                 std::hash<Socket *> hash{};
+                                      std::hash<Socket *> hash{};
 
-                 const auto id = hash(client_socket);
+                                      const auto id = hash(client_socket);
 
-                 if (new_connection)
-                 {
-                     // setup internal struct to manage connection
-                     auto connection = std::make_unique<Connection>();
-                     connection->socket = client_socket;
-                     connection->channels[ChannelType::UNRELIABLE_UNORDERED] =
-                         std::make_unique<UnreliableUnorderedChannel>();
-                     connection->channels[ChannelType::UNRELIABLE_SEQUENCED] =
-                         std::make_unique<UnreliableSequencedChannel>();
-                     connection->channels[ChannelType::RELIABLE_ORDERED] =
-                         std::make_unique<ReliableOrderedChannel>();
+                                      if (new_connection)
+                                      {
+                                          // setup internal struct to manage connection
+                                          auto connection = std::make_unique<Connection>();
+                                          connection->socket = client_socket;
+                                          connection->channels[ChannelType::UNRELIABLE_UNORDERED] =
+                                              std::make_unique<UnreliableUnorderedChannel>();
+                                          connection->channels[ChannelType::UNRELIABLE_SEQUENCED] =
+                                              std::make_unique<UnreliableSequencedChannel>();
+                                          connection->channels[ChannelType::RELIABLE_ORDERED] =
+                                              std::make_unique<ReliableOrderedChannel>();
 
-                     connections_[id] = std::move(connection);
-                 }
+                                          connections_[id] = std::move(connection);
+                                      }
 
-                 auto *connection = connections_[id].get();
+                                      auto *connection = connections_[id].get();
 
-                 iris::Packet packet{raw_packet};
+                                      iris::Packet packet{raw_packet};
 
-                 // enqueue the packet into the right channel
-                 const auto channel_type = packet.channel();
-                 auto *channel = connection->channels.at(channel_type).get();
+                                      // enqueue the packet into the right channel
+                                      const auto channel_type = packet.channel();
+                                      auto *channel = connection->channels.at(channel_type).get();
 
-                 std::vector<Packet> receive_queue{};
+                                      std::vector<Packet> receive_queue{};
 
-                 {
-                     std::unique_lock lock(mutex_);
-                     channel->enqueue_receive(std::move(packet));
-                     receive_queue = channel->yield_receive_queue();
-                 }
+                                      {
+                                          std::unique_lock lock(mutex_);
+                                          channel->enqueue_receive(std::move(packet));
+                                          receive_queue = channel->yield_receive_queue();
+                                      }
 
-                 // handle all received packets from that channel
-                 for (const auto &p : receive_queue)
-                 {
-                     switch (p.type())
-                     {
-                         case PacketType::HELLO:
-                         {
-                             handle_hello(
-                                 id, channel, connection->socket, mutex_);
+                                      // handle all received packets from that channel
+                                      for (const auto &p : receive_queue)
+                                      {
+                                          switch (p.type())
+                                          {
+                                              case PacketType::HELLO:
+                                              {
+                                                  handle_hello(id, channel, connection->socket, mutex_);
 
-                             // we got a new client, fire it back to the
-                             // application
-                             new_connection_callback_(id);
-                             break;
-                         }
-                         case PacketType::DATA:
-                         {
-                             // we got data, fire it back to the application
-                             recv_callback_(id, p.body_buffer(), p.channel());
-                             break;
-                         }
-                         case PacketType::SYNC_RESPONSE:
-                         {
-                             handle_sync_response(
-                                 channel, connection->socket, packet, mutex_);
-                             break;
-                         }
-                         default:
-                             LOG_ENGINE_ERROR(
-                                 "server_connection_handler",
-                                 "unknown packet type");
-                     }
-                 }
-             }
-         }});
+                                                  // we got a new client, fire it back to the
+                                                  // application
+                                                  new_connection_callback_(id);
+                                                  break;
+                                              }
+                                              case PacketType::DATA:
+                                              {
+                                                  // we got data, fire it back to the application
+                                                  recv_callback_(id, p.body_buffer(), p.channel());
+                                                  break;
+                                              }
+                                              case PacketType::SYNC_RESPONSE:
+                                              {
+                                                  handle_sync_response(channel, connection->socket, packet, mutex_);
+                                                  break;
+                                              }
+                                              default:
+                                                  LOG_ENGINE_ERROR("server_connection_handler", "unknown packet type");
+                                          }
+                                      }
+                                  }
+                              }});
 }
 
 ServerConnectionHandler::~ServerConnectionHandler() = default;
@@ -248,10 +227,7 @@ void ServerConnectionHandler::update()
 {
 }
 
-void ServerConnectionHandler::send(
-    std::size_t id,
-    const DataBuffer &message,
-    ChannelType channel_type)
+void ServerConnectionHandler::send(std::size_t id, const DataBuffer &message, ChannelType channel_type)
 {
     auto *channel = connections_[id]->channels[channel_type].get();
     auto *socket = connections_[id]->socket;

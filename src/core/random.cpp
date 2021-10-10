@@ -16,14 +16,14 @@ thread_local std::random_device device;
 
 /**
  * Helper function to generate a random value with a given distribution.
- * 
+ *
  * @param distribution
  *   Distribution of random value.
- * 
+ *
  * @returns
  *   Random value with given distribution.
  */
-template<class T>
+template <class T>
 typename T::result_type generate(T distribution)
 {
     std::mt19937 engine(device());

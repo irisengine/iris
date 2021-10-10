@@ -276,11 +276,7 @@ D3D12_RESOURCE_DESC depth_texture_descriptor(
 namespace iris
 {
 
-D3D12Texture::D3D12Texture(
-    const DataBuffer &data,
-    std::uint32_t width,
-    std::uint32_t height,
-    TextureUsage usage)
+D3D12Texture::D3D12Texture(const DataBuffer &data, std::uint32_t width, std::uint32_t height, TextureUsage usage)
     : Texture(data, width, height, usage)
     , resource_()
     , upload_()
@@ -292,22 +288,16 @@ D3D12Texture::D3D12Texture(
     auto *device = D3D12Context::device();
     const auto default_heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 
-    const auto &texture_description = [this, usage]() {
+    const auto &texture_description = [this, usage]()
+    {
         switch (usage)
         {
-            case TextureUsage::IMAGE:
-                return image_texture_descriptor(width_, height_, resource_);
-                break;
-            case TextureUsage::DATA:
-                return data_texture_descriptor(width_, height_, resource_);
-                break;
+            case TextureUsage::IMAGE: return image_texture_descriptor(width_, height_, resource_); break;
+            case TextureUsage::DATA: return data_texture_descriptor(width_, height_, resource_); break;
             case TextureUsage::RENDER_TARGET:
-                return render_target_texture_descriptor(
-                    width_, height_, resource_);
+                return render_target_texture_descriptor(width_, height_, resource_);
                 break;
-            case TextureUsage::DEPTH:
-                return depth_texture_descriptor(width_, height_, resource_);
-                break;
+            case TextureUsage::DEPTH: return depth_texture_descriptor(width_, height_, resource_); break;
             default: throw Exception("unknown texture usage");
         }
     }();
@@ -318,11 +308,9 @@ D3D12Texture::D3D12Texture(
     if (usage != TextureUsage::DEPTH)
     {
 
-        const UINT64 capacity =
-            GetRequiredIntermediateSize(resource_.Get(), 0, 1);
+        const UINT64 capacity = GetRequiredIntermediateSize(resource_.Get(), 0, 1);
 
-        const auto upload_heap =
-            CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+        const auto upload_heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
         const auto heap_description = CD3DX12_RESOURCE_DESC::Buffer(capacity);
 
         // create resource for initial upload of texture data
@@ -338,18 +326,14 @@ D3D12Texture::D3D12Texture(
 
         type_ = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
-        resource_view_ =
-            D3D12DescriptorManager::cpu_allocator(type_).allocate_static();
+        resource_view_ = D3D12DescriptorManager::cpu_allocator(type_).allocate_static();
 
-        device->CreateShaderResourceView(
-            resource_.Get(), NULL, resource_view_.cpu_handle());
+        device->CreateShaderResourceView(resource_.Get(), NULL, resource_view_.cpu_handle());
 
         // map the upload buffer so we can write to it
         void *mapped_buffer = nullptr;
         expect(
-            upload_->Map(0u, NULL, reinterpret_cast<void **>(&mapped_buffer)) ==
-                S_OK,
-            "failed to map constant buffer");
+            upload_->Map(0u, NULL, reinterpret_cast<void **>(&mapped_buffer)) == S_OK, "failed to map constant buffer");
 
         if (!data.empty())
         {
@@ -358,15 +342,7 @@ D3D12Texture::D3D12Texture(
 
             // create footprint for image data layout
             std::uint64_t memory_size = 0u;
-            device->GetCopyableFootprints(
-                &texture_description,
-                0,
-                1,
-                0,
-                &footprint_,
-                heights,
-                row_size,
-                &memory_size);
+            device->GetCopyableFootprints(&texture_description, 0, 1, 0, &footprint_, heights, row_size, &memory_size);
 
             auto *dst_cursor = reinterpret_cast<std::byte *>(mapped_buffer);
             auto *src_cursor = data_.data();
@@ -384,8 +360,7 @@ D3D12Texture::D3D12Texture(
     {
         type_ = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 
-        depth_resource_view_ =
-            D3D12DescriptorManager::cpu_allocator(type_).allocate_static();
+        depth_resource_view_ = D3D12DescriptorManager::cpu_allocator(type_).allocate_static();
 
         D3D12_DEPTH_STENCIL_VIEW_DESC depth_view_description = {0};
         depth_view_description.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -394,27 +369,19 @@ D3D12Texture::D3D12Texture(
         depth_view_description.Texture2D.MipSlice = 0;
 
         // create the depth/stencil view into the texture
-        device->CreateDepthStencilView(
-            resource_.Get(),
-            &depth_view_description,
-            depth_resource_view_.cpu_handle());
+        device->CreateDepthStencilView(resource_.Get(), &depth_view_description, depth_resource_view_.cpu_handle());
 
-        resource_view_ = D3D12DescriptorManager::cpu_allocator(
-                             D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)
-                             .allocate_static();
+        resource_view_ =
+            D3D12DescriptorManager::cpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).allocate_static();
 
         D3D12_SHADER_RESOURCE_VIEW_DESC shader_view_description = {0};
         shader_view_description.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-        shader_view_description.Shader4ComponentMapping =
-            D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+        shader_view_description.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
         shader_view_description.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
         shader_view_description.Texture2D.MipLevels = 1;
         shader_view_description.Texture2D.MostDetailedMip = 0;
 
-        device->CreateShaderResourceView(
-            resource_.Get(),
-            &shader_view_description,
-            resource_view_.cpu_handle());
+        device->CreateShaderResourceView(resource_.Get(), &shader_view_description, resource_view_.cpu_handle());
     }
 }
 

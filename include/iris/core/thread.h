@@ -34,7 +34,7 @@ class Thread
      *   Arguments of function, will be perfectly forwarded.
      */
     template <class Function, class... Args>
-    Thread(Function &&function, Args &&... args)
+    Thread(Function &&function, Args &&...args)
         : thread_(std::forward<Function>(function), std::forward<Args>(args)...)
     {
     }

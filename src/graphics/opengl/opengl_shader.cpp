@@ -22,8 +22,7 @@ namespace iris
 OpenGLShader::OpenGLShader(const std::string &source, ShaderType type)
     : shader_(0u)
 {
-    const auto native_type =
-        (type == ShaderType::VERTEX) ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER;
+    const auto native_type = (type == ShaderType::VERTEX) ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER;
 
     shader_ = ::glCreateShader(native_type);
     expect(check_opengl_error, "could not create vertex shader");
@@ -56,11 +55,7 @@ OpenGLShader::OpenGLShader(const std::string &source, ShaderType type)
 
             // get opengl error log
             GLsizei log_length = 0;
-            ::glGetShaderInfoLog(
-                shader_,
-                static_cast<std::int32_t>(error_log.size()),
-                &log_length,
-                error_log.data());
+            ::glGetShaderInfoLog(shader_, static_cast<std::int32_t>(error_log.size()), &log_length, error_log.data());
             expect(check_opengl_error, "failed to get error log");
 
             std::cout << source << std::endl;

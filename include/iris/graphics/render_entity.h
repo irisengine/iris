@@ -40,10 +40,7 @@ class RenderEntity
      * @param primitive_type
      *   Primitive type of underlying mesh.
      */
-    RenderEntity(
-        Mesh *mesh,
-        const Vector3 &position,
-        PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
+    RenderEntity(Mesh *mesh, const Vector3 &position, PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
 
     /**
      * Construct a RenderEntity.
@@ -57,10 +54,7 @@ class RenderEntity
      * @param primitive_type
      *   Primitive type of underlying mesh.
      */
-    RenderEntity(
-        Mesh *mesh,
-        const Transform &transform,
-        PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
+    RenderEntity(Mesh *mesh, const Transform &transform, PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
 
     /**
      * Construct a RenderEntity.

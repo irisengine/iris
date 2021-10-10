@@ -14,14 +14,14 @@
 #import <MetalKit/MetalKit.h>
 #import <QuartzCore/QuartzCore.h>
 
-#include "log/log.h"
 #include "core/ios/MetalViewController.h"
+#include "log/log.h"
 
 namespace iris
 {
 
 // globals for calling back into game
-extern std::function<void(int, char**)> g_entry;
+extern std::function<void(int, char **)> g_entry;
 extern int g_argc;
 extern char **g_argv;
 
@@ -33,9 +33,10 @@ extern char **g_argv;
 
 @implementation AppDelegate
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
     LOG_ENGINE_INFO("AppDelegate", "setting up window and view");
-    
+
     // create a new window the size of the screen
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
 
@@ -57,7 +58,8 @@ extern char **g_argv;
     return YES;
 }
 
-- (void)callEntry {    
+- (void)callEntry
+{
     LOG_ENGINE_INFO("AppDelegate", "calling main");
 
     iris::g_entry(iris::g_argc, iris::g_argv);
@@ -66,4 +68,3 @@ extern char **g_argv;
 }
 
 @end
-

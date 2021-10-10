@@ -51,8 +51,7 @@ std::unique_ptr<Texture> OpenGLTextureManager::do_create(
     std::uint32_t height,
     TextureUsage usage)
 {
-    return std::make_unique<OpenGLTexture>(
-        data, width, height, usage, next_id());
+    return std::make_unique<OpenGLTexture>(data, width, height, usage, next_id());
 }
 
 void OpenGLTextureManager::destroy(Texture *texture)

@@ -29,9 +29,7 @@ class MetalRenderTarget : public RenderTarget
      * @param depth_texture
      *   Texture to render depth data to.
      */
-    MetalRenderTarget(
-        std::unique_ptr<MetalTexture> colour_texture,
-        std::unique_ptr<MetalTexture> depth_texture);
+    MetalRenderTarget(std::unique_ptr<MetalTexture> colour_texture, std::unique_ptr<MetalTexture> depth_texture);
 
     ~MetalRenderTarget() override = default;
 };

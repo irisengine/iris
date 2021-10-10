@@ -54,22 +54,7 @@ namespace
 // this matrix is used to translate projection matrices from engine NDC to
 // metal NDC
 static const iris::Matrix4 directx_translate{
-    {1.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.0f,
-     0.5f,
-     0.5f,
-     0.0f,
-     0.0f,
-     0.0f,
-     1.0f}};
+    {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f}};
 
 /**
  * Helper function to write vertex data into a constant buffer.
@@ -121,12 +106,9 @@ void write_vertex_data_constant_buffer(
  * @param light
  *   Light to get data from.
  */
-void write_directional_light_data_constant_buffer(
-    iris::D3D12ConstantBuffer &constant_buffer,
-    const iris::Light *light)
+void write_directional_light_data_constant_buffer(iris::D3D12ConstantBuffer &constant_buffer, const iris::Light *light)
 {
-    const auto *d3d12_light =
-        static_cast<const iris::DirectionalLight *>(light);
+    const auto *d3d12_light = static_cast<const iris::DirectionalLight *>(light);
 
     iris::ConstantBufferWriter writer(constant_buffer);
     writer.write(directx_translate * d3d12_light->shadow_camera().projection());
@@ -152,8 +134,7 @@ void copy_descriptor(
 {
     auto *device = iris::D3D12Context::device();
 
-    device->CopyDescriptorsSimple(
-        1u, dest, source.cpu_handle(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    device->CopyDescriptorsSimple(1u, dest, source.cpu_handle(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
     dest.ptr += descriptor_size;
 }
@@ -203,11 +184,7 @@ void build_table_descriptor(
 namespace iris
 {
 
-D3D12Renderer::D3D12Renderer(
-    HWND window,
-    std::uint32_t width,
-    std::uint32_t height,
-    std::uint32_t initial_screen_scale)
+D3D12Renderer::D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t height, std::uint32_t initial_screen_scale)
     : width_(width)
     , height_(height)
     , frames_()
@@ -236,10 +213,7 @@ D3D12Renderer::D3D12Renderer(
     auto *dxgi_factory = D3D12Context::dxgi_factory();
 
     // create command queue
-    ensure(
-        device->CreateCommandQueue(&desc, IID_PPV_ARGS(&command_queue_)) ==
-            S_OK,
-        "could not create command queue");
+    ensure(device->CreateCommandQueue(&desc, IID_PPV_ARGS(&command_queue_)) == S_OK, "could not create command queue");
 
     // build swap chain description
     DXGI_SWAP_CHAIN_DESC1 swap_chain_descriptor = {0};
@@ -259,17 +233,11 @@ D3D12Renderer::D3D12Renderer(
     Microsoft::WRL::ComPtr<IDXGISwapChain1> swap_chain_tmp = nullptr;
     ensure(
         dxgi_factory->CreateSwapChainForHwnd(
-            command_queue_.Get(),
-            window,
-            &swap_chain_descriptor,
-            nullptr,
-            nullptr,
-            &swap_chain_tmp) == S_OK,
+            command_queue_.Get(), window, &swap_chain_descriptor, nullptr, nullptr, &swap_chain_tmp) == S_OK,
         "could not create swap chain");
 
     // cast to type we want to use
-    ensure(
-        swap_chain_tmp.As(&swap_chain_) == S_OK, "could not cast swap chain");
+    ensure(swap_chain_tmp.As(&swap_chain_) == S_OK, "could not cast swap chain");
 
     // get initial frame index
     frame_index_ = swap_chain_->GetCurrentBackBufferIndex();
@@ -279,9 +247,7 @@ D3D12Renderer::D3D12Renderer(
     {
         // get a back buffer
         Microsoft::WRL::ComPtr<ID3D12Resource> frame = nullptr;
-        ensure(
-            swap_chain_->GetBuffer(i, IID_PPV_ARGS(&frame)) == S_OK,
-            "could not get back buffer");
+        ensure(swap_chain_->GetBuffer(i, IID_PPV_ARGS(&frame)) == S_OK, "could not get back buffer");
 
         static int counter = 0;
         std::wstringstream strm{};
@@ -290,39 +256,27 @@ D3D12Renderer::D3D12Renderer(
         frame->SetName(name.c_str());
 
         // create a static descriptor handle for the render target
-        auto rtv_handle = D3D12DescriptorManager::cpu_allocator(
-                              D3D12_DESCRIPTOR_HEAP_TYPE_RTV)
-                              .allocate_static();
+        auto rtv_handle = D3D12DescriptorManager::cpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).allocate_static();
 
-        device->CreateRenderTargetView(
-            frame.Get(), nullptr, rtv_handle.cpu_handle());
+        device->CreateRenderTargetView(frame.Get(), nullptr, rtv_handle.cpu_handle());
 
-        Microsoft::WRL::ComPtr<ID3D12CommandAllocator> command_allocator =
-            nullptr;
+        Microsoft::WRL::ComPtr<ID3D12CommandAllocator> command_allocator = nullptr;
 
         // create command allocator, we use one per frame but have a single
         // command queue
         ensure(
-            device->CreateCommandAllocator(
-                D3D12_COMMAND_LIST_TYPE_DIRECT,
-                IID_PPV_ARGS(&command_allocator)) == S_OK,
+            device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&command_allocator)) == S_OK,
             "could not create command allocator");
 
         // create a fence, used to signal when gpu has completed a frame
         Microsoft::WRL::ComPtr<ID3D12Fence> fence = nullptr;
-        ensure(
-            device->CreateFence(
-                0u, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)) == S_OK,
-            "could not create fence");
+        ensure(device->CreateFence(0u, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)) == S_OK, "could not create fence");
 
         frames_.emplace_back(
             frame,
             rtv_handle,
             std::make_unique<D3D12Texture>(
-                DataBuffer{},
-                width_ * initial_screen_scale,
-                height_ * initial_screen_scale,
-                TextureUsage::DEPTH),
+                DataBuffer{}, width_ * initial_screen_scale, height_ * initial_screen_scale, TextureUsage::DEPTH),
             command_allocator,
             fence,
             ::CreateEvent(NULL, FALSE, TRUE, NULL));
@@ -356,15 +310,10 @@ D3D12Renderer::~D3D12Renderer()
 
     // we cannot destruct whilst a frame is being rendered, so we wait for all
     // frames to signal they are done
-    ::WaitForMultipleObjects(
-        static_cast<DWORD>(wait_handles.size()),
-        wait_handles.data(),
-        TRUE,
-        INFINITE);
+    ::WaitForMultipleObjects(static_cast<DWORD>(wait_handles.size()), wait_handles.data(), TRUE, INFINITE);
 }
 
-void D3D12Renderer::set_render_passes(
-    const std::vector<RenderPass> &render_passes)
+void D3D12Renderer::set_render_passes(const std::vector<RenderPass> &render_passes)
 {
     render_passes_ = render_passes;
 
@@ -383,8 +332,7 @@ void D3D12Renderer::set_render_passes(
     if (post_processing_target_ == nullptr)
     {
         post_processing_target_ = create_render_target(width_, height_);
-        post_processing_camera_ =
-            std::make_unique<Camera>(CameraType::ORTHOGRAPHIC, width_, height_);
+        post_processing_camera_ = std::make_unique<Camera>(CameraType::ORTHOGRAPHIC, width_, height_);
     }
 
     post_processing_scene_ = std::make_unique<Scene>();
@@ -392,47 +340,34 @@ void D3D12Renderer::set_render_passes(
     // create a full screen quad which renders the final stage with the post
     // processing node
     auto *rg = post_processing_scene_->create_render_graph();
-    rg->set_render_node<PostProcessingNode>(
-        rg->create<TextureNode>(post_processing_target_->colour_texture()));
+    rg->set_render_node<PostProcessingNode>(rg->create<TextureNode>(post_processing_target_->colour_texture()));
     post_processing_scene_->create_entity(
         rg,
         Root::mesh_manager().sprite({}),
-        Transform(
-            {},
-            {},
-            {static_cast<float>(width_), static_cast<float>(height_), 1.0}));
+        Transform({}, {}, {static_cast<float>(width_), static_cast<float>(height_), 1.0}));
 
     // wire up this pass
     final_pass->render_target = post_processing_target_;
-    render_passes_.emplace_back(
-        post_processing_scene_.get(), post_processing_camera_.get(), nullptr);
+    render_passes_.emplace_back(post_processing_scene_.get(), post_processing_camera_.get(), nullptr);
 
     // build the render queue from the provided passes
 
     RenderQueueBuilder queue_builder(
-        [this](
-            RenderGraph *render_graph,
-            RenderEntity *render_entity,
-            const RenderTarget *target,
-            LightType light_type) {
-            if (materials_.count(render_graph) == 0u ||
-                materials_[render_graph].count(light_type) == 0u)
+        [this](RenderGraph *render_graph, RenderEntity *render_entity, const RenderTarget *target, LightType light_type)
+        {
+            if (materials_.count(render_graph) == 0u || materials_[render_graph].count(light_type) == 0u)
             {
-                materials_[render_graph][light_type] =
-                    std::make_unique<D3D12Material>(
-                        render_graph,
-                        static_cast<D3D12Mesh *>(render_entity->mesh())
-                            ->input_descriptors(),
-                        render_entity->primitive_type(),
-                        light_type,
-                        target == nullptr);
+                materials_[render_graph][light_type] = std::make_unique<D3D12Material>(
+                    render_graph,
+                    static_cast<D3D12Mesh *>(render_entity->mesh())->input_descriptors(),
+                    render_entity->primitive_type(),
+                    light_type,
+                    target == nullptr);
             }
 
             return materials_[render_graph][light_type].get();
         },
-        [this](std::uint32_t width, std::uint32_t height) {
-            return create_render_target(width, height);
-        });
+        [this](std::uint32_t width, std::uint32_t height) { return create_render_target(width, height); });
     render_queue_ = queue_builder.build(render_passes_);
 
     // clear all constant data buffers
@@ -450,33 +385,27 @@ void D3D12Renderer::set_render_passes(
 
             for (auto &frame : frames_)
             {
-                frame.constant_data_buffers.emplace(
-                    command_ptr, D3D12ConstantBufferPool{});
+                frame.constant_data_buffers.emplace(command_ptr, D3D12ConstantBufferPool{});
             }
         }
     }
 }
 
-RenderTarget *D3D12Renderer::create_render_target(
-    std::uint32_t width,
-    std::uint32_t height)
+RenderTarget *D3D12Renderer::create_render_target(std::uint32_t width, std::uint32_t height)
 {
     const auto scale = Root::window_manager().current_window()->screen_scale();
 
-    auto colour_texture = std::make_unique<D3D12Texture>(
-        DataBuffer{},
-        width * scale,
-        height * scale,
-        TextureUsage::RENDER_TARGET);
-    auto depth_texture = std::make_unique<D3D12Texture>(
-        DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH);
+    auto colour_texture =
+        std::make_unique<D3D12Texture>(DataBuffer{}, width * scale, height * scale, TextureUsage::RENDER_TARGET);
+    auto depth_texture =
+        std::make_unique<D3D12Texture>(DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH);
 
     // add these to uploaded so the next render pass doesn't try to upload them
     uploaded_.emplace(colour_texture.get());
     uploaded_.emplace(depth_texture.get());
 
-    render_targets_.emplace_back(std::make_unique<D3D12RenderTarget>(
-        std::move(colour_texture), std::move(depth_texture)));
+    render_targets_.emplace_back(
+        std::make_unique<D3D12RenderTarget>(std::move(colour_texture), std::move(depth_texture)));
 
     auto *rt = render_targets_.back().get();
 
@@ -499,19 +428,14 @@ void D3D12Renderer::pre_render()
     command_list_->Reset(frame.command_allocator.Get(), nullptr);
 
     // reset descriptor allocations for new frame
-    D3D12DescriptorManager::gpu_allocator(
-        D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)
-        .reset();
+    D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).reset();
 
-    D3D12DescriptorManager::cpu_allocator(
-        D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)
-        .reset_dynamic();
+    D3D12DescriptorManager::cpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).reset_dynamic();
 }
 
 void D3D12Renderer::execute_upload_texture(RenderCommand &command)
 {
-    const auto *material =
-        static_cast<const D3D12Material *>(command.material());
+    const auto *material = static_cast<const D3D12Material *>(command.material());
 
     // encode commands to copy all textures to their target heaps
     for (auto *texture : material->textures())
@@ -533,13 +457,10 @@ void D3D12Renderer::execute_upload_texture(RenderCommand &command)
             source.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
             source.PlacedFootprint = d3d12_tex->footprint();
 
-            command_list_->CopyTextureRegion(
-                &destination, 0u, 0u, 0u, &source, NULL);
+            command_list_->CopyTextureRegion(&destination, 0u, 0u, 0u, &source, NULL);
 
             const auto barrier = ::CD3DX12_RESOURCE_BARRIER::Transition(
-                d3d12_tex->resource(),
-                D3D12_RESOURCE_STATE_COPY_DEST,
-                D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+                d3d12_tex->resource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
             command_list_->ResourceBarrier(1u, &barrier);
         }
@@ -548,9 +469,8 @@ void D3D12Renderer::execute_upload_texture(RenderCommand &command)
 
 void D3D12Renderer::execute_pass_start(RenderCommand &command)
 {
-    ID3D12DescriptorHeap *heaps[] = {D3D12DescriptorManager::gpu_allocator(
-                                         D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)
-                                         .heap()};
+    ID3D12DescriptorHeap *heaps[] = {
+        D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).heap()};
     command_list_->SetDescriptorHeaps(_countof(heaps), heaps);
 
     const Colour clear_colour{0.4f, 0.6f, 0.9f, 1.0f};
@@ -558,8 +478,7 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
     D3D12_CPU_DESCRIPTOR_HANDLE rt_handle;
     D3D12_CPU_DESCRIPTOR_HANDLE depth_handle;
 
-    auto *target = static_cast<const D3D12RenderTarget *>(
-        command.render_pass()->render_target);
+    auto *target = static_cast<const D3D12RenderTarget *>(command.render_pass()->render_target);
 
     const auto scale = Root::window_manager().current_window()->screen_scale();
     auto width = width_ * scale;
@@ -577,9 +496,7 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
         // depth buffer writable
         const D3D12_RESOURCE_BARRIER barriers[] = {
             ::CD3DX12_RESOURCE_BARRIER::Transition(
-                frame.buffer.Get(),
-                D3D12_RESOURCE_STATE_PRESENT,
-                D3D12_RESOURCE_STATE_RENDER_TARGET),
+                frame.buffer.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
             ::CD3DX12_RESOURCE_BARRIER::Transition(
                 frame.depth_buffer->resource(),
                 D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
@@ -592,19 +509,14 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
         width = target->width();
         height = target->height();
 
-        rt_handle = static_cast<const D3D12RenderTarget *>(target)
-                        ->handle()
-                        .cpu_handle();
-        depth_handle = static_cast<D3D12Texture *>(target->depth_texture())
-                           ->depth_handle()
-                           .cpu_handle();
+        rt_handle = static_cast<const D3D12RenderTarget *>(target)->handle().cpu_handle();
+        depth_handle = static_cast<D3D12Texture *>(target->depth_texture())->depth_handle().cpu_handle();
 
         // if we are rendering to a custom render target we just need to make
         // its depth buffer writable
 
         const auto barrier = ::CD3DX12_RESOURCE_BARRIER::Transition(
-            static_cast<const D3D12Texture *>(target->depth_texture())
-                ->resource(),
+            static_cast<const D3D12Texture *>(target->depth_texture())->resource(),
             D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
             D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
@@ -613,18 +525,14 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
 
     // setup and clear render target
     command_list_->OMSetRenderTargets(1, &rt_handle, FALSE, &depth_handle);
-    command_list_->ClearRenderTargetView(
-        rt_handle, reinterpret_cast<const FLOAT *>(&clear_colour), 0, nullptr);
-    command_list_->ClearDepthStencilView(
-        depth_handle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0u, 0u, nullptr);
+    command_list_->ClearRenderTargetView(rt_handle, reinterpret_cast<const FLOAT *>(&clear_colour), 0, nullptr);
+    command_list_->ClearDepthStencilView(depth_handle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0u, 0u, nullptr);
 
     command_list_->SetGraphicsRootSignature(D3D12Context::root_signature());
 
     // update viewport incase it's changed for current render target
-    viewport_ = CD3DX12_VIEWPORT{
-        0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)};
-    scissor_rect_ = CD3DX12_RECT{
-        0u, 0u, static_cast<LONG>(width), static_cast<LONG>(height)};
+    viewport_ = CD3DX12_VIEWPORT{0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)};
+    scissor_rect_ = CD3DX12_RECT{0u, 0u, static_cast<LONG>(width), static_cast<LONG>(height)};
 
     command_list_->RSSetViewports(1u, &viewport_);
     command_list_->RSSetScissorRects(1u, &scissor_rect_);
@@ -632,16 +540,14 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
 
 void D3D12Renderer::execute_pass_end(RenderCommand &command)
 {
-    const auto *target = static_cast<const D3D12RenderTarget *>(
-        command.render_pass()->render_target);
+    const auto *target = static_cast<const D3D12RenderTarget *>(command.render_pass()->render_target);
 
     if (target != nullptr)
     {
         // if we are rendering to a custom render target then we need to make
         // the depth buffer accessible to the shader
         const auto barrier = ::CD3DX12_RESOURCE_BARRIER::Transition(
-            static_cast<const D3D12Texture *>(target->depth_texture())
-                ->resource(),
+            static_cast<const D3D12Texture *>(target->depth_texture())->resource(),
             D3D12_RESOURCE_STATE_DEPTH_WRITE,
             D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
@@ -652,8 +558,7 @@ void D3D12Renderer::execute_pass_end(RenderCommand &command)
 void D3D12Renderer::execute_draw(RenderCommand &command)
 {
     const auto *entity = command.render_entity();
-    const auto *material =
-        static_cast<const D3D12Material *>(command.material());
+    const auto *material = static_cast<const D3D12Material *>(command.material());
     const auto *mesh = static_cast<const D3D12Mesh *>(entity->mesh());
     const auto *camera = command.render_pass()->camera;
     const auto *light = command.light();
@@ -683,38 +588,29 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
     //                  +--------------------+ |
     //                  |      texture 4     | |
     //                  +--------------------+-'
-    const auto table_descriptors =
-        D3D12DescriptorManager::gpu_allocator(
-            D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)
-            .allocate(D3D12Context::num_descriptors());
-    const auto descriptor_size = D3D12DescriptorManager::gpu_allocator(
-                                     D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)
-                                     .descriptor_size();
+    const auto table_descriptors = D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)
+                                       .allocate(D3D12Context::num_descriptors());
+    const auto descriptor_size =
+        D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).descriptor_size();
 
     auto table_descriptor_start = table_descriptors.cpu_handle();
 
     // create and write our constant data buffers
-    auto &vertex_buffer =
-        frame.constant_data_buffers.at(std::addressof(command)).next();
+    auto &vertex_buffer = frame.constant_data_buffers.at(std::addressof(command)).next();
     write_vertex_data_constant_buffer(vertex_buffer, camera, entity, light);
 
-    auto &light_buffer =
-        frame.constant_data_buffers.at(std::addressof(command)).next();
+    auto &light_buffer = frame.constant_data_buffers.at(std::addressof(command)).next();
     write_directional_light_data_constant_buffer(light_buffer, light);
 
     // create handles to light and shadow map data, these may be a null handle
     // depending on the material
 
-    const auto light_data_handle = (light->type() == LightType::DIRECTIONAL)
-                                       ? light_buffer.descriptor_handle()
-                                       : null_buffer_->descriptor_handle();
+    const auto light_data_handle = (light->type() == LightType::DIRECTIONAL) ? light_buffer.descriptor_handle()
+                                                                             : null_buffer_->descriptor_handle();
 
-    auto shadow_map_handle =
-        (shadow_map == nullptr)
-            ? static_cast<D3D12Texture *>(Root::texture_manager().blank())
-                  ->handle()
-            : static_cast<D3D12Texture *>(command.shadow_map()->depth_texture())
-                  ->handle();
+    auto shadow_map_handle = (shadow_map == nullptr)
+                                 ? static_cast<D3D12Texture *>(Root::texture_manager().blank())->handle()
+                                 : static_cast<D3D12Texture *>(command.shadow_map()->depth_texture())->handle();
 
     // build the table descriptor from all our handles
     build_table_descriptor(
@@ -726,26 +622,19 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
         material->textures());
 
     // set the table descriptor for the vertex and pixel shader
-    command_list_->SetGraphicsRootDescriptorTable(
-        0u, table_descriptors.gpu_handle());
-    command_list_->SetGraphicsRootDescriptorTable(
-        1u, table_descriptors.gpu_handle());
+    command_list_->SetGraphicsRootDescriptorTable(0u, table_descriptors.gpu_handle());
+    command_list_->SetGraphicsRootDescriptorTable(1u, table_descriptors.gpu_handle());
 
     const auto vertex_view = mesh->vertex_buffer().vertex_view();
     const auto index_view = mesh->index_buffer().index_view();
-    const auto num_indices =
-        static_cast<UINT>(mesh->index_buffer().element_count());
+    const auto num_indices = static_cast<UINT>(mesh->index_buffer().element_count());
 
     switch (entity->primitive_type())
     {
         case PrimitiveType::TRIANGLES:
-            command_list_->IASetPrimitiveTopology(
-                D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            command_list_->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
             break;
-        case PrimitiveType::LINES:
-            command_list_->IASetPrimitiveTopology(
-                D3D_PRIMITIVE_TOPOLOGY_LINELIST);
-            break;
+        case PrimitiveType::LINES: command_list_->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST); break;
     }
 
     command_list_->IASetVertexBuffers(0u, 1u, &vertex_view);
@@ -761,9 +650,7 @@ void D3D12Renderer::execute_present(RenderCommand &)
     // visible
     const D3D12_RESOURCE_BARRIER barriers[] = {
         ::CD3DX12_RESOURCE_BARRIER::Transition(
-            frame.buffer.Get(),
-            D3D12_RESOURCE_STATE_RENDER_TARGET,
-            D3D12_RESOURCE_STATE_PRESENT),
+            frame.buffer.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
         ::CD3DX12_RESOURCE_BARRIER::Transition(
             frame.depth_buffer->resource(),
             D3D12_RESOURCE_STATE_DEPTH_WRITE,
@@ -781,9 +668,7 @@ void D3D12Renderer::execute_present(RenderCommand &)
     expect(swap_chain_->Present(0u, 0u) == S_OK, "could not present");
 
     // enqueue signal so future render passes know when the frame is safe to use
-    expect(
-        command_queue_->Signal(frame.fence.Get(), 1u) == S_OK,
-        "could not signal");
+    expect(command_queue_->Signal(frame.fence.Get(), 1u) == S_OK, "could not signal");
     frame.fence->SetEventOnCompletion(1u, frame.fence_event);
 
     frame_index_ = swap_chain_->GetCurrentBackBufferIndex();

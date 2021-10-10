@@ -25,8 +25,7 @@ struct Semaphore::implementation
 Semaphore::Semaphore(std::ptrdiff_t initial)
     : impl_(std::make_unique<implementation>())
 {
-    impl_->semaphore = {
-        ::dispatch_semaphore_create(initial), ::dispatch_release};
+    impl_->semaphore = {::dispatch_semaphore_create(initial), ::dispatch_release};
     impl_->count = initial;
 }
 

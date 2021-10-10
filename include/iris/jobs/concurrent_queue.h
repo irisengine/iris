@@ -56,7 +56,7 @@ class ConcurrentQueue
      *   perfectly forwarded.
      */
     template <class... Args>
-    void enqueue(Args &&... args)
+    void enqueue(Args &&...args)
     {
         std::unique_lock lock(mutex_);
 

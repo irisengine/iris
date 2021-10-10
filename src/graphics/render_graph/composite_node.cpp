@@ -16,11 +16,7 @@
 namespace iris
 {
 
-CompositeNode::CompositeNode(
-    Node *colour1,
-    Node *colour2,
-    Node *depth1,
-    Node *depth2)
+CompositeNode::CompositeNode(Node *colour1, Node *colour2, Node *depth1, Node *depth2)
     : colour1_(colour1)
     , colour2_(colour2)
     , depth1_(depth1)

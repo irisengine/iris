@@ -47,16 +47,13 @@ namespace
  * @returns
  *   Unique variable name for the texture.
  */
-std::string texture_name(
-    iris::Texture *texture,
-    std::vector<iris::Texture *> &textures)
+std::string texture_name(iris::Texture *texture, std::vector<iris::Texture *> &textures)
 {
     std::size_t id = 0u;
 
     // id will be index into the textures collection
 
-    const auto find =
-        std::find(std::cbegin(textures), std::cend(textures), texture);
+    const auto find = std::find(std::cbegin(textures), std::cend(textures), texture);
 
     if (find != std::cend(textures))
     {
@@ -148,10 +145,7 @@ void build_tangent_values(std::stringstream &strm, iris::LightType light_type)
  * @param visitor
  *   Visitor for node.
  */
-void build_fragment_colour(
-    std::stringstream &strm,
-    const iris::Node *colour,
-    iris::GLSLShaderCompiler *visitor)
+void build_fragment_colour(std::stringstream &strm, const iris::Node *colour, iris::GLSLShaderCompiler *visitor)
 {
     strm << "vec4 fragment_colour = ";
     visit_or_default(strm, colour, visitor, "col");
@@ -169,10 +163,7 @@ void build_fragment_colour(
  * @param visitor
  *   Visitor for node.
  */
-void build_normal(
-    std::stringstream &strm,
-    const iris::Node *normal,
-    iris::GLSLShaderCompiler *visitor)
+void build_normal(std::stringstream &strm, const iris::Node *normal, iris::GLSLShaderCompiler *visitor)
 {
     strm << "vec3 n = ";
 
@@ -193,9 +184,7 @@ void build_normal(
 
 namespace iris
 {
-GLSLShaderCompiler::GLSLShaderCompiler(
-    const RenderGraph *render_graph,
-    LightType light_type)
+GLSLShaderCompiler::GLSLShaderCompiler(const RenderGraph *render_graph, LightType light_type)
     : vertex_stream_()
     , fragment_stream_()
     , current_stream_(nullptr)
@@ -249,9 +238,8 @@ void GLSLShaderCompiler::visit(const RenderNode &node)
             case LightType::DIRECTIONAL:
                 *current_stream_ << "vec3 light_dir = ";
                 *current_stream_
-                    << (node.normal_input() == nullptr
-                            ? "normalize(-light_position.xyz);\n"
-                            : "normalize(-tangent_light_pos.xyz);\n");
+                    << (node.normal_input() == nullptr ? "normalize(-light_position.xyz);\n"
+                                                       : "normalize(-tangent_light_pos.xyz);\n");
 
                 *current_stream_ << "float shadow = 0.0;\n";
                 *current_stream_ <<
@@ -268,10 +256,9 @@ void GLSLShaderCompiler::visit(const RenderNode &node)
             case LightType::POINT:
                 *current_stream_ << "vec3 light_dir = ";
                 *current_stream_
-                    << (node.normal_input() == nullptr
-                            ? "normalize(light_position.xyz - frag_pos.xyz);\n"
-                            : "normalize(tangent_light_pos.xyz - "
-                              "tangent_frag_pos.xyz);\n");
+                    << (node.normal_input() == nullptr ? "normalize(light_position.xyz - frag_pos.xyz);\n"
+                                                       : "normalize(tangent_light_pos.xyz - "
+                                                         "tangent_frag_pos.xyz);\n");
                 *current_stream_ << R"(
                 float distance  = length(light_position.xyz - frag_pos.xyz);
                 float constant = light_attenuation[0];
@@ -334,8 +321,7 @@ void GLSLShaderCompiler::visit(const PostProcessingNode &node)
 void GLSLShaderCompiler::visit(const ColourNode &node)
 {
     const auto colour = node.colour();
-    *current_stream_ << "vec4(" << colour.r << ", " << colour.g << ", "
-                     << colour.b << ", " << colour.a << ")";
+    *current_stream_ << "vec4(" << colour.r << ", " << colour.g << ", " << colour.b << ", " << colour.a << ")";
 }
 
 void GLSLShaderCompiler::visit(const TextureNode &node)
@@ -365,9 +351,7 @@ void GLSLShaderCompiler::visit(const BlurNode &node)
 {
     current_functions_->emplace(blur_function);
 
-    *current_stream_ << "blur("
-                     << texture_name(node.input_node()->texture(), textures_)
-                     << ", tex_coord)";
+    *current_stream_ << "blur(" << texture_name(node.input_node()->texture(), textures_) << ", tex_coord)";
 }
 
 void GLSLShaderCompiler::visit(const CompositeNode &node)
@@ -397,14 +381,13 @@ void GLSLShaderCompiler::visit(const ValueNode<float> &node)
 
 void GLSLShaderCompiler::visit(const ValueNode<Vector3> &node)
 {
-    *current_stream_ << "vec3(" << node.value().x << ", " << node.value().y
-                     << ", " << node.value().z << ")";
+    *current_stream_ << "vec3(" << node.value().x << ", " << node.value().y << ", " << node.value().z << ")";
 }
 
 void GLSLShaderCompiler::visit(const ValueNode<Colour> &node)
 {
-    *current_stream_ << "vec4(" << node.value().g << ", " << node.value().g
-                     << ", " << node.value().b << ", " << node.value().a << ")";
+    *current_stream_ << "vec4(" << node.value().g << ", " << node.value().g << ", " << node.value().b << ", "
+                     << node.value().a << ")";
 }
 
 void GLSLShaderCompiler::visit(const ArithmeticNode &node)

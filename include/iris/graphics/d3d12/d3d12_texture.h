@@ -47,11 +47,7 @@ class D3D12Texture : public Texture
      * @param usage
      *   Texture usage.
      */
-    D3D12Texture(
-        const DataBuffer &data,
-        std::uint32_t width,
-        std::uint32_t height,
-        TextureUsage usage);
+    D3D12Texture(const DataBuffer &data, std::uint32_t width, std::uint32_t height, TextureUsage usage);
 
     ~D3D12Texture() override = default;
 

@@ -36,9 +36,7 @@ const DataBuffer &ResourceLoader::load(const std::string &resource)
     if (loaded_resource == std::cend(resources_))
     {
         std::stringstream strm{};
-        std::fstream f(
-            root_ / std::filesystem::path(resource),
-            std::ios::in | std::ios::binary);
+        std::fstream f(root_ / std::filesystem::path(resource), std::ios::in | std::ios::binary);
 
         strm << f.rdbuf();
 
@@ -47,8 +45,7 @@ const DataBuffer &ResourceLoader::load(const std::string &resource)
         const auto str = strm.str();
         const auto *str_ptr = reinterpret_cast<const std::byte *>(str.data());
 
-        const auto [iter, _] =
-            resources_.insert({resource, {str_ptr, str_ptr + str.length()}});
+        const auto [iter, _] = resources_.insert({resource, {str_ptr, str_ptr + str.length()}});
         loaded_resource = iter;
     }
 

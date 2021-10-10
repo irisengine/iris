@@ -110,8 +110,7 @@ class BasicCharacterController : public CharacterController
      * @param orientation
      *   New orientation.
      */
-    void reposition(const Vector3 &position, const Quaternion &orientation)
-        override;
+    void reposition(const Vector3 &position, const Quaternion &orientation) override;
 
     /**
      * Make the character jump.

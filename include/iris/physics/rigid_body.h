@@ -93,9 +93,7 @@ class RigidBody
      * @param orientation
      *   New orientation.
      */
-    virtual void reposition(
-        const Vector3 &position,
-        const Quaternion &orientation) = 0;
+    virtual void reposition(const Vector3 &position, const Quaternion &orientation) = 0;
 
     /**
      * Get the name of the rigid body. This is an optional trait and will return

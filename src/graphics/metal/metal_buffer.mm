@@ -80,10 +80,7 @@ void MetalBuffer::write(const std::vector<VertexData> &vertex_data)
     }
     else
     {
-        std::memcpy(
-            handle_.contents,
-            vertex_data.data(),
-            vertex_data.size() * sizeof(VertexData));
+        std::memcpy(handle_.contents, vertex_data.data(), vertex_data.size() * sizeof(VertexData));
         element_count_ = vertex_data.size();
     }
 }
@@ -101,10 +98,7 @@ void MetalBuffer::write(const std::vector<std::uint32_t> &index_data)
     }
     else
     {
-        std::memcpy(
-            handle_.contents,
-            index_data.data(),
-            index_data.size() * sizeof(std::uint32_t));
+        std::memcpy(handle_.contents, index_data.data(), index_data.size() * sizeof(std::uint32_t));
         element_count_ = index_data.size();
     }
 }

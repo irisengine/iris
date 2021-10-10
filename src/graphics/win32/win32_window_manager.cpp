@@ -19,9 +19,7 @@
 namespace iris
 {
 
-Window *Win32WindowManager::create_window(
-    std::uint32_t width,
-    std::uint32_t height)
+Window *Win32WindowManager::create_window(std::uint32_t width, std::uint32_t height)
 {
     // only support onw window at the moment
     ensure(!current_window_, "window already created");

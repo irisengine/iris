@@ -35,9 +35,7 @@ class RenderTarget
      * @param depth_texture
      *   Texture to render depth data to.
      */
-    RenderTarget(
-        std::unique_ptr<Texture> colour_texture,
-        std::unique_ptr<Texture> depth_texture);
+    RenderTarget(std::unique_ptr<Texture> colour_texture, std::unique_ptr<Texture> depth_texture);
 
     virtual ~RenderTarget() = 0;
 

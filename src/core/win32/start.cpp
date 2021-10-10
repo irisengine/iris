@@ -40,16 +40,13 @@ void register_apis()
 
     iris::Root::set_graphics_api("d3d12");
 
-    iris::Root::register_physics_api(
-        "bullet", std::make_unique<iris::BulletPhysicsManager>());
+    iris::Root::register_physics_api("bullet", std::make_unique<iris::BulletPhysicsManager>());
 
     iris::Root::set_physics_api("bullet");
 
-    iris::Root::register_jobs_api(
-        "thread", std::make_unique<iris::ThreadJobSystemManager>());
+    iris::Root::register_jobs_api("thread", std::make_unique<iris::ThreadJobSystemManager>());
 
-    iris::Root::register_jobs_api(
-        "fiber", std::make_unique<iris::FiberJobSystemManager>());
+    iris::Root::register_jobs_api("fiber", std::make_unique<iris::FiberJobSystemManager>());
 
     iris::Root::set_jobs_api("fiber");
 }
@@ -75,8 +72,7 @@ void start_debug(int argc, char **argv, std::function<void(int, char **)> entry)
     // enable engine logging
     Logger::instance().set_log_engine(true);
 
-    LOG_ENGINE_INFO(
-        "start", "engine start (with debugging) {}", IRIS_VERSION_STR);
+    LOG_ENGINE_INFO("start", "engine start (with debugging) {}", IRIS_VERSION_STR);
 
     register_apis();
 

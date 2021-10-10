@@ -26,15 +26,12 @@ D3D12Context::D3D12Context()
 {
     // create and enable a debug layer
     Microsoft::WRL::ComPtr<ID3D12Debug> debug_interface = nullptr;
-    expect(
-        ::D3D12GetDebugInterface(IID_PPV_ARGS(&debug_interface)) == S_OK,
-        "could not create debug interface");
+    expect(::D3D12GetDebugInterface(IID_PPV_ARGS(&debug_interface)) == S_OK, "could not create debug interface");
 
     debug_interface->EnableDebugLayer();
 
     expect(
-        ::CreateDXGIFactory2(
-            DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&dxgi_factory_)) == S_OK,
+        ::CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&dxgi_factory_)) == S_OK,
         "could not create dxgi factory");
 
     Microsoft::WRL::ComPtr<IDXGIAdapter1> dxgi_adaptor_tmp = nullptr;
@@ -44,8 +41,7 @@ D3D12Context::D3D12Context()
 
     // search all adaptors for one that can be used to create a d3d12 device
     // (with the most amount of dedicated video memory)
-    while (dxgi_factory_->EnumAdapters1(index++, &dxgi_adaptor_tmp) !=
-           DXGI_ERROR_NOT_FOUND)
+    while (dxgi_factory_->EnumAdapters1(index++, &dxgi_adaptor_tmp) != DXGI_ERROR_NOT_FOUND)
     {
         DXGI_ADAPTER_DESC1 adaptor_descriptor = {0};
         dxgi_adaptor_tmp->GetDesc1(&adaptor_descriptor);
@@ -54,21 +50,16 @@ D3D12Context::D3D12Context()
         if ((adaptor_descriptor.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) == 0)
         {
             // test if we can create a d3d12 device with this adaptor
-            if (::D3D12CreateDevice(
-                    dxgi_adaptor_tmp.Get(),
-                    D3D_FEATURE_LEVEL_11_0,
-                    __uuidof(ID3D12Device),
-                    nullptr) == S_FALSE)
+            if (::D3D12CreateDevice(dxgi_adaptor_tmp.Get(), D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), nullptr) ==
+                S_FALSE)
             {
                 // check if this adaptor has more available memory
-                if (adaptor_descriptor.DedicatedVideoMemory >
-                    max_dedicated_memory)
+                if (adaptor_descriptor.DedicatedVideoMemory > max_dedicated_memory)
                 {
                     const auto cast = dxgi_adaptor_tmp.As(&dxgi_adaptor);
                     expect(cast == S_OK, "failed to cast dxgi adaptor");
 
-                    max_dedicated_memory =
-                        adaptor_descriptor.DedicatedVideoMemory;
+                    max_dedicated_memory = adaptor_descriptor.DedicatedVideoMemory;
                 }
             }
         }
@@ -78,15 +69,10 @@ D3D12Context::D3D12Context()
 
     // create actual d3d12 device
     expect(
-        ::D3D12CreateDevice(
-            dxgi_adaptor.Get(),
-            D3D_FEATURE_LEVEL_11_0,
-            IID_PPV_ARGS(&device_)) == S_OK,
+        ::D3D12CreateDevice(dxgi_adaptor.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device_)) == S_OK,
         "could not create directx12 device");
 
-    expect(
-        device_.As(&info_queue_) == S_OK,
-        "could not cast device to info queue");
+    expect(device_.As(&info_queue_) == S_OK, "could not cast device to info queue");
 
     // set break on error and warning
     info_queue_->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
@@ -103,29 +89,16 @@ D3D12Context::D3D12Context()
 
     // setup root signature
 
-    ranges[0].Init(
-        D3D12_DESCRIPTOR_RANGE_TYPE_CBV,
-        num_cbv_descriptors,
-        0,
-        0,
-        D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
-    ranges[1].Init(
-        D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-        num_srv_descriptors,
-        0,
-        0,
-        D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+    ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, num_cbv_descriptors, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+    ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, num_srv_descriptors, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
 
-    root_parameters[0].InitAsDescriptorTable(
-        2, &ranges[0], D3D12_SHADER_VISIBILITY_VERTEX);
-    root_parameters[1].InitAsDescriptorTable(
-        2, &ranges[0], D3D12_SHADER_VISIBILITY_PIXEL);
+    root_parameters[0].InitAsDescriptorTable(2, &ranges[0], D3D12_SHADER_VISIBILITY_VERTEX);
+    root_parameters[1].InitAsDescriptorTable(2, &ranges[0], D3D12_SHADER_VISIBILITY_PIXEL);
 
-    D3D12_ROOT_SIGNATURE_FLAGS root_signature_flags =
-        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-        D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+    D3D12_ROOT_SIGNATURE_FLAGS root_signature_flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+                                                      D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+                                                      D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+                                                      D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
     // create a sampler to store in the root signature
     D3D12_STATIC_SAMPLER_DESC sampler = {};
@@ -144,35 +117,21 @@ D3D12Context::D3D12Context()
     sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
     CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_description{};
-    root_signature_description.Init_1_1(
-        _countof(root_parameters),
-        root_parameters,
-        1u,
-        &sampler,
-        root_signature_flags);
+    root_signature_description.Init_1_1(_countof(root_parameters), root_parameters, 1u, &sampler, root_signature_flags);
 
     Microsoft::WRL::ComPtr<ID3DBlob> signature = nullptr;
     Microsoft::WRL::ComPtr<ID3DBlob> error = nullptr;
     if (::D3DX12SerializeVersionedRootSignature(
-            &root_signature_description,
-            D3D_ROOT_SIGNATURE_VERSION_1,
-            &signature,
-            &error) != S_OK)
+            &root_signature_description, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error) != S_OK)
     {
-        const std::string error_message(
-            static_cast<char *>(error->GetBufferPointer()),
-            error->GetBufferSize());
+        const std::string error_message(static_cast<char *>(error->GetBufferPointer()), error->GetBufferSize());
 
-        throw iris::Exception(
-            "root signature serialization failed: " + error_message);
+        throw iris::Exception("root signature serialization failed: " + error_message);
     }
 
     expect(
         device_->CreateRootSignature(
-            0,
-            signature->GetBufferPointer(),
-            signature->GetBufferSize(),
-            IID_PPV_ARGS(&root_signature_)) == S_OK,
+            0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&root_signature_)) == S_OK,
         "could not create root signature");
 }
 

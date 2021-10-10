@@ -23,19 +23,19 @@ struct Window::implementation
 };
 
 Window::Window(std::uint32_t width, std::uint32_t height)
-    : width_(width),
-      height_(height),
-      render_system_(nullptr),
-      screen_target_(nullptr),
-      impl_(nullptr)
+    : width_(width)
+    , height_(height)
+    , render_system_(nullptr)
+    , screen_target_(nullptr)
+    , impl_(nullptr)
 {
     const auto bounds = [[UIScreen mainScreen] bounds];
     width_ = bounds.size.width;
     height_ = bounds.size.height;
 
     // we can now create a render system
-    screen_target_ = std::make_unique<RenderTarget>(
-        static_cast<std::uint32_t>(width_), static_cast<std::uint32_t>(height_));
+    screen_target_ =
+        std::make_unique<RenderTarget>(static_cast<std::uint32_t>(width_), static_cast<std::uint32_t>(height_));
     render_system_ = std::make_unique<RenderSystem>(width_, height_);
 }
 
@@ -51,20 +51,20 @@ std::optional<Event> Window::pump_event()
     do
     {
         result = CFRunLoopRunInMode(kCFRunLoopDefaultMode, seconds, TRUE);
-    } while(result == kCFRunLoopRunHandledSource);
-    
+    } while (result == kCFRunLoopRunHandledSource);
+
     const auto *window = [[[UIApplication sharedApplication] windows] objectAtIndex:0];
-    const auto *root_view_controller = static_cast<MetalViewController*>([window rootViewController]);
-    
+    const auto *root_view_controller = static_cast<MetalViewController *>([window rootViewController]);
+
     std::optional<Event> event;
-    
+
     // get next event from view (if one is available)
-    if(!root_view_controller->events_.empty())
+    if (!root_view_controller->events_.empty())
     {
         event = root_view_controller->events_.front();
         root_view_controller->events_.pop();
     }
-    
+
     return event;
 }
 
@@ -87,7 +87,7 @@ std::uint32_t Window::screen_scale()
 {
     static std::uint32_t scale = 0u;
 
-    if(scale == 0u)
+    if (scale == 0u)
     {
         scale = static_cast<std::uint32_t>([[UIScreen mainScreen] scale]);
     }

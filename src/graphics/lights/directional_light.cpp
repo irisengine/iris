@@ -22,8 +22,7 @@ DirectionalLight::DirectionalLight(const Vector3 &direction, bool cast_shadows)
     , shadow_camera_(CameraType::ORTHOGRAPHIC, 100u, 100u, 1000u)
     , cast_shadows_(cast_shadows)
 {
-    shadow_camera_.set_view(
-        Matrix4::make_look_at(-direction_, {}, {0.0f, 1.0f, 0.0f}));
+    shadow_camera_.set_view(Matrix4::make_look_at(-direction_, {}, {0.0f, 1.0f, 0.0f}));
 }
 
 LightType DirectionalLight::type() const
@@ -44,9 +43,7 @@ std::array<float, 4u> DirectionalLight::world_space_data() const
     std::array<float, 4u> light_data{};
     light_data.fill(0.0f);
 
-    static_assert(
-        light_data.size() * sizeof(decltype(light_data)::value_type) >=
-        sizeof(direction_));
+    static_assert(light_data.size() * sizeof(decltype(light_data)::value_type) >= sizeof(direction_));
 
     std::memcpy(light_data.data(), &direction_, sizeof(direction_));
 
@@ -69,8 +66,7 @@ Vector3 DirectionalLight::direction() const
 void DirectionalLight::set_direction(const Vector3 &direction)
 {
     direction_ = direction;
-    shadow_camera_.set_view(
-        Matrix4::make_look_at(-direction_, {}, {0.0f, 1.0f, 0.0f}));
+    shadow_camera_.set_view(Matrix4::make_look_at(-direction_, {}, {0.0f, 1.0f, 0.0f}));
 }
 
 bool DirectionalLight::casts_shadows() const

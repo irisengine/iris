@@ -152,24 +152,17 @@ LRESULT CALLBACK window_proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
         case WM_CLOSE: event_queue.emplace(iris::QuitEvent{}); break;
         case WM_KEYDOWN:
-            event_queue.emplace(iris::KeyboardEvent{
-                windows_key_to_engine_Key(wParam), iris::KeyState::DOWN});
+            event_queue.emplace(iris::KeyboardEvent{windows_key_to_engine_Key(wParam), iris::KeyState::DOWN});
             break;
         case WM_KEYUP:
-            event_queue.emplace(iris::KeyboardEvent{
-                windows_key_to_engine_Key(wParam), iris::KeyState::UP});
+            event_queue.emplace(iris::KeyboardEvent{windows_key_to_engine_Key(wParam), iris::KeyState::UP});
             break;
         case WM_INPUT:
         {
             UINT dwSize = sizeof(RAWINPUT);
             BYTE lpb[sizeof(RAWINPUT)];
 
-            ::GetRawInputData(
-                reinterpret_cast<HRAWINPUT>(lParam),
-                RID_INPUT,
-                lpb,
-                &dwSize,
-                sizeof(RAWINPUTHEADER));
+            ::GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
 
             RAWINPUT raw = {0};
             std::memcpy(&raw, lpb, sizeof(raw));
@@ -180,8 +173,7 @@ LRESULT CALLBACK window_proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 int x = raw.data.mouse.lLastX;
                 int y = raw.data.mouse.lLastY;
 
-                event_queue.emplace(iris::MouseEvent{
-                    static_cast<float>(x), static_cast<float>(y)});
+                event_queue.emplace(iris::MouseEvent{static_cast<float>(x), static_cast<float>(y)});
             }
             break;
         }
@@ -203,9 +195,7 @@ Win32Window::Win32Window(std::uint32_t width, std::uint32_t height)
     , wc_()
 {
     // ensure process is aware of high dpi monitors
-    ensure(
-        ::SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE) == S_OK,
-        "could not set process dpi awareness");
+    ensure(::SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE) == S_OK, "could not set process dpi awareness");
 
     const auto instance = ::GetModuleHandleA(NULL);
 
@@ -223,9 +213,7 @@ Win32Window::Win32Window(std::uint32_t width, std::uint32_t height)
     rect.right = static_cast<int>(width_);
     rect.bottom = static_cast<int>(height_);
 
-    ensure(
-        ::AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false) != 0,
-        "could not resize window");
+    ensure(::AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false) != 0, "could not resize window");
 
     // create window, we will resize it after for current dpi
     window_ = {
@@ -249,14 +237,7 @@ Win32Window::Win32Window(std::uint32_t width, std::uint32_t height)
 
     // ensure window size is correctly scaled for current dpi
     ensure(
-        ::SetWindowPos(
-            window_,
-            window_,
-            0,
-            0,
-            width_ * scale,
-            height_ * scale,
-            SWP_NOZORDER | SWP_NOACTIVATE) != 0,
+        ::SetWindowPos(window_, window_, 0, 0, width_ * scale, height_ * scale, SWP_NOZORDER | SWP_NOACTIVATE) != 0,
         "could not set window position");
 
     dc_ = {::GetDC(window_), [this](HDC dc) { ::ReleaseDC(window_, dc); }};
@@ -272,9 +253,7 @@ Win32Window::Win32Window(std::uint32_t width, std::uint32_t height)
     rid.dwFlags = RIDEV_INPUTSINK;
     rid.hwndTarget = window_;
 
-    ensure(
-        ::RegisterRawInputDevices(&rid, 1, sizeof(rid)) == TRUE,
-        "could not register raw input device");
+    ensure(::RegisterRawInputDevices(&rid, 1, sizeof(rid)) == TRUE, "could not register raw input device");
 
     // ensure mouse visibility reference count is 0 (mouse is hidden)
     while (::ShowCursor(FALSE) >= 0)
@@ -286,8 +265,7 @@ std::uint32_t Win32Window::screen_scale() const
 {
     const auto dpi = ::GetDpiForWindow(window_);
 
-    return static_cast<std::uint32_t>(
-        std::ceil(static_cast<float>(dpi) / 96.0f));
+    return static_cast<std::uint32_t>(std::ceil(static_cast<float>(dpi) / 96.0f));
 }
 
 std::optional<Event> Win32Window::pump_event()

@@ -26,27 +26,17 @@ namespace
  * @returns
  *   Tuple of <number of components, size of single component>.
  */
-std::tuple<std::size_t, std::size_t> type_information(
-    iris::VertexAttributeType type)
+std::tuple<std::size_t, std::size_t> type_information(iris::VertexAttributeType type)
 {
     std::tuple<std::size_t, std::size_t> info(0u, 0u);
 
     switch (type)
     {
-        case iris::VertexAttributeType::FLOAT_3:
-            info = {3u, sizeof(float)};
-            break;
-        case iris::VertexAttributeType::FLOAT_4:
-            info = {4u, sizeof(float)};
-            break;
-        case iris::VertexAttributeType::UINT32_1:
-            info = {1u, sizeof(std::uint32_t)};
-            break;
-        case iris::VertexAttributeType::UINT32_4:
-            info = {4u, sizeof(std::uint32_t)};
-            break;
-        default:
-            throw iris::Exception("unknown vertex attribute type");
+        case iris::VertexAttributeType::FLOAT_3: info = {3u, sizeof(float)}; break;
+        case iris::VertexAttributeType::FLOAT_4: info = {4u, sizeof(float)}; break;
+        case iris::VertexAttributeType::UINT32_1: info = {1u, sizeof(std::uint32_t)}; break;
+        case iris::VertexAttributeType::UINT32_4: info = {4u, sizeof(std::uint32_t)}; break;
+        default: throw iris::Exception("unknown vertex attribute type");
     }
 
     return info;
@@ -56,8 +46,7 @@ std::tuple<std::size_t, std::size_t> type_information(
 namespace iris
 {
 
-VertexAttributes::VertexAttributes(
-    const std::vector<VertexAttributeType> &types)
+VertexAttributes::VertexAttributes(const std::vector<VertexAttributeType> &types)
     : attributes_()
     , size_(0u)
 {
@@ -66,8 +55,7 @@ VertexAttributes::VertexAttributes(
     for (const auto type : types)
     {
         const auto [components, size] = type_information(type);
-        attributes_.emplace_back(
-            VertexAttribute{type, components, size, offset});
+        attributes_.emplace_back(VertexAttribute{type, components, size, offset});
         offset += components * size;
     }
 

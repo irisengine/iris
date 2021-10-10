@@ -39,9 +39,7 @@ void Thread::bind_to_core(std::size_t core)
 {
     DWORD affinity_mask = (1u << core);
 
-    expect(
-        ::SetThreadAffinityMask(thread_.native_handle(), affinity_mask) != 0u,
-        "could not bind thread to core");
+    expect(::SetThreadAffinityMask(thread_.native_handle(), affinity_mask) != 0u, "could not bind thread to core");
 }
 
 }

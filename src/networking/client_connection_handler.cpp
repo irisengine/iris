@@ -52,8 +52,7 @@ std::uint32_t handshake(iris::Socket *socket, iris::Channel *channel)
     auto id = std::numeric_limits<std::uint32_t>::max();
 
     // create and enqueue a HELLO packet
-    static const auto hello = iris::Packet(
-        iris::PacketType::HELLO, iris::ChannelType::RELIABLE_ORDERED, {});
+    static const auto hello = iris::Packet(iris::PacketType::HELLO, iris::ChannelType::RELIABLE_ORDERED, {});
     channel->enqueue_send(hello);
 
     // send all packets
@@ -79,8 +78,7 @@ std::uint32_t handshake(iris::Socket *socket, iris::Channel *channel)
         const auto connected = std::find_if(
             std::cbegin(responses),
             std::cend(responses),
-            [](const iris::Packet &p)
-            { return p.type() == iris::PacketType::CONNECTED; });
+            [](const iris::Packet &p) { return p.type() == iris::PacketType::CONNECTED; });
 
         // if we got it then get the id from the server and stop looping
         if (connected != std::cend(responses))
@@ -91,8 +89,7 @@ std::uint32_t handshake(iris::Socket *socket, iris::Channel *channel)
         }
     }
 
-    iris::ensure(
-        id == std::numeric_limits<std::uint32_t>::max(), "connection timeout");
+    iris::ensure(id == std::numeric_limits<std::uint32_t>::max(), "connection timeout");
 
     LOG_ENGINE_INFO("client_connection_handler", "i am: {}", id);
 
@@ -111,16 +108,13 @@ std::uint32_t handshake(iris::Socket *socket, iris::Channel *channel)
 void handle_sync_start(iris::Channel *channel, iris::Socket *socket)
 {
     // serialise our time
-    const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::steady_clock::now().time_since_epoch());
+    const auto now =
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
     iris::DataBufferSerialiser serialiser{};
     serialiser.push<std::uint32_t>(static_cast<std::uint32_t>(now.count()));
 
     // create and enqueue SYNC_RESPONSE
-    iris::Packet response{
-        iris::PacketType::SYNC_RESPONSE,
-        iris::ChannelType::RELIABLE_ORDERED,
-        serialiser.data()};
+    iris::Packet response{iris::PacketType::SYNC_RESPONSE, iris::ChannelType::RELIABLE_ORDERED, serialiser.data()};
     channel->enqueue_send(std::move(response));
 
     // send all packets
@@ -143,15 +137,13 @@ std::chrono::milliseconds handle_sync_finish(const iris::Packet &packet)
 {
     // deserialise times sent from server
     iris::DataBufferDeserialiser deserialiser{packet.body_buffer()};
-    const auto [client_time_raw, server_time_raw] =
-        deserialiser.pop_tuple<std::uint32_t, std::uint32_t>();
+    const auto [client_time_raw, server_time_raw] = deserialiser.pop_tuple<std::uint32_t, std::uint32_t>();
     const std::chrono::milliseconds client_time(client_time_raw);
     const std::chrono::milliseconds server_time(server_time_raw);
 
     // estimate lag
-    const auto server_to_client =
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now().time_since_epoch() - server_time);
+    const auto server_to_client = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch() - server_time);
     const auto client_to_server = server_time - client_time;
 
     return server_to_client + client_to_server;
@@ -170,22 +162,15 @@ ClientConnectionHandler::ClientConnectionHandler(std::unique_ptr<Socket> socket)
     , queues_()
 {
     // setup channels
-    channels_[ChannelType::UNRELIABLE_UNORDERED] =
-        std::make_unique<UnreliableUnorderedChannel>();
-    channels_[ChannelType::UNRELIABLE_SEQUENCED] =
-        std::make_unique<UnreliableSequencedChannel>();
-    channels_[ChannelType::RELIABLE_ORDERED] =
-        std::make_unique<ReliableOrderedChannel>();
+    channels_[ChannelType::UNRELIABLE_UNORDERED] = std::make_unique<UnreliableUnorderedChannel>();
+    channels_[ChannelType::UNRELIABLE_SEQUENCED] = std::make_unique<UnreliableSequencedChannel>();
+    channels_[ChannelType::RELIABLE_ORDERED] = std::make_unique<ReliableOrderedChannel>();
 
-    queues_[ChannelType::UNRELIABLE_UNORDERED] =
-        std::make_unique<ConcurrentQueue<DataBuffer>>();
-    queues_[ChannelType::UNRELIABLE_SEQUENCED] =
-        std::make_unique<ConcurrentQueue<DataBuffer>>();
-    queues_[ChannelType::RELIABLE_ORDERED] =
-        std::make_unique<ConcurrentQueue<DataBuffer>>();
+    queues_[ChannelType::UNRELIABLE_UNORDERED] = std::make_unique<ConcurrentQueue<DataBuffer>>();
+    queues_[ChannelType::UNRELIABLE_SEQUENCED] = std::make_unique<ConcurrentQueue<DataBuffer>>();
+    queues_[ChannelType::RELIABLE_ORDERED] = std::make_unique<ConcurrentQueue<DataBuffer>>();
 
-    id_ = handshake(
-        socket_.get(), channels_[ChannelType::RELIABLE_ORDERED].get());
+    id_ = handshake(socket_.get(), channels_[ChannelType::RELIABLE_ORDERED].get());
 
     LOG_ENGINE_INFO("client_connection_handler", "connected!");
 
@@ -217,17 +202,11 @@ ClientConnectionHandler::ClientConnectionHandler(std::unique_ptr<Socket> socket)
                              // channel
                              queues_[channel_type]->enqueue(p.body_buffer());
                              break;
-                         case PacketType::SYNC_START:
-                             handle_sync_start(channel, socket_.get());
-                             break;
-                         case PacketType::SYNC_FINISH:
-                             lag_ = handle_sync_finish(packet);
-                             break;
+                         case PacketType::SYNC_START: handle_sync_start(channel, socket_.get()); break;
+                         case PacketType::SYNC_FINISH: lag_ = handle_sync_finish(packet); break;
                          default:
                              LOG_ERROR(
-                                 "client_connection_handler",
-                                 "unknown packet type {}",
-                                 static_cast<int>(p.type()));
+                                 "client_connection_handler", "unknown packet type {}", static_cast<int>(p.type()));
                              break;
                      }
                  }
@@ -235,20 +214,15 @@ ClientConnectionHandler::ClientConnectionHandler(std::unique_ptr<Socket> socket)
          }});
 }
 
-std::optional<DataBuffer> ClientConnectionHandler::try_read(
-    ChannelType channel_type)
+std::optional<DataBuffer> ClientConnectionHandler::try_read(ChannelType channel_type)
 {
     DataBuffer buffer;
 
     // try and read data from the supplied channel
-    return queues_[channel_type]->try_dequeue(buffer)
-               ? std::optional<DataBuffer>{buffer}
-               : std::nullopt;
+    return queues_[channel_type]->try_dequeue(buffer) ? std::optional<DataBuffer>{buffer} : std::nullopt;
 }
 
-void ClientConnectionHandler::send(
-    const DataBuffer &data,
-    ChannelType channel_type)
+void ClientConnectionHandler::send(const DataBuffer &data, ChannelType channel_type)
 {
     auto *channel = channels_[channel_type].get();
 

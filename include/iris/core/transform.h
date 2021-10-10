@@ -47,10 +47,7 @@ class Transform
      * @param scale
      *   Transform scale.
      */
-    Transform(
-        const Vector3 &translation,
-        const Quaternion &rotation,
-        const Vector3 &scale);
+    Transform(const Vector3 &translation, const Quaternion &rotation, const Vector3 &scale);
 
     /**
      * Get the matrix which represents this transformation.

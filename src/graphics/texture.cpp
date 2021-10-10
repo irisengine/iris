@@ -13,11 +13,7 @@
 namespace iris
 {
 
-Texture::Texture(
-    const DataBuffer &data,
-    std::uint32_t width,
-    std::uint32_t height,
-    TextureUsage usage)
+Texture::Texture(const DataBuffer &data, std::uint32_t width, std::uint32_t height, TextureUsage usage)
     : data_(data)
     , width_(width)
     , height_(height)

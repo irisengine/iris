@@ -32,20 +32,11 @@ std::string EmojiFormatter::format(
     // are there!
     switch (level)
     {
-        case LogLevel::DEBUG:
-            strm << "🔵 ";
-            break;
-        case LogLevel::INFO:
-            strm << "ℹ️ ";
-            break;
-        case LogLevel::WARN:
-            strm << "⚠️ ";
-            break;
-        case LogLevel::ERR:
-            strm << "❌ ";
-            break;
-        default:
-            break;
+        case LogLevel::DEBUG: strm << "🔵 "; break;
+        case LogLevel::INFO: strm << "ℹ️ "; break;
+        case LogLevel::WARN: strm << "⚠️ "; break;
+        case LogLevel::ERR: strm << "❌ "; break;
+        default: break;
     }
 
     // write message

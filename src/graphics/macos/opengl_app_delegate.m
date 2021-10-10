@@ -25,11 +25,10 @@
         // create our window. It should have a title and render all content
         // to a buffer before being flushed, do not defer the creation of the
         // window
-        NSWindow *window =
-            [[NSWindow alloc] initWithContentRect:rect
-                                        styleMask:NSWindowStyleMaskTitled
-                                          backing:NSBackingStoreBuffered
-                                            defer:NO];
+        NSWindow *window = [[NSWindow alloc] initWithContentRect:rect
+                                                       styleMask:NSWindowStyleMaskTitled
+                                                         backing:NSBackingStoreBuffered
+                                                           defer:NO];
 
         // here we specify the attributes of the OpenGl view.
         NSOpenGLPixelFormatAttribute pixelFormatAttributes[] = {
@@ -47,12 +46,10 @@
         };
 
         // create the pixel format object with the above attributes
-        NSOpenGLPixelFormat *pixel_format = [[NSOpenGLPixelFormat alloc]
-            initWithAttributes:pixelFormatAttributes];
+        NSOpenGLPixelFormat *pixel_format = [[NSOpenGLPixelFormat alloc] initWithAttributes:pixelFormatAttributes];
 
         // create our OpenGl view, make it the same size as the window
-        OpenGLView *view = [[OpenGLView alloc] initWithFrame:rect
-                                                 pixelFormat:pixel_format];
+        OpenGLView *view = [[OpenGLView alloc] initWithFrame:rect pixelFormat:pixel_format];
 
         // ensure OpenGL fully utilises retina displays
         [view setWantsBestResolutionOpenGLSurface:YES];
@@ -78,11 +75,10 @@
         [window makeFirstResponder:view];
 
         // create a tracking area the size of the screen
-        NSTrackingArea *tracking = [[NSTrackingArea alloc]
-            initWithRect:rect
-                 options:NSTrackingMouseMoved | NSTrackingActiveAlways
-                   owner:view
-                userInfo:nil];
+        NSTrackingArea *tracking = [[NSTrackingArea alloc] initWithRect:rect
+                                                                options:NSTrackingMouseMoved | NSTrackingActiveAlways
+                                                                  owner:view
+                                                               userInfo:nil];
 
         // add the tracking area
         [view addTrackingArea:tracking];

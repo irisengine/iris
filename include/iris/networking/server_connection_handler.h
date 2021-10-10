@@ -14,9 +14,9 @@
 #include <mutex>
 
 #include "core/data_buffer.h"
-#include "networking/server_socket.h"
 #include "networking/channel/channel.h"
 #include "networking/channel/channel_type.h"
+#include "networking/server_socket.h"
 
 namespace iris
 {
@@ -87,8 +87,7 @@ class ServerConnectionHandler
      * @param channel
      *   The channel type the client sent the data on.
      */
-    using RecvCallback = std::function<
-        void(std::size_t id, const DataBuffer &data, ChannelType channel)>;
+    using RecvCallback = std::function<void(std::size_t id, const DataBuffer &data, ChannelType channel)>;
 
     /**
      * Create a new ServerConnectionHandler.
@@ -112,8 +111,7 @@ class ServerConnectionHandler
 
     // deleted
     ServerConnectionHandler(const ServerConnectionHandler &) = delete;
-    ServerConnectionHandler &operator=(const ServerConnectionHandler &) =
-        delete;
+    ServerConnectionHandler &operator=(const ServerConnectionHandler &) = delete;
 
     /**
      * Updates the connection handler, processes all messages and fires all
@@ -133,10 +131,7 @@ class ServerConnectionHandler
      * @param channel_type
      *   The channel to send the data through
      */
-    void send(
-        std::size_t id,
-        const DataBuffer &message,
-        ChannelType channel_type);
+    void send(std::size_t id, const DataBuffer &message, ChannelType channel_type);
 
   private:
     // forward declare internal struct

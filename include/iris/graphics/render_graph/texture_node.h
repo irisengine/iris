@@ -37,9 +37,7 @@ class TextureNode : public Node
      * @param path
      *   Path of texture.
      */
-    TextureNode(
-        const std::string &path,
-        TextureUsage usage = TextureUsage::IMAGE);
+    TextureNode(const std::string &path, TextureUsage usage = TextureUsage::IMAGE);
 
     ~TextureNode() override = default;
 

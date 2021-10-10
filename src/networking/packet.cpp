@@ -73,8 +73,7 @@ DataBuffer Packet::body_buffer() const
 std::size_t Packet::packet_size() const
 {
     // sanity check the Packet class is the expected size
-    static_assert(
-        sizeof(Packet) == 128 + sizeof(size_), "packet has invalid size");
+    static_assert(sizeof(Packet) == 128 + sizeof(size_), "packet has invalid size");
 
     return sizeof(Header) + body_size();
 }
@@ -111,9 +110,7 @@ void Packet::set_sequence(std::uint16_t sequence)
 
 bool Packet::operator==(const Packet &other) const
 {
-    return (
-        (packet_size() == other.packet_size()) &&
-        (std::memcmp(data(), other.data(), packet_size()) == 0));
+    return ((packet_size() == other.packet_size()) && (std::memcmp(data(), other.data(), packet_size()) == 0));
 }
 
 bool Packet::operator!=(const Packet &other) const
@@ -138,12 +135,8 @@ std::ostream &operator<<(std::ostream &out, const Packet &packet)
     switch (packet.header_.channel)
     {
         case ChannelType::INVAlID: out << "INVALID"; break;
-        case ChannelType::UNRELIABLE_UNORDERED:
-            out << "UNRELIABLE_UNORDERED";
-            break;
-        case ChannelType::UNRELIABLE_SEQUENCED:
-            out << "UNRELIABLE_SEQUENCED";
-            break;
+        case ChannelType::UNRELIABLE_UNORDERED: out << "UNRELIABLE_UNORDERED"; break;
+        case ChannelType::UNRELIABLE_SEQUENCED: out << "UNRELIABLE_SEQUENCED"; break;
         case ChannelType::RELIABLE_ORDERED: out << "RELIABLE_ORDERED"; break;
         default: out << "UNKNOWN"; break;
     }
@@ -157,9 +150,7 @@ std::ostream &operator<<(std::ostream &out, const Packet &packet)
 
     out << std::hex;
 
-    for (auto i = 0u;
-         i < std::min(static_cast<std::uint32_t>(packet.size_), 8u);
-         ++i)
+    for (auto i = 0u; i < std::min(static_cast<std::uint32_t>(packet.size_), 8u); ++i)
     {
         out << static_cast<int>(packet.body_[i]) << " ";
     }

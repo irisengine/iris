@@ -70,12 +70,7 @@ Fiber::Fiber(Job job, Counter *counter)
 {
     job_ = job;
     impl_->handle = {
-        ::CreateFiberEx(
-            0,
-            0,
-            FIBER_FLAG_FLOAT_SWITCH,
-            implementation::job_runner,
-            static_cast<void *>(this)),
+        ::CreateFiberEx(0, 0, FIBER_FLAG_FLOAT_SWITCH, implementation::job_runner, static_cast<void *>(this)),
         ::DeleteFiber};
 
     expect(impl_->handle, "create fiber failed");
@@ -173,9 +168,9 @@ void Fiber::thread_to_fiber()
     // thread will clean this up when it ends
     auto *fiber = new Fiber{nullptr, nullptr};
 
-    fiber->impl_->handle = {
-        ::ConvertThreadToFiberEx(NULL, FIBER_FLAG_FLOAT_SWITCH),
-        [fiber](auto) { ::ConvertFiberToThread(); }};
+    fiber->impl_->handle = {::ConvertThreadToFiberEx(NULL, FIBER_FLAG_FLOAT_SWITCH), [fiber](auto) {
+                                ::ConvertFiberToThread();
+                            }};
 
     expect(fiber->impl_->handle, "convert thread to fiber failed");
 

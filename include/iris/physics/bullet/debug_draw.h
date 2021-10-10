@@ -43,10 +43,7 @@ class DebugDraw : public ::btIDebugDraw
     // documentation for details
     // note they are not all implemented
 
-    void drawLine(
-        const ::btVector3 &from,
-        const ::btVector3 &to,
-        const ::btVector3 &colour) override;
+    void drawLine(const ::btVector3 &from, const ::btVector3 &to, const ::btVector3 &colour) override;
 
     void drawContactPoint(
         const ::btVector3 &PointOnB,
@@ -57,8 +54,7 @@ class DebugDraw : public ::btIDebugDraw
 
     void reportErrorWarning(const char *warningString) override;
 
-    void draw3dText(const ::btVector3 &location, const char *textString)
-        override;
+    void draw3dText(const ::btVector3 &location, const char *textString) override;
 
     void setDebugMode(int debugMode) override;
 

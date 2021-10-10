@@ -44,9 +44,7 @@ class D3D12DescriptorHandle
      * @param gpu_handle
      *   GPU handle for descriptor.
      */
-    D3D12DescriptorHandle(
-        D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle,
-        D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle);
+    D3D12DescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle);
 
     /**
      * Get cpu handle, maybe null.

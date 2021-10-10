@@ -42,11 +42,7 @@ class SimulatedSocket : public Socket
      *   Socket to adapt. Will be used for underlying communication, but with
      *   simulated conditions.
      */
-    SimulatedSocket(
-        std::chrono::milliseconds delay,
-        std::chrono::milliseconds jitter,
-        float drop_rate,
-        Socket *socket);
+    SimulatedSocket(std::chrono::milliseconds delay, std::chrono::milliseconds jitter, float drop_rate, Socket *socket);
 
     // defined in implementation
     ~SimulatedSocket() override;
@@ -111,9 +107,7 @@ class SimulatedSocket : public Socket
     Socket *socket_;
 
     /** Queue of data to send and when. */
-    ConcurrentQueue<
-        std::tuple<DataBuffer, std::chrono::steady_clock::time_point>>
-        write_queue_;
+    ConcurrentQueue<std::tuple<DataBuffer, std::chrono::steady_clock::time_point>> write_queue_;
 };
 
 }

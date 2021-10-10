@@ -42,8 +42,7 @@ GLuint create_buffer(const std::vector<T> &data, GLenum target)
     iris::expect(iris::check_opengl_error, "could not bind buffer");
 
     // copy data to buffer
-    ::glBufferData(
-        target, data.size() * sizeof(T), data.data(), GL_STATIC_DRAW);
+    ::glBufferData(target, data.size() * sizeof(T), data.data(), GL_STATIC_DRAW);
     iris::expect(iris::check_opengl_error, "could not buffer data");
 
     // unbind buffer
@@ -69,11 +68,7 @@ GLuint create_buffer(const std::vector<T> &data, GLenum target)
  *   Number of elements currently stored in buffer.
  */
 template <class T>
-void update_buffer(
-    const std::vector<T> &data,
-    GLenum target,
-    GLuint handle,
-    size_t element_count)
+void update_buffer(const std::vector<T> &data, GLenum target, GLuint handle, size_t element_count)
 {
     // bind so we can copy data
     ::glBindBuffer(target, handle);
@@ -82,8 +77,7 @@ void update_buffer(
     if (data.size() > element_count)
     {
         // if we don't have enough space in buffer then create a new data store
-        ::glBufferData(
-            target, data.size() * sizeof(T), data.data(), GL_STATIC_DRAW);
+        ::glBufferData(target, data.size() * sizeof(T), data.data(), GL_STATIC_DRAW);
         iris::expect(iris::check_opengl_error, "could not buffer data");
     }
     else

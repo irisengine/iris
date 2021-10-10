@@ -37,11 +37,7 @@ struct VertexData
      * @param texture_coords
      *   Coordinates of texture.
      */
-    VertexData(
-        const Vector3 &position,
-        const Vector3 &normal,
-        const Colour &colour,
-        const Vector3 &texture_coords)
+    VertexData(const Vector3 &position, const Vector3 &normal, const Colour &colour, const Vector3 &texture_coords)
         : VertexData(
               position,
               normal,

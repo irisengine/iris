@@ -69,10 +69,7 @@ void Root::register_graphics_api(
     std::unique_ptr<TextureManager> texture_manager)
 {
     return instance().register_graphics_api_impl(
-        api,
-        std::move(window_manager),
-        std::move(mesh_manager),
-        std::move(texture_manager));
+        api, std::move(window_manager), std::move(mesh_manager), std::move(texture_manager));
 }
 
 std::string Root::graphics_api()
@@ -90,12 +87,9 @@ std::vector<std::string> Root::registered_graphics_apis()
     return instance().registered_graphics_apis_impl();
 }
 
-void Root::register_physics_api(
-    const std::string &api,
-    std::unique_ptr<PhysicsManager> physics_manager)
+void Root::register_physics_api(const std::string &api, std::unique_ptr<PhysicsManager> physics_manager)
 {
-    return instance().register_physics_api_impl(
-        api, std::move(physics_manager));
+    return instance().register_physics_api_impl(api, std::move(physics_manager));
 }
 
 std::string Root::physics_api()
@@ -113,9 +107,7 @@ std::vector<std::string> Root::registered_physics_apis()
     return instance().registered_physics_apis_impl();
 }
 
-void Root::register_jobs_api(
-    const std::string &api,
-    std::unique_ptr<JobSystemManager> jobs_manager)
+void Root::register_jobs_api(const std::string &api, std::unique_ptr<JobSystemManager> jobs_manager)
 {
     return instance().register_jobs_api_impl(api, std::move(jobs_manager));
 }
@@ -203,9 +195,7 @@ std::vector<std::string> Root::registered_graphics_apis_impl() const
     return apis;
 }
 
-void Root::register_physics_api_impl(
-    const std::string &api,
-    std::unique_ptr<PhysicsManager> physics_manager)
+void Root::register_physics_api_impl(const std::string &api, std::unique_ptr<PhysicsManager> physics_manager)
 {
     physics_api_managers_[api] = std::move(physics_manager);
 }
@@ -234,9 +224,7 @@ std::vector<std::string> Root::registered_physics_apis_impl() const
     return apis;
 }
 
-void Root::register_jobs_api_impl(
-    const std::string &api,
-    std::unique_ptr<JobSystemManager> jobs_manager)
+void Root::register_jobs_api_impl(const std::string &api, std::unique_ptr<JobSystemManager> jobs_manager)
 {
     jobs_api_managers_[api] = std::move(jobs_manager);
 }

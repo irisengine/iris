@@ -30,16 +30,13 @@
         // create our window. It should have a title and render all content
         // to a buffer before being flushed, do not defer the creation of the
         // window
-        NSWindow *window =
-            [[NSWindow alloc] initWithContentRect:rect
-                                        styleMask:NSWindowStyleMaskTitled
-                                          backing:NSBackingStoreBuffered
-                                            defer:NO];
+        NSWindow *window = [[NSWindow alloc] initWithContentRect:rect
+                                                       styleMask:NSWindowStyleMaskTitled
+                                                         backing:NSBackingStoreBuffered
+                                                           defer:NO];
 
         // create and setup a metal view
-        MetalView *view =
-            [[MetalView alloc] initWithFrame:rect
-                                      device:MTLCreateSystemDefaultDevice()];
+        MetalView *view = [[MetalView alloc] initWithFrame:rect device:MTLCreateSystemDefaultDevice()];
         [view setClearColor:MTLClearColorMake(0, 0, 0, 1)];
         [view setColorPixelFormat:MTLPixelFormatRGBA16Float];
         [view setDepthStencilPixelFormat:MTLPixelFormatDepth32Float];
@@ -71,11 +68,10 @@
         [view setNeedsDisplay:YES];
 
         // create a tracking area the size of the screen
-        NSTrackingArea *tracking = [[NSTrackingArea alloc]
-            initWithRect:rect
-                 options:NSTrackingMouseMoved | NSTrackingActiveAlways
-                   owner:view
-                userInfo:nil];
+        NSTrackingArea *tracking = [[NSTrackingArea alloc] initWithRect:rect
+                                                                options:NSTrackingMouseMoved | NSTrackingActiveAlways
+                                                                  owner:view
+                                                               userInfo:nil];
 
         // add the tracking area
         [view addTrackingArea:tracking];

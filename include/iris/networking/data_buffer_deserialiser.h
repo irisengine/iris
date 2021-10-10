@@ -96,9 +96,7 @@ class DataBufferDeserialiser
      * @returns
      *   Next element in buffer as supplied type.
      */
-    template <
-        class T,
-        std::enable_if_t<std::is_same_v<T, Quaternion>> * = nullptr>
+    template <class T, std::enable_if_t<std::is_same_v<T, Quaternion>> * = nullptr>
     T pop()
     {
         return T{pop<float>(), pop<float>(), pop<float>(), pop<float>()};
@@ -110,9 +108,7 @@ class DataBufferDeserialiser
      * @returns
      *   Next element in buffer as supplied type.
      */
-    template <
-        class T,
-        std::enable_if_t<std::is_same_v<T, DataBuffer>> * = nullptr>
+    template <class T, std::enable_if_t<std::is_same_v<T, DataBuffer>> * = nullptr>
     T pop()
     {
         const auto size = pop<std::uint32_t>();

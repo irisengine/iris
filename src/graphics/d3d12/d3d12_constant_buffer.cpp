@@ -36,9 +36,7 @@ namespace
  * @returns
  *   Descriptor handle to buffer.
  */
-iris::D3D12DescriptorHandle create_resource(
-    std::size_t capacity,
-    Microsoft::WRL::ComPtr<ID3D12Resource> &resource)
+iris::D3D12DescriptorHandle create_resource(std::size_t capacity, Microsoft::WRL::ComPtr<ID3D12Resource> &resource)
 {
     const auto upload_heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
     const auto heap_descriptor = CD3DX12_RESOURCE_DESC::Buffer(capacity);
@@ -56,9 +54,7 @@ iris::D3D12DescriptorHandle create_resource(
     iris::expect(commit_resource == S_OK, "could not create constant buffer");
 
     // allocate descriptor for buffer
-    return iris::D3D12DescriptorManager::cpu_allocator(
-               D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)
-        .allocate_dynamic();
+    return iris::D3D12DescriptorManager::cpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).allocate_dynamic();
 }
 
 }
@@ -93,12 +89,10 @@ D3D12ConstantBuffer::D3D12ConstantBuffer(std::uint32_t capacity)
     cbv_descriptor.SizeInBytes = capacity_;
 
     // create a view onto the buffer
-    device->CreateConstantBufferView(
-        &cbv_descriptor, descriptor_handle_.cpu_handle());
+    device->CreateConstantBufferView(&cbv_descriptor, descriptor_handle_.cpu_handle());
 
     // map the buffer to the cpu so we can write to it
-    const auto map_resource =
-        resource_->Map(0u, NULL, reinterpret_cast<void **>(&mapped_buffer_));
+    const auto map_resource = resource_->Map(0u, NULL, reinterpret_cast<void **>(&mapped_buffer_));
     expect(map_resource == S_OK, "failed to map constant buffer");
 }
 

@@ -54,10 +54,7 @@ class UdpSocket : public Socket
      * @param socket
      *   SocketHandle to take a non-owning copy of.
      */
-    UdpSocket(
-        struct sockaddr_in socket_address,
-        socklen_t socket_length,
-        SocketHandle socket);
+    UdpSocket(struct sockaddr_in socket_address, socklen_t socket_length, SocketHandle socket);
 
     // disabled
     UdpSocket(const UdpSocket &) = delete;

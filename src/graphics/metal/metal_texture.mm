@@ -39,9 +39,7 @@ namespace
  * @returns
  *   MTLTextureDescriptor for texture.
  */
-MTLTextureDescriptor *image_texture_descriptor(
-    std::uint32_t width,
-    std::uint32_t height)
+MTLTextureDescriptor *image_texture_descriptor(std::uint32_t width, std::uint32_t height)
 {
     auto *texture_descriptor = [MTLTextureDescriptor new];
     texture_descriptor.textureType = MTLTextureType2D;
@@ -66,9 +64,7 @@ MTLTextureDescriptor *image_texture_descriptor(
  * @returns
  *   MTLTextureDescriptor for texture.
  */
-MTLTextureDescriptor *data_texture_descriptor(
-    std::uint32_t width,
-    std::uint32_t height)
+MTLTextureDescriptor *data_texture_descriptor(std::uint32_t width, std::uint32_t height)
 {
     auto *texture_descriptor = [MTLTextureDescriptor new];
     texture_descriptor.textureType = MTLTextureType2D;
@@ -93,17 +89,14 @@ MTLTextureDescriptor *data_texture_descriptor(
  * @returns
  *   MTLTextureDescriptor for texture.
  */
-MTLTextureDescriptor *render_target_texture_descriptor(
-    std::uint32_t width,
-    std::uint32_t height)
+MTLTextureDescriptor *render_target_texture_descriptor(std::uint32_t width, std::uint32_t height)
 {
     auto *texture_descriptor = [MTLTextureDescriptor new];
     texture_descriptor.textureType = MTLTextureType2D;
     texture_descriptor.width = width;
     texture_descriptor.height = height;
     texture_descriptor.pixelFormat = MTLPixelFormatRGBA16Float;
-    texture_descriptor.usage =
-        MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead;
+    texture_descriptor.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead;
 
     return texture_descriptor;
 }
@@ -121,9 +114,7 @@ MTLTextureDescriptor *render_target_texture_descriptor(
  * @returns
  *   MTLTextureDescriptor for texture.
  */
-MTLTextureDescriptor *depth_texture_descriptor(
-    std::uint32_t width,
-    std::uint32_t height)
+MTLTextureDescriptor *depth_texture_descriptor(std::uint32_t width, std::uint32_t height)
 {
     auto *texture_descriptor = [MTLTextureDescriptor new];
     texture_descriptor.textureType = MTLTextureType2D;
@@ -131,8 +122,7 @@ MTLTextureDescriptor *depth_texture_descriptor(
     texture_descriptor.height = height;
     texture_descriptor.pixelFormat = MTLPixelFormatDepth32Float;
     texture_descriptor.resourceOptions = MTLResourceStorageModePrivate;
-    texture_descriptor.usage =
-        MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead;
+    texture_descriptor.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead;
 
     return texture_descriptor;
 }
@@ -169,19 +159,12 @@ id<MTLTexture> create_texture(
 
     switch (usage)
     {
-        case iris::TextureUsage::IMAGE:
-            texture_descriptor = image_texture_descriptor(width, height);
-            break;
-        case iris::TextureUsage::DATA:
-            texture_descriptor = data_texture_descriptor(width, height);
-            break;
+        case iris::TextureUsage::IMAGE: texture_descriptor = image_texture_descriptor(width, height); break;
+        case iris::TextureUsage::DATA: texture_descriptor = data_texture_descriptor(width, height); break;
         case iris::TextureUsage::RENDER_TARGET:
-            texture_descriptor =
-                render_target_texture_descriptor(width, height);
+            texture_descriptor = render_target_texture_descriptor(width, height);
             break;
-        case iris::TextureUsage::DEPTH:
-            texture_descriptor = depth_texture_descriptor(width, height);
-            break;
+        case iris::TextureUsage::DEPTH: texture_descriptor = depth_texture_descriptor(width, height); break;
         default: throw iris::Exception("unknown texture usage");
     }
 
@@ -197,10 +180,7 @@ id<MTLTexture> create_texture(
         const auto bytes_per_row = width * 4u;
 
         // set image data for texture
-        [texture replaceRegion:region
-                   mipmapLevel:0
-                     withBytes:data_ptr
-                   bytesPerRow:bytes_per_row];
+        [texture replaceRegion:region mipmapLevel:0 withBytes:data_ptr bytesPerRow:bytes_per_row];
     }
 
     return texture;
@@ -211,11 +191,7 @@ id<MTLTexture> create_texture(
 namespace iris
 {
 
-MetalTexture::MetalTexture(
-    const DataBuffer &data,
-    std::uint32_t width,
-    std::uint32_t height,
-    TextureUsage usage)
+MetalTexture::MetalTexture(const DataBuffer &data, std::uint32_t width, std::uint32_t height, TextureUsage usage)
     : Texture(data, width, height, usage)
     , texture_()
 {

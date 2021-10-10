@@ -73,8 +73,7 @@ class Scene
     template <class... Args>
     RenderEntity *create_entity(RenderGraph *render_graph, Args &&...args)
     {
-        auto element =
-            std::make_unique<RenderEntity>(std::forward<Args>(args)...);
+        auto element = std::make_unique<RenderEntity>(std::forward<Args>(args)...);
 
         return add(std::move(render_graph), std::move(element));
     }
@@ -91,9 +90,7 @@ class Scene
      * @returns
      *   Pointer to the added RenderEntity.
      */
-    RenderEntity *add(
-        RenderGraph *render_graph,
-        std::unique_ptr<RenderEntity> entity);
+    RenderEntity *add(RenderGraph *render_graph, std::unique_ptr<RenderEntity> entity);
 
     void remove(RenderEntity *entity);
 
@@ -169,11 +166,9 @@ class Scene
      * @returns
      *   Collection of <RenderGraph, RenderEntity> tuples.
      */
-    std::vector<std::tuple<RenderGraph *, std::unique_ptr<RenderEntity>>>
-        &entities();
+    std::vector<std::tuple<RenderGraph *, std::unique_ptr<RenderEntity>>> &entities();
 
-    const std::vector<std::tuple<RenderGraph *, std::unique_ptr<RenderEntity>>>
-        &entities() const;
+    const std::vector<std::tuple<RenderGraph *, std::unique_ptr<RenderEntity>>> &entities() const;
 
     /**
      * Get LightingRig.
@@ -185,8 +180,7 @@ class Scene
 
   private:
     /** Collection of <RenderGraph, RenderEntity> tuples. */
-    std::vector<std::tuple<RenderGraph *, std::unique_ptr<RenderEntity>>>
-        entities_;
+    std::vector<std::tuple<RenderGraph *, std::unique_ptr<RenderEntity>>> entities_;
 
     /** Collection of RenderGraphs. */
     std::vector<std::unique_ptr<RenderGraph>> render_graphs_;

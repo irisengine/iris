@@ -41,10 +41,7 @@ void ReliableOrderedChannel::enqueue_receive(Packet packet)
                 std::begin(send_queue_),
                 std::end(send_queue_),
                 [&packet](const Packet &p)
-                {
-                    return (p.type() == PacketType::ACK) ||
-                           (p.sequence() == packet.sequence());
-                }),
+                { return (p.type() == PacketType::ACK) || (p.sequence() == packet.sequence()); }),
             std::end(send_queue_));
     }
     else
@@ -103,8 +100,7 @@ std::vector<Packet> ReliableOrderedChannel::yield_receive_queue()
     if (end_of_valid != std::cbegin(receive_queue_))
     {
         // move packets from queue to output collection
-        packets =
-            std::vector<Packet>(std::cbegin(receive_queue_), end_of_valid);
+        packets = std::vector<Packet>(std::cbegin(receive_queue_), end_of_valid);
         receive_queue_.erase(std::begin(receive_queue_), end_of_valid);
 
         // our next expected sequence number will be one greater than the last

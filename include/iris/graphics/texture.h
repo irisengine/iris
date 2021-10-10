@@ -35,11 +35,7 @@ class Texture
      * @param pixel_format
      *   Pixel format.
      */
-    Texture(
-        const DataBuffer &data,
-        std::uint32_t width,
-        std::uint32_t height,
-        TextureUsage usage);
+    Texture(const DataBuffer &data, std::uint32_t width, std::uint32_t height, TextureUsage usage);
 
     virtual ~Texture() = 0;
 

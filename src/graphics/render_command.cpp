@@ -105,10 +105,8 @@ void RenderCommand::set_shadow_map(const RenderTarget *shadow_map)
 
 bool RenderCommand::operator==(const RenderCommand &other) const
 {
-    return (type_ == other.type_) && (render_pass_ == other.render_pass_) &&
-           (material_ == other.material_) &&
-           (render_entity_ == other.render_entity_) &&
-           (light_ == other.light_) && (shadow_map_ == other.shadow_map_);
+    return (type_ == other.type_) && (render_pass_ == other.render_pass_) && (material_ == other.material_) &&
+           (render_entity_ == other.render_entity_) && (light_ == other.light_) && (shadow_map_ == other.shadow_map_);
 }
 
 bool RenderCommand::operator!=(const RenderCommand &other) const

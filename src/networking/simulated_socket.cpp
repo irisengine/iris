@@ -37,24 +37,25 @@ SimulatedSocket::SimulatedSocket(
     // in order to facilitate message delay without blocking we have write()
     // enqueue data with a time point, this job then grabs them and can wait
     // until the delay has passed before sending
-    Root::jobs_manager().add({[this]() {
-        for (;;)
-        {
-            if (write_queue_.empty())
-            {
-                std::this_thread::sleep_for(10ms);
-            }
-            else
-            {
-                const auto &[buffer, time_point] = write_queue_.dequeue();
+    Root::jobs_manager().add({[this]()
+                              {
+                                  for (;;)
+                                  {
+                                      if (write_queue_.empty())
+                                      {
+                                          std::this_thread::sleep_for(10ms);
+                                      }
+                                      else
+                                      {
+                                          const auto &[buffer, time_point] = write_queue_.dequeue();
 
-                // wait until its time to send the data
-                std::this_thread::sleep_until(time_point);
+                                          // wait until its time to send the data
+                                          std::this_thread::sleep_until(time_point);
 
-                socket_->write(buffer);
-            }
-        }
-    }});
+                                          socket_->write(buffer);
+                                      }
+                                  }
+                              }});
 }
 
 SimulatedSocket::~SimulatedSocket() = default;
@@ -73,9 +74,8 @@ void SimulatedSocket::write(const DataBuffer &buffer)
 {
     if (!flip_coin(drop_rate_))
     {
-        const auto jitter = random_int32(
-            static_cast<std::int32_t>(-jitter_.count()),
-            static_cast<std::int32_t>(jitter_.count()));
+        const auto jitter =
+            random_int32(static_cast<std::int32_t>(-jitter_.count()), static_cast<std::int32_t>(jitter_.count()));
 
         // stick the data to be sent on the queue (with the delay time) and
         const auto delay = delay_ + std::chrono::milliseconds(jitter);

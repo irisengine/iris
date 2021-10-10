@@ -54,11 +54,7 @@ void job_thread(
 {
     iris::Fiber::thread_to_fiber();
 
-    LOG_DEBUG(
-        "job_system",
-        "{} thread start [{}]",
-        id,
-        (void *)*iris::Fiber::this_fiber());
+    LOG_DEBUG("job_system", "{} thread start [{}]", id, (void *)*iris::Fiber::this_fiber());
 
     while (running)
     {
@@ -116,11 +112,7 @@ void job_thread(
         }
     }
 
-    LOG_DEBUG(
-        "job_system",
-        "{} thread end [{}]",
-        id,
-        (void *)*iris::Fiber::this_fiber());
+    LOG_DEBUG("job_system", "{} thread end [{}]", id, (void *)*iris::Fiber::this_fiber());
 
     // safe to cleanup fiber we created for thread
     delete *iris::Fiber::this_fiber();
@@ -137,9 +129,7 @@ void job_thread(
  * @param js
  *   Pointer to JoSystem.
  */
-void bootstrap_first_job(
-    const std::vector<iris::Job> &jobs,
-    iris::FiberJobSystem *js)
+void bootstrap_first_job(const std::vector<iris::Job> &jobs, iris::FiberJobSystem *js)
 {
     std::mutex m;
     std::condition_variable cv;
@@ -201,12 +191,7 @@ FiberJobSystem::FiberJobSystem()
     LOG_ENGINE_INFO("job_system", "creating {} threads", thread_count);
     for (auto i = 0u; i < thread_count; ++i)
     {
-        workers_.emplace_back(
-            job_thread,
-            i + 1,
-            std::ref(jobs_semaphore_),
-            std::ref(running_),
-            std::ref(fibers_));
+        workers_.emplace_back(job_thread, i + 1, std::ref(jobs_semaphore_), std::ref(running_), std::ref(fibers_));
     }
 }
 

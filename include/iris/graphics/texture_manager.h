@@ -46,9 +46,7 @@ class TextureManager
      * @returns
      *   Pointer to loaded texture.
      */
-    Texture *load(
-        const std::string &resource,
-        TextureUsage usage = TextureUsage::IMAGE);
+    Texture *load(const std::string &resource, TextureUsage usage = TextureUsage::IMAGE);
 
     /**
      * Create a texture from a DataBuffer.
@@ -65,11 +63,7 @@ class TextureManager
      * @param usage
      *   The usage of the texture.
      */
-    Texture *create(
-        const DataBuffer &data,
-        std::uint32_t width,
-        std::uint32_t height,
-        TextureUsage usage);
+    Texture *create(const DataBuffer &data, std::uint32_t width, std::uint32_t height, TextureUsage usage);
 
     /**
      * Unloaded the supplied texture (if there are no other references to it).

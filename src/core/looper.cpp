@@ -48,9 +48,7 @@ void Looper::run()
             clock_ += timestep_;
         }
 
-        run &= variable_timestep_(
-            clock_,
-            std::chrono::duration_cast<std::chrono::microseconds>(frame_time));
+        run &= variable_timestep_(clock_, std::chrono::duration_cast<std::chrono::microseconds>(frame_time));
     } while (run);
 }
 

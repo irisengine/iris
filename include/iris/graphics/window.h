@@ -101,9 +101,7 @@ class Window
      * @returns
      *   RenderTarget.
      */
-    RenderTarget *create_render_target(
-        std::uint32_t width,
-        std::uint32_t height);
+    RenderTarget *create_render_target(std::uint32_t width, std::uint32_t height);
 
     /**
      * Set the render passes. These will be executed when render() is called.

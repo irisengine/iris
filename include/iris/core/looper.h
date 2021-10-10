@@ -32,8 +32,7 @@ class Looper
      * @returns
      *   True if loop should continue, false if it should exit.
      */
-    using LoopFunction = std::function<
-        bool(std::chrono::microseconds, std::chrono::microseconds)>;
+    using LoopFunction = std::function<bool(std::chrono::microseconds, std::chrono::microseconds)>;
 
     /**
      * Construct a new looper.

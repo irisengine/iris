@@ -34,18 +34,10 @@ DXGI_FORMAT to_directx_format(iris::VertexAttributeType type)
 
     switch (type)
     {
-        case iris::VertexAttributeType::FLOAT_3:
-            format = DXGI_FORMAT_R32G32B32_FLOAT;
-            break;
-        case iris::VertexAttributeType::FLOAT_4:
-            format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-            break;
-        case iris::VertexAttributeType::UINT32_1:
-            format = DXGI_FORMAT_R32_UINT;
-            break;
-        case iris::VertexAttributeType::UINT32_4:
-            format = DXGI_FORMAT_R32G32B32A32_UINT;
-            break;
+        case iris::VertexAttributeType::FLOAT_3: format = DXGI_FORMAT_R32G32B32_FLOAT; break;
+        case iris::VertexAttributeType::FLOAT_4: format = DXGI_FORMAT_R32G32B32A32_FLOAT; break;
+        case iris::VertexAttributeType::UINT32_1: format = DXGI_FORMAT_R32_UINT; break;
+        case iris::VertexAttributeType::UINT32_4: format = DXGI_FORMAT_R32G32B32A32_UINT; break;
         default: throw iris::Exception("unknown vertex attribute type");
     }
 

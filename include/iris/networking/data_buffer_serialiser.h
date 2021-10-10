@@ -103,8 +103,7 @@ class DataBufferSerialiser
         const auto size = value.size();
         push(static_cast<std::uint32_t>(size));
         buffer_.resize(buffer_.size() + size);
-        std::memcpy(
-            std::addressof(*(std::end(buffer_) - size)), value.data(), size);
+        std::memcpy(std::addressof(*(std::end(buffer_) - size)), value.data(), size);
     }
 
   private:

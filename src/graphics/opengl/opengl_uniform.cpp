@@ -18,10 +18,7 @@
 namespace iris
 {
 
-OpenGLUniform::OpenGLUniform(
-    GLuint program,
-    const std::string &name,
-    bool ensure_exists)
+OpenGLUniform::OpenGLUniform(GLuint program, const std::string &name, bool ensure_exists)
     : location_(-1)
 {
     location_ = ::glGetUniformLocation(program, name.c_str());
@@ -35,18 +32,14 @@ OpenGLUniform::OpenGLUniform(
 
 void OpenGLUniform::set_value(const Matrix4 &value) const
 {
-    ::glUniformMatrix4fv(
-        location_, 1, GL_TRUE, reinterpret_cast<const float *>(value.data()));
+    ::glUniformMatrix4fv(location_, 1, GL_TRUE, reinterpret_cast<const float *>(value.data()));
     expect(check_opengl_error, "could not set uniform data");
 }
 
 void OpenGLUniform::set_value(const std::vector<Matrix4> &value) const
 {
     ::glUniformMatrix4fv(
-        location_,
-        static_cast<GLsizei>(value.size()),
-        GL_TRUE,
-        reinterpret_cast<const float *>(value.data()));
+        location_, static_cast<GLsizei>(value.size()), GL_TRUE, reinterpret_cast<const float *>(value.data()));
     expect(check_opengl_error, "could not set uniform data");
 }
 

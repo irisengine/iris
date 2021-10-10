@@ -50,11 +50,9 @@ namespace iris
  * @returns
  *   Empty optional if no error occurred, otherwise an error string.
  */
-std::optional<std::string> do_check_opengl_error(
-    std::string_view error_message);
+std::optional<std::string> do_check_opengl_error(std::string_view error_message);
 
 // create std::function so it can be passed to ensure/expect
-static const std::function<std::optional<std::string>(std::string_view)>
-    check_opengl_error = do_check_opengl_error;
+static const std::function<std::optional<std::string>(std::string_view)> check_opengl_error = do_check_opengl_error;
 
 }

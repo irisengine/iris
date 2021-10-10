@@ -26,9 +26,7 @@ struct Semaphore::implementation
 Semaphore::Semaphore(std::ptrdiff_t initial)
     : impl_(std::make_unique<implementation>())
 {
-    impl_->semaphore = {
-        ::CreateSemaphoreA(NULL, static_cast<LONG>(initial), 10000u, NULL),
-        ::CloseHandle};
+    impl_->semaphore = {::CreateSemaphoreA(NULL, static_cast<LONG>(initial), 10000u, NULL), ::CloseHandle};
 
     expect(impl_, "could not create semaphore");
 }

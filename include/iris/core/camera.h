@@ -37,11 +37,7 @@ class Camera
      * @param depth
      *   Depth of projection.
      */
-    Camera(
-        CameraType type,
-        std::uint32_t width,
-        std::uint32_t height,
-        std::uint32_t depth = 1000u);
+    Camera(CameraType type, std::uint32_t width, std::uint32_t height, std::uint32_t depth = 1000u);
 
     /**
      * Translate the camera.

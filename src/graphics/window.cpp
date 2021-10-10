@@ -41,9 +41,7 @@ RenderTarget *Window::create_render_target()
     return create_render_target(width_, height_);
 }
 
-RenderTarget *Window::create_render_target(
-    std::uint32_t width,
-    std::uint32_t height)
+RenderTarget *Window::create_render_target(std::uint32_t width, std::uint32_t height)
 {
     return renderer_->create_render_target(width, height);
 }

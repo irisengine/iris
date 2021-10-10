@@ -34,10 +34,6 @@ namespace iris::text_factory
  * @param colour
  *   The colour of the font.
  */
-Texture *create(
-    const std::string &font_name,
-    std::uint32_t size,
-    const std::string &text,
-    const Colour &colour);
+Texture *create(const std::string &font_name, std::uint32_t size, const std::string &text, const Colour &colour);
 
 }

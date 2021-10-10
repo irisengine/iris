@@ -13,9 +13,7 @@
 namespace iris
 {
 
-BulletCapsuleCollisionShape::BulletCapsuleCollisionShape(
-    float width,
-    float height)
+BulletCapsuleCollisionShape::BulletCapsuleCollisionShape(float width, float height)
     : shape_(std::make_unique<btCapsuleShape>(width, height))
 {
 }

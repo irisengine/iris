@@ -26,8 +26,7 @@ UdpServerSocket::UdpServerSocket(const std::string &address, std::uint32_t port)
     : connections_()
     , socket_()
 {
-    LOG_ENGINE_INFO(
-        "udp_server_socket", "creating server socket ({}:{})", address, port);
+    LOG_ENGINE_INFO("udp_server_socket", "creating server socket ({}:{})", address, port);
 
     // create socket
     socket_ = {::socket(AF_INET, SOCK_DGRAM, 0), CloseSocket};
@@ -45,21 +44,11 @@ UdpServerSocket::UdpServerSocket(const std::string &address, std::uint32_t port)
     // enable multicast
     int reuse = 1;
     ensure(
-        ::setsockopt(
-            socket_,
-            SOL_SOCKET,
-            SO_REUSEADDR,
-            reinterpret_cast<const char *>(&reuse),
-            sizeof(reuse)) == 0,
+        ::setsockopt(socket_, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char *>(&reuse), sizeof(reuse)) == 0,
         "setsockopt failed");
 
     // bind socket so we can accept connections
-    ensure(
-        ::bind(
-            socket_,
-            reinterpret_cast<struct sockaddr *>(&address_storage),
-            address_length) == 0,
-        "bind failed");
+    ensure(::bind(socket_, reinterpret_cast<struct sockaddr *>(&address_storage), address_length) == 0, "bind failed");
 
     LOG_ENGINE_INFO("udp_server_socket", "connected!");
 }
@@ -92,8 +81,7 @@ ServerSocketData UdpServerSocket::read()
 
     if (connections_.count(byte_address) == 0u)
     {
-        connections_[byte_address] =
-            std::make_unique<UdpSocket>(address, length, socket_.get());
+        connections_[byte_address] = std::make_unique<UdpSocket>(address, length, socket_.get());
 
         new_connection = true;
 
