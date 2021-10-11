@@ -379,7 +379,10 @@ void MetalRenderer::pre_render()
     frames_[current_frame_ % 3u].lock.lock();
 
     const auto layer = core::utility::metal_layer();
+#if defined(IRIS_PLATFORM_MACOS)
+    // can only disable vsync on macos
     [layer setDisplaySyncEnabled:NO];
+#endif
     drawable_ = [layer nextDrawable];
     command_buffer_ = [command_queue_ commandBuffer];
 

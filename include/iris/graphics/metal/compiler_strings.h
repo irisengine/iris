@@ -196,24 +196,4 @@ float calculate_shadow(float3 n, float4 frag_pos_light_space, float3 light_dir, 
     return shadow;
 })";
 
-inline std::string replace_index(const std::string &input, std::size_t index)
-{
-    std::stringstream strm;
-
-    static const std::string delimiter = "{}";
-    auto start = 0u;
-    auto end = input.find(delimiter);
-
-    while (end != std::string::npos)
-    {
-        strm << input.substr(start, end - start) << index;
-        start = end + delimiter.length();
-        end = input.find(delimiter, start);
-    }
-
-    strm << input.substr(start, end);
-
-    return strm.str();
-}
-
 }

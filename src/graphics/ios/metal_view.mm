@@ -4,14 +4,16 @@
 //                 https://www.boost.org/LICENSE_1_0.txt)                     //
 ////////////////////////////////////////////////////////////////////////////////
 
-#import "core/ios/MetalView.h"
+#import "graphics/ios/metal_view.h"
 
 #include <functional>
 
 #import <Metal/Metal.h>
 #import <QuartzCore/CAMetalLayer.h>
 
-#include "core/window.h"
+#include "core/root.h"
+#include "graphics/ios/ios_window.h"
+#include "graphics/ios/ios_window_manager.h"
 
 @implementation MetalView
 
@@ -33,7 +35,7 @@ CADisplayLink *_displayLink;
         _metalLayer.device = _device;
         _metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
         _metalLayer.frame = self.layer.frame;
-        self.contentScaleFactor = iris::Window::screen_scale();
+        self.contentScaleFactor = iris::Root::window_manager().current_window()->screen_scale();
         [self setUserInteractionEnabled:YES];
         [super setUserInteractionEnabled:YES];
         [self setBackgroundColor:[UIColor redColor]];

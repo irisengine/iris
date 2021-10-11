@@ -4,12 +4,12 @@
 //                 https://www.boost.org/LICENSE_1_0.txt)                     //
 ////////////////////////////////////////////////////////////////////////////////
 
-#import "core/ios/MetalViewController.h"
+#import "graphics/ios/metal_view_controller.h"
 
 #include <queue>
 #include <tuple>
 
-#import "core/ios/MetalView.h"
+#import "graphics/ios/metal_view.h"
 
 @interface MetalViewController ()
 @end
