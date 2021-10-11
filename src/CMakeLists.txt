@@ -19,7 +19,10 @@ set_target_properties(iris PROPERTIES
 target_include_directories(
   iris
   PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/iris>
-         $<INSTALL_INTERFACE:include/iris>
+         $<INSTALL_INTERFACE:include/iris>)
+
+target_include_directories(
+  iris SYSTEM
   PRIVATE ${stb_SOURCE_DIR} ${bullet_SOURCE_DIR}/src)
 
 # configure ersion file

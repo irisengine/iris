@@ -4,44 +4,31 @@
 //                 https://www.boost.org/LICENSE_1_0.txt)                     //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "core/window.h"
+#include "graphics/ios/ios_window.h"
 
+#include <cstdint>
 #include <memory>
 
 #import <UIKit/UIKit.h>
 
-#import "core/ios/MetalViewController.h"
-#include "graphics/render_system.h"
-#include "graphics/render_target.h"
+#import "graphics/ios/metal_view_controller.h"
+#include "graphics/metal/metal_renderer.h"
 #include "log/log.h"
 
 namespace iris
 {
 
-struct Window::implementation
-{
-};
-
-Window::Window(std::uint32_t width, std::uint32_t height)
-    : width_(width)
-    , height_(height)
-    , render_system_(nullptr)
-    , screen_target_(nullptr)
-    , impl_(nullptr)
+IOSWindow::IOSWindow(std::uint32_t width, std::uint32_t height)
+    : Window(width, height)
 {
     const auto bounds = [[UIScreen mainScreen] bounds];
     width_ = bounds.size.width;
     height_ = bounds.size.height;
 
-    // we can now create a render system
-    screen_target_ =
-        std::make_unique<RenderTarget>(static_cast<std::uint32_t>(width_), static_cast<std::uint32_t>(height_));
-    render_system_ = std::make_unique<RenderSystem>(width_, height_);
+    renderer_ = std::make_unique<MetalRenderer>(width_, height_);
 }
 
-Window::~Window() = default;
-
-std::optional<Event> Window::pump_event()
+std::optional<Event> IOSWindow::pump_event()
 {
     const CFTimeInterval seconds = 0.000002;
 
@@ -68,22 +55,7 @@ std::optional<Event> Window::pump_event()
     return event;
 }
 
-void Window::render(const Pipeline &pipeline) const
-{
-    render_system_->render(pipeline);
-}
-
-std::uint32_t Window::width() const
-{
-    return width_;
-}
-
-std::uint32_t Window::height() const
-{
-    return height_;
-}
-
-std::uint32_t Window::screen_scale()
+std::uint32_t IOSWindow::screen_scale() const
 {
     static std::uint32_t scale = 0u;
 

@@ -56,8 +56,9 @@ const DataBuffer &ResourceLoader::load(const std::string &resource)
         strm << f.rdbuf();
 
         const auto str = strm.str();
+        const auto *ptr = reinterpret_cast<const std::byte*>(str.data());
 
-        const auto [iter, _] = resources_.insert({resource, {std::cbegin(str), std::cend(str)}});
+        const auto [iter, _] = resources_.insert({resource, DataBuffer(ptr, ptr + str.size())});
         loaded_resource = iter;
     }
 

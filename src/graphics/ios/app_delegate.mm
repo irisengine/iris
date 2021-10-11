@@ -4,7 +4,7 @@
 //                 https://www.boost.org/LICENSE_1_0.txt)                     //
 ////////////////////////////////////////////////////////////////////////////////
 
-#import "core/ios/AppDelegate.h"
+#import "graphics/ios/app_delegate.h"
 
 #include <functional>
 
@@ -14,7 +14,7 @@
 #import <MetalKit/MetalKit.h>
 #import <QuartzCore/QuartzCore.h>
 
-#include "core/ios/MetalViewController.h"
+#include "graphics/ios/metal_view_controller.h"
 #include "log/log.h"
 
 namespace iris

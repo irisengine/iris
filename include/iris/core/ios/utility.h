@@ -15,7 +15,7 @@
 #import <UIKit/UIKit.h>
 
 #include "core/exception.h"
-#include "core/ios/MetalView.h"
+#include "graphics/ios/metal_view.h"
 
 namespace
 {

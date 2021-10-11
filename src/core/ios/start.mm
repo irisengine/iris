@@ -10,9 +10,42 @@
 
 #import <UIKit/UIKit.h>
 
-#import "core/ios/AppDelegate.h"
+#import "graphics/ios/app_delegate.h"
+
+#include "core/root.h"
+#include "graphics/ios/ios_window_manager.h"
+#include "graphics/metal/metal_mesh_manager.h"
+#include "graphics/metal/metal_texture_manager.h"
+#include "iris_version.h"
+#include "jobs/thread/thread_job_system_manager.h"
 #include "log/emoji_formatter.h"
 #include "log/log.h"
+#include "log/logger.h"
+#include "physics/bullet/bullet_physics_manager.h"
+
+namespace
+{
+
+/**
+ * Register apis and set default.s
+ */
+void register_apis()
+{
+    iris::Root::register_graphics_api(
+        "metal",
+        std::make_unique<iris::IOSWindowManager>(),
+        std::make_unique<iris::MetalMeshManager>(),
+        std::make_unique<iris::MetalTextureManager>());
+    iris::Root::set_graphics_api("metal");
+
+    iris::Root::register_physics_api("bullet", std::make_unique<iris::BulletPhysicsManager>());
+    iris::Root::set_physics_api("bullet");
+
+    iris::Root::register_jobs_api("thread", std::make_unique<iris::ThreadJobSystemManager>());
+    iris::Root::set_jobs_api("thread");
+}
+
+}
 
 namespace iris
 {
@@ -29,6 +62,8 @@ void start(int argc, char **argv, std::function<void(int, char **)> entry)
     // formatter
     Logger::instance().set_Formatter<EmojiFormatter>();
 
+    register_apis();
+
     LOG_ENGINE_INFO("start", "engine start");
 
     // save off supplied variables for use later
@@ -42,6 +77,8 @@ void start(int argc, char **argv, std::function<void(int, char **)> entry)
         // this is why we have to store the function arguments as globals as
         // we have no way of accessing them in the AppDelegate
         ::UIApplicationMain(argc, argv, nil, ::NSStringFromClass([AppDelegate class]));
+
+        Root::reset();
     }
 }
 
@@ -52,6 +89,8 @@ void start_debug(int argc, char **argv, std::function<void(int, char **)> entry)
     Logger::instance().set_log_engine(true);
 
     LOG_ENGINE_INFO("start", "engine start (with debugging)");
+
+    register_apis();
 
     start(argc, argv, entry);
 }
