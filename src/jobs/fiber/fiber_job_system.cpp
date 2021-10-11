@@ -47,7 +47,7 @@ namespace
  *   Queue of fibers to pop from.e
  */
 void job_thread(
-    int id,
+    [[maybe_unused]] int id,
     iris::Semaphore &jobs_semaphore,
     std::atomic<bool> &running,
     iris::ConcurrentQueue<std::tuple<iris::Fiber *, iris::Counter *>> &fibers)
