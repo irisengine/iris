@@ -1,4 +1,4 @@
-set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/core/ios")
+set(INCLUDE_ROOT "${PROJECT_SOURCE_DIR}/include/iris/core/ios")
 
 target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/utility.h

@@ -1,4 +1,4 @@
-set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/graphics/lights")
+set(INCLUDE_ROOT "${PROJECT_SOURCE_DIR}/include/iris/graphics/lights")
 
 target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/ambient_light.h

@@ -1,4 +1,4 @@
-set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/graphics/d3d12")
+set(INCLUDE_ROOT "${PROJECT_SOURCE_DIR}/include/iris/graphics/d3d12")
 
 target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/d3d12_buffer.h

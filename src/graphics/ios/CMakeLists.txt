@@ -1,5 +1,5 @@
-set(DEFAULT_ROOT "${CMAKE_SOURCE_DIR}/src/core/default")
-set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/graphics/ios")
+set(DEFAULT_ROOT "${PROJECT_SOURCE_DIR}/src/core/default")
+set(INCLUDE_ROOT "${PROJECT_SOURCE_DIR}/include/iris/graphics/ios")
 
 target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/app_delegate.h

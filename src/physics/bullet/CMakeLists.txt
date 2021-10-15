@@ -1,4 +1,4 @@
-set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/physics/bullet")
+set(INCLUDE_ROOT "${PROJECT_SOURCE_DIR}/include/iris/physics/bullet")
 
 target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/bullet_box_collision_shape.h

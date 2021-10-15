@@ -1,4 +1,4 @@
-set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/graphics/macos")
+set(INCLUDE_ROOT "${PROJECT_SOURCE_DIR}/include/iris/graphics/macos")
 
 target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/macos_window.h
