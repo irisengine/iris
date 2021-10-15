@@ -35,7 +35,7 @@ class WindowManager;
  *
  * Note that there is a subtle difference between setting the graphics/physics
  * apis and the jobs api. Graphics/Physics are entirely a user choice, they may
- * want one, both or either. The Root makes this possible as they only need to
+ * want one, both or neither. The Root makes this possible as they only need to
  * get the manager for the components they need and call the varies create
  * methods.
  *

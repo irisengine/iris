@@ -66,7 +66,7 @@ class Thread
      * preventing the kernel from scheduling it onto another core.
      *
      * Note that depending on the current platform this may act as a
-     * suggestion to the kernel, rather than be honoured.
+     * suggestion to the kernel, rather than be honored.
      *
      * @param core
      *   Id of core to bind to in the range [0, number of cores)
