@@ -1,12 +1,11 @@
 name: release
 
 on:
-  push:
-    tags:
-      - 'v.*'
+  create:
 
 jobs:
   build:
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
     runs-on: ${{ matrix.config.os }}
     strategy:
       matrix:
@@ -16,8 +15,8 @@ jobs:
           package_ext: .tar.gz
         }
         - {
-          os: macos-latest,
-          package_ext: .tar.gz
+          os: windows-latest,
+          package_ext: .zip
         }
         build_type: [Release]
 
@@ -56,8 +55,15 @@ jobs:
       working-directory: ${{github.workspace}}/build
       shell: bash
       run: cpack -B package
+    
+    - uses: actions/checkout@v2
+      working-directory: ${{github.workspace}}/build
+      with:
+        name: upload
+        path: package/.*${{ matrix.config.package_ext }}
 
     - uses: actions/download-artifact@v2
+      working-directory: ${{github.workspace}}/build
       with:
         name: release_build
         path: package/.*${{ matrix.config.package_ext }}
