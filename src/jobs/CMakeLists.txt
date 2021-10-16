@@ -1,4 +1,4 @@
-set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/jobs")
+set(INCLUDE_ROOT "${PROJECT_SOURCE_DIR}/include/iris/jobs")
 
 add_subdirectory("fiber")
 add_subdirectory("thread")

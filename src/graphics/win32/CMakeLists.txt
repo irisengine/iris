@@ -1,4 +1,4 @@
-set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/graphics/win32")
+set(INCLUDE_ROOT "${PROJECT_SOURCE_DIR}/include/iris/graphics/win32")
 
 target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/win32_d3d12_window.h

@@ -1,4 +1,4 @@
-set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/log")
+set(INCLUDE_ROOT "${PROJECT_SOURCE_DIR}/include/iris/log")
 
 target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/basic_formatter.h

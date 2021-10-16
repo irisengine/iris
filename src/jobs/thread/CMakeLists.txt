@@ -1,4 +1,4 @@
-set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/jobs/thread")
+set(INCLUDE_ROOT "${PROJECT_SOURCE_DIR}/include/iris/jobs/thread")
 
 target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/thread_job_system.h

@@ -1,4 +1,4 @@
-set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/events")
+set(INCLUDE_ROOT "${PROJECT_SOURCE_DIR}/include/iris/events")
 
 target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/event.h

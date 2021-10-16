@@ -1,5 +1,5 @@
-set(DEFAULT_ROOT "${CMAKE_SOURCE_DIR}/src/core/default")
-set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/core/macos")
+set(DEFAULT_ROOT "${PROJECT_SOURCE_DIR}/src/core/default")
+set(INCLUDE_ROOT "${PROJECT_SOURCE_DIR}/include/iris/core/macos")
 
 target_sources(iris PRIVATE
     ${DEFAULT_ROOT}/resource_loader.cpp

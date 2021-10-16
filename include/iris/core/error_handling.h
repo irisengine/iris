@@ -116,10 +116,9 @@ inline void check_and_handle(
 
 // here we define expect and ensure functions for error handling
 // usage:
-//   expect - check an invariant holds i.e. something that should always be true
+//   expect - check an unrecoverable invariant holds i.e. something that should always be true
 //            will call abort on failure and is stripped from release builds
-//   ensure - check that a precondition or postcondition holds i.e. something we
-//            want to verify at runtime
+//   ensure - check a recoverable invariant holds i.e. something we want to verify at runtime
 //            will throw an exception on failure and is never stripped
 //
 // annoyingly (as of writing) clang does not support std::source_location so we

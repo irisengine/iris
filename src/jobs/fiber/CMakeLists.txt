@@ -1,4 +1,4 @@
-set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/jobs/fiber")
+set(INCLUDE_ROOT "${PROJECT_SOURCE_DIR}/include/iris/jobs/fiber")
 
 if(IRIS_PLATFORM MATCHES "MACOS")
   add_subdirectory("posix")

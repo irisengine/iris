@@ -1,4 +1,4 @@
-set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/graphics/metal")
+set(INCLUDE_ROOT "${PROJECT_SOURCE_DIR}/include/iris/graphics/metal")
 
 target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/compiler_strings.h

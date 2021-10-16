@@ -26,7 +26,7 @@ target_include_directories(
   PRIVATE ${stb_SOURCE_DIR} ${bullet_SOURCE_DIR}/src)
 
 # configure ersion file
-configure_file(${CMAKE_SOURCE_DIR}/include/iris/iris_version.h.in ${CMAKE_SOURCE_DIR}/include/iris/iris_version.h)
+configure_file(${PROJECT_SOURCE_DIR}/include/iris/iris_version.h.in ${PROJECT_SOURCE_DIR}/include/iris/iris_version.h)
 
 # set macos/ios framework includes
 if(IRIS_PLATFORM MATCHES "MACOS")
@@ -120,8 +120,8 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/iris
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 configure_package_config_file(
-  ${CMAKE_SOURCE_DIR}/cmake/iris-config.cmake.in
-  ${CMAKE_BINARY_DIR}/cmake/iris-config.cmake
+  ${PROJECT_SOURCE_DIR}/cmake/iris-config.cmake.in
+  ${PROJECT_BINARY_DIR}/cmake/iris-config.cmake
   INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/iris)
 
 write_basic_package_version_file(
@@ -135,7 +135,7 @@ install(
   NAMESPACE iris::
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/iris)
 
-install(FILES ${CMAKE_BINARY_DIR}/cmake/iris-config.cmake
+install(FILES ${PROJECT_BINARY_DIR}/cmake/iris-config.cmake
         ${CMAKE_CURRENT_BINARY_DIR}/iris-version.cmake
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/iris)
 
@@ -143,5 +143,5 @@ install(FILES ${CMAKE_BINARY_DIR}/cmake/iris-config.cmake
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/iris)
 
 export(EXPORT iris-targets
-  FILE ${CMAKE_BINARY_DIR}/cmake/iris-targets.cmake
+  FILE ${PROJECT_BINARY_DIR}/cmake/iris-targets.cmake
   NAMESPACE iris::)

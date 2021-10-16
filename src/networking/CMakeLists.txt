@@ -1,4 +1,4 @@
-set(INCLUDE_ROOT "${CMAKE_SOURCE_DIR}/include/iris/networking")
+set(INCLUDE_ROOT "${PROJECT_SOURCE_DIR}/include/iris/networking")
 
 if(IRIS_PLATFORM MATCHES "WIN32")
   add_subdirectory("win32")

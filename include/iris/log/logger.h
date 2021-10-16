@@ -95,7 +95,7 @@ void unpack(const std::string &message, std::size_t &pos, std::stringstream &str
 }
 
 /**
- * Variadic templat argument unpacker.
+ * Variadic template argument unpacker.
  *
  * @param message
  *   Format string message.

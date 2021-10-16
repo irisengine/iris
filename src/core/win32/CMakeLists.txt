@@ -1,4 +1,4 @@
-set(DEFAULT_ROOT "${CMAKE_SOURCE_DIR}/src/core/default")
+set(DEFAULT_ROOT "${PROJECT_SOURCE_DIR}/src/core/default")
 
 target_sources(iris PRIVATE
     ${DEFAULT_ROOT}/resource_loader.cpp
