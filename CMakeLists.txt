@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.18)
 
 project(
   iris
-  VERSION "1.0.0"
+  VERSION "1.1.0"
   DESCRIPTION "Cross-platform game engine"
   LANGUAGES C CXX)
 
@@ -24,6 +24,9 @@ if(NOT IRIS_PLATFORM)
     set(IRIS_ARCH "X86_64")
   elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(IRIS_PLATFORM "WIN32")
+    set(IRIS_ARCH "X86_64")
+  elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    set(IRIS_PLATFORM "LINUX")
     set(IRIS_ARCH "X86_64")
   else()
     message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_NAME}")
@@ -107,7 +110,6 @@ if(IRIS_PLATFORM MATCHES "WIN32")
 endif()
 
 add_subdirectory("src")
-add_subdirectory("samples")
 
 if(IRIS_BUILD_UNIT_TESTS)
   enable_testing()
