@@ -108,6 +108,16 @@ if(IRIS_PLATFORM MATCHES "WIN32")
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+elseif(IRIS_PLATFORM MATCHES "LINUX")
+  target_compile_options(iris PRIVATE -Wall -Werror -pedantic -stdlib=libc++)
+  target_link_options(iris PRIVATE -lc++ -lc++abi)
+
+  install(
+    TARGETS iris assimp zlibstatic IrrXML BulletDynamics BulletCollision LinearMath
+    EXPORT iris-targets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 else()
   target_compile_options(iris PRIVATE -Wall -Werror -pedantic -glldb -fobjc-arc)
 
