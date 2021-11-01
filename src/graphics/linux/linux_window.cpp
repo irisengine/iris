@@ -418,11 +418,20 @@ LinuxWindow::LinuxWindow(std::uint32_t width, std::uint32_t height)
     ensure(::glXMakeCurrent(display_, window_, context_) == True, "could not make context current");
 
     renderer_ = std::make_unique<OpenGLRenderer>(width_, height_);
+
+    const auto scale = screen_scale();
+
+    XWindowChanges changes{0};
+    changes.width = width_ * scale;
+    changes.height = height_ * scale;
+
+    ::XConfigureWindow(display_, window_, CWWidth | CWHeight, &changes);
 }
 
 std::uint32_t LinuxWindow::screen_scale() const
 {
-    return 1u;
+    const auto dpi = ((double)DisplayWidth(display_.get(), 0)) / (((double)DisplayWidthMM(display_.get(), 0)) / 25.4);
+    return static_cast<std::uint32_t>(std::floor(static_cast<float>(dpi) / 96.0f));
 }
 
 std::optional<Event> LinuxWindow::pump_event()
