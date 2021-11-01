@@ -39,6 +39,10 @@ if(IRIS_PLATFORM MATCHES "MACOS" OR IRIS_PLATFORM MATCHES "IOS")
   enable_language(ASM)
 endif()
 
+if(IRIS_PLATFORM MATCHES "LINUX")
+  enable_language(ASM)
+endif()
+
 # set options for third party libraries
 set(BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
@@ -110,6 +114,7 @@ if(IRIS_PLATFORM MATCHES "WIN32")
 endif()
 
 add_subdirectory("src")
+add_subdirectory("samples")
 
 if(IRIS_BUILD_UNIT_TESTS)
   enable_testing()

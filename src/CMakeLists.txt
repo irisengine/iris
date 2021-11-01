@@ -57,7 +57,6 @@ elseif(IRIS_PLATFORM MATCHES "WIN32")
 elseif(IRIS_PLATFORM MATCHES "LINUX")
   target_compile_definitions(iris PUBLIC IRIS_PLATFORM_LINUX)
   target_compile_definitions(iris PUBLIC IRIS_ARCH_X86_64)
-  target_compile_definitions(iris PUBLIC NOMINMAX)
   if(NOT IRIS_JOBS_API)
     set(IRIS_JOBS_API "THREADS")
   endif()
@@ -79,7 +78,7 @@ endif()
 
 message(STATUS "Building iris-${CMAKE_PROJECT_VERSION} for ${IRIS_PLATFORM} (${IRIS_JOBS_API})")
 
-target_link_libraries(iris PUBLIC LinearMath BulletDynamics BulletCollision assimp)
+target_link_libraries(iris PUBLIC BulletDynamics BulletCollision LinearMath assimp)
 
 if(IRIS_PLATFORM MATCHES "WIN32")
   # on windows SYSTEM includes do not prevent warnings - so we add bullet using
@@ -109,8 +108,9 @@ if(IRIS_PLATFORM MATCHES "WIN32")
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 elseif(IRIS_PLATFORM MATCHES "LINUX")
-  target_compile_options(iris PRIVATE -Wall -Werror -pedantic -stdlib=libc++)
-  target_link_options(iris PRIVATE -lc++ -lc++abi)
+  target_compile_options(iris PRIVATE -Wall -Werror)
+  target_compile_options(iris PUBLIC -stdlib=libc++ -Wno-error=unused-command-line-argument)
+  target_link_options(iris PUBLIC -lc++ -lc++abi -lpthread -lGL -lX11)
 
   install(
     TARGETS iris assimp zlibstatic IrrXML BulletDynamics BulletCollision LinearMath

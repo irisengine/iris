@@ -34,6 +34,20 @@
 #include "graphics/opengl/opengl_windows.h"
 #pragma comment(lib, "opengl32.lib")
 // clang-format on
+#elif defined(IRIS_PLATFORM_LINUX)
+#include <GL/gl.h>
+#include <GL/glx.h>
+
+// in order to avoid duplicating all the opengl function definitions as both
+// extern and concrete we can use the EXTERN macro to control its linkage
+// by default all functions will be marked as extern (the common case) unless
+// this include is prefaced with DONT_MAKE_GL_FUNCTIONS_EXTERN
+#if defined(DONT_MAKE_GL_FUNCTIONS_EXTERN)
+#define EXTERN
+#else
+#define EXTERN extern
+#endif
+#include "graphics/opengl/opengl_linux.h"
 #else
 #error unsupported platform
 #endif
