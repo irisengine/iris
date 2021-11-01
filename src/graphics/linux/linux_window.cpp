@@ -7,6 +7,7 @@
 #include "graphics/linux/linux_window.h"
 
 #include <cmath>
+#include <iostream>
 #include <optional>
 #include <queue>
 
@@ -393,6 +394,14 @@ LinuxWindow::LinuxWindow(std::uint32_t width, std::uint32_t height)
         [this](::Window window) { ::XDestroyWindow(display_, window); }};
     ensure(window_, "could not create widnow");
 
+    ::XSelectInput(
+        display_,
+        window_,
+        KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | ExposureMask);
+
+    Atom wmDeleteMessage = XInternAtom(display_, "WM_DELETE_WINDOW", False);
+    XSetWMProtocols(display_, window_, &wmDeleteMessage, 1);
+
     ::XMapWindow(display_, window_);
 
     {
@@ -436,6 +445,24 @@ std::uint32_t LinuxWindow::screen_scale() const
 
 std::optional<Event> LinuxWindow::pump_event()
 {
+    // XEvent event{0};
+
+    // if (::XCheckWindowEvent(
+    //        display_,
+    //        window_,
+    //        KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | ExposureMask,
+    //        &event) == True)
+    //{
+    //    if (event.type == ClientMessage)
+    //    {
+    //        std::cout << "here" << std::endl;
+    //    }
+    //    else if (event.type == KeyPress)
+    //    {
+    //        std::cout << event.xkey.keycode << std::endl;
+    //    }
+    //}
+
     return {};
 }
 
