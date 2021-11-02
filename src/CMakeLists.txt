@@ -110,11 +110,6 @@ if(IRIS_PLATFORM MATCHES "WIN32")
 elseif(IRIS_PLATFORM MATCHES "LINUX")
   target_compile_options(iris PRIVATE -Wall -Werror)
 
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_compile_options(iris PUBLIC -stdlib=libc++ -Wno-error=unused-command-line-argument)
-    target_link_options(iris PUBLIC -lc++ -lc++abi)
-  endif()
-
   install(
     TARGETS iris assimp zlibstatic IrrXML BulletDynamics BulletCollision LinearMath
     EXPORT iris-targets

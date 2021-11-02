@@ -5,7 +5,7 @@
 # IRIS
 Iris is a cross-platform game engine written in modern C++
 
-[![build](https://github.com/irisengine/iris/actions/workflows/build.yml/badge.svg)](https://github.com/irisengine/iris/actions/workflows/build.yml) ![C++20](https://img.shields.io/badge/-20-f34b7d?logo=cplusplus) [![License](https://img.shields.io/badge/License-Boost%201.0-lightblue.svg)](https://www.boost.org/LICENSE_1_0.txt) ![Platforms](https://img.shields.io/badge/platforms-windows%20%7C%20macos%20%7C%20ios-lightgrey)
+[![build](https://github.com/irisengine/iris/actions/workflows/build.yml/badge.svg)](https://github.com/irisengine/iris/actions/workflows/build.yml) ![C++20](https://img.shields.io/badge/-20-f34b7d?logo=cplusplus) [![License](https://img.shields.io/badge/License-Boost%201.0-lightblue.svg)](https://www.boost.org/LICENSE_1_0.txt) ![Platforms](https://img.shields.io/badge/platforms-windows%20%7C%20macos%20%7C%20ios%20%7C%20linux-lightgrey)
 
 # Table of Contents
 1. [Screenshots](#screenshots)
@@ -232,7 +232,7 @@ int main(int argc, char **argv)
 
     window->set_render_passes({{&scene, &camera, nullptr}});
 
-    do
+    doG
     {
         auto event = window->pump_event();
         while (event)
@@ -370,7 +370,7 @@ Main scene ~~~~~~~~ -----.
 |---------------.  |   Arithmetic Node   |      +----------------------+  +--------------+  
 |               |  |=====================|      |   Conditional Node   |  | Render Node  |~~~~~~ -.
 | +-----------+ '->O value1              |      |======================|  |==============|        |
-| | Threshold | -->O value2              |----->O input_value1         |->O colour_input |        |
+| | Threshold |--->O value2              |----->O input_value1         |->O colour_input |        |
 | +-----------+ .->O arithmetic operator | .--->O input_value2         |  +--------------|        |
 |               |  +---------------------+ |.-->O output_value1        |                          |
 | +-----+       |                          ||.->O output_value2        |                          |
