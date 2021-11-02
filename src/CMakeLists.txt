@@ -78,7 +78,7 @@ endif()
 
 message(STATUS "Building iris-${CMAKE_PROJECT_VERSION} for ${IRIS_PLATFORM} (${IRIS_JOBS_API})")
 
-target_link_libraries(iris PUBLIC BulletDynamics BulletCollision LinearMath assimp GL X11 pthread)
+target_link_libraries(iris PUBLIC BulletDynamics BulletCollision LinearMath assimp GL Xfixes X11 pthread)
 
 if(IRIS_PLATFORM MATCHES "WIN32")
   # on windows SYSTEM includes do not prevent warnings - so we add bullet using

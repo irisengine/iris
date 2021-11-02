@@ -13,6 +13,7 @@
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/extensions/Xfixes.h>
 
 #include "core/auto_release.h"
 #include "core/error_handling.h"
@@ -425,6 +426,11 @@ LinuxWindow::LinuxWindow(std::uint32_t width, std::uint32_t height)
     ::XConfigureWindow(display_, window_, CWWidth | CWHeight, &changes);
 
     ::XSetLocaleModifiers("");
+
+    ::XFixesHideCursor(display_, window_);
+    ::XFlush(display_);
+
+    ::XWarpPointer(display_, None, window_, 0, 0, 0, 0, changes.width / 2, changes.height / 2);
 }
 
 std::uint32_t LinuxWindow::screen_scale() const
@@ -453,7 +459,14 @@ std::optional<Event> LinuxWindow::pump_event()
         }
         else if (event.type == MotionNotify)
         {
-            std::cout << event.xmotion.x << " " << event.xmotion.y << std::endl;
+            static auto x = event.xmotion.x;
+            static auto y = event.xmotion.y;
+
+            events_.emplace(
+                MouseEvent{static_cast<float>(event.xmotion.x - x), static_cast<float>(event.xmotion.y - y)});
+
+            x = event.xmotion.x;
+            y = event.xmotion.y;
         }
     }
 
