@@ -62,9 +62,10 @@ The following compilers have been tested
 | Compiler | Version | Platform |
 | -------- | ------- | -------- |
 | clang | 12.0.1 | macOS |
-| clang | 11.0.0 | macOS |
 | Apple clang | 12.0.0 | macOS |
 | Apple clang | 12.0.0 | iOS |
+| clang | 12.0.0 | linux |
+| g++ | 11.0.0 | linux |
 | msvc | 19.29.30133.0 | windows |
 
 ## Included third-party libraries
