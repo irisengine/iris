@@ -18,6 +18,12 @@
 #include "jobs/job.h"
 #include "log/log.h"
 
+#if defined(__clang__)
+#define NO_OPT __attribute__((noinline, optnone))
+#elif defined(__GNUC__)
+#define NO_OPT __attribute__((noinline, optimize("O0")))
+#endif
+
 extern "C"
 {
     // these will be defined with arch specific assembler
@@ -46,7 +52,7 @@ struct Fiber::implementation
      * @param fiber
      *   Fiber to start.
      */
-    __attribute__((noinline, optnone)) static void do_start(Fiber *fiber)
+    NO_OPT static void do_start(Fiber *fiber)
     {
         try
         {
@@ -74,7 +80,7 @@ struct Fiber::implementation
      * @param fiber
      *   Fiber to suspend.
      */
-    __attribute__((noinline, optnone)) static void do_suspend(Fiber *fiber)
+    NO_OPT static void do_suspend(Fiber *fiber)
     {
         // no code between these lines
         // restoring this saved context will cause execution to continue from
@@ -96,7 +102,7 @@ struct Fiber::implementation
      *   Always returns 0 - this is to prevent tail-call optimisation which
      *   can mess up the assembly calls.
      */
-    __attribute__((noinline, optnone)) static int do_resume(Fiber *fiber)
+    NO_OPT static int do_resume(Fiber *fiber)
     {
         // store context so we can resume from here once our job has finished
         save_context(&fiber->impl_->context);

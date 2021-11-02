@@ -53,7 +53,7 @@ void ReliableOrderedChannel::enqueue_receive(Packet packet)
         if (packet.sequence() >= next_receive_seq_)
         {
             // calculate index of packet into our receive queue
-            const auto index = packet.sequence() - next_receive_seq_;
+            const auto index = static_cast<std::size_t>(packet.sequence() - next_receive_seq_);
 
             // if index is larger than queue then grow the queue
             if (index >= receive_queue_.size())

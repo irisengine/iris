@@ -6,6 +6,7 @@
 
 #include "core/semaphore.h"
 
+#include <atomic>
 #include <cstdint>
 #include <memory>
 

@@ -48,7 +48,7 @@ class DataBufferDeserialiser
     template <class T, std::enable_if_t<std::is_arithmetic_v<T>> * = nullptr>
     T pop()
     {
-        const auto size = sizeof(T);
+        const auto size = static_cast<std::ptrdiff_t>(sizeof(T));
         if (size > std::distance(cursor_, std::cend(buffer_)))
         {
             throw Exception("not enough data left");

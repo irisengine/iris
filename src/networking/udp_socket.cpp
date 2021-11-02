@@ -133,13 +133,14 @@ void UdpSocket::write(const DataBuffer &buffer)
 
 void UdpSocket::write(const std::byte *data, std::size_t size)
 {
+    const auto size_check = static_cast<ssize_t>(size);
     if (::sendto(
             socket_,
             reinterpret_cast<const char *>(data),
             static_cast<int>(size),
             0,
             reinterpret_cast<struct sockaddr *>(&address_),
-            address_length_) != size)
+            address_length_) != size_check)
     {
         throw Exception("sendto failed");
     }
