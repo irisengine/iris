@@ -8,9 +8,8 @@
 
 #if defined(IRIS_PLATFORM_MACOS)
 .section __TEXT,__text
-#define FUNC(X) \
-.globl _X \
-_X:
+#define GLOBAL(X) .globl _##X 
+#define LABEL(X) _##X:
 #else
 .section .text
 #define GLOBAL(X) .globl X 

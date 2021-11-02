@@ -76,11 +76,11 @@ if(IRIS_PLATFORM MATCHES "MACOS" OR IRIS_PLATFORM MATCHES "WINDOWS")
   endif()
 endif()
 
-message(STATUS "Building iris-${CMAKE_PROJECT_VERSION} for ${IRIS_PLATFORM} (${IRIS_JOBS_API})")
-
-target_link_libraries(iris PUBLIC BulletDynamics BulletCollision LinearMath assimp GL Xfixes X11 pthread)
+message(STATUS "Building iris-${CMAKE_PROJECT_VERSION} for ${IRIS_PLATFORM})")
 
 if(IRIS_PLATFORM MATCHES "WIN32")
+  target_link_libraries(iris PUBLIC BulletDynamics BulletCollision LinearMath assimp)
+
   # on windows SYSTEM includes do not prevent warnings - so we add bullet using
   # the /external flag
   target_compile_options(iris PRIVATE /W4 /WX /experimental:external
@@ -108,6 +108,7 @@ if(IRIS_PLATFORM MATCHES "WIN32")
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 elseif(IRIS_PLATFORM MATCHES "LINUX")
+  target_link_libraries(iris PUBLIC BulletDynamics BulletCollision LinearMath assimp GL Xfixes X11 pthread)
   target_compile_options(iris PRIVATE -Wall -Werror)
 
   install(
@@ -117,6 +118,7 @@ elseif(IRIS_PLATFORM MATCHES "LINUX")
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 else()
+  target_link_libraries(iris PUBLIC BulletDynamics BulletCollision LinearMath assimp)
   target_compile_options(iris PRIVATE -Wall -Werror -pedantic -glldb -fobjc-arc)
 
   install(
