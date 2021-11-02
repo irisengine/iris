@@ -445,23 +445,24 @@ std::uint32_t LinuxWindow::screen_scale() const
 
 std::optional<Event> LinuxWindow::pump_event()
 {
-    // XEvent event{0};
+    XEvent event{0};
 
-    // if (::XCheckWindowEvent(
-    //        display_,
-    //        window_,
-    //        KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | ExposureMask,
-    //        &event) == True)
-    //{
-    //    if (event.type == ClientMessage)
-    //    {
-    //        std::cout << "here" << std::endl;
-    //    }
-    //    else if (event.type == KeyPress)
-    //    {
-    //        std::cout << event.xkey.keycode << std::endl;
-    //    }
-    //}
+    while (::XCheckWindowEvent(
+               display_,
+               window_,
+               KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | ExposureMask,
+               &event) == True)
+    {
+        if (event.type == ClientMessage)
+        {
+            std::cout << "here" << std::endl;
+            return {QuitEvent{}};
+        }
+        else if (event.type == KeyPress)
+        {
+            std::cout << event.xkey.keycode << std::endl;
+        }
+    }
 
     return {};
 }

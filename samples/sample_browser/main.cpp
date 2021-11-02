@@ -37,24 +37,15 @@ static constexpr std::size_t sample_count = 3u;
 
 using namespace std::chrono_literals;
 
-std::unique_ptr<Sample> create_sample(
-    iris::Window *window,
-    iris::RenderTarget *screen_target,
-    std::size_t index)
+std::unique_ptr<Sample> create_sample(iris::Window *window, iris::RenderTarget *screen_target, std::size_t index)
 {
     std::unique_ptr<Sample> sample{};
 
     switch (index)
     {
-        case 0:
-            sample = std::make_unique<AnimationSample>(window, screen_target);
-            break;
-        case 1:
-            sample = std::make_unique<RenderGraphSample>(window, screen_target);
-            break;
-        case 2:
-            sample = std::make_unique<PhysicsSample>(window, screen_target);
-            break;
+        case 0: sample = std::make_unique<AnimationSample>(window, screen_target); break;
+        case 1: sample = std::make_unique<RenderGraphSample>(window, screen_target); break;
+        case 2: sample = std::make_unique<PhysicsSample>(window, screen_target); break;
         default: throw iris::Exception("unknown sample index");
     }
 
@@ -69,19 +60,15 @@ void go(int, char **)
     std::size_t sample_number = 0u;
 
     auto *target = window->create_render_target();
-    iris::Camera camera{
-        iris::CameraType::ORTHOGRAPHIC, window->width(), window->height()};
+    iris::Camera camera{iris::CameraType::ORTHOGRAPHIC, window->width(), window->height()};
     iris::RenderEntity *title = nullptr;
     iris::RenderEntity *fps = nullptr;
 
     auto scene = std::make_unique<iris::Scene>();
     auto *rg = scene->create_render_graph();
-    rg->render_node()->set_colour_input(
-        rg->create<iris::TextureNode>(target->colour_texture()));
+    rg->render_node()->set_colour_input(rg->create<iris::TextureNode>(target->colour_texture()));
     scene->create_entity(
-        rg,
-        iris::Root::mesh_manager().sprite({1.0f, 1.0f, 1.0f}),
-        iris::Transform{{0.0f}, {}, {800.0f, 800.0f, 1.0f}});
+        rg, iris::Root::mesh_manager().sprite({1.0f, 1.0f, 1.0f}), iris::Transform{{0.0f}, {}, {800.0f, 800.0f, 1.0f}});
 
     auto sample = create_sample(window, target, sample_number % sample_count);
 
@@ -98,19 +85,14 @@ void go(int, char **)
     iris::Looper looper{
         0ms,
         16ms,
-        [&sample](auto, auto) {
+        [&sample](auto, auto)
+        {
             sample->fixed_update();
             return true;
         },
-        [&sample,
-         &window,
-         &sample_number,
-         &target,
-         &title,
-         &fps,
-         &pass,
-         &frame_counter,
-         &next_update](std::chrono::microseconds elapsed, auto) {
+        [&sample, &window, &sample_number, &target, &title, &fps, &pass, &frame_counter, &next_update](
+            std::chrono::microseconds elapsed, auto)
+        {
             auto running = true;
             auto event = window->pump_event();
             while (event)
@@ -122,8 +104,7 @@ void go(int, char **)
                 else if (event->is_key(iris::Key::TAB, iris::KeyState::UP))
                 {
                     ++sample_number;
-                    sample = create_sample(
-                        window, target, sample_number % sample_count);
+                    sample = create_sample(window, target, sample_number % sample_count);
 
                     auto passes = sample->render_passes();
                     passes.emplace_back(pass);
