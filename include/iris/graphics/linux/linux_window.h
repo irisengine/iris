@@ -8,12 +8,14 @@
 
 #include <cstdint>
 #include <optional>
+#include <queue>
 
 #include <GL/glx.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
 #include "core/auto_release.h"
+#include "events/event.h"
 #include "graphics/window.h"
 
 namespace iris
@@ -64,6 +66,7 @@ class LinuxWindow : public Window
     AutoRelease<Display *, nullptr> display_;
     AutoRelease<::Window, 0> window_;
     AutoRelease<GLXContext, nullptr> context_;
+    std::queue<Event> events_;
 };
 
 }
