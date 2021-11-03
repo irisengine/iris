@@ -39,23 +39,17 @@ endif()
 if(IRIS_PLATFORM MATCHES "MACOS")
   target_compile_definitions(iris PUBLIC IRIS_PLATFORM_MACOS)
   target_compile_definitions(iris PUBLIC IRIS_ARCH_X86_64)
-  if(NOT IRIS_JOBS_API)
-    set(IRIS_JOBS_API "FIBERS")
-  endif()
 elseif(IRIS_PLATFORM MATCHES "IOS")
   target_compile_definitions(iris PUBLIC IRIS_PLATFORM_IOS)
   target_compile_definitions(iris PUBLIC IRIS_ARCH_ARM64)
   set(IRIS_ARCH "ARM64")
-  if(NOT IRIS_JOBS_API)
-    set(IRIS_JOBS_API "THREADS")
-  endif()
 elseif(IRIS_PLATFORM MATCHES "WIN32")
   target_compile_definitions(iris PUBLIC IRIS_PLATFORM_WIN32)
   target_compile_definitions(iris PUBLIC IRIS_ARCH_X86_64)
   target_compile_definitions(iris PUBLIC NOMINMAX)
-  if(NOT IRIS_JOBS_API)
-    set(IRIS_JOBS_API "THREADS")
-  endif()
+elseif(IRIS_PLATFORM MATCHES "LINUX")
+  target_compile_definitions(iris PUBLIC IRIS_PLATFORM_LINUX)
+  target_compile_definitions(iris PUBLIC IRIS_ARCH_X86_64)
 else()
   message(FATAL_ERROR "Unsupported platform")
 endif()
@@ -72,11 +66,11 @@ if(IRIS_PLATFORM MATCHES "MACOS" OR IRIS_PLATFORM MATCHES "WINDOWS")
   endif()
 endif()
 
-message(STATUS "Building iris-${CMAKE_PROJECT_VERSION} for ${IRIS_PLATFORM} (${IRIS_JOBS_API})")
-
-target_link_libraries(iris PUBLIC LinearMath BulletDynamics BulletCollision assimp)
+message(STATUS "Building iris-${CMAKE_PROJECT_VERSION} for ${IRIS_PLATFORM})")
 
 if(IRIS_PLATFORM MATCHES "WIN32")
+  target_link_libraries(iris PUBLIC BulletDynamics BulletCollision LinearMath assimp)
+
   # on windows SYSTEM includes do not prevent warnings - so we add bullet using
   # the /external flag
   target_compile_options(iris PRIVATE /W4 /WX /experimental:external
@@ -103,7 +97,18 @@ if(IRIS_PLATFORM MATCHES "WIN32")
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+elseif(IRIS_PLATFORM MATCHES "LINUX")
+  target_link_libraries(iris PUBLIC BulletDynamics BulletCollision LinearMath assimp GL Xfixes X11 pthread)
+  target_compile_options(iris PRIVATE -Wall -Werror)
+
+  install(
+    TARGETS iris assimp zlibstatic IrrXML BulletDynamics BulletCollision LinearMath
+    EXPORT iris-targets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 else()
+  target_link_libraries(iris PUBLIC BulletDynamics BulletCollision LinearMath assimp)
   target_compile_options(iris PRIVATE -Wall -Werror -pedantic -glldb -fobjc-arc)
 
   install(
