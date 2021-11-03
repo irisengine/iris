@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <memory>
 #include <string>
 
 #include "networking/server_socket.h"

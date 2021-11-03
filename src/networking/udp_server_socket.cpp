@@ -8,6 +8,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <memory>
 
 #include "core/auto_release.h"
@@ -35,7 +36,7 @@ UdpServerSocket::UdpServerSocket(const std::string &address, std::uint32_t port)
     // configure address
     struct sockaddr_in address_storage = {0};
     socklen_t address_length = sizeof(struct sockaddr_in);
-    std::memset(&address_storage, 0x0, address_length);
+    memset(&address_storage, 0x0, address_length);
 
     address_storage.sin_family = AF_INET;
     inet_pton(AF_INET, address.c_str(), &address_storage.sin_addr.s_addr);

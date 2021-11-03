@@ -160,7 +160,7 @@ class Matrix4
         Matrix4 m;
 
         const auto aspect_ratio = width / height;
-        const auto tmp = std::tanf(fov / 2.0f);
+        const auto tmp = ::tanf(fov / 2.0f);
         const auto t = tmp * near_plane;
         const auto b = -t;
         const auto r = t * aspect_ratio;

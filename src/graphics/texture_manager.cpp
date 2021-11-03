@@ -7,6 +7,7 @@
 #include "graphics/texture_manager.h"
 
 #include <cstdint>
+#include <cstdlib>
 #include <map>
 #include <memory>
 #include <sstream>
@@ -80,8 +81,8 @@ std::tuple<iris::DataBuffer, std::uint32_t, std::uint32_t> parse_image(const iri
         // correct defaults if we have less than four channels
         std::byte rgba[] = {std::byte{0x0}, std::byte{0x0}, std::byte{0x0}, std::byte{0xff}};
 
-        std::memcpy(rgba, src_ptr, num_channels);
-        std::memcpy(dst_ptr, rgba, output_channels);
+        memcpy(rgba, src_ptr, num_channels);
+        memcpy(dst_ptr, rgba, output_channels);
 
         dst_ptr += output_channels;
         src_ptr += num_channels;

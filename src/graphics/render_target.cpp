@@ -7,6 +7,7 @@
 #include "graphics/render_target.h"
 
 #include <cstdint>
+#include <iostream>
 #include <memory>
 
 #include "core/error_handling.h"
