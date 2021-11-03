@@ -25,10 +25,10 @@
 #include "graphics/opengl/opengl.h"
 #include "graphics/opengl/opengl_renderer.h"
 
+bool iris::ScopedErrorHandler::error = false;
+
 namespace
 {
-
-bool iris::ScopedErrorHandler::error = false;
 
 /**
  * Helper function to resolve a single opengl function.
