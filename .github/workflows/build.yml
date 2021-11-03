@@ -16,9 +16,10 @@ jobs:
     - uses: knicknic/os-specific-run@v1
       with:
         linux: |
-          sudo add-apt-repository universe multiverse
+          sudo add-apt-repository universe
+          sudo add-apt-repository multiverse
           sudo apt update
-          sudo apt install gcc-11 g++-11 libmesa-dev libxfixes-dev
+          sudo apt install gcc-11 g++-11 libgl1-mesa-dev libxfixes-dev
           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 10
           sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 10
           sudo update-alternatives --install /usr/bin/cc cc /usr/bin/gcc 30
