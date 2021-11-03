@@ -15,9 +15,18 @@ jobs:
 
     - uses: knicknic/os-specific-run@v1
       with:
-        linux: sudo apt update
+        linux: sudo update-alternatives --remove-all gcc 
+          sudo update-alternatives --remove-all g++
+          sudo apt update
           sudo apt install gcc-11 g++-11
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 110 --slave /usr/bin/g++ g++ /usr/bin/g++-11 --slave /usr/bin/gcov gcov /usr/bin/gcov-11
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 10
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 10
+          sudo update-alternatives --install /usr/bin/cc cc /usr/bin/gcc 30
+          sudo update-alternatives --set cc /usr/bin/gcc
+          sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++ 30
+          sudo update-alternatives --set c++ /usr/bin/g++
+          sudo update-alternatives --config gcc
+          sudo update-alternatives --config g++
 
     - name: Create Build Environment
       # Some projects don't allow in-source building, so create a separate build directory
