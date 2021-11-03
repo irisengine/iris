@@ -34,6 +34,8 @@
 
 #if defined(IRIS_PLATFORM_WIN32)
 #include "graphics/win32/win32_opengl_window.h"
+#elif defined(IRIS_PLATFORM_LINUX)
+#include "graphics/linux/linux_window.h"
 #endif
 
 namespace
@@ -391,6 +393,9 @@ void OpenGLRenderer::execute_present(RenderCommand &)
 #elif defined(IRIS_PLATFORM_WIN32)
     const auto *window = static_cast<Win32OpenGLWindow *>(Root::window_manager().current_window());
     ::SwapBuffers(window->device_context());
+#elif defined(IRIS_PLATFORM_LINUX)
+    const auto *window = static_cast<LinuxWindow *>(Root::window_manager().current_window());
+    ::glXSwapBuffers(window->display(), window->window());
 #endif
 }
 
