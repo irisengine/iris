@@ -6,6 +6,8 @@ elseif(IRIS_PLATFORM MATCHES "IOS")
   add_subdirectory("ios")
 elseif(IRIS_PLATFORM MATCHES "WIN32")
   add_subdirectory("win32")
+elseif(IRIS_PLATFORM MATCHES "LINUX")
+  add_subdirectory("linux")
 endif()
 
 target_sources(iris PRIVATE
