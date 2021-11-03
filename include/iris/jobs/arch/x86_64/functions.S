@@ -6,7 +6,15 @@
 
 .intel_syntax noprefix
 
+#if defined(IRIS_PLATFORM_MACOS)
 .section __TEXT,__text
+#define GLOBAL(X) .globl _##X 
+#define LABEL(X) _##X:
+#else
+.section .text
+#define GLOBAL(X) .globl X 
+#define LABEL(X) X:
+#endif
 
 /**
  * Change stack, performs all necessary patching such that the function can
@@ -15,8 +23,8 @@
  * @param rdi
  *   Pointer to new stack.
  */
-.globl _change_stack
-_change_stack:
+GLOBAL(change_stack)
+LABEL(change_stack)
 
 push rax # stack alignment
 
@@ -55,8 +63,8 @@ ret
  * @param context
  *   Pointer to struct to save registers.
  */
-.globl _save_context
-_save_context:
+GLOBAL(save_context)
+LABEL(save_context)
 mov [rdi], rbx
 mov [rdi + 8], rbp
 mov [rdi + 16], rsp
@@ -75,8 +83,8 @@ ret
  * @param context
  *   Pointer to struct with registers to restore.
  */
-.globl _restore_context
-_restore_context:
+GLOBAL(restore_context)
+LABEL(restore_context)
 mov rbx, [rdi]
 mov rbp, [rdi + 8]
 mov rsp, [rdi + 16]
