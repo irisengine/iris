@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    -uses: knicknic/os-specific-run@v1
+    - uses: knicknic/os-specific-run@v1
       with:
         linux: sudo apt update
           sudo apt install gcc-11 g++-11
