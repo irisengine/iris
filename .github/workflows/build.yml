@@ -7,8 +7,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        build_type: [Debug]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        build_type: [Debug, Release]
 
     steps:
     - uses: actions/checkout@v2
