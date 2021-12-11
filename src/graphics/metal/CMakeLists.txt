@@ -4,6 +4,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/compiler_strings.h
     ${INCLUDE_ROOT}/metal_buffer.h
     ${INCLUDE_ROOT}/metal_constant_buffer.h
+    ${INCLUDE_ROOT}/metal_cube_map.h
     ${INCLUDE_ROOT}/metal_default_constant_buffer_types.h
     ${INCLUDE_ROOT}/metal_material.h
     ${INCLUDE_ROOT}/metal_mesh.h
@@ -15,6 +16,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/msl_shader_compiler.h
     metal_buffer.mm
     metal_constant_buffer.mm
+    metal_cube_map.mm
     metal_material.mm
     metal_mesh.mm
     metal_mesh_manager.mm
