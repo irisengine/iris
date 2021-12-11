@@ -55,6 +55,20 @@ class MeshManager
     const Mesh *cube(const Colour &colour);
 
     /**
+     * Create a new Mesh, which is not cached. This should be used when the data of the cube Mesh needs to be mutated.
+     * It returns a unique_ptr and therefore is not managed by this Manager.
+     *
+     * Most of the time you will want to use the cube method instead.
+     *
+     * @param colour
+     *   Colour of cube.
+     *
+     * @returns
+     *   Newly created cube mesh.
+     */
+    std::unique_ptr<Mesh> unique_cube(const Colour &colour);
+
+    /**
      * Create a plane mesh.
      *
      * @param colour
