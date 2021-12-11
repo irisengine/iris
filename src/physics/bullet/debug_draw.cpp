@@ -53,8 +53,11 @@ void DebugDraw::render()
             indices.emplace_back(static_cast<std::uint32_t>(vertices.size() - 1u));
         }
 
-        entity_->mesh()->update_vertex_data(vertices);
-        entity_->mesh()->update_index_data(indices);
+        // this is safe as we will have had to use unique_cube for our RenderEntity, which creates a non-const Mesh
+        auto *mesh = const_cast<Mesh *>(entity_->mesh());
+
+        mesh->update_vertex_data(vertices);
+        mesh->update_index_data(indices);
 
         verticies_.clear();
     }
