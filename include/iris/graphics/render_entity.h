@@ -40,7 +40,7 @@ class RenderEntity
      * @param primitive_type
      *   Primitive type of underlying mesh.
      */
-    RenderEntity(Mesh *mesh, const Vector3 &position, PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
+    RenderEntity(const Mesh *mesh, const Vector3 &position, PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
 
     /**
      * Construct a RenderEntity.
@@ -54,7 +54,7 @@ class RenderEntity
      * @param primitive_type
      *   Primitive type of underlying mesh.
      */
-    RenderEntity(Mesh *mesh, const Transform &transform, PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
+    RenderEntity(const Mesh *mesh, const Transform &transform, PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
 
     /**
      * Construct a RenderEntity.
@@ -72,7 +72,7 @@ class RenderEntity
      *   Primitive type of underlying mesh.
      */
     RenderEntity(
-        Mesh *mesh,
+        const Mesh *mesh,
         const Transform &transform,
         Skeleton skeleton,
         PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
@@ -152,7 +152,7 @@ class RenderEntity
      * @returns
      *   Mesh.
      */
-    Mesh *mesh() const;
+    const Mesh *mesh() const;
 
     /**
      * Set Mesh.
@@ -160,7 +160,7 @@ class RenderEntity
      * @param mesh
      *   New Mesh.
      */
-    void set_mesh(Mesh *mesh);
+    void set_mesh(const Mesh *mesh);
 
     /**
      * Returns whether the object should be rendered as a wireframe.
@@ -220,7 +220,7 @@ class RenderEntity
 
   private:
     /** Mesh to render. */
-    Mesh *mesh_;
+    const Mesh *mesh_;
 
     /** World space transform. */
     Transform transform_;

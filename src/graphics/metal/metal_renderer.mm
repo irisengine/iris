@@ -331,7 +331,7 @@ void MetalRenderer::set_render_passes(const std::vector<RenderPass> &render_pass
             if (materials_.count(render_graph) == 0u || materials_[render_graph].count(light_type) == 0u)
             {
                 materials_[render_graph][light_type] = std::make_unique<MetalMaterial>(
-                    render_graph, static_cast<MetalMesh *>(entity->mesh())->descriptors(), light_type);
+                    render_graph, static_cast<const MetalMesh *>(entity->mesh())->descriptors(), light_type);
             }
 
             return materials_[render_graph][light_type].get();

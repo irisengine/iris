@@ -359,7 +359,7 @@ void D3D12Renderer::set_render_passes(const std::vector<RenderPass> &render_pass
             {
                 materials_[render_graph][light_type] = std::make_unique<D3D12Material>(
                     render_graph,
-                    static_cast<D3D12Mesh *>(render_entity->mesh())->input_descriptors(),
+                    static_cast<const D3D12Mesh *>(render_entity->mesh())->input_descriptors(),
                     render_entity->primitive_type(),
                     light_type,
                     target == nullptr);

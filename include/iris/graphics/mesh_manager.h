@@ -41,7 +41,7 @@ class MeshManager
      * @returns
      *   Mesh for sprite.
      */
-    Mesh *sprite(const Colour &colour);
+    const Mesh *sprite(const Colour &colour);
 
     /**
      * Create a cube mesh.
@@ -52,7 +52,7 @@ class MeshManager
      * @returns
      *   Mesh for cube.
      */
-    Mesh *cube(const Colour &colour);
+    const Mesh *cube(const Colour &colour);
 
     /**
      * Create a plane mesh.
@@ -66,7 +66,7 @@ class MeshManager
      * @returns
      *   Mesh for cube.
      */
-    Mesh *plane(const Colour &colour, std::uint32_t divisions);
+    const Mesh *plane(const Colour &colour, std::uint32_t divisions);
 
     /**
      * Create a Quad mesh.
@@ -89,7 +89,7 @@ class MeshManager
      * @returns
      *   Mesh for sprite.
      */
-    Mesh *quad(
+    const Mesh *quad(
         const Colour &colour,
         const Vector3 &lower_left,
         const Vector3 &lower_right,
@@ -105,7 +105,7 @@ class MeshManager
      * @returns
      *   Mesh loaded from file.
      */
-    Mesh *load_mesh(const std::string &mesh_file);
+    const Mesh *load_mesh(const std::string &mesh_file);
 
     /**
      * Load a skeleton from a file.

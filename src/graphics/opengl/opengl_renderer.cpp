@@ -154,7 +154,7 @@ void bind_textures(const iris::DefaultUniforms *uniforms, const iris::OpenGLMate
  */
 void draw_meshes(const iris::RenderEntity *entity)
 {
-    const auto *mesh = static_cast<iris::OpenGLMesh *>(entity->mesh());
+    const auto *mesh = static_cast<const iris::OpenGLMesh *>(entity->mesh());
     mesh->bind();
 
     const auto type = entity->primitive_type() == iris::PrimitiveType::TRIANGLES ? GL_TRIANGLES : GL_LINES;

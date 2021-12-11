@@ -35,7 +35,7 @@ MeshManager::MeshManager()
 {
 }
 
-Mesh *MeshManager::sprite(const Colour &colour)
+const Mesh *MeshManager::sprite(const Colour &colour)
 {
     // create a unique for this mesh
     std::stringstream strm{};
@@ -58,7 +58,7 @@ Mesh *MeshManager::sprite(const Colour &colour)
     return loaded_meshes_[id].get();
 }
 
-Mesh *MeshManager::cube(const Colour &colour)
+const Mesh *MeshManager::cube(const Colour &colour)
 {
     // create a unique for this mesh
     std::stringstream strm{};
@@ -156,7 +156,7 @@ Mesh *MeshManager::plane(const Colour &colour, std::uint32_t divisions)
     return loaded_meshes_[id].get();
 }
 
-Mesh *MeshManager::quad(
+const Mesh *MeshManager::quad(
     const Colour &colour,
     const Vector3 &lower_left,
     const Vector3 &lower_right,
@@ -184,7 +184,7 @@ Mesh *MeshManager::quad(
     return loaded_meshes_[id].get();
 }
 
-Mesh *MeshManager::load_mesh(const std::string &mesh_file)
+const Mesh *MeshManager::load_mesh(const std::string &mesh_file)
 {
     if (loaded_meshes_.count(mesh_file) == 0u)
     {
