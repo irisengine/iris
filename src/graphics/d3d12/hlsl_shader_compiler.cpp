@@ -25,6 +25,7 @@
 #include "graphics/render_graph/post_processing_node.h"
 #include "graphics/render_graph/render_node.h"
 #include "graphics/render_graph/sin_node.h"
+#include "graphics/render_graph/sky_box_node.h"
 #include "graphics/render_graph/texture_node.h"
 #include "graphics/render_graph/value_node.h"
 #include "graphics/render_graph/vertex_position_node.h"
@@ -175,7 +176,7 @@ std::size_t texture_id(iris::Texture *texture, std::vector<iris::Texture *> &tex
         textures.emplace_back(texture);
     }
 
-    return id + 1u;
+    return id + 2u;
 }
 
 /**
@@ -280,6 +281,7 @@ HLSLShaderCompiler::HLSLShaderCompiler(const RenderGraph *render_graph, LightTyp
     , current_functions_(nullptr)
     , textures_()
     , light_type_(light_type)
+    , cube_map_(nullptr)
 {
     render_graph->render_node()->accept(*this);
 }
@@ -458,6 +460,61 @@ float4 main(PSInput input) : SV_TARGET
 
         return float4(mapped.r, mapped.g, mapped.b, 1.0);
     })";
+}
+
+void HLSLShaderCompiler::visit(const SkyBoxNode &node)
+{
+    current_stream_ = &vertex_stream_;
+    current_functions_ = &vertex_functions_;
+
+    // build vertex shader
+
+    *current_stream_ << R"(
+PSInput main(
+    float4 position : TEXCOORD0,
+    float4 normal : TEXCOORD1,
+    float4 colour : TEXCOORD2,
+    float4 tex_coord : TEXCOORD3,
+    float4 tangent : TEXCOORD4,
+    float4 bitangent : TEXCOORD5,
+    uint4 bone_ids : TEXCOORD6,
+    float4 bone_weights : TEXCOORD7)
+{
+    PSInput result;
+
+    float4x4 adj_view = view;
+    adj_view[3][0] = 0.0f;
+    adj_view[3][1] = 0.0f;
+    adj_view[3][2] = 0.0f;
+    adj_view[3][3] = 1.0f;
+
+    result.normal = position;
+    result.position = mul(position, adj_view);
+    result.position = mul(result.position, projection);
+    result.position = result.position.xyww;
+
+    return result;
+})";
+
+    current_stream_ = &fragment_stream_;
+    current_functions_ = &fragment_functions_;
+
+    current_functions_->emplace(shadow_function);
+
+    // build fragment shader
+
+    *current_stream_ << R"(
+float4 main(PSInput input) : SV_TARGET
+{)";
+
+    build_fragment_colour(*current_stream_, node.colour_input(), this);
+
+    *current_stream_ << R"(
+        float3 c = g_sky_box.SampleLevel(g_sampler, normalize(input.normal.xyz), 0).rgb;
+        return float4(c, 1.0f);
+    })";
+
+    cube_map_ = node.sky_box();
 }
 
 void HLSLShaderCompiler::visit(const ColourNode &node)
@@ -639,10 +696,11 @@ std::string HLSLShaderCompiler::fragment_shader() const
 
     strm << "SamplerState g_sampler : register(s0);\n";
     strm << "Texture2D g_shadow_map : register(t0);\n";
+    strm << "TextureCube g_sky_box : register(t1);\n";
 
     for (auto i = 0u; i < textures_.size(); ++i)
     {
-        strm << "Texture2D g_texture" << i + 1u << " : register(t" << i + 1u << ");\n";
+        strm << "Texture2D g_texture" << i + 2u << " : register(t" << i + 2u << ");\n";
     }
 
     for (const auto &function : fragment_functions_)
@@ -661,4 +719,10 @@ std::vector<Texture *> HLSLShaderCompiler::textures() const
 {
     return textures_;
 }
+
+const CubeMap *HLSLShaderCompiler::cube_map() const
+{
+    return cube_map_;
+}
+
 }

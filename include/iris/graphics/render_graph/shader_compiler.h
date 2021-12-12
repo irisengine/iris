@@ -11,6 +11,7 @@
 
 #include "core/colour.h"
 #include "core/vector3.h"
+#include "graphics/cube_map.h"
 #include "graphics/lights/light_type.h"
 #include "graphics/texture.h"
 
@@ -19,6 +20,7 @@ namespace iris
 
 class RenderNode;
 class PostProcessingNode;
+class SkyBoxNode;
 class ColourNode;
 class TextureNode;
 class InvertNode;
@@ -45,6 +47,7 @@ class ShaderCompiler
     // visitor methods
     virtual void visit(const RenderNode &node) = 0;
     virtual void visit(const PostProcessingNode &node) = 0;
+    virtual void visit(const SkyBoxNode &node) = 0;
     virtual void visit(const ColourNode &node) = 0;
     virtual void visit(const TextureNode &node) = 0;
     virtual void visit(const InvertNode &node) = 0;
@@ -89,5 +92,13 @@ class ShaderCompiler
      *   Collection of Textures.
      */
     virtual std::vector<Texture *> textures() const = 0;
+
+    /**
+     * Get the CubeMap needed for this shader (if any)
+     *
+     * @returns
+     *   CubeMap, or nullptr if not used by shader.
+     */
+    virtual const CubeMap *cube_map() const = 0;
 };
 }

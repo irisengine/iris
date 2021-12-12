@@ -25,6 +25,7 @@
 #include "graphics/render_graph/post_processing_node.h"
 #include "graphics/render_graph/render_node.h"
 #include "graphics/render_graph/sin_node.h"
+#include "graphics/render_graph/sky_box_node.h"
 #include "graphics/render_graph/texture_node.h"
 #include "graphics/render_graph/value_node.h"
 #include "graphics/render_graph/vertex_position_node.h"
@@ -169,6 +170,7 @@ MSLShaderCompiler::MSLShaderCompiler(const RenderGraph *render_graph, LightType 
     , current_functions_(nullptr)
     , textures_()
     , light_type_(light_type)
+    , cube_map_(nullptr)
 {
     render_graph->render_node()->accept(*this);
 }
@@ -285,6 +287,45 @@ void MSLShaderCompiler::visit(const PostProcessingNode &node)
 
         return float4(mapped, 1.0);
     })";
+}
+
+void MSLShaderCompiler::visit(const SkyBoxNode &node)
+{
+    current_stream_ = &vertex_stream_;
+    current_functions_ = &vertex_functions_;
+
+    current_functions_->emplace(bone_transform_function);
+    current_functions_->emplace(tbn_function);
+
+    // build vertex shader
+
+    *current_stream_ << R"(
+        VertexOut out;
+
+        float4x4 adj_view = uniform->view;
+        adj_view[3] = 0.0f;
+        adj_view[3][3] = 1.0f;
+        
+        out.tex = vertices[vid].position;
+        out.position = float4(uniform->projection * adj_view * out.tex).xyww;
+    )";
+
+    *current_stream_ << "return out;";
+    *current_stream_ << "}";
+
+    current_stream_ = &fragment_stream_;
+    current_functions_ = &fragment_functions_;
+
+    // build fragment shader
+
+    build_fragment_colour(fragment_stream_, node.colour_input(), this);
+
+    *current_stream_ << R"(
+        float3 tex_coords = float3(in.tex.x, in.tex.y, -in.tex.z);
+        return sky_box.sample(sky_box_sampler, tex_coords);
+    })";
+
+    cube_map_ = node.sky_box();
 }
 
 void MSLShaderCompiler::visit(const ColourNode &node)
@@ -504,11 +545,13 @@ fragment float4 fragment_main(
     constant DefaultUniform *uniform [[buffer(0)]],
     constant DirectionalLightUniform *light_uniform [[buffer(1)]],
     sampler shadow_sampler [[sampler(0)]],
-    texture2d<float> shadow_map [[texture(0)]])";
+    texture2d<float> shadow_map [[texture(0)]],
+    sampler sky_box_sampler [[sampler(1)]],
+    texturecube<float> sky_box [[texture(1)]])";
 
     for (auto i = 0u; i < textures_.size(); ++i)
     {
-        stream << "    ,texture2d<float> tex" << i << " [[texture(" << i + 1 << ")]]" << '\n';
+        stream << "    ,texture2d<float> tex" << i << " [[texture(" << i + 2 << ")]]" << '\n';
     }
     stream << R"(
     )
@@ -524,4 +567,10 @@ std::vector<Texture *> MSLShaderCompiler::textures() const
 {
     return textures_;
 }
+
+const CubeMap *MSLShaderCompiler::cube_map() const
+{
+    return cube_map_;
+}
+
 }
