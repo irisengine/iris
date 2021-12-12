@@ -8,6 +8,7 @@
 
 #include <vector>
 
+#include "graphics/cube_map.h"
 #include "graphics/material.h"
 #include "graphics/texture.h"
 
@@ -19,5 +20,10 @@ class FakeMaterial : public iris::Material
     std::vector<iris::Texture *> textures() const override
     {
         return {};
+    }
+
+    const iris::CubeMap *cube_map() const override
+    {
+        return nullptr;
     }
 };

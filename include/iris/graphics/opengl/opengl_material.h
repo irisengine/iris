@@ -8,6 +8,7 @@
 
 #include <vector>
 
+#include "graphics/cube_map.h"
 #include "graphics/lights/light_type.h"
 #include "graphics/material.h"
 #include "graphics/opengl/opengl.h"
@@ -60,12 +61,23 @@ class OpenGLMaterial : public Material
      */
     std::vector<Texture *> textures() const override;
 
+    /**
+     * Get the CubeMap used by this Material (if any).
+     *
+     * @returns
+     *   CuveMap, or nullptr if not used by Material.
+     */
+    const CubeMap *cube_map() const override;
+
   private:
     /** OpenGL handle to material. */
     GLuint handle_;
 
     /** Collection of Texture objects used by material. */
     std::vector<Texture *> textures_;
+
+    /** Optional CubeMap for material. */
+    const CubeMap *cube_map_;
 };
 
 }

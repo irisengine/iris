@@ -15,6 +15,7 @@
 #include "directx/d3d12.h"
 #include "directx/d3dx12.h"
 
+#include "graphics/cube_map.h"
 #include "graphics/lights/light_type.h"
 #include "graphics/lights/lighting_rig.h"
 #include "graphics/material.h"
@@ -68,6 +69,14 @@ class D3D12Material : public Material
     std::vector<Texture *> textures() const override;
 
     /**
+     * Get the CubeMap used by this Material (if any).
+     *
+     * @returns
+     *   CuveMap, or nullptr if not used by Material.
+     */
+    const CubeMap *cube_map() const override;
+
+    /**
      * Get the d3d12 pipeline state for this material.
      *
      * @returns
@@ -81,6 +90,9 @@ class D3D12Material : public Material
 
     /** Collection of textures used. */
     std::vector<Texture *> textures_;
+
+    /** Optional CubeMap for material. */
+    const CubeMap *cube_map_;
 };
 
 }

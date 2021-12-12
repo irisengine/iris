@@ -80,6 +80,7 @@ D3D12Material::D3D12Material(
     bool render_to_swapchain)
     : pso_()
     , textures_()
+    , cube_map(nullptr)
 {
     HLSLShaderCompiler compiler{render_graph, light_type};
     const auto vertex_source = compiler.vertex_shader();
@@ -148,6 +149,11 @@ D3D12Material::D3D12Material(
 std::vector<Texture *> D3D12Material::textures() const
 {
     return textures_;
+}
+
+const CubeMap *D3D12Material::cube_map() const
+{
+    return cube_map_;
 }
 
 ID3D12PipelineState *D3D12Material::pso() const

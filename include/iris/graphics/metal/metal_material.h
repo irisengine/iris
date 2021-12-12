@@ -10,6 +10,7 @@
 
 #import <Metal/Metal.h>
 
+#include "graphics/cube_map.h"
 #include "graphics/lights/light_type.h"
 #include "graphics/material.h"
 #include "graphics/render_graph/render_graph.h"
@@ -49,6 +50,14 @@ class MetalMaterial : public Material
     std::vector<Texture *> textures() const override;
 
     /**
+     * Get the CubeMap used by this Material (if any).
+     *
+     * @returns
+     *   CuveMap, or nullptr if not used by Material.
+     */
+    const CubeMap *cube_map() const override;
+
+    /**
      * Get the metal pipeline state for this material.
      *
      * @returns
@@ -62,6 +71,9 @@ class MetalMaterial : public Material
 
     /** Collection of Texture objects used by material. */
     std::vector<Texture *> textures_;
+
+    /** Optional CubeMap for material. */
+    const CubeMap *cube_map_;
 };
 
 }

@@ -86,6 +86,7 @@ namespace iris
 OpenGLMaterial::OpenGLMaterial(const RenderGraph *render_graph, LightType light_type)
     : handle_(0u)
     , textures_()
+    , cube_map_(nullptr)
 {
     GLSLShaderCompiler compiler{render_graph, light_type};
 
@@ -112,6 +113,11 @@ GLuint OpenGLMaterial::handle() const
 std::vector<Texture *> OpenGLMaterial::textures() const
 {
     return textures_;
+}
+
+const CubeMap *OpenGLMaterial::cube_map() const
+{
+    return cube_map_;
 }
 
 }
