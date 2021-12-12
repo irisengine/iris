@@ -85,14 +85,12 @@ void go(int, char **)
     iris::Looper looper{
         0ms,
         16ms,
-        [&sample](auto, auto)
-        {
+        [&sample](auto, auto) {
             sample->fixed_update();
             return true;
         },
         [&sample, &window, &sample_number, &target, &title, &fps, &pass, &frame_counter, &next_update](
-            std::chrono::microseconds elapsed, auto)
-        {
+            std::chrono::microseconds elapsed, auto) {
             auto running = true;
             auto event = window->pump_event();
             while (event)

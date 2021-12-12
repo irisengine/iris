@@ -13,6 +13,7 @@
 #include <core/camera.h>
 #include <core/transform.h>
 #include <events/event.h>
+#include <graphics/cube_map.h>
 #include <graphics/lights/point_light.h>
 #include <graphics/render_entity.h>
 #include <graphics/render_graph/render_graph.h>
@@ -97,4 +98,6 @@ class PhysicsSample : public Sample
 
     /** Character controller. */
     iris::CharacterController *character_controller_;
+
+    iris::CubeMap *sky_box_;
 };
