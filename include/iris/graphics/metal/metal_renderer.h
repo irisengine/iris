@@ -154,6 +154,9 @@ class MetalRenderer : public Renderer
 
     /** Default sampler for shadow maps. */
     id<MTLSamplerState> shadow_sampler_;
+
+    /** Default sampler for CubeMaps. */
+    id<MTLSamplerState> sky_box_sampler_;
 };
 
 }

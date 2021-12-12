@@ -90,6 +90,7 @@ D3D12Material::D3D12Material(
     const auto fragment_shader = create_shader(fragment_source, ShaderType::FRAGMENT);
 
     textures_ = compiler.textures();
+    cube_map_ = compiler.cube_map();
 
     auto *device = D3D12Context::device();
     auto *root_signature = D3D12Context::root_signature();
@@ -110,7 +111,7 @@ D3D12Material::D3D12Material(
 
     D3D12_RASTERIZER_DESC rasterizer_description = {0};
     rasterizer_description.FillMode = D3D12_FILL_MODE_SOLID;
-    rasterizer_description.CullMode = D3D12_CULL_MODE_BACK;
+    rasterizer_description.CullMode = D3D12_CULL_MODE_NONE;
     rasterizer_description.FrontCounterClockwise = TRUE;
     rasterizer_description.DepthClipEnable = TRUE;
     rasterizer_description.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;

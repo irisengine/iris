@@ -51,6 +51,7 @@ id<MTLFunction> load_function(const std::string &source, const std::string &func
     {
         // an error occurred so parse error and throw
         const std::string error_message{[[error localizedDescription] UTF8String]};
+        IRIS_DEBUG_BREAK();
         throw iris::Exception("failed to load shader: " + error_message);
     }
 
@@ -106,6 +107,7 @@ MetalMaterial::MetalMaterial(const RenderGraph *render_graph, MTLVertexDescripto
     expect(error == nullptr, "failed to create pipeline state");
 
     textures_ = compiler.textures();
+    cube_map_ = compiler.cube_map();
 }
 
 id<MTLRenderPipelineState> MetalMaterial::pipeline_state() const

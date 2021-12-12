@@ -92,6 +92,7 @@ OpenGLMaterial::OpenGLMaterial(const RenderGraph *render_graph, LightType light_
 
     handle_ = create_program(compiler.vertex_shader(), compiler.fragment_shader());
     textures_ = compiler.textures();
+    cube_map_ = compiler.cube_map();
 }
 
 OpenGLMaterial::~OpenGLMaterial()
