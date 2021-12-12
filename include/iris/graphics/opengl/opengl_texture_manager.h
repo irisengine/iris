@@ -11,6 +11,7 @@
 #include <stack>
 
 #include "core/data_buffer.h"
+#include "graphics/cube_map.h"
 #include "graphics/opengl/opengl.h"
 #include "graphics/texture_manager.h"
 #include "graphics/texture_usage.h"
@@ -62,6 +63,9 @@ class OpenGLTextureManager : public TextureManager
      *
      * @param usage
      *   Usage of the texture.
+     *
+     * @returns
+     *   Created texture.
      */
     std::unique_ptr<Texture> do_create(
         const DataBuffer &data,
@@ -70,12 +74,63 @@ class OpenGLTextureManager : public TextureManager
         TextureUsage usage) override;
 
     /**
+     * Create a CubeMap from six DataBuffers (one for each face).
+     *
+     * @param right_data
+     *   Image data for right face of cube.
+     *
+     * @param right_data
+     *   Image data for right face of cube.
+     *
+     * @param left_data
+     *   Image data for left face of cube.
+     *
+     * @param top_data
+     *   Image data for top face of cube.
+     *
+     * @param bottom_data
+     *   Image data for bottom face of cube.
+     *
+     * @param back_data
+     *   Image data for back face of cube.
+     *
+     * @param front_data
+     *   Image data for front face of cube.
+     *
+     * @param width
+     *   Width of each image face.
+     *
+     * @param height
+     *   Height of each image face.
+     *
+     * @returns
+     *   Created CubeMap.
+     */
+    std::unique_ptr<CubeMap> do_create(
+        const DataBuffer &right_data,
+        const DataBuffer &left_data,
+        const DataBuffer &top_data,
+        const DataBuffer &bottom_data,
+        const DataBuffer &near_data,
+        const DataBuffer &far_data,
+        std::uint32_t width,
+        std::uint32_t height) override;
+
+    /**
      * Unload a texture.
      *
      * @param texture
      *   Texture about to be unloaded.
      */
     void destroy(Texture *texture) override;
+
+    /**
+     * Unload a CubeMap.
+     *
+     * @param cube_map
+     *   CubeMap about to be unloaded.
+     */
+    void destroy(CubeMap *cube_map) override;
 
   private:
     /** Stack of available ids. */
