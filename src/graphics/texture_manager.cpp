@@ -123,7 +123,7 @@ iris::DataBuffer create_texture_data(const iris::Colour &colour, std::uint32_t w
 
     for (auto i = 0u; i < width * height; ++i)
     {
-        std::memcpy(cursor, colour_bytes, sizeof(colour_bytes));
+        memcpy(cursor, colour_bytes, sizeof(colour_bytes));
         cursor += 4u;
     }
 
@@ -169,7 +169,7 @@ iris::DataBuffer create_texture_data(
 
         for (auto x = 0u; x < width; ++x)
         {
-            std::memcpy(cursor, colour_bytes, sizeof(colour_bytes));
+            memcpy(cursor, colour_bytes, sizeof(colour_bytes));
             cursor += 4u;
         }
     }
