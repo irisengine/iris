@@ -16,6 +16,7 @@
 #include <core/root.h>
 #include <core/transform.h>
 #include <core/vector3.h>
+#include <graphics/cube_map.h>
 #include <graphics/lights/point_light.h>
 #include <graphics/mesh_manager.h>
 #include <graphics/render_graph/component_node.h>
@@ -25,6 +26,7 @@
 #include <graphics/render_graph/value_node.h>
 #include <graphics/render_target.h>
 #include <graphics/scene.h>
+#include <graphics/texture_manager.h>
 #include <graphics/window.h>
 #include <physics/basic_character_controller.h>
 #include <physics/physics_manager.h>
@@ -83,8 +85,7 @@ void update_camera(
 
     const auto cam_pos = character_controller->position();
 
-    camera.translate(
-        cam_pos - camera.position() + iris::Vector3{0.0f, 0.5f, 0.0f});
+    camera.translate(cam_pos - camera.position() + iris::Vector3{0.0f, 0.5f, 0.0f});
 }
 
 }
@@ -96,13 +97,11 @@ PhysicsSample::PhysicsSample(iris::Window *window, iris::RenderTarget *target)
     , physics_(iris::Root::physics_manager().create_physics_system())
     , light_transform_()
     , light_(nullptr)
-    , camera_(
-          iris::CameraType::PERSPECTIVE,
-          window_->width(),
-          window_->height())
+    , camera_(iris::CameraType::PERSPECTIVE, window_->width(), window_->height())
     , key_map_()
     , boxes_()
     , character_controller_(nullptr)
+    , sky_box_(nullptr)
 {
     key_map_ = {
         {iris::Key::W, iris::KeyState::UP},
@@ -117,31 +116,23 @@ PhysicsSample::PhysicsSample(iris::Window *window, iris::RenderTarget *target)
     camera_.set_position(camera_.position() + iris::Vector3{0.0f, 5.0f, 0.0f});
 
     scene_.set_ambient_light({0.1f, 0.1f, 0.1f});
-    scene_.create_light<iris::DirectionalLight>(
-        iris::Vector3{0.0f, -1.0f, -1.0f}, true);
-    light_ = scene_.create_light<iris::PointLight>(
-        iris::Vector3{0.0f, 1.0f, -10.0f});
+    scene_.create_light<iris::DirectionalLight>(iris::Vector3{0.0f, -1.0f, -1.0f}, true);
+    light_ = scene_.create_light<iris::PointLight>(iris::Vector3{0.0f, 1.0f, -10.0f});
 
     auto *floor_graph = scene_.create_render_graph();
-    floor_graph->render_node()->set_specular_amount_input(
-        floor_graph->create<iris::ValueNode<float>>(0.0f));
+    floor_graph->render_node()->set_specular_amount_input(floor_graph->create<iris::ValueNode<float>>(0.0f));
 
     auto &mesh_manager = iris::Root::mesh_manager();
 
     scene_.create_entity(
         floor_graph,
         mesh_manager.cube({1.0f, 1.0f, 1.0f}),
-        iris::Transform{
-            iris::Vector3{0.0f, -50.0f, 0.0f},
-            {},
-            iris::Vector3{500.0f, 50.0f, 500.0f}});
+        iris::Transform{iris::Vector3{0.0f, -50.0f, 0.0f}, {}, iris::Vector3{500.0f, 50.0f, 500.0f}});
 
     auto *box_graph = scene_.create_render_graph();
-    box_graph->render_node()->set_colour_input(
-        box_graph->create<iris::TextureNode>("crate.png"));
+    box_graph->render_node()->set_colour_input(box_graph->create<iris::TextureNode>("crate.png"));
     box_graph->render_node()->set_specular_amount_input(
-        box_graph->create<iris::ComponentNode>(
-            box_graph->create<iris::TextureNode>("crate_specular.png"), "r"));
+        box_graph->create<iris::ComponentNode>(box_graph->create<iris::TextureNode>("crate_specular.png"), "r"));
 
     auto width = 10u;
     auto height = 5u;
@@ -150,22 +141,16 @@ PhysicsSample::PhysicsSample(iris::Window *window, iris::RenderTarget *target)
     {
         for (auto x = 0u; x < width; ++x)
         {
-            const iris::Vector3 pos{
-                static_cast<float>(x), static_cast<float>(y + 0.5f), 0.0f};
+            const iris::Vector3 pos{static_cast<float>(x), static_cast<float>(y + 0.5f), 0.0f};
             static const iris::Vector3 half_size{0.5f, 0.5f, 0.5f};
-            auto colour = ((y * height) + x + (y % 2)) % 2 == 0
-                              ? iris::Colour{1.0f, 0.0f, 0.0f}
-                              : iris::Colour{0.0f, 0.0f, 1.0f};
+            auto colour =
+                ((y * height) + x + (y % 2)) % 2 == 0 ? iris::Colour{1.0f, 0.0f, 0.0f} : iris::Colour{0.0f, 0.0f, 1.0f};
 
             boxes_.emplace_back(
                 scene_.create_entity(
-                    box_graph,
-                    mesh_manager.cube({1.0f, 1.0f, 1.0f}),
-                    iris::Transform{pos, {}, half_size}),
+                    box_graph, mesh_manager.cube({1.0f, 1.0f, 1.0f}), iris::Transform{pos, {}, half_size}),
                 physics_->create_rigid_body(
-                    pos,
-                    physics_->create_box_collision_shape(half_size),
-                    iris::RigidBodyType::NORMAL));
+                    pos, physics_->create_box_collision_shape(half_size), iris::RigidBodyType::NORMAL));
         }
     }
 
@@ -177,6 +162,9 @@ PhysicsSample::PhysicsSample(iris::Window *window, iris::RenderTarget *target)
         iris::Vector3{0.0f, -50.0f, 0.0f},
         physics_->create_box_collision_shape({500.0f, 50.0f, 500.0f}),
         iris::RigidBodyType::STATIC);
+
+    sky_box_ = iris::Root::texture_manager().create(
+        iris::Colour{0.275f, 0.51f, 0.796f}, iris::Colour{0.5f, 0.5f, 0.5f}, 2048u, 2048u);
 }
 
 void PhysicsSample::fixed_update()
@@ -184,8 +172,7 @@ void PhysicsSample::fixed_update()
     update_camera(camera_, character_controller_, key_map_);
 
     light_transform_.set_matrix(
-        iris::Matrix4(iris::Quaternion{{0.0f, 1.0f, 0.0f}, -0.01f}) *
-        light_transform_.matrix());
+        iris::Matrix4(iris::Quaternion{{0.0f, 1.0f, 0.0f}, -0.01f}) * light_transform_.matrix());
     light_->set_position(light_transform_.translation());
 
     physics_->step(16ms);
@@ -195,8 +182,7 @@ void PhysicsSample::variable_update()
 {
     const auto cam_pos = character_controller_->position();
 
-    camera_.translate(
-        cam_pos - camera_.position() + iris::Vector3{0.0f, 0.5f, 0.0f});
+    camera_.translate(cam_pos - camera_.position() + iris::Vector3{0.0f, 0.5f, 0.0f});
 
     // update each entity to have the same position and orientation as the
     // physics simulation
@@ -226,7 +212,7 @@ void PhysicsSample::handle_input(const iris::Event &event)
 
 std::vector<iris::RenderPass> PhysicsSample::render_passes()
 {
-    return {{&scene_, &camera_, target_}};
+    return {{&scene_, &camera_, target_, sky_box_}};
 }
 
 std::string PhysicsSample::title() const

@@ -288,8 +288,7 @@ D3D12Texture::D3D12Texture(const DataBuffer &data, std::uint32_t width, std::uin
     auto *device = D3D12Context::device();
     const auto default_heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 
-    const auto &texture_description = [this, usage]()
-    {
+    const auto &texture_description = [this, usage]() {
         switch (usage)
         {
             case TextureUsage::IMAGE: return image_texture_descriptor(width_, height_, resource_); break;
@@ -307,7 +306,6 @@ D3D12Texture::D3D12Texture(const DataBuffer &data, std::uint32_t width, std::uin
 
     if (usage != TextureUsage::DEPTH)
     {
-
         const UINT64 capacity = GetRequiredIntermediateSize(resource_.Get(), 0, 1);
 
         const auto upload_heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);

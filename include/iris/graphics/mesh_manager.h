@@ -41,7 +41,7 @@ class MeshManager
      * @returns
      *   Mesh for sprite.
      */
-    Mesh *sprite(const Colour &colour);
+    const Mesh *sprite(const Colour &colour);
 
     /**
      * Create a cube mesh.
@@ -52,7 +52,21 @@ class MeshManager
      * @returns
      *   Mesh for cube.
      */
-    Mesh *cube(const Colour &colour);
+    const Mesh *cube(const Colour &colour);
+
+    /**
+     * Create a new Mesh, which is not cached. This should be used when the data of the cube Mesh needs to be mutated.
+     * It returns a unique_ptr and therefore is not managed by this Manager.
+     *
+     * Most of the time you will want to use the cube method instead.
+     *
+     * @param colour
+     *   Colour of cube.
+     *
+     * @returns
+     *   Newly created cube mesh.
+     */
+    std::unique_ptr<Mesh> unique_cube(const Colour &colour);
 
     /**
      * Create a plane mesh.
@@ -66,7 +80,7 @@ class MeshManager
      * @returns
      *   Mesh for cube.
      */
-    Mesh *plane(const Colour &colour, std::uint32_t divisions);
+    const Mesh *plane(const Colour &colour, std::uint32_t divisions);
 
     /**
      * Create a Quad mesh.
@@ -89,7 +103,7 @@ class MeshManager
      * @returns
      *   Mesh for sprite.
      */
-    Mesh *quad(
+    const Mesh *quad(
         const Colour &colour,
         const Vector3 &lower_left,
         const Vector3 &lower_right,
@@ -105,7 +119,7 @@ class MeshManager
      * @returns
      *   Mesh loaded from file.
      */
-    Mesh *load_mesh(const std::string &mesh_file);
+    const Mesh *load_mesh(const std::string &mesh_file);
 
     /**
      * Load a skeleton from a file.

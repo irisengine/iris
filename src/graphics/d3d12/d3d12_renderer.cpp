@@ -29,6 +29,7 @@
 #include "graphics/constant_buffer_writer.h"
 #include "graphics/d3d12/d3d12_constant_buffer.h"
 #include "graphics/d3d12/d3d12_context.h"
+#include "graphics/d3d12/d3d12_cube_map.h"
 #include "graphics/d3d12/d3d12_descriptor_manager.h"
 #include "graphics/d3d12/d3d12_mesh.h"
 #include "graphics/d3d12/d3d12_render_target.h"
@@ -36,6 +37,7 @@
 #include "graphics/mesh_manager.h"
 #include "graphics/render_entity.h"
 #include "graphics/render_graph/post_processing_node.h"
+#include "graphics/render_graph/sky_box_node.h"
 #include "graphics/render_graph/texture_node.h"
 #include "graphics/render_queue_builder.h"
 #include "graphics/texture.h"
@@ -157,6 +159,9 @@ void copy_descriptor(
  * @param shadow_map
  *   D3D12DescriptorHandle for shadow map texture.
  *
+ * @param sky_box
+ *   D3D12DescriptorHandle for sky box cube map.
+ *
  * @param textures
  *   Collection of textures for the render pass.
  */
@@ -166,11 +171,13 @@ void build_table_descriptor(
     const iris::D3D12DescriptorHandle &vertex_constant_buffer,
     const iris::D3D12DescriptorHandle &light_constant_buffer,
     const iris::D3D12DescriptorHandle &shadow_map,
+    const iris::D3D12DescriptorHandle &sky_box,
     const std::vector<iris::Texture *> &textures)
 {
     copy_descriptor(table_descriptor, vertex_constant_buffer, descriptor_size);
     copy_descriptor(table_descriptor, light_constant_buffer, descriptor_size);
     copy_descriptor(table_descriptor, shadow_map, descriptor_size);
+    copy_descriptor(table_descriptor, sky_box, descriptor_size);
 
     for (auto *texture : textures)
     {
@@ -317,6 +324,20 @@ void D3D12Renderer::set_render_passes(const std::vector<RenderPass> &render_pass
 {
     render_passes_ = render_passes;
 
+    // check if pass has a sky box and if so create a cube for it and add it to the scene
+    for (auto &pass : render_passes_)
+    {
+        if (pass.sky_box != nullptr)
+        {
+            auto *scene = pass.scene;
+
+            auto *sky_box_rg = scene->create_render_graph();
+            sky_box_rg->set_render_node<SkyBoxNode>(pass.sky_box);
+
+            scene->create_entity(sky_box_rg, Root::mesh_manager().cube({}), Transform({}, {}, {0.5f}));
+        }
+    }
+
     // add a post processing pass
 
     // find the pass which renders to the screen
@@ -359,7 +380,7 @@ void D3D12Renderer::set_render_passes(const std::vector<RenderPass> &render_pass
             {
                 materials_[render_graph][light_type] = std::make_unique<D3D12Material>(
                     render_graph,
-                    static_cast<D3D12Mesh *>(render_entity->mesh())->input_descriptors(),
+                    static_cast<const D3D12Mesh *>(render_entity->mesh())->input_descriptors(),
                     render_entity->primitive_type(),
                     light_type,
                     target == nullptr);
@@ -436,6 +457,7 @@ void D3D12Renderer::pre_render()
 void D3D12Renderer::execute_upload_texture(RenderCommand &command)
 {
     const auto *material = static_cast<const D3D12Material *>(command.material());
+    const auto *cube_map = static_cast<const D3D12CubeMap *>(material->cube_map());
 
     // encode commands to copy all textures to their target heaps
     for (auto *texture : material->textures())
@@ -464,6 +486,34 @@ void D3D12Renderer::execute_upload_texture(RenderCommand &command)
 
             command_list_->ResourceBarrier(1u, &barrier);
         }
+    }
+
+    // encode commands to copy all cube map textures to their target heaps
+    if ((cube_map != nullptr) && (uploaded_cube_maps_.count(cube_map) == 0u))
+    {
+        uploaded_cube_maps_.emplace(cube_map);
+
+        // encode a copy command for each face
+        UINT index = 0u;
+        for (const auto &footprint : cube_map->footprints())
+        {
+            D3D12_TEXTURE_COPY_LOCATION destination = {};
+            destination.pResource = cube_map->resource();
+            destination.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+            destination.SubresourceIndex = index++;
+
+            D3D12_TEXTURE_COPY_LOCATION source = {};
+            source.pResource = cube_map->upload();
+            source.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+            source.PlacedFootprint = footprint;
+
+            command_list_->CopyTextureRegion(&destination, 0u, 0u, 0u, &source, NULL);
+        }
+
+        const auto barrier = ::CD3DX12_RESOURCE_BARRIER::Transition(
+            cube_map->resource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+        command_list_->ResourceBarrier(1u, &barrier);
     }
 }
 
@@ -563,6 +613,7 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
     const auto *camera = command.render_pass()->camera;
     const auto *light = command.light();
     const auto *shadow_map = command.shadow_map();
+    const auto *sky_box = material->cube_map();
 
     command_list_->SetPipelineState(material->pso());
 
@@ -579,6 +630,8 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
     //                | |     light data     |
     //                '-+--------------------+-.
     //                  | shadow map texture | |
+    //                  +--------------------+ |
+    //                  |  cube map texture  | |
     //                  +--------------------+ |
     //                  |      texture 1     | |
     //                  +--------------------+ |
@@ -612,6 +665,10 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
                                  ? static_cast<D3D12Texture *>(Root::texture_manager().blank())->handle()
                                  : static_cast<D3D12Texture *>(command.shadow_map()->depth_texture())->handle();
 
+    const auto sky_box_handle = (sky_box == nullptr)
+                                    ? static_cast<const D3D12Texture *>(Root::texture_manager().blank())->handle()
+                                    : static_cast<const D3D12CubeMap *>(sky_box)->handle();
+
     // build the table descriptor from all our handles
     build_table_descriptor(
         table_descriptor_start,
@@ -619,6 +676,7 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
         vertex_buffer.descriptor_handle(),
         light_buffer.descriptor_handle(),
         shadow_map_handle,
+        sky_box_handle,
         material->textures());
 
     // set the table descriptor for the vertex and pixel shader

@@ -6,24 +6,16 @@
 
 #pragma once
 
-#include <vector>
+namespace iris
+{
 
-#include "graphics/cube_map.h"
-#include "graphics/material.h"
-#include "graphics/texture.h"
-
-class FakeMaterial : public iris::Material
+/**
+ * Interface for a cube map i.e. a texture with six slices, one for each face of a cube.
+ */
+class CubeMap
 {
   public:
-    ~FakeMaterial() override = default;
-
-    std::vector<iris::Texture *> textures() const override
-    {
-        return {};
-    }
-
-    const iris::CubeMap *cube_map() const override
-    {
-        return nullptr;
-    }
+    virtual ~CubeMap() = default;
 };
+
+}

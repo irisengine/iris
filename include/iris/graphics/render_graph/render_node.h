@@ -179,4 +179,5 @@ class RenderNode : public Node
     /** Is depth only render. */
     bool depth_only_;
 };
+
 }

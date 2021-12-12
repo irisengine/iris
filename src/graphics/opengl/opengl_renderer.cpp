@@ -18,6 +18,7 @@
 #include "graphics/mesh_manager.h"
 #include "graphics/opengl/default_uniforms.h"
 #include "graphics/opengl/opengl.h"
+#include "graphics/opengl/opengl_cube_map.h"
 #include "graphics/opengl/opengl_material.h"
 #include "graphics/opengl/opengl_mesh.h"
 #include "graphics/opengl/opengl_render_target.h"
@@ -25,6 +26,7 @@
 #include "graphics/opengl/opengl_texture_manager.h"
 #include "graphics/render_entity.h"
 #include "graphics/render_graph/post_processing_node.h"
+#include "graphics/render_graph/sky_box_node.h"
 #include "graphics/render_graph/texture_node.h"
 #include "graphics/render_queue_builder.h"
 #include "graphics/texture_manager.h"
@@ -109,7 +111,7 @@ void set_uniforms(
         iris::expect(iris::check_opengl_error, "could not activate texture");
 
         ::glBindTexture(GL_TEXTURE_2D, tex_handle);
-        iris::expect(iris::check_opengl_error, "could not bind texture``");
+        iris::expect(iris::check_opengl_error, "could not bind texture");
 
         uniforms->shadow_map.set_value(opengl_texture->id() - GL_TEXTURE0);
         uniforms->light_projection.set_value(directional_light->shadow_camera().projection());
@@ -140,9 +142,20 @@ void bind_textures(const iris::DefaultUniforms *uniforms, const iris::OpenGLMate
         iris::expect(iris::check_opengl_error, "could not activate texture");
 
         ::glBindTexture(GL_TEXTURE_2D, tex_handle);
-        iris::expect(iris::check_opengl_error, "could not bind texture``");
+        iris::expect(iris::check_opengl_error, "could not bind texture");
 
         uniforms->textures[i].set_value(opengl_texture->id() - GL_TEXTURE0);
+    }
+
+    if (material->cube_map() != nullptr)
+    {
+        const auto *opengl_cube_map = static_cast<const iris::OpenGLCubeMap *>(material->cube_map());
+
+        ::glActiveTexture(opengl_cube_map->id());
+        iris::expect(iris::check_opengl_error, "could not activate texture");
+
+        ::glBindTexture(GL_TEXTURE_CUBE_MAP, opengl_cube_map->handle());
+        iris::expect(iris::check_opengl_error, "could not bind texture");
     }
 }
 
@@ -154,7 +167,7 @@ void bind_textures(const iris::DefaultUniforms *uniforms, const iris::OpenGLMate
  */
 void draw_meshes(const iris::RenderEntity *entity)
 {
-    const auto *mesh = static_cast<iris::OpenGLMesh *>(entity->mesh());
+    const auto *mesh = static_cast<const iris::OpenGLMesh *>(entity->mesh());
     mesh->bind();
 
     const auto type = entity->primitive_type() == iris::PrimitiveType::TRIANGLES ? GL_TRIANGLES : GL_LINES;
@@ -200,6 +213,20 @@ void OpenGLRenderer::set_render_passes(const std::vector<RenderPass> &render_pas
 {
     render_passes_ = render_passes;
 
+    // check if pass has a sky box and if so create a cube for it and add it to the scene
+    for (auto &pass : render_passes_)
+    {
+        if (pass.sky_box != nullptr)
+        {
+            auto *scene = pass.scene;
+
+            auto *sky_box_rg = scene->create_render_graph();
+            sky_box_rg->set_render_node<SkyBoxNode>(pass.sky_box);
+
+            scene->create_entity(sky_box_rg, Root::mesh_manager().cube({}), Transform({}, {}, {0.5f}));
+        }
+    }
+
     // add a post processing pass
 
     // find the pass which renders to the screen
@@ -210,7 +237,6 @@ void OpenGLRenderer::set_render_passes(const std::vector<RenderPass> &render_pas
 
     ensure(final_pass != std::cend(render_passes_), "no final pass");
 
-    // deferred creating of render target to ensure this class is full
     // constructed
     if (post_processing_target_ == nullptr)
     {
@@ -269,7 +295,7 @@ void OpenGLRenderer::set_render_passes(const std::vector<RenderPass> &render_pas
                 uniforms_[material][render_entity] = std::make_unique<DefaultUniforms>(
                     OpenGLUniform(program, "projection"),
                     OpenGLUniform(program, "view"),
-                    OpenGLUniform(program, "model"),
+                    OpenGLUniform(program, "model", false),
                     OpenGLUniform(program, "normal_matrix", false),
                     OpenGLUniform(program, "light_colour", false),
                     OpenGLUniform(program, "light_position", false),
@@ -277,7 +303,7 @@ void OpenGLRenderer::set_render_passes(const std::vector<RenderPass> &render_pas
                     OpenGLUniform(program, "g_shadow_map", false),
                     OpenGLUniform(program, "light_projection", false),
                     OpenGLUniform(program, "light_view", false),
-                    OpenGLUniform(program, "bones"));
+                    OpenGLUniform(program, "bones", false));
 
                 // create uniforms for each texture
                 for (auto i = 0u; i < material->textures().size(); ++i)

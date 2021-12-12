@@ -14,6 +14,7 @@
 #include <core/camera.h>
 #include <core/transform.h>
 #include <events/event.h>
+#include <graphics/cube_map.h>
 #include <graphics/lights/directional_light.h>
 #include <graphics/render_entity.h>
 #include <graphics/render_graph/render_graph.h>
@@ -99,13 +100,15 @@ class AnimationSample : public Sample
     std::vector<std::string> animations_;
 
     /** Mapping of bone name to index and rigid body. */
-    std::map<std::string, std::tuple<std::size_t, iris::RigidBody *>>
-        hit_boxes_;
+    std::map<std::string, std::tuple<std::size_t, iris::RigidBody *>> hit_boxes_;
 
     /** Mapping of bone name to offsets. */
-    std::map<std::string, std::tuple<iris::Vector3, iris::Vector3>>
-        hit_box_data_;
+    std::map<std::string, std::tuple<iris::Vector3, iris::Vector3>> hit_box_data_;
 
     /** User input key map. */
     std::map<iris::Key, iris::KeyState> key_map_;
+
+    iris::CubeMap *sky_box_;
+
+    std::unique_ptr<iris::Mesh> debug_mesh_;
 };

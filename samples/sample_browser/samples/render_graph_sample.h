@@ -13,6 +13,7 @@
 #include <core/camera.h>
 #include <core/transform.h>
 #include <events/event.h>
+#include <graphics/cube_map.h>
 #include <graphics/lights/point_light.h>
 #include <graphics/render_graph/render_graph.h>
 #include <graphics/render_target.h>
@@ -99,4 +100,6 @@ class RenderGraphSample : public Sample
 
     /** User input key map. */
     std::map<iris::Key, iris::KeyState> key_map_;
+
+    iris::CubeMap *sky_box_;
 };

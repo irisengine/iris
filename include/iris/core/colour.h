@@ -246,6 +246,44 @@ class Colour
         return !(other == *this);
     }
 
+    /**
+     * Linear interpolate between this and another colour.
+     *
+     * @param other
+     *   Colour to interpolate to.
+     *
+     * @param amount
+     *   Interpolation amount, must be in range [0.0, 1.0].
+     */
+    constexpr void lerp(const Colour &other, float amount)
+    {
+        *this *= (1.0f - amount);
+        *this += (other * amount);
+    }
+
+    /**
+     * Linear interpolate between two colours.
+     *
+     * @param start
+     *   Colour to start from.
+     *
+     * @param end
+     *   Colour to lerp towards.
+     *
+     * @param amount
+     *   Interpolation amount, must be in range [0.0, 1.0].
+     *
+     * @returns
+     *   Result of lerp.
+     */
+    constexpr static Colour lerp(const Colour &start, const Colour &end, float amount)
+    {
+        auto tmp = start;
+        tmp.lerp(end, amount);
+
+        return tmp;
+    }
+
     /** Red. */
     float r;
 

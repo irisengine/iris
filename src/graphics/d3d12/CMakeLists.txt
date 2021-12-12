@@ -6,6 +6,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/d3d12_constant_buffer_pool.h
     ${INCLUDE_ROOT}/d3d12_context.h
     ${INCLUDE_ROOT}/d3d12_cpu_descriptor_handle_allocator.h
+    ${INCLUDE_ROOT}/d3d12_cube_map.h
     ${INCLUDE_ROOT}/d3d12_descriptor_handle.h
     ${INCLUDE_ROOT}/d3d12_descriptor_manager.h
     ${INCLUDE_ROOT}/d3d12_gpu_descriptor_handle_allocator.h
@@ -22,6 +23,7 @@ target_sources(iris PRIVATE
     d3d12_constant_buffer_pool.cpp
     d3d12_context.cpp
     d3d12_cpu_descriptor_handle_allocator.cpp
+    d3d12_cube_map.cpp
     d3d12_descriptor_handle.cpp
     d3d12_descriptor_manager.cpp
     d3d12_gpu_descriptor_handle_allocator.cpp

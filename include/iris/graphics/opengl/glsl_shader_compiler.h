@@ -13,6 +13,7 @@
 
 #include "core/colour.h"
 #include "core/vector3.h"
+#include "graphics/cube_map.h"
 #include "graphics/lights/light_type.h"
 #include "graphics/render_graph/render_graph.h"
 #include "graphics/render_graph/shader_compiler.h"
@@ -24,6 +25,7 @@ namespace iris
 
 class RenderNode;
 class PostProcessingNode;
+class SkyBoxNode;
 class ColourNode;
 class TextureNode;
 class InvertNode;
@@ -60,6 +62,7 @@ class GLSLShaderCompiler : public ShaderCompiler
     // visitor methods
     void visit(const RenderNode &node) override;
     void visit(const PostProcessingNode &node) override;
+    void visit(const SkyBoxNode &node) override;
     void visit(const ColourNode &node) override;
     void visit(const TextureNode &node) override;
     void visit(const InvertNode &node) override;
@@ -105,6 +108,14 @@ class GLSLShaderCompiler : public ShaderCompiler
      */
     std::vector<Texture *> textures() const override;
 
+    /**
+     * Get the CubeMap needed for this shader (if any)
+     *
+     * @returns
+     *   CubeMap, or nullptr if not used by shader.
+     */
+    const CubeMap *cube_map() const override;
+
   private:
     /** Stream for vertex shader. */
     std::stringstream vertex_stream_;
@@ -129,5 +140,8 @@ class GLSLShaderCompiler : public ShaderCompiler
 
     /** Type of light to render with. */
     LightType light_type_;
+
+    /** Optional CubeMap for shader. */
+    const CubeMap *cube_map_;
 };
 }

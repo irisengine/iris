@@ -24,6 +24,7 @@
 #include "graphics/lights/lighting_rig.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/metal/metal_constant_buffer.h"
+#include "graphics/metal/metal_cube_map.h"
 #include "graphics/metal/metal_default_constant_buffer_types.h"
 #include "graphics/metal/metal_material.h"
 #include "graphics/metal/metal_mesh.h"
@@ -31,6 +32,7 @@
 #include "graphics/metal/metal_texture.h"
 #include "graphics/render_entity.h"
 #include "graphics/render_graph/post_processing_node.h"
+#include "graphics/render_graph/sky_box_node.h"
 #include "graphics/render_graph/texture_node.h"
 #include "graphics/render_queue_builder.h"
 #include "graphics/render_target.h"
@@ -176,12 +178,20 @@ void set_constant_data(
  *
  * @param shadow_sampler
  *   Sampler to use for shadow map.
+ *
+ * @param sky_box
+ *   Optional CubeMap for sky box.
+ *
+ * @param sky_box_sampler
+ *   Sampler to use for sky box.
  */
 void bind_textures(
     id<MTLRenderCommandEncoder> render_encoder,
     const iris::Material *material,
     const iris::RenderTarget *shadow_map,
-    id<MTLSamplerState> shadow_sampler)
+    id<MTLSamplerState> shadow_sampler,
+    const iris::CubeMap *sky_box,
+    id<MTLSamplerState> sky_box_sampler)
 {
     // bind shadow map if present
     if (shadow_map != nullptr)
@@ -191,13 +201,20 @@ void bind_textures(
         [render_encoder setFragmentSamplerState:shadow_sampler atIndex:0];
     }
 
+    if (sky_box != nullptr)
+    {
+        const auto *metal_sky_box = static_cast<const iris::MetalCubeMap *>(sky_box);
+        [render_encoder setFragmentTexture:metal_sky_box->handle() atIndex:1];
+        [render_encoder setFragmentSamplerState:sky_box_sampler atIndex:1];
+    }
+
     // bind all textures in material
     const auto textures = material->textures();
     for (auto i = 0u; i < textures.size(); ++i)
     {
         const auto *metal_texture = static_cast<iris::MetalTexture *>(textures[i]);
         [render_encoder setVertexTexture:metal_texture->handle() atIndex:i];
-        [render_encoder setFragmentTexture:metal_texture->handle() atIndex:i + 1];
+        [render_encoder setFragmentTexture:metal_texture->handle() atIndex:i + 2];
     }
 }
 
@@ -223,6 +240,7 @@ MetalRenderer::MetalRenderer(std::uint32_t width, std::uint32_t height)
     , materials_()
     , default_depth_buffer_()
     , shadow_sampler_()
+    , sky_box_sampler_()
 {
     const auto *device = iris::core::utility::metal_device();
 
@@ -265,15 +283,21 @@ MetalRenderer::MetalRenderer(std::uint32_t width, std::uint32_t height)
     render_encoder_ = nullptr;
 
     // create sampler for shadow maps
-    MTLSamplerDescriptor *sampler_descriptor = [MTLSamplerDescriptor new];
-    sampler_descriptor.rAddressMode = MTLSamplerAddressModeClampToBorderColor;
-    sampler_descriptor.sAddressMode = MTLSamplerAddressModeClampToBorderColor;
-    sampler_descriptor.tAddressMode = MTLSamplerAddressModeClampToBorderColor;
-    sampler_descriptor.borderColor = MTLSamplerBorderColorOpaqueWhite;
-    sampler_descriptor.minFilter = MTLSamplerMinMagFilterLinear;
-    sampler_descriptor.magFilter = MTLSamplerMinMagFilterLinear;
-    sampler_descriptor.mipFilter = MTLSamplerMipFilterNotMipmapped;
-    shadow_sampler_ = [device newSamplerStateWithDescriptor:sampler_descriptor];
+    MTLSamplerDescriptor *shadow_sampler_descriptor = [MTLSamplerDescriptor new];
+    shadow_sampler_descriptor.rAddressMode = MTLSamplerAddressModeClampToBorderColor;
+    shadow_sampler_descriptor.sAddressMode = MTLSamplerAddressModeClampToBorderColor;
+    shadow_sampler_descriptor.tAddressMode = MTLSamplerAddressModeClampToBorderColor;
+    shadow_sampler_descriptor.borderColor = MTLSamplerBorderColorOpaqueWhite;
+    shadow_sampler_descriptor.minFilter = MTLSamplerMinMagFilterLinear;
+    shadow_sampler_descriptor.magFilter = MTLSamplerMinMagFilterLinear;
+    shadow_sampler_descriptor.mipFilter = MTLSamplerMipFilterNotMipmapped;
+    shadow_sampler_ = [device newSamplerStateWithDescriptor:shadow_sampler_descriptor];
+
+    // create sampler for sky box
+    MTLSamplerDescriptor *sky_box_sampler_descriptor = [MTLSamplerDescriptor new];
+    sky_box_sampler_descriptor.minFilter = MTLSamplerMinMagFilterNearest;
+    sky_box_sampler_descriptor.magFilter = MTLSamplerMinMagFilterNearest;
+    sky_box_sampler_ = [device newSamplerStateWithDescriptor:sky_box_sampler_descriptor];
 }
 
 MetalRenderer::~MetalRenderer()
@@ -289,6 +313,20 @@ MetalRenderer::~MetalRenderer()
 void MetalRenderer::set_render_passes(const std::vector<RenderPass> &render_passes)
 {
     render_passes_ = render_passes;
+
+    // check if pass has a sky box and if so create a cube for it and add it to the scene
+    for (auto &pass : render_passes_)
+    {
+        if (pass.sky_box != nullptr)
+        {
+            auto *scene = pass.scene;
+
+            auto *sky_box_rg = scene->create_render_graph();
+            sky_box_rg->set_render_node<SkyBoxNode>(pass.sky_box);
+
+            scene->create_entity(sky_box_rg, Root::mesh_manager().cube({}), Transform({}, {}, {0.5f}));
+        }
+    }
 
     // add a post processing pass
 
@@ -331,7 +369,7 @@ void MetalRenderer::set_render_passes(const std::vector<RenderPass> &render_pass
             if (materials_.count(render_graph) == 0u || materials_[render_graph].count(light_type) == 0u)
             {
                 materials_[render_graph][light_type] = std::make_unique<MetalMaterial>(
-                    render_graph, static_cast<MetalMesh *>(entity->mesh())->descriptors(), light_type);
+                    render_graph, static_cast<const MetalMesh *>(entity->mesh())->descriptors(), light_type);
             }
 
             return materials_[render_graph][light_type].get();
@@ -432,7 +470,8 @@ void MetalRenderer::execute_draw(RenderCommand &command)
         entity,
         command.shadow_map(),
         command.light());
-    bind_textures(render_encoder_, material, command.shadow_map(), shadow_sampler_);
+    bind_textures(
+        render_encoder_, material, command.shadow_map(), shadow_sampler_, material->cube_map(), sky_box_sampler_);
 
     const auto &vertex_buffer = mesh->vertex_buffer();
     const auto &index_buffer = mesh->index_buffer();

@@ -121,3 +121,23 @@ TEST(colour, inequality)
 
     ASSERT_NE(c1, c2);
 }
+
+TEST(colour, lerp)
+{
+    iris::Colour colour(0.0f, 0.0f, 0.0f, 0.0f);
+    iris::Colour end(1.0f, 1.0f, 1.0f, 1.0f);
+
+    colour.lerp(end, 0.5f);
+
+    ASSERT_EQ(colour, iris::Colour(0.5f, 0.5f, 0.5f, 0.5f));
+}
+
+TEST(colour, lerp_static)
+{
+    iris::Colour start(0.0f, 0.0f, 0.f, 0.0f);
+    iris::Colour end(1.0f, 1.0f, 1.0f, 1.0f);
+
+    const auto result = iris::Colour::lerp(start, end, 0.5f);
+
+    ASSERT_EQ(result, iris::Colour(0.5f, 0.5f, 0.5f, 0.5f));
+}

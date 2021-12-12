@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "graphics/cube_map.h"
 #include "graphics/render_graph/render_node.h"
 
 namespace iris
@@ -13,25 +14,18 @@ namespace iris
 
 class ShaderCompiler;
 
-/**
- * Specialisation of RenderNode for applying post processing effects such as:
- *  - Tone mapping
- *  - Gamma correction
- *
- * Note that this is automatically added by the engine.
- */
-class PostProcessingNode : public RenderNode
+class SkyBoxNode : public RenderNode
 {
   public:
     /**
-     * Create a new PostProcessingNode.
+     * Implementation of RenderNode which renders a sky box.
      *
-     * @param input
-     *   Colour input for RenderNide.
+     * @param sky_box
+     *   CubeMap to use for sky box.
      */
-    PostProcessingNode(Node *input);
+    SkyBoxNode(const CubeMap *sky_box);
 
-    ~PostProcessingNode() override = default;
+    ~SkyBoxNode() override = default;
 
     /**
      * Accept a compiler visitor.
@@ -40,6 +34,18 @@ class PostProcessingNode : public RenderNode
      *   Compiler to accept.
      */
     void accept(ShaderCompiler &compiler) const override;
+
+    /**
+     * Get sky box.
+     *
+     * @returns
+     *   Cube map for sky box.
+     */
+    const CubeMap *sky_box() const;
+
+  private:
+    /** Cube map for sky box. */
+    const CubeMap *sky_box_;
 };
 
 }

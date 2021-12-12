@@ -81,6 +81,7 @@ class Vector3
 
         return *this;
     }
+
     /**
      * Create a new Vector3 which is this Vector3 with each component
      * multiplied by a scalar value.
@@ -113,6 +114,7 @@ class Vector3
 
         return *this;
     }
+
     /**
      * Create a new Vector3 which is this Vector3 added with a supplied
      * vector3.
@@ -128,6 +130,7 @@ class Vector3
     {
         return Vector3(*this) += vector;
     }
+
     /**
      * Component wise subtract a Vector3 to this vector3.
      *
@@ -142,6 +145,7 @@ class Vector3
         *this += -vector;
         return *this;
     }
+
     /**
      * Create a new Vector3 which is this Vector3 subtracted with a
      * supplied vector3.
@@ -157,6 +161,7 @@ class Vector3
     {
         return Vector3(*this) -= vector;
     }
+
     /**
      * Component wise multiple a Vector3 to this vector3.
      *
@@ -174,6 +179,7 @@ class Vector3
 
         return *this;
     }
+
     /**
      * Create a new Vector3 which us this Vector3 component wise multiplied
      * with a supplied vector3.
@@ -189,6 +195,7 @@ class Vector3
     {
         return Vector3{*this} *= vector;
     }
+
     /**
      * Negate operator.
      *
@@ -199,6 +206,7 @@ class Vector3
     {
         return Vector3{-x, -y, -z};
     }
+
     /**
      * Equality operator.
      *
@@ -212,6 +220,7 @@ class Vector3
     {
         return compare(x, other.x) && compare(y, other.y) && compare(z, other.z);
     }
+
     /**
      * Inequality operator.
      *
@@ -239,6 +248,7 @@ class Vector3
     {
         return x * vector.x + y * vector.y + z * vector.z;
     }
+
     /**
      * Perform cross product of this Vector3 with a supplied one.
      *
@@ -260,6 +270,7 @@ class Vector3
 
         return *this;
     }
+
     /**
      * Normalises this vector3.
      *
@@ -281,6 +292,7 @@ class Vector3
 
         return *this;
     }
+
     /**
      * Get the magnitude of this vector.
      *
@@ -291,6 +303,7 @@ class Vector3
     {
         return std::hypot(x, y, z);
     }
+
     /**
      * Linear interpolate between this and another vector.
      *
@@ -305,6 +318,7 @@ class Vector3
         *this *= (1.0f - amount);
         *this += (other * amount);
     }
+
     /**
      * Linear interpolate between two vectors.
      *
@@ -327,6 +341,7 @@ class Vector3
 
         return tmp;
     }
+
     /**
      * Cross two Vector3 objects with each other.
      *
@@ -343,6 +358,7 @@ class Vector3
     {
         return Vector3(v1).cross(v2);
     }
+
     /**
      * Normalise a supplied vector3.
      *
@@ -356,6 +372,7 @@ class Vector3
     {
         return Vector3(vector).normalise();
     }
+
     /**
      * Get the Euclidian distance between two vectors.
      *
@@ -372,6 +389,7 @@ class Vector3
     {
         return (b - a).magnitude();
     }
+
     /** x component */
     float x;
 

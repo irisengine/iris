@@ -22,6 +22,7 @@ add_subdirectory("render_graph")
 target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/animation.h
     ${INCLUDE_ROOT}/bone.h
+    ${INCLUDE_ROOT}/cube_map.h
     ${INCLUDE_ROOT}/keyframe.h
     ${INCLUDE_ROOT}/material.h
     ${INCLUDE_ROOT}/mesh.h

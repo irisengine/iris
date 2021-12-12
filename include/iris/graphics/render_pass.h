@@ -7,6 +7,7 @@
 #pragma once
 
 #include "core/camera.h"
+#include "graphics/cube_map.h"
 #include "graphics/render_target.h"
 #include "graphics/scene.h"
 
@@ -36,17 +37,21 @@ struct RenderPass
      *
      * @param target
      *   The target to render to, nullptr means the default window target.c
+     *
+     * @param sky_box
+     *   Optional sky box to render scene with.
      */
-    RenderPass(Scene *scene, Camera *camera, RenderTarget *target)
+    RenderPass(Scene *scene, Camera *camera, RenderTarget *target, CubeMap *sky_box = nullptr)
         : scene(scene)
         , camera(camera)
         , render_target(target)
         , depth_only(false)
+        , sky_box(sky_box)
     {
     }
 
     /** Scene to render */
-    const Scene *scene;
+    Scene *scene;
 
     /** Camera to render with. */
     const Camera *camera;
@@ -56,6 +61,9 @@ struct RenderPass
 
     /** Flag indicating that only depth information should be rendered. */
     bool depth_only = false;
+
+    /** Optional sky box. */
+    const CubeMap *sky_box;
 };
 
 }

@@ -26,6 +26,7 @@
 #include "core/auto_release.h"
 #include "graphics/d3d12/d3d12_constant_buffer.h"
 #include "graphics/d3d12/d3d12_constant_buffer_pool.h"
+#include "graphics/d3d12/d3d12_cube_map.h"
 #include "graphics/d3d12/d3d12_descriptor_handle.h"
 #include "graphics/d3d12/d3d12_material.h"
 #include "graphics/d3d12/d3d12_texture.h"
@@ -187,5 +188,8 @@ class D3D12Renderer : public Renderer
 
     /** Collection of textures that have been uploaded. */
     std::set<const D3D12Texture *> uploaded_;
+
+    /** Collection of CubeMaps that have been uploaded. */
+    std::set<const D3D12CubeMap *> uploaded_cube_maps_;
 };
 }

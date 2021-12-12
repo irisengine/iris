@@ -13,6 +13,7 @@
 #include "core/data_buffer.h"
 #include "core/error_handling.h"
 #include "graphics/opengl/opengl.h"
+#include "graphics/opengl/opengl_cube_map.h"
 #include "graphics/opengl/opengl_texture.h"
 #include "graphics/texture_manager.h"
 #include "graphics/texture_usage.h"
@@ -54,10 +55,30 @@ std::unique_ptr<Texture> OpenGLTextureManager::do_create(
     return std::make_unique<OpenGLTexture>(data, width, height, usage, next_id());
 }
 
+std::unique_ptr<CubeMap> OpenGLTextureManager::do_create(
+    const DataBuffer &right_data,
+    const DataBuffer &left_data,
+    const DataBuffer &top_data,
+    const DataBuffer &bottom_data,
+    const DataBuffer &near_data,
+    const DataBuffer &far_data,
+    std::uint32_t width,
+    std::uint32_t height)
+{
+    return std::make_unique<OpenGLCubeMap>(
+        right_data, left_data, top_data, bottom_data, near_data, far_data, width, height, next_id());
+}
+
 void OpenGLTextureManager::destroy(Texture *texture)
 {
     // return id of texture to the pool
     return_id(static_cast<OpenGLTexture *>(texture)->id());
+}
+
+void OpenGLTextureManager::destroy(CubeMap *cube_map)
+{
+    // return id of texture to the pool
+    return_id(static_cast<OpenGLCubeMap *>(cube_map)->id());
 }
 
 }

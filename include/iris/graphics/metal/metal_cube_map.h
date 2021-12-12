@@ -6,56 +6,22 @@
 
 #pragma once
 
-#include <cstdint>
-#include <memory>
+#import <Metal/Metal.h>
 
 #include "core/data_buffer.h"
 #include "graphics/cube_map.h"
-#include "graphics/texture.h"
-#include "graphics/texture_manager.h"
-#include "graphics/texture_usage.h"
 
 namespace iris
 {
 
 /**
- * Implementation of TextureManager for d3d12.
+ * Implementation of CubeMap for Metal.
  */
-class D3D12TextureManager : public TextureManager
+class MetalCubeMap : public CubeMap
 {
   public:
-    ~D3D12TextureManager() override = default;
-
-  protected:
     /**
-     * Create a Texture object with the provided data.
-     *
-     * @param data
-     *   Raw data of image, in pixel_format.
-     *
-     * @param width
-     *   Width of image.
-     *
-     * @param height
-     *   Height of image.
-     *
-     * @param usage
-     *   Usage of the texture.
-     *
-     * @returns
-     *   Created texture.
-     */
-    std::unique_ptr<Texture> do_create(
-        const DataBuffer &data,
-        std::uint32_t width,
-        std::uint32_t height,
-        TextureUsage usage) override;
-
-    /**
-     * Create a CubeMap from six DataBuffers (one for each face).
-     *
-     * @param right_data
-     *   Image data for right face of cube.
+     * Construct a new MetalCubeMap.
      *
      * @param right_data
      *   Image data for right face of cube.
@@ -80,19 +46,30 @@ class D3D12TextureManager : public TextureManager
      *
      * @param height
      *   Height of each image face.
-     *
-     * @returns
-     *   Created CubeMap.
      */
-    std::unique_ptr<CubeMap> do_create(
+    MetalCubeMap(
         const DataBuffer &right_data,
         const DataBuffer &left_data,
         const DataBuffer &top_data,
         const DataBuffer &bottom_data,
-        const DataBuffer &near_data,
-        const DataBuffer &far_data,
+        const DataBuffer &back_data,
+        const DataBuffer &front_data,
         std::uint32_t width,
-        std::uint32_t height) override;
+        std::uint32_t height);
+
+    ~MetalCubeMap() override = default;
+
+    /**
+     * Get metal handle to texture.
+     *
+     * @returns
+     *   Metal texture handle.
+     */
+    id<MTLTexture> handle() const;
+
+  private:
+    /** Metal texture handle. */
+    id<MTLTexture> texture_;
 };
 
 }

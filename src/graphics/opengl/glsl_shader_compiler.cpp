@@ -26,6 +26,7 @@
 #include "graphics/render_graph/post_processing_node.h"
 #include "graphics/render_graph/render_node.h"
 #include "graphics/render_graph/sin_node.h"
+#include "graphics/render_graph/sky_box_node.h"
 #include "graphics/render_graph/texture_node.h"
 #include "graphics/render_graph/value_node.h"
 #include "graphics/render_graph/vertex_position_node.h"
@@ -184,6 +185,7 @@ void build_normal(std::stringstream &strm, const iris::Node *normal, iris::GLSLS
 
 namespace iris
 {
+
 GLSLShaderCompiler::GLSLShaderCompiler(const RenderGraph *render_graph, LightType light_type)
     : vertex_stream_()
     , fragment_stream_()
@@ -193,6 +195,7 @@ GLSLShaderCompiler::GLSLShaderCompiler(const RenderGraph *render_graph, LightTyp
     , current_functions_(nullptr)
     , textures_()
     , light_type_(light_type)
+    , cube_map_(nullptr)
 {
     render_graph->render_node()->accept(*this);
 }
@@ -316,6 +319,42 @@ void GLSLShaderCompiler::visit(const PostProcessingNode &node)
 
         outColour = vec4(mapped, 1.0);
     })";
+}
+
+void GLSLShaderCompiler::visit(const SkyBoxNode &node)
+{
+    current_stream_ = &vertex_stream_;
+    current_functions_ = &vertex_functions_;
+
+    current_functions_->emplace(bone_transform_function);
+    current_functions_->emplace(tbn_function);
+
+    // build vertex shader
+
+    vertex_stream_ << " void main()\n{\n";
+    vertex_stream_ << R"(
+        col = position;
+        gl_Position = (projection * mat4(mat3(view)) * position).xyww;
+    )";
+
+    vertex_stream_ << "}";
+
+    current_stream_ = &fragment_stream_;
+    current_functions_ = &fragment_functions_;
+
+    current_functions_->emplace(shadow_function);
+
+    // build fragment shader
+
+    fragment_stream_ << "void main()\n{\n";
+
+    build_fragment_colour(*current_stream_, node.colour_input(), this);
+
+    *current_stream_ << R"(
+        outColour = texture(g_sky_box, col.xyz);
+    })";
+
+    cube_map_ = node.sky_box();
 }
 
 void GLSLShaderCompiler::visit(const ColourNode &node)
@@ -496,6 +535,7 @@ std::string GLSLShaderCompiler::fragment_shader() const
     stream << preamble << '\n';
     stream << uniforms << '\n';
     stream << "uniform sampler2D g_shadow_map;\n";
+    stream << "uniform samplerCube g_sky_box;\n";
 
     for (auto i = 0u; i < textures_.size(); ++i)
     {
@@ -519,4 +559,10 @@ std::vector<Texture *> GLSLShaderCompiler::textures() const
 {
     return textures_;
 }
+
+const CubeMap *GLSLShaderCompiler::cube_map() const
+{
+    return cube_map_;
+}
+
 }

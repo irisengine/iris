@@ -18,6 +18,7 @@
 #include <core/root.h>
 #include <core/transform.h>
 #include <core/vector3.h>
+#include <graphics/cube_map.h>
 #include <graphics/lights/point_light.h>
 #include <graphics/mesh_manager.h>
 #include <graphics/render_graph/blur_node.h>
@@ -29,6 +30,7 @@
 #include <graphics/render_graph/value_node.h>
 #include <graphics/render_target.h>
 #include <graphics/scene.h>
+#include <graphics/texture_manager.h>
 #include <graphics/window.h>
 #include <physics/physics_manager.h>
 #include <physics/rigid_body.h>
@@ -45,9 +47,7 @@ namespace
  * @param key_map
  *   Map of user pressed keys.
  */
-void update_camera(
-    iris::Camera &camera,
-    const std::map<iris::Key, iris::KeyState> &key_map)
+void update_camera(iris::Camera &camera, const std::map<iris::Key, iris::KeyState> &key_map)
 {
     static auto speed = 2.0f;
     iris::Vector3 velocity;
@@ -87,18 +87,13 @@ void update_camera(
 
 }
 
-AnimationSample::AnimationSample(
-    iris::Window *window,
-    iris::RenderTarget *target)
+AnimationSample::AnimationSample(iris::Window *window, iris::RenderTarget *target)
     : window_(window)
     , target_(target)
     , scene_()
     , light_transform_()
     , light_(nullptr)
-    , camera_(
-          iris::CameraType::PERSPECTIVE,
-          window_->width(),
-          window_->height())
+    , camera_(iris::CameraType::PERSPECTIVE, window_->width(), window_->height())
     , physics_(iris::Root::physics_manager().create_physics_system())
     , zombie_(nullptr)
     , animation_(0u)
@@ -106,6 +101,8 @@ AnimationSample::AnimationSample(
     , hit_boxes_()
     , hit_box_data_()
     , key_map_()
+    , sky_box_(nullptr)
+    , debug_mesh_(nullptr)
 {
     key_map_ = {
         {iris::Key::W, iris::KeyState::UP},
@@ -122,51 +119,43 @@ AnimationSample::AnimationSample(
 
     auto *floor_graph = scene_.create_render_graph();
 
-    floor_graph->render_node()->set_specular_amount_input(
-        floor_graph->create<iris::ValueNode<float>>(0.0f));
+    floor_graph->render_node()->set_specular_amount_input(floor_graph->create<iris::ValueNode<float>>(0.0f));
 
     auto &mesh_manager = iris::Root::mesh_manager();
 
     scene_.create_entity(
         floor_graph,
         mesh_manager.cube({1.0f, 1.0f, 1.0f}),
-        iris::Transform{
-            iris::Vector3{0.0f, -500.0f, 0.0f}, {}, iris::Vector3{500.0f}});
+        iris::Transform{iris::Vector3{0.0f, -500.0f, 0.0f}, {}, iris::Vector3{500.0f}});
 
     auto *render_graph = scene_.create_render_graph();
 
-    auto *texture =
-        render_graph->create<iris::TextureNode>("ZombieTexture.png");
+    auto *texture = render_graph->create<iris::TextureNode>("ZombieTexture.png");
 
     render_graph->render_node()->set_colour_input(texture);
 
     zombie_ = scene_.create_entity(
         render_graph,
         mesh_manager.load_mesh("Zombie.fbx"),
-        iris::Transform{
-            iris::Vector3{0.0f, 0.0f, 0.0f}, {}, iris::Vector3{0.05f}},
+        iris::Transform{iris::Vector3{0.0f, 0.0f, 0.0f}, {}, iris::Vector3{0.05f}},
         mesh_manager.load_skeleton("Zombie.fbx"));
 
     zombie_->set_receive_shadow(false);
 
-    auto *debug_draw = scene_.create_entity(
-        nullptr,
-        mesh_manager.cube({}),
-        iris::Vector3{},
-        iris::PrimitiveType::LINES);
+    sky_box_ = iris::Root::texture_manager().create(
+        iris::Colour{0.275f, 0.51f, 0.796f}, iris::Colour{0.5f, 0.5f, 0.5f}, 2048u, 2048u);
 
-    light_ = scene_.create_light<iris::DirectionalLight>(
-        iris::Vector3{-1.0f, -1.0f, 0.0f}, true);
+    debug_mesh_ = mesh_manager.unique_cube({});
+
+    auto *debug_draw = scene_.create_entity(nullptr, debug_mesh_.get(), iris::Vector3{}, iris::PrimitiveType::LINES);
+
+    light_ = scene_.create_light<iris::DirectionalLight>(iris::Vector3{-1.0f, -1.0f, 0.0f}, true);
     light_transform_ = iris::Transform{light_->direction(), {}, {1.0f}};
 
     physics_->enable_debug_draw(debug_draw);
 
     animations_ = {
-        "Zombie|ZombieWalk",
-        "Zombie|ZombieBite",
-        "Zombie|ZombieCrawl",
-        "Zombie|ZombieIdle",
-        "Zombie|ZombieRun"};
+        "Zombie|ZombieWalk", "Zombie|ZombieBite", "Zombie|ZombieCrawl", "Zombie|ZombieIdle", "Zombie|ZombieRun"};
 
     zombie_->skeleton().set_animation(animations_[animation_]);
 
@@ -209,24 +198,19 @@ AnimationSample::AnimationSample(
 
             // get bone transform in world space
             const auto transform = iris::Transform{
-                zombie_->transform() * zombie_->skeleton().transforms()[i] *
-                iris::Matrix4::invert(bone.offset())};
+                zombie_->transform() * zombie_->skeleton().transforms()[i] * iris::Matrix4::invert(bone.offset())};
 
             // create hit box
             hit_boxes_[box_data->first] = {
                 i,
                 physics_->create_rigid_body(
-                    iris::Vector3{},
-                    physics_->create_box_collision_shape(scale_offset),
-                    iris::RigidBodyType::GHOST)};
+                    iris::Vector3{}, physics_->create_box_collision_shape(scale_offset), iris::RigidBodyType::GHOST)};
 
             // calculate hit box location after offset is applied
-            const auto offset =
-                transform * iris::Matrix4::make_translate(pos_offset);
+            const auto offset = transform * iris::Matrix4::make_translate(pos_offset);
 
             // update hit box
-            std::get<1>(hit_boxes_[box_data->first])
-                ->reposition(offset.translation(), transform.rotation());
+            std::get<1>(hit_boxes_[box_data->first])->reposition(offset.translation(), transform.rotation());
             std::get<1>(hit_boxes_[box_data->first])->set_name(box_data->first);
         }
     }
@@ -239,8 +223,7 @@ void AnimationSample::fixed_update()
     update_camera(camera_, key_map_);
 
     light_transform_.set_matrix(
-        iris::Matrix4(iris::Quaternion{{0.0f, 1.0f, 0.0f}, -0.01f}) *
-        light_transform_.matrix());
+        iris::Matrix4(iris::Quaternion{{0.0f, 1.0f, 0.0f}, -0.01f}) * light_transform_.matrix());
     light_->set_direction(light_transform_.translation());
 
     physics_->step(std::chrono::milliseconds(13));
@@ -259,8 +242,7 @@ void AnimationSample::variable_update()
         const auto transform = iris::Transform{
             zombie_->transform() * zombie_->skeleton().transforms()[index] *
             iris::Matrix4::invert(zombie_->skeleton().bone(index).offset())};
-        const auto offset = transform * iris::Matrix4::make_translate(
-                                            std::get<0>(hit_box_data_[name]));
+        const auto offset = transform * iris::Matrix4::make_translate(std::get<0>(hit_box_data_[name]));
 
         body->reposition(offset.translation(), transform.rotation());
     }
@@ -273,8 +255,7 @@ void AnimationSample::handle_input(const iris::Event &event)
         const auto keyboard = event.key();
         key_map_[keyboard.key] = keyboard.state;
 
-        if ((keyboard.key == iris::Key::SPACE) &&
-            (keyboard.state == iris::KeyState::UP))
+        if ((keyboard.key == iris::Key::SPACE) && (keyboard.state == iris::KeyState::UP))
         {
             animation_ = (animation_ + 1u) % animations_.size();
             zombie_->skeleton().set_animation(animations_[animation_]);
@@ -292,7 +273,7 @@ void AnimationSample::handle_input(const iris::Event &event)
 
 std::vector<iris::RenderPass> AnimationSample::render_passes()
 {
-    return {{&scene_, &camera_, target_}};
+    return {{&scene_, &camera_, target_, sky_box_}};
 }
 
 std::string AnimationSample::title() const

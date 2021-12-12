@@ -4,26 +4,28 @@
 //                 https://www.boost.org/LICENSE_1_0.txt)                     //
 ////////////////////////////////////////////////////////////////////////////////
 
-#pragma once
-
-#include <vector>
+#include "graphics/render_graph/sky_box_node.h"
 
 #include "graphics/cube_map.h"
-#include "graphics/material.h"
-#include "graphics/texture.h"
+#include "graphics/render_graph/shader_compiler.h"
 
-class FakeMaterial : public iris::Material
+namespace iris
 {
-  public:
-    ~FakeMaterial() override = default;
 
-    std::vector<iris::Texture *> textures() const override
-    {
-        return {};
-    }
+SkyBoxNode::SkyBoxNode(const CubeMap *sky_box)
+    : RenderNode()
+    , sky_box_(sky_box)
+{
+}
 
-    const iris::CubeMap *cube_map() const override
-    {
-        return nullptr;
-    }
-};
+void SkyBoxNode::accept(ShaderCompiler &compiler) const
+{
+    compiler.visit(*this);
+}
+
+const CubeMap *SkyBoxNode::sky_box() const
+{
+    return sky_box_;
+}
+
+}
