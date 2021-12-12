@@ -175,11 +175,9 @@ OpenGLTexture::OpenGLTexture(
     TextureUsage usage,
     GLuint id)
     : Texture(data, width, height, usage)
-    , handle_(0u)
+    , handle_(create_texture(data, width, height, usage, id))
     , id_(id)
 {
-    handle_ = create_texture(data, width, height, usage, id_);
-
     LOG_ENGINE_INFO("texture", "loaded from data");
 }
 
@@ -193,6 +191,7 @@ GLuint OpenGLTexture::handle() const
 {
     return handle_;
 }
+
 GLuint OpenGLTexture::id() const
 {
     return id_;
