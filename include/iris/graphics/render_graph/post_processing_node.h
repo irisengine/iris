@@ -6,11 +6,6 @@
 
 #pragma once
 
-#pragma once
-
-#include <memory>
-#include <vector>
-
 #include "graphics/render_graph/render_node.h"
 
 namespace iris
