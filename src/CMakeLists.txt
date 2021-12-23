@@ -7,6 +7,7 @@ add_subdirectory("jobs")
 add_subdirectory("log")
 add_subdirectory("networking")
 add_subdirectory("physics")
+add_subdirectory("scripting")
 
 add_library(iris::iris ALIAS iris)
 generate_export_header(iris)
