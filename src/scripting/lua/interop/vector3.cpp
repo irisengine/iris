@@ -1,3 +1,8 @@
+////////////////////////////////////////////////////////////////////////////////
+//         Distributed under the Boost Software License, Version 1.0.         //
+//            (See accompanying file LICENSE or copy at                       //
+//                 https://www.boost.org/LICENSE_1_0.txt)                     //
+////////////////////////////////////////////////////////////////////////////////
 
 #include <sstream>
 #include <string>
@@ -63,7 +68,7 @@ int vector3_set_x(lua_State *state)
 {
     auto **vector = get_vector3(state);
 
-    (*vector)->x = ::luaL_checknumber(state, 2);
+    (*vector)->x = static_cast<float>(::luaL_checknumber(state, 2));
 
     return 0;
 }
@@ -80,7 +85,7 @@ int vector3_set_y(lua_State *state)
 {
     auto **vector = get_vector3(state);
 
-    (*vector)->y = ::luaL_checknumber(state, 2);
+    (*vector)->y = static_cast<float>(::luaL_checknumber(state, 2));
 
     return 0;
 }
@@ -97,7 +102,7 @@ int vector3_set_z(lua_State *state)
 {
     auto **vector = get_vector3(state);
 
-    (*vector)->z = ::luaL_checknumber(state, 2);
+    (*vector)->z = static_cast<float>(::luaL_checknumber(state, 2));
 
     return 0;
 }
