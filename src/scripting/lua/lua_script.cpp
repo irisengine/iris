@@ -136,7 +136,7 @@ void LuaScript::get_result(std::int32_t &result)
 {
     ensure(lua_isinteger(impl_->state, -1) == 1, "incorrect result type");
 
-    result = ::lua_tointeger(impl_->state, -1);
+    result = static_cast<std::int32_t>(::lua_tointeger(impl_->state, -1));
     ::lua_pop(impl_->state, 1);
 }
 
@@ -144,7 +144,7 @@ void LuaScript::get_result(float &result)
 {
     ensure(lua_isnumber(impl_->state, -1) == 1, "incorrect result type");
 
-    result = ::lua_tonumber(impl_->state, -1);
+    result = static_cast<float>(::lua_tonumber(impl_->state, -1));
     ::lua_pop(impl_->state, 1);
 }
 
