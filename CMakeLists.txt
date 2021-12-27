@@ -92,6 +92,13 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(stb)
 
 FetchContent_Declare(
+  lua
+  GIT_REPOSITORY https://github.com/lua/lua.git
+  GIT_TAG v5.4.3
+  CONFIGURE_COMMAND "" BUILD_COMMAND "")
+FetchContent_MakeAvailable(lua)
+
+FetchContent_Declare(
   googletest
   GIT_REPOSITORY https://github.com/google/googletest.git
   GIT_TAG release-1.11.0)

@@ -43,7 +43,7 @@ Iris is a cross-platform game engine written in modern C++
 ![physics](media/physics.png)
 
 ## Features
-* Cross platform: Windows, macOS and iOS
+* Cross platform: Windows, Linux, macOS and iOS
 * Multiple rendering backends: D3D12, Metal, OpenGL 
 * 3D rendering and physics
 * HDR
@@ -51,6 +51,7 @@ Iris is a cross-platform game engine written in modern C++
 * Skeleton animation
 * Job based paralelism (fiber and thread implementations)
 * Networking
+* Lua scripting
 
 ## Dependencies
 The following dependencies are required to build iris:
@@ -78,6 +79,7 @@ The following dependencies are automatically checked out as part of the build:
 | [stb](https://github.com/nothings/stb) | [c0c9826](https://github.com/nothings/stb/tree/c0c982601f40183e74d84a61237e968dca08380e) | [![License: MIT](https://img.shields.io/badge/License-MIT-lightblue.svg)](https://opensource.org/licenses/MIT) / [![License: Unlicense](https://img.shields.io/badge/License-Unlicense-lightblue.svg)](http://unlicense.org/)|
 | [googletest](https://github.com/google/googletest.git) | [1.11.0](https://github.com/google/googletest/releases/tag/release-1.11.0) | [![License](https://img.shields.io/badge/License-BSD%203--Clause-lightblue.svg)](https://opensource.org/licenses/BSD-3-Clause) |
 | [directx-headers](https://github.com/microsoft/DirectX-Headers.git) | [1.4.9](https://github.com/microsoft/DirectX-Headers/releases/tag/v1.4.9) | [![License: MIT](https://img.shields.io/badge/License-MIT-lightblue.svg)](https://opensource.org/licenses/MIT) |
+| [lua](https://github.com/lua/lua) | [5.4.3](https://github.com/lua/lua/releases/tag/v5.4.3) | [![License: MIT](https://img.shields.io/badge/License-MIT-lightblue.svg)](https://opensource.org/licenses/MIT) |
 
 
 ## Using iris

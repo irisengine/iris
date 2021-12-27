@@ -12,6 +12,7 @@ add_subdirectory("graphics")
 add_subdirectory("jobs")
 add_subdirectory("networking")
 add_subdirectory("platform")
+add_subdirectory("scripting")
 
 target_include_directories(unit_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
