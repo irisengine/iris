@@ -35,6 +35,7 @@ Iris is a cross-platform game engine written in modern C++
     9. [log](#log)
     10. [networking](#networking)
     11. [physics](#physics)
+    12. [scripting](#scripting)
 
 ---
 
@@ -218,7 +219,7 @@ int main(int argc, char **argv)
 }
 ```
 
-*All further snippets will assume be in `go` and will omit headers for brevity*
+*All further snippets will assume be in `go()` and will omit headers for brevity*
 
 **Render a red cube**
 ```c++
@@ -543,5 +544,44 @@ A [`Channel`](/include/iris/networking/channel/channel.h) provides guarantees ov
 * Clock sync
 * Sending/receiving data
 
-### [`physics`](/inlclude/iris/physics)
+### [`physics`](/include/iris/physics)
 Iris comes with bullet physics out the box. The [`physics_system`](/include/iris/physics/physics_system.h) abstract class details the provided functionality.
+
+### [`scripting`](/include/iris/scripting)
+Iris supports [Lua](https://www.lua.org/home.html) out of the box. The recommended way to use it is with the [`ScriptRunner`](/include/iris/scripting/script_runner.h) primitive.
+
+```cpp
+    iris::ScriptRunner runner{std::make_unique<iris::LuaScript>(R"(
+        function go()
+            print('hello')
+        end)")};
+    runner.execute("go");
+```
+
+The return type of `execute` will be deduced based on the supplied template arguments, this allows for intuitive handling of void, single and multi argument functions.
+
+```cpp
+    iris::ScriptRunner runner{std::make_unique<iris::LuaScript>(R"(
+        function func1()
+            print('hello')
+        end
+
+        function func2()
+            return 1
+        end
+
+        function func3()
+            return 'hello', 2.0
+        end)")};
+
+    // no arguments so execute returns void
+    runner.execute("func1");
+
+    // single type, so supplied type is returned
+    const std::int32_t r1 = runner.execute<std::int32_t>("func2");
+
+    // multiple types, so tuple of supplied types are returned   
+    const std::tuple<std::string, float> r2 = runner.execute<std::string, float>("func3");
+```
+
+Lua scripts call also use (as well as return) [`Vector3`](/include/iris/core/vector3.h) and [`Quaternion`](/include/iris/core/quaternion.h) types. See [tests](/tests/scripting/lua_script_tests.cpp) for more examples.
