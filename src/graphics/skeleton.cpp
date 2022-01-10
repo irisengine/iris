@@ -215,6 +215,11 @@ Bone &Skeleton::bone(std::size_t index)
     return bones_[index];
 }
 
+Matrix4 Skeleton::transform(std::size_t index) const
+{
+    return transforms_[index];
+}
+
 const Bone &Skeleton::bone(std::size_t index) const
 {
     return bones_[index];

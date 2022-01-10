@@ -146,6 +146,17 @@ class Skeleton
     Bone &bone(std::size_t index);
 
     /**
+     * Get transform for bone at index.
+     *
+     * @param index
+     *   Index of bone to get.
+     *
+     * @returns
+     *   Transform for bone.
+     */
+    Matrix4 transform(std::size_t index) const;
+
+    /**
      * Get const reference to bone at index.
      *
      * @param index
