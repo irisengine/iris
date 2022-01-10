@@ -101,6 +101,12 @@ Matrix4 RenderEntity::transform() const
     return transform_.matrix();
 }
 
+void RenderEntity::set_transform(const Matrix4 &transform)
+{
+    transform_.set_matrix(transform);
+    normal_ = create_normal_transform(transform_.matrix());
+}
+
 Matrix4 RenderEntity::normal_transform() const
 {
     return normal_;
