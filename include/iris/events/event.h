@@ -15,6 +15,7 @@
 #include "events/mouse_button_event.h"
 #include "events/mouse_event.h"
 #include "events/quit_event.h"
+#include "events/scroll_wheel_event.h"
 #include "events/touch_event.h"
 
 namespace iris
@@ -65,6 +66,14 @@ class Event
      *   Touch event.
      */
     Event(TouchEvent event);
+
+    /**
+     * Construct a new scroll wheel event.
+     *
+     * @param event
+     *   Scroll wheel event.
+     */
+    Event(ScrollWheelEvent event);
 
     /**
      * Get type of event.
@@ -198,12 +207,28 @@ class Event
      */
     TouchEvent touch() const;
 
+    /**
+     * Check if Event is a scroll wheel event.
+     *
+     * @returns
+     *   True if Event is a scroll whell event, else false.
+     */
+    bool is_scroll_wheel() const;
+
+    /**
+     * Get scroll wheel event will throw if wrong type.
+     *
+     * @returns
+     *   scroll wheel event.
+     */
+    ScrollWheelEvent scroll_wheel() const;
+
   private:
     /** Type of event. */
     EventType type_;
 
     /** Variant of possible Event types. */
-    std::variant<QuitEvent, KeyboardEvent, MouseEvent, MouseButtonEvent, TouchEvent> event_;
+    std::variant<QuitEvent, KeyboardEvent, MouseEvent, MouseButtonEvent, TouchEvent, ScrollWheelEvent> event_;
 };
 
 }

@@ -19,6 +19,7 @@
 #include "events/keyboard_event.h"
 #include "events/mouse_button_event.h"
 #include "events/mouse_event.h"
+#include "events/scroll_wheel_event.h"
 #include "graphics/macos/metal_app_delegate.h"
 #include "graphics/macos/opengl_app_delegate.h"
 #include "graphics/metal/metal_renderer.h"
@@ -284,6 +285,7 @@ std::optional<Event> MacosWindow::pump_event()
             case NSEventTypeLeftMouseUp: evt = MouseButtonEvent{MouseButton::LEFT, MouseButtonState::UP}; break;
             case NSEventTypeRightMouseDown: evt = MouseButtonEvent{MouseButton::RIGHT, MouseButtonState::DOWN}; break;
             case NSEventTypeRightMouseUp: evt = MouseButtonEvent{MouseButton::RIGHT, MouseButtonState::UP}; break;
+            case NSEventTypeScrollWheel: evt = ScrollWheelEvent{static_cast<float>([event scrollingDeltaY])}; break;
             default: break;
         }
 
