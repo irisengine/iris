@@ -140,10 +140,10 @@ class PhysicsSystem
      * This will release all resources for the character, using the handle after
      * this call is undefined.
      *
-     * @param body
-     *   Body to remove.
+     * @param character
+     *   Character to remove.
      */
-    virtual void remove(CharacterController *charaacter) = 0;
+    virtual void remove(CharacterController *character) = 0;
 
     /**
      * Cast a ray into physics engine world.
