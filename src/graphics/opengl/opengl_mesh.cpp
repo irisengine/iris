@@ -23,8 +23,8 @@ namespace
  *   Type to convert
  *
  * @returns
- *   Tuple of OpenGL type and boolean indiciating if the returned type is a
- * flaot type.
+ *   Tuple of OpenGL type and boolean indicating if the returned type is a
+ *  float type.
  */
 std::tuple<GLenum, bool> to_opengl_format(iris::VertexAttributeType type)
 {
@@ -55,8 +55,9 @@ OpenGLMesh::OpenGLMesh(
     const std::vector<VertexData> &vertices,
     const std::vector<std::uint32_t> &indices,
     const VertexAttributes &attributes)
-    : vertex_buffer_(vertices)
-    , index_buffer_(indices)
+    : Mesh(vertices, indices)
+    , vertex_buffer_(vertices_)
+    , index_buffer_(indices_)
     , vao_(0u)
 {
     // create vao

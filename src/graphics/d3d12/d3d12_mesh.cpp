@@ -52,8 +52,9 @@ D3D12Mesh::D3D12Mesh(
     const std::vector<VertexData> &vertices,
     const std::vector<std::uint32_t> &indices,
     const VertexAttributes &attributes)
-    : vertex_buffer_(vertices)
-    , index_buffer_(indices)
+    : Mesh(vertices, indices)
+    , vertex_buffer_(vertices_)
+    , index_buffer_(indices_)
     , input_descriptors_()
 {
     // build a D3D12 descriptors from supplied attributes

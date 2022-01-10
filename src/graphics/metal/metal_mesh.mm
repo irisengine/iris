@@ -53,8 +53,9 @@ MetalMesh::MetalMesh(
     const std::vector<VertexData> &vertices,
     const std::vector<std::uint32_t> &indices,
     const VertexAttributes &attributes)
-    : vertex_buffer_(vertices)
-    , index_buffer_(indices)
+    : Mesh(vertices, indices)
+    , vertex_buffer_(vertices_)
+    , index_buffer_(indices_)
     , descriptors_(nullptr)
 {
     descriptors_ = [[MTLVertexDescriptor alloc] init];
