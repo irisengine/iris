@@ -9,5 +9,6 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/contact_point.h
     ${INCLUDE_ROOT}/physics_manager.h
     ${INCLUDE_ROOT}/physics_system.h
+    ${INCLUDE_ROOT}/ray_cast_result.h
     ${INCLUDE_ROOT}/rigid_body.h
     ${INCLUDE_ROOT}/rigid_body_type.h)
