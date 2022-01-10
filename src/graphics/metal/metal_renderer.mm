@@ -140,10 +140,10 @@ void set_constant_data(
 
     iris::ConstantBufferWriter writer(constant_buffer);
 
-    writer.write(iris::Matrix4::transpose(metal_translate * camera->projection()));
-    writer.write(iris::Matrix4::transpose(camera->view()));
-    writer.write(iris::Matrix4::transpose(entity->transform()));
-    writer.write(iris::Matrix4::transpose(entity->normal_transform()));
+    writer.write(metal_translate * camera->projection());
+    writer.write(camera->view());
+    writer.write(entity->transform());
+    writer.write(entity->normal_transform());
 
     // write all the bone data and ensure we advance past the end of the array
     // note that the transposing of the bone matrices is done by the shader

@@ -83,9 +83,9 @@ float4x4 bone_transform = calculate_bone_transform(uniform, vid, vertices);
 float2 uv = vertices[vid].tex.xy;
 
 VertexOut out;
-out.frag_position = uniform->model * bone_transform * vertices[vid].position;
-out.position = uniform->projection * uniform->view * out.frag_position;
-out.normal = uniform->normal_matrix * bone_transform * vertices[vid].normal;
+out.frag_position = transpose(uniform->model) * bone_transform * vertices[vid].position;
+out.position = transpose(uniform->projection) * transpose(uniform->view) * out.frag_position;
+out.normal = transpose(uniform->normal_matrix) * bone_transform * vertices[vid].normal;
 out.color = vertices[vid].color;
 out.tex = vertices[vid].tex;
 
@@ -167,9 +167,9 @@ float4x4 calculate_bone_transform(constant DefaultUniform *uniform, uint vid, de
 static constexpr auto tbn_function = R"(
 float3x3 calculate_tbn(constant DefaultUniform *uniform, float4x4 bone_transform, uint vid, device VertexIn *vertices)
 {
-    float3 T = normalize(float3(uniform->normal_matrix * bone_transform * vertices[vid].tangent));
-    float3 B = normalize(float3(uniform->normal_matrix * bone_transform * vertices[vid].bitangent));
-    float3 N = normalize(float3(uniform->normal_matrix * bone_transform * vertices[vid].normal));
+    float3 T = normalize(float3(transpose(uniform->normal_matrix) * bone_transform * vertices[vid].tangent));
+    float3 B = normalize(float3(transpose(uniform->normal_matrix) * bone_transform * vertices[vid].bitangent));
+    float3 N = normalize(float3(transpose(uniform->normal_matrix) * bone_transform * vertices[vid].normal));
     return transpose(float3x3(T, B, N));
 })";
 
