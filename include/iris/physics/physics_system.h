@@ -9,6 +9,7 @@
 #include <chrono>
 #include <memory>
 #include <optional>
+#include <set>
 #include <vector>
 
 #include "core/quaternion.h"
@@ -16,6 +17,7 @@
 #include "physics/character_controller.h"
 #include "physics/collision_shape.h"
 #include "physics/contact_point.h"
+#include "physics/ray_cast_result.h"
 #include "physics/rigid_body.h"
 
 namespace iris
@@ -146,7 +148,7 @@ class PhysicsSystem
     virtual void remove(CharacterController *character) = 0;
 
     /**
-     * Cast a ray into physics engine world.
+     * Cast a ray into physics engine world and get all hits.
      *
      * @param origin
      *   Origin of ray.
@@ -154,20 +156,17 @@ class PhysicsSystem
      * @param direction.
      *   Direction of ray.
      *
-     * @returns
-     *   If ray hits an object then a tuple [object hit, point of intersection],
-     *   else empty optional.
-     */
-    virtual std::optional<std::tuple<RigidBody *, Vector3>> ray_cast(const Vector3 &origin, const Vector3 &direction)
-        const = 0;
-
-    /**
-     * Add a body to be excluded from ray_casts
+     * @param ignore
+     *   Collection of rigid bodies that should be ignored from ray cast results.
      *
-     * @param body
-     *   Body to ignore.
+     * @returns
+     *   Collection of RayCastResult objects for all intersection with ray. These will be sorted from distance to origin
+     *   (closest first).
      */
-    virtual void ignore_in_raycast(RigidBody *body) = 0;
+    virtual std::vector<RayCastResult> ray_cast(
+        const Vector3 &origin,
+        const Vector3 &direction,
+        const std::set<const RigidBody *> &ignore) = 0;
 
     /**
      * Query all contacts with a body.

@@ -26,6 +26,7 @@
 #include "physics/collision_shape.h"
 #include "physics/contact_point.h"
 #include "physics/physics_system.h"
+#include "physics/ray_cast_result.h"
 #include "physics/rigid_body.h"
 
 namespace iris
@@ -147,7 +148,7 @@ class BulletPhysicsSystem : public PhysicsSystem
     void remove(CharacterController *charaacter) override;
 
     /**
-     * Cast a ray into physics engine world.
+     * Cast a ray into physics engine world and get all hits.
      *
      * @param origin
      *   Origin of ray.
@@ -155,20 +156,17 @@ class BulletPhysicsSystem : public PhysicsSystem
      * @param direction.
      *   Direction of ray.
      *
-     * @returns
-     *   If ray hits an object then a tuple [object hit, point of intersection],
-     *   else empty optional.
-     */
-    std::optional<std::tuple<RigidBody *, Vector3>> ray_cast(const Vector3 &origin, const Vector3 &direction)
-        const override;
-
-    /**
-     * Add a body to be excluded from ray_casts
+     * @param ignore
+     *   Collection of rigid bodies that should be ignored from ray cast results.
      *
-     * @param body
-     *   Body to ignore.
+     * @returns
+     *   Collection of RayCastResult objects for all intersection with ray. These will be sorted from distance to origin
+     *   (closest first).
      */
-    void ignore_in_raycast(RigidBody *body) override;
+    std::vector<RayCastResult> ray_cast(
+        const Vector3 &origin,
+        const Vector3 &direction,
+        const std::set<const RigidBody *> &ignore) override;
 
     /**
      * Query all contacts with a body.
@@ -236,9 +234,6 @@ class BulletPhysicsSystem : public PhysicsSystem
 
     /** Collection of rigid bodies. */
     std::vector<std::unique_ptr<RigidBody>> bodies_;
-
-    /** Collection of collision objects to be ignored during raycasts. */
-    std::set<const btCollisionObject *> ignore_;
 
     /** Collection of character controllers. */
     std::vector<std::unique_ptr<CharacterController>> character_controllers_;

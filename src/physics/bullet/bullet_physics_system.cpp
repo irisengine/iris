@@ -37,6 +37,7 @@
 #include "physics/bullet/debug_draw.h"
 #include "physics/character_controller.h"
 #include "physics/contact_point.h"
+#include "physics/ray_cast_result.h"
 #include "physics/rigid_body.h"
 
 using namespace std::literals::chrono_literals;
@@ -110,7 +111,6 @@ BulletPhysicsSystem::BulletPhysicsSystem()
     , solver_(nullptr)
     , world_(nullptr)
     , bodies_()
-    , ignore_()
     , character_controllers_()
     , debug_draw_(nullptr)
     , collision_shapes_()
@@ -237,11 +237,12 @@ void BulletPhysicsSystem::remove(CharacterController *character)
         std::end(character_controllers_));
 }
 
-std::optional<std::tuple<RigidBody *, Vector3>> BulletPhysicsSystem::ray_cast(
+std::vector<RayCastResult> BulletPhysicsSystem::ray_cast(
     const Vector3 &origin,
-    const Vector3 &direction) const
+    const Vector3 &direction,
+    const std::set<const RigidBody *> &ignore)
 {
-    std::optional<std::tuple<RigidBody *, Vector3>> hit;
+    std::vector<RayCastResult> hits;
 
     // bullet does ray tracing between two vectors, so we create an end vector
     // some great distance away
@@ -249,43 +250,47 @@ std::optional<std::tuple<RigidBody *, Vector3>> BulletPhysicsSystem::ray_cast(
     const auto far_away = origin + (direction * 10000.0f);
     btVector3 to{far_away.x, far_away.y, far_away.z};
 
-    btCollisionWorld::AllHitsRayResultCallback callback{from, to};
+    // create an ignore list of bullet objects
+    std::set<const btCollisionObject *> bullet_ignore{};
+    std::transform(
+        std::cbegin(ignore),
+        std::cend(ignore),
+        std::inserter(bullet_ignore, std::begin(bullet_ignore)),
+        [](const RigidBody *element)
+        {
+            const auto *bullet_body = static_cast<const iris::BulletRigidBody *>(element);
+            return bullet_body->handle();
+        });
 
+    // do the ray cast
+    btCollisionWorld::AllHitsRayResultCallback callback{from, to};
     world_->rayTest(from, to, callback);
 
     if (callback.hasHit())
     {
-        auto min = std::numeric_limits<float>::max();
-        btVector3 hit_position{};
-        const btRigidBody *body = nullptr;
-
-        // find the closest hit object excluding any ignored objects
+        // build up collection of hits which aren't being ignored
         for (auto i = 0; i < callback.m_collisionObjects.size(); ++i)
         {
-            const auto distance = from.distance(callback.m_hitPointWorld[i]);
-            if ((distance < min) && (ignore_.count(callback.m_collisionObjects[i]) == 0))
+            if (bullet_ignore.count(callback.m_collisionObjects[i]) == 0)
             {
-                min = distance;
-                hit_position = callback.m_hitPointWorld[i];
-                body = static_cast<const btRigidBody *>(callback.m_collisionObjects[i]);
-            }
-        }
+                const auto hit_position = callback.m_hitPointWorld[i];
+                const auto *bullet_body = static_cast<const btRigidBody *>(callback.m_collisionObjects[i]);
+                auto *body = static_cast<RigidBody *>(bullet_body->getUserPointer());
 
-        if (body != nullptr)
-        {
-            hit = {
-                static_cast<RigidBody *>(body->getUserPointer()),
-                {hit_position.x(), hit_position.y(), hit_position.z()}};
+                hits.push_back(
+                    {.body = body, .position = Vector3{hit_position.x(), hit_position.y(), hit_position.z()}});
+            }
         }
     }
 
-    return hit;
-}
+    // sort the hits from closest to origin
+    std::sort(
+        std::begin(hits),
+        std::end(hits),
+        [&origin](const auto &e1, const auto &e2)
+        { return Vector3::distance(origin, e1.position) < Vector3::distance(origin, e2.position); });
 
-void BulletPhysicsSystem::ignore_in_raycast(RigidBody *body)
-{
-    auto *bullet_body = static_cast<iris::BulletRigidBody *>(body);
-    ignore_.emplace(bullet_body->handle());
+    return hits;
 }
 
 std::vector<ContactPoint> BulletPhysicsSystem::contacts(RigidBody *body)

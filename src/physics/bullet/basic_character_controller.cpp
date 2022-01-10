@@ -107,13 +107,13 @@ bool BasicCharacterController::on_ground() const
 {
     auto ground = false;
 
-    // cast a ray downwards to see if what is below us
-    const auto hit = physics_system_->ray_cast(position(), {0.0f, -1.0f, 0.0f});
+    // cast a ray downwards to see what is below us
+    const auto hits = physics_system_->ray_cast(position(), {0.0f, -1.0f, 0.0f}, {});
 
-    if (hit)
+    if (!hits.empty())
     {
         // we are on the ground if the closest object is less than our height
-        ground = (std::get<1>(*hit) - position()).magnitude() < 1.7f;
+        ground = (hits.front().position - position()).magnitude() < 1.7f;
     }
 
     return ground;
