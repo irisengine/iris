@@ -39,6 +39,8 @@
 #include "physics/contact_point.h"
 #include "physics/rigid_body.h"
 
+using namespace std::literals::chrono_literals;
+
 namespace
 {
 /**
@@ -112,6 +114,7 @@ BulletPhysicsSystem::BulletPhysicsSystem()
     , character_controllers_()
     , debug_draw_(nullptr)
     , collision_shapes_()
+    , next_debug_update_(std::chrono::system_clock::now())
 {
     collision_config_ = std::make_unique<::btDefaultCollisionConfiguration>();
     collision_dispatcher_ = std::make_unique<::btCollisionDispatcher>(collision_config_.get());
@@ -151,13 +154,17 @@ void BulletPhysicsSystem::step(std::chrono::milliseconds time_step)
     const auto ticks = static_cast<float>(time_step.count());
     world_->stepSimulation(ticks / 1000.0f, 1);
 
-    if (debug_draw_)
+    const auto now = std::chrono::system_clock::now();
+
+    if (debug_draw_ && (now >= next_debug_update_))
     {
         // tell bullet to draw debug world
         world_->debugDrawWorld();
 
         // now we pass bullet debug information to our render system
         debug_draw_->render();
+
+        next_debug_update_ = now + 500ms;
     }
 }
 

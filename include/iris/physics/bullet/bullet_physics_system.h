@@ -248,6 +248,9 @@ class BulletPhysicsSystem : public PhysicsSystem
 
     /** Collection of collision shapes. */
     std::vector<std::unique_ptr<BulletCollisionShape>> collision_shapes_;
+
+    /** To prevent overloading the rendering with debug data we only update the debug geometry at a fixed interval. */
+    std::chrono::system_clock::time_point next_debug_update_;
 };
 
 }
