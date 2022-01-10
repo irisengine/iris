@@ -31,6 +31,8 @@
 namespace iris
 {
 
+class Mesh;
+
 /**
  * Implementation of PhysicsSystem for bullet.
  */
@@ -107,6 +109,20 @@ class BulletPhysicsSystem : public PhysicsSystem
      *   Pointer to newly created CollisionShape.
      */
     CollisionShape *create_capsule_collision_shape(float width, float height) override;
+
+    /**
+     * Create a CollisionShape from a Mesh.
+     *
+     * @param mesh
+     *   Mesh to create collision shape from.
+     *
+     * @param scale
+     *   Scale of mesh as it will be rendered.
+     *
+     * @returns
+     *   Pointer to newly created CollisionShape.
+     */
+    CollisionShape *create_mesh_collision_shape(const Mesh *mesh, const Vector3 &scale) override;
 
     /**
      * Remove a body from the physics system.

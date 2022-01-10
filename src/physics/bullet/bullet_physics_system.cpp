@@ -24,12 +24,14 @@
 #include "core/error_handling.h"
 #include "core/quaternion.h"
 #include "core/vector3.h"
+#include "graphics/mesh.h"
 #include "graphics/render_entity.h"
 #include "log/log.h"
 #include "physics/basic_character_controller.h"
 #include "physics/bullet/bullet_box_collision_shape.h"
 #include "physics/bullet/bullet_capsule_collision_shape.h"
 #include "physics/bullet/bullet_collision_shape.h"
+#include "physics/bullet/bullet_mesh_collision_shape.h"
 #include "physics/bullet/bullet_rigid_body.h"
 #include "physics/bullet/collision_callback.h"
 #include "physics/bullet/debug_draw.h"
@@ -197,6 +199,12 @@ CollisionShape *BulletPhysicsSystem::create_box_collision_shape(const Vector3 &h
 CollisionShape *BulletPhysicsSystem::create_capsule_collision_shape(float width, float height)
 {
     collision_shapes_.emplace_back(std::make_unique<BulletCapsuleCollisionShape>(width, height));
+    return collision_shapes_.back().get();
+}
+
+CollisionShape *BulletPhysicsSystem::create_mesh_collision_shape(const Mesh *mesh, const Vector3 &scale)
+{
+    collision_shapes_.emplace_back(std::make_unique<BulletMeshCollisionShape>(mesh, scale));
     return collision_shapes_.back().get();
 }
 
