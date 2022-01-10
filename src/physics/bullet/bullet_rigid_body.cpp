@@ -60,9 +60,12 @@ BulletRigidBody::BulletRigidBody(const Vector3 &position, BulletCollisionShape *
     {
         // 0 mass means static rigid body
         btScalar mass = (type_ == RigidBodyType::STATIC) ? 0.0f : 10.0f;
-
         btVector3 localInertia(0, 0, 0);
-        shape->calculateLocalInertia(mass, localInertia);
+
+        if (type_ != RigidBodyType::STATIC)
+        {
+            shape->calculateLocalInertia(mass, localInertia);
+        }
 
         motion_state_ = std::make_unique<btDefaultMotionState>(start_transform);
 
