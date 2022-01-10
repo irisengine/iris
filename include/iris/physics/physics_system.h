@@ -9,11 +9,13 @@
 #include <chrono>
 #include <memory>
 #include <optional>
+#include <vector>
 
 #include "core/quaternion.h"
 #include "core/vector3.h"
 #include "physics/character_controller.h"
 #include "physics/collision_shape.h"
+#include "physics/contact_point.h"
 #include "physics/rigid_body.h"
 
 namespace iris
@@ -151,6 +153,17 @@ class PhysicsSystem
      *   Body to ignore.
      */
     virtual void ignore_in_raycast(RigidBody *body) = 0;
+
+    /**
+     * Query all contacts with a body.
+     *
+     * @param body
+     *   The body to test, note that this will be contact_a in all the returned ContactPoint objects.
+     *
+     * @returns
+     *   Collection of ContactPoint objects for all bodies colliding with body.
+     */
+    virtual std::vector<ContactPoint> contacts(RigidBody *body) = 0;
 
     /**
      * Save the current state of the simulation.

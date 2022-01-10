@@ -24,6 +24,7 @@
 #include "physics/bullet/debug_draw.h"
 #include "physics/character_controller.h"
 #include "physics/collision_shape.h"
+#include "physics/contact_point.h"
 #include "physics/physics_system.h"
 #include "physics/rigid_body.h"
 
@@ -152,6 +153,17 @@ class BulletPhysicsSystem : public PhysicsSystem
      *   Body to ignore.
      */
     void ignore_in_raycast(RigidBody *body) override;
+
+    /**
+     * Query all contacts with a body.
+     *
+     * @param body
+     *   The body to test, note that this will be contact_a in all the returned ContactPoint objects.
+     *
+     * @returns
+     *   Collection of ContactPoint objects for all bodies colliding with body.
+     */
+    std::vector<ContactPoint> contacts(RigidBody *body) override;
 
     /**
      * Save the current state of the simulation.

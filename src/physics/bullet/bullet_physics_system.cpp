@@ -31,8 +31,10 @@
 #include "physics/bullet/bullet_capsule_collision_shape.h"
 #include "physics/bullet/bullet_collision_shape.h"
 #include "physics/bullet/bullet_rigid_body.h"
+#include "physics/bullet/collision_callback.h"
 #include "physics/bullet/debug_draw.h"
 #include "physics/character_controller.h"
+#include "physics/contact_point.h"
 #include "physics/rigid_body.h"
 
 namespace
@@ -269,6 +271,16 @@ void BulletPhysicsSystem::ignore_in_raycast(RigidBody *body)
 {
     auto *bullet_body = static_cast<iris::BulletRigidBody *>(body);
     ignore_.emplace(bullet_body->handle());
+}
+
+std::vector<ContactPoint> BulletPhysicsSystem::contacts(RigidBody *body)
+{
+    auto *bullet_body = static_cast<iris::BulletRigidBody *>(body);
+
+    CollisionCallback callback{body};
+    world_->contactTest(bullet_body->handle(), callback);
+
+    return callback.yield_contact_points();
 }
 
 std::unique_ptr<PhysicsState> BulletPhysicsSystem::save()
