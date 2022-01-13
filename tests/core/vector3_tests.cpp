@@ -124,23 +124,18 @@ TEST(vector3, negate)
 
 TEST(vector3, dot)
 {
-    ASSERT_EQ(
-        iris::Vector3(1.0f, 3.0f, -5.0f).dot(iris::Vector3(4.0f, -2.0f, -1.0f)),
-        3.0f);
+    ASSERT_EQ(iris::Vector3(1.0f, 3.0f, -5.0f).dot(iris::Vector3(4.0f, -2.0f, -1.0f)), 3.0f);
 }
 
 TEST(vector3, cross)
 {
     ASSERT_EQ(
-        iris::Vector3(2.0f, 3.0f, 4.0f).cross(iris::Vector3(5.0f, 6.0f, 7.0f)),
-        iris::Vector3(-3.0f, 6.0f, -3.0f));
+        iris::Vector3(2.0f, 3.0f, 4.0f).cross(iris::Vector3(5.0f, 6.0f, 7.0f)), iris::Vector3(-3.0f, 6.0f, -3.0f));
 }
 
 TEST(vector3, cross_static)
 {
-    ASSERT_EQ(
-        iris::Vector3::cross({2.0f, 3.0f, 4.0f}, {5.0f, 6.0f, 7.0f}),
-        iris::Vector3(-3.0f, 6.0f, -3.0f));
+    ASSERT_EQ(iris::Vector3::cross({2.0f, 3.0f, 4.0f}, {5.0f, 6.0f, 7.0f}), iris::Vector3(-3.0f, 6.0f, -3.0f));
 }
 
 TEST(vector3, normalise)
@@ -162,8 +157,7 @@ TEST(vector3, normalise_zero_vector3)
 TEST(vector3, normalise_static)
 {
     ASSERT_EQ(
-        iris::Vector3::normalise(iris::Vector3(1.0f, 2.0f, 3.0f)),
-        iris::Vector3(0.2672612f, 0.5345225f, 0.8017837f));
+        iris::Vector3::normalise(iris::Vector3(1.0f, 2.0f, 3.0f)), iris::Vector3(0.2672612f, 0.5345225f, 0.8017837f));
 }
 
 TEST(vector3, magnitude)
@@ -175,12 +169,32 @@ TEST(vector3, magnitude)
 
 TEST(vector3, lerp)
 {
-    iris::Vector3 vec(0.0f, 0.0f, 0.f);
+    iris::Vector3 vec(0.0f, 0.0f, 0.0f);
     iris::Vector3 end(1.0f, 1.0f, 1.0f);
 
-    vec.lerp(end, 0.5f);
+    vec.lerp(end, 0.75f);
 
-    ASSERT_EQ(vec, iris::Vector3(0.5f, 0.5f, 0.5f));
+    ASSERT_EQ(vec, iris::Vector3(0.75f, 0.75f, 0.75f));
+}
+
+TEST(vector3, lerp_zero)
+{
+    iris::Vector3 vec(0.0f, 0.0f, 0.0f);
+    iris::Vector3 end(1.0f, 1.0f, 1.0f);
+
+    vec.lerp(end, 0.0f);
+
+    ASSERT_EQ(vec, vec);
+}
+
+TEST(vector3, lerp_one)
+{
+    iris::Vector3 vec(0.0f, 0.0f, 0.0f);
+    iris::Vector3 end(1.0f, 1.0f, 1.0f);
+
+    vec.lerp(end, 1.0f);
+
+    ASSERT_EQ(vec, end);
 }
 
 TEST(vector3, lerp_static)
