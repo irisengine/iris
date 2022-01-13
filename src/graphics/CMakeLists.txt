@@ -16,13 +16,12 @@ elseif(IRIS_PLATFORM MATCHES "LINUX")
   add_subdirectory("opengl")
 endif()
 
+add_subdirectory("animation")
 add_subdirectory("lights")
 add_subdirectory("render_graph")
 
 target_sources(iris PRIVATE
-    ${INCLUDE_ROOT}/animation.h
     ${INCLUDE_ROOT}/bone.h
-    ${INCLUDE_ROOT}/bone_query.h
     ${INCLUDE_ROOT}/cube_map.h
     ${INCLUDE_ROOT}/keyframe.h
     ${INCLUDE_ROOT}/material.h
@@ -48,7 +47,6 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/weight.h
     ${INCLUDE_ROOT}/window_manager.h
     ${INCLUDE_ROOT}/window.h
-    animation.cpp
     bone.cpp
     mesh.cpp
     mesh_loader.cpp

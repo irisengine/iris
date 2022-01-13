@@ -36,10 +36,8 @@ enum class PlaybackType
 };
 
 /**
- * An animation represents a collection of keyframes for bones as well as
- * providing an interface for smoothly interpolating through them. An animation
- * will loop indefinitely.
- * @brief
+ * An animation represents a collection of keyframes for bones as well as providing an interface for smoothly
+ * interpolating through them.
  */
 class Animation
 {

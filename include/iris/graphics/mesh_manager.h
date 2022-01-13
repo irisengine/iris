@@ -13,7 +13,7 @@
 
 #include "core/colour.h"
 #include "core/vector3.h"
-#include "graphics/animation.h"
+#include "graphics/animation/animation.h"
 #include "graphics/mesh.h"
 #include "graphics/skeleton.h"
 #include "graphics/texture.h"

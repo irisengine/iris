@@ -15,9 +15,9 @@
 
 #include "core/error_handling.h"
 #include "core/matrix4.h"
-#include "graphics/animation.h"
+#include "graphics/animation/animation.h"
+#include "graphics/animation/bone_query.h"
 #include "graphics/bone.h"
-#include "graphics/bone_query.h"
 #include "graphics/weight.h"
 
 namespace

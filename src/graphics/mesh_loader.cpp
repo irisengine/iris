@@ -23,7 +23,7 @@
 #include "core/resource_loader.h"
 #include "core/transform.h"
 #include "core/vector3.h"
-#include "graphics/animation.h"
+#include "graphics/animation/animation.h"
 #include "graphics/bone.h"
 #include "graphics/skeleton.h"
 #include "graphics/vertex_data.h"

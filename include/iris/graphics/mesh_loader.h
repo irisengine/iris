@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#include "graphics/animation.h"
+#include "graphics/animation/animation.h"
 #include "graphics/skeleton.h"
 #include "graphics/texture.h"
 #include "graphics/vertex_data.h"
