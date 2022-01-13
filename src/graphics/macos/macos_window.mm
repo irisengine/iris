@@ -279,7 +279,14 @@ std::optional<Event> MacosWindow::pump_event()
         switch ([event type])
         {
             case NSEventTypeKeyDown: [[fallthrough]];
-            case NSEventTypeKeyUp: evt = handle_keyboard_event(event); break;
+            case NSEventTypeKeyUp:
+                if (!event.ARepeat)
+                {
+                    evt = handle_keyboard_event(event);
+                }
+                break;
+            case NSEventTypeLeftMouseDragged: [[fallthrough]];
+            case NSEventTypeRightMouseDragged: [[fallthrough]];
             case NSEventTypeMouseMoved: evt = handle_mouse_event(event); break;
             case NSEventTypeLeftMouseDown: evt = MouseButtonEvent{MouseButton::LEFT, MouseButtonState::DOWN}; break;
             case NSEventTypeLeftMouseUp: evt = MouseButtonEvent{MouseButton::LEFT, MouseButtonState::UP}; break;
