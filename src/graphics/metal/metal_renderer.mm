@@ -412,20 +412,23 @@ RenderTarget *MetalRenderer::create_render_target(std::uint32_t width, std::uint
 
 void MetalRenderer::pre_render()
 {
-    // acquire the lock, this will be released when the GPU has finished
-    // rendering the frame
-    frames_[current_frame_ % 3u].lock.lock();
+    @autoreleasepool
+    {
+        // acquire the lock, this will be released when the GPU has finished
+        // rendering the frame
+        frames_[current_frame_ % 3u].lock.lock();
 
-    const auto layer = core::utility::metal_layer();
+        const auto layer = core::utility::metal_layer();
 #if defined(IRIS_PLATFORM_MACOS)
-    // can only disable vsync on macos
-    [layer setDisplaySyncEnabled:NO];
+        // can only disable vsync on macos
+        [layer setDisplaySyncEnabled:NO];
 #endif
-    drawable_ = [layer nextDrawable];
-    command_buffer_ = [command_queue_ commandBuffer];
+        drawable_ = [layer nextDrawable];
+        command_buffer_ = [command_queue_ commandBuffer];
 
-    // create render encoders fresh each frame
-    render_encoders_.clear();
+        // create render encoders fresh each frame
+        render_encoders_.clear();
+    }
 }
 
 void MetalRenderer::execute_draw(RenderCommand &command)
@@ -436,27 +439,34 @@ void MetalRenderer::execute_draw(RenderCommand &command)
     const auto *camera = command.render_pass()->camera;
     const auto *target = command.render_pass()->render_target;
 
-    // create a render encoder based on the render command target
-    if (render_encoders_.count(target) == 0u)
+    @autoreleasepool
     {
-        id<MTLRenderCommandEncoder> encoder;
-        if (target == nullptr)
+        // create a render encoder based on the render command target
+        if (render_encoders_.count(target) == 0u)
         {
-            // no target means render to the window frame buffer
-            encoder = create_render_encoder(
-                drawable_.texture, default_depth_buffer_->handle(), descriptor_, depth_stencil_state_, command_buffer_);
-        }
-        else
-        {
-            encoder = create_render_encoder(
-                static_cast<const MetalTexture *>(target->colour_texture())->handle(),
-                static_cast<const MetalTexture *>(target->depth_texture())->handle(),
-                descriptor_,
-                depth_stencil_state_,
-                command_buffer_);
-        }
+            id<MTLRenderCommandEncoder> encoder;
+            if (target == nullptr)
+            {
+                // no target means render to the window frame buffer
+                encoder = create_render_encoder(
+                    drawable_.texture,
+                    default_depth_buffer_->handle(),
+                    descriptor_,
+                    depth_stencil_state_,
+                    command_buffer_);
+            }
+            else
+            {
+                encoder = create_render_encoder(
+                    static_cast<const MetalTexture *>(target->colour_texture())->handle(),
+                    static_cast<const MetalTexture *>(target->depth_texture())->handle(),
+                    descriptor_,
+                    depth_stencil_state_,
+                    command_buffer_);
+            }
 
-        render_encoders_[target] = encoder;
+            render_encoders_[target] = encoder;
+        }
     }
 
     render_encoder_ = render_encoders_[target];
