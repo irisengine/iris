@@ -7,8 +7,10 @@
 #pragma once
 
 #include <chrono>
+#include <functional>
 #include <map>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <vector>
 
@@ -22,9 +24,22 @@ namespace iris
 {
 
 /**
+ * Enumeration of possible animation playback types.
+ */
+enum class PlaybackType
+{
+    /** Animation should keep playing. */
+    LOOPING,
+
+    /** Animation should play once. */
+    SINGLE
+};
+
+/**
  * An animation represents a collection of keyframes for bones as well as
  * providing an interface for smoothly interpolating through them. An animation
  * will loop indefinitely.
+ * @brief
  */
 class Animation
 {
@@ -44,7 +59,7 @@ class Animation
     Animation(
         std::chrono::milliseconds duration,
         const std::string &name,
-        const std::map<std::string, std::vector<KeyFrame>> &frames);
+        const std::map<std::string, std::vector<KeyFrame>, std::less<>> &frames);
 
     /**
      * Get animation name.
@@ -65,7 +80,7 @@ class Animation
      * @returns
      *   Transformation of supplied bone at current animation time.
      */
-    Transform transform(const std::string &bone) const;
+    Transform transform(std::string_view bone) const;
 
     /**
      * Check if a bone exists in the animation.
@@ -76,7 +91,7 @@ class Animation
      * @returns
      *   True if bone exists, false otherwise.
      */
-    bool bone_exists(const std::string &bone) const;
+    bool bone_exists(std::string_view bone) const;
 
     /**
      * Advances the animation by the amount of time since the last call.
@@ -87,6 +102,30 @@ class Animation
      * Reset animation time back to 0.
      */
     void reset();
+
+    /**
+     * Get playback type.
+     *
+     * @returns
+     *   Playback type.
+     */
+    PlaybackType playback_type() const;
+
+    /**
+     * Set new playback type.
+     *
+     * @param playback_type
+     *   New playback type.
+     */
+    void set_playback_type(PlaybackType playback_type);
+
+    /**
+     * Get if the animation is currently running.
+     *
+     * @returns
+     *   True if playback type is SINGLE and the animation is running, always true for LOOPING.
+     */
+    bool running() const;
 
     /**
      * Get animation duration.
@@ -118,7 +157,10 @@ class Animation
     std::string name_;
 
     /** Collection of bones and their keyframes. */
-    std::map<std::string, std::vector<KeyFrame>> frames_;
+    std::map<std::string, std::vector<KeyFrame>, std::less<>> frames_;
+
+    /** Type of playback. */
+    PlaybackType playback_type_;
 };
 
 }
