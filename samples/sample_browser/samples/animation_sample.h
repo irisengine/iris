@@ -14,6 +14,7 @@
 #include <core/camera.h>
 #include <core/transform.h>
 #include <events/event.h>
+#include <graphics/animation/animation_controller.h>
 #include <graphics/cube_map.h>
 #include <graphics/lights/directional_light.h>
 #include <graphics/render_entity.h>
@@ -111,4 +112,6 @@ class AnimationSample : public Sample
     iris::CubeMap *sky_box_;
 
     std::unique_ptr<iris::Mesh> debug_mesh_;
+
+    std::unique_ptr<iris::AnimationController> animation_controller_;
 };

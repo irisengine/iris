@@ -18,6 +18,7 @@
 #include <core/root.h>
 #include <core/transform.h>
 #include <core/vector3.h>
+#include <graphics/animation/animation_controller.h>
 #include <graphics/cube_map.h>
 #include <graphics/lights/point_light.h>
 #include <graphics/mesh_manager.h>
@@ -34,6 +35,8 @@
 #include <graphics/window.h>
 #include <physics/physics_manager.h>
 #include <physics/rigid_body.h>
+
+using namespace std::literals::chrono_literals;
 
 namespace
 {
@@ -103,6 +106,7 @@ AnimationSample::AnimationSample(iris::Window *window, iris::RenderTarget *targe
     , key_map_()
     , sky_box_(nullptr)
     , debug_mesh_(nullptr)
+    , animation_controller_()
 {
     key_map_ = {
         {iris::Key::W, iris::KeyState::UP},
@@ -157,7 +161,18 @@ AnimationSample::AnimationSample(iris::Window *window, iris::RenderTarget *targe
     animations_ = {
         "Zombie|ZombieWalk", "Zombie|ZombieBite", "Zombie|ZombieCrawl", "Zombie|ZombieIdle", "Zombie|ZombieRun"};
 
-    zombie_->skeleton().set_animation(animations_[animation_]);
+    animation_controller_ = std::make_unique<iris::AnimationController>(
+        mesh_manager.load_animations("Zombie.fbx"),
+        std::vector<iris::AnimationLayer>{
+            {{{animations_[0], animations_[1], 500ms},
+              {animations_[1], animations_[2], 500ms},
+              {animations_[2], animations_[3], 500ms},
+              {animations_[3], animations_[4], 500ms},
+              {animations_[4], animations_[0], 500ms}},
+             animations_.front()}},
+        zombie_->skeleton());
+
+    // zombie_->skeleton().set_animation(animations_[animation_]);
 
     // offsets and scales for bones we want to add rigid bodies to, these were
     // all handcrafted
@@ -226,12 +241,13 @@ void AnimationSample::fixed_update()
         iris::Matrix4(iris::Quaternion{{0.0f, 1.0f, 0.0f}, -0.01f}) * light_transform_.matrix());
     light_->set_direction(light_transform_.translation());
 
-    physics_->step(std::chrono::milliseconds(13));
+    physics_->step(13ms);
 }
 
 void AnimationSample::variable_update()
 {
-    zombie_->skeleton().advance();
+    // zombie_->skeleton().advance();
+    animation_controller_->update();
 
     // update hit boxes
     for (auto &[name, data] : hit_boxes_)
@@ -258,7 +274,8 @@ void AnimationSample::handle_input(const iris::Event &event)
         if ((keyboard.key == iris::Key::SPACE) && (keyboard.state == iris::KeyState::UP))
         {
             animation_ = (animation_ + 1u) % animations_.size();
-            zombie_->skeleton().set_animation(animations_[animation_]);
+            // zombie_->skeleton().set_animation(animations_[animation_]);
+            animation_controller_->play(0u, animations_[animation_]);
         }
     }
     else if (event.is_mouse())
