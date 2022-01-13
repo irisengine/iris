@@ -7,6 +7,7 @@
 #include "graphics/mesh_loader.h"
 
 #include <cstdint>
+#include <functional>
 #include <stack>
 #include <string>
 #include <vector>
@@ -89,7 +90,7 @@ std::vector<iris::Animation> process_animations(const ::aiScene *scene)
         const std::chrono::milliseconds tick_time{static_cast<std::uint32_t>((1.0f / ticks_per_second) * 1000u)};
         const auto duration = tick_time * static_cast<std::uint32_t>(animation->mDuration);
 
-        std::map<std::string, std::vector<iris::KeyFrame>> nodes;
+        std::map<std::string, std::vector<iris::KeyFrame>, std::less<>> nodes;
 
         // each channel is a collection of keys
         for (auto j = 0u; j < animation->mNumChannels; ++j)
@@ -347,11 +348,11 @@ LoadedData load(const std::string &mesh_name)
 
     const auto *material = scene->mMaterials[mesh->mMaterialIndex];
 
-    LoadedData loaded_data{};
-
-    loaded_data.vertices = process_vertices(mesh, material);
-    loaded_data.indices = process_indices(mesh);
-    loaded_data.skeleton = {process_bones(mesh, root), process_animations(scene)};
+    LoadedData loaded_data{
+        .vertices = process_vertices(mesh, material),
+        .indices = process_indices(mesh),
+        .skeleton = {process_bones(mesh, root)},
+        .animations = process_animations(scene)};
 
     // stamp in bone data into vertices
     // each vertex supports four bones, so keep a track of the next

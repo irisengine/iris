@@ -13,6 +13,7 @@
 
 #include "core/colour.h"
 #include "core/vector3.h"
+#include "graphics/animation.h"
 #include "graphics/mesh.h"
 #include "graphics/skeleton.h"
 #include "graphics/texture.h"
@@ -132,9 +133,22 @@ class MeshManager
      *
      * @returns
      *   Skeleton loaded from file.
-     *
      */
     Skeleton load_skeleton(const std::string &mesh_file);
+
+    /**
+     * Load animations from a file.
+     *
+     * Note that unlike load_mesh this returns a new copy each time, this is so
+     * each Skeleton can be mutated independently.
+     *
+     * @param mesh_file
+     *   File to load.
+     *
+     * @returns
+     *   Animations loaded from file.
+     */
+    std::vector<Animation> load_animations(const std::string &mesh_file);
 
   protected:
     /**
@@ -159,6 +173,9 @@ class MeshManager
 
     /** Collection of created Skeleton objects. */
     std::unordered_map<std::string, Skeleton> loaded_skeletons_;
+
+    /** Collection of created Animation objects. */
+    std::unordered_map<std::string, std::vector<Animation>> loaded_animations_;
 };
 
 }

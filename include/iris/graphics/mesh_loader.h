@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "graphics/animation.h"
 #include "graphics/skeleton.h"
 #include "graphics/texture.h"
 #include "graphics/vertex_data.h"
@@ -30,6 +31,9 @@ struct LoadedData
 
     /** Mesh skeleton. */
     Skeleton skeleton;
+
+    /** Mesh animations. */
+    std::vector<Animation> animations;
 };
 
 /**

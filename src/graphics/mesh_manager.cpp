@@ -194,9 +194,10 @@ const Mesh *MeshManager::load_mesh(const std::string &mesh_file)
 {
     if (loaded_meshes_.count(mesh_file) == 0u)
     {
-        const auto &[vertices, indices, skeleton] = mesh_loader::load(mesh_file);
+        const auto &[vertices, indices, skeleton, animations] = mesh_loader::load(mesh_file);
         loaded_meshes_[mesh_file] = create_mesh(vertices, indices);
         loaded_skeletons_[mesh_file] = skeleton;
+        loaded_animations_[mesh_file] = animations;
     }
 
     return loaded_meshes_[mesh_file].get();
@@ -204,10 +205,14 @@ const Mesh *MeshManager::load_mesh(const std::string &mesh_file)
 
 Skeleton MeshManager::load_skeleton(const std::string &mesh_file)
 {
-    // load the mesh, this will also load the skeleton
     load_mesh(mesh_file);
-
     return loaded_skeletons_[mesh_file];
+}
+
+std::vector<Animation> MeshManager::load_animations(const std::string &mesh_file)
+{
+    load_mesh(mesh_file);
+    return loaded_animations_[mesh_file];
 }
 
 }
