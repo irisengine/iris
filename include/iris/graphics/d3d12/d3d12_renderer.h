@@ -113,15 +113,12 @@ class D3D12Renderer : public Renderer
             Microsoft::WRL::ComPtr<ID3D12Resource> buffer,
             D3D12DescriptorHandle render_target,
             std::unique_ptr<D3D12Texture> depth_buffer,
-            Microsoft::WRL::ComPtr<ID3D12CommandAllocator> command_allocator,
-            Microsoft::WRL::ComPtr<ID3D12Fence> fence,
-            HANDLE fence_event)
+            Microsoft::WRL::ComPtr<ID3D12CommandAllocator> command_allocator)
             : buffer(buffer)
             , render_target(render_target)
             , depth_buffer(std::move(depth_buffer))
             , command_allocator(command_allocator)
-            , fence(fence)
-            , fence_event(fence_event, ::CloseHandle)
+            , fence_value(0u)
         {
         }
 
@@ -137,17 +134,10 @@ class D3D12Renderer : public Renderer
         /** Command allocate for frame. */
         Microsoft::WRL::ComPtr<ID3D12CommandAllocator> command_allocator;
 
-        /** Fence for signaling frame completion. */
-        Microsoft::WRL::ComPtr<ID3D12Fence> fence;
-
-        /**
-         * Event to signal frame completion, when event is set then frame is
-         * safe to use.
-         */
-        AutoRelease<HANDLE, nullptr> fence_event;
-
         /** Map of RenderCommand objects to constant data buffer pools. */
         std::unordered_map<const RenderCommand *, D3D12ConstantBufferPool> constant_data_buffers;
+
+        std::uint64_t fence_value;
     };
 
     /** Width of window to present to. */
@@ -161,6 +151,10 @@ class D3D12Renderer : public Renderer
 
     /** Index of current frame to render to. */
     std::uint32_t frame_index_;
+
+    Microsoft::WRL::ComPtr<ID3D12Fence> fence_;
+
+    AutoRelease<HANDLE, nullptr> fence_event_;
 
     /** Single command queue for all frames. */
     Microsoft::WRL::ComPtr<ID3D12CommandQueue> command_queue_;

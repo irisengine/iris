@@ -123,6 +123,8 @@ void go(int, char **)
         }};
 
     looper.run();
+
+    iris::Root::reset();
 }
 
 int main(int argc, char **argv)

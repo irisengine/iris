@@ -9,6 +9,7 @@
 #include <cmath>
 #include <optional>
 #include <queue>
+#include <set>
 
 #define WIN32_LEAN_AND_MEAN
 #include <ShellScalingApi.h>
@@ -19,7 +20,11 @@
 #include "core/auto_release.h"
 #include "core/error_handling.h"
 #include "events/event.h"
+#include "events/keyboard_event.h"
+#include "events/mouse_button_event.h"
 #include "events/quit_event.h"
+#include "events/scroll_wheel_event.h"
+#include "log/log.h"
 
 #pragma comment(lib, "Shcore.lib")
 
@@ -148,14 +153,33 @@ LRESULT CALLBACK window_proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     LRESULT result = 0;
 
+    static std::set<WPARAM> pressed{};
+
     switch (uMsg)
     {
         case WM_CLOSE: event_queue.emplace(iris::QuitEvent{}); break;
         case WM_KEYDOWN:
-            event_queue.emplace(iris::KeyboardEvent{windows_key_to_engine_Key(wParam), iris::KeyState::DOWN});
+            if (!pressed.contains(wParam))
+            {
+                event_queue.emplace(iris::KeyboardEvent{windows_key_to_engine_Key(wParam), iris::KeyState::DOWN});
+                pressed.emplace(wParam);
+            }
             break;
         case WM_KEYUP:
             event_queue.emplace(iris::KeyboardEvent{windows_key_to_engine_Key(wParam), iris::KeyState::UP});
+            pressed.erase(wParam);
+            break;
+        case WM_LBUTTONDOWN:
+            event_queue.emplace(iris::MouseButtonEvent{iris::MouseButton::LEFT, iris::MouseButtonState::DOWN});
+            break;
+        case WM_LBUTTONUP:
+            event_queue.emplace(iris::MouseButtonEvent{iris::MouseButton::LEFT, iris::MouseButtonState::UP});
+            break;
+        case WM_RBUTTONDOWN:
+            event_queue.emplace(iris::MouseButtonEvent{iris::MouseButton::RIGHT, iris::MouseButtonState::DOWN});
+            break;
+        case WM_RBUTTONUP:
+            event_queue.emplace(iris::MouseButtonEvent{iris::MouseButton::RIGHT, iris::MouseButtonState::UP});
             break;
         case WM_INPUT:
         {
@@ -175,6 +199,12 @@ LRESULT CALLBACK window_proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
                 event_queue.emplace(iris::MouseEvent{static_cast<float>(x), static_cast<float>(y)});
             }
+            else if ((raw.data.mouse.usButtonFlags & RI_MOUSE_HWHEEL) == RI_MOUSE_HWHEEL)
+            {
+                const auto delta = static_cast<float>(static_cast<std::uint16_t>(raw.data.mouse.usButtonData));
+                event_queue.emplace(iris::ScrollWheelEvent{delta});
+            }
+
             break;
         }
         default: result = ::DefWindowProc(hWnd, uMsg, wParam, lParam);

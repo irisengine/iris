@@ -35,10 +35,10 @@ BulletMeshCollisionShape::BulletMeshCollisionShape(const Mesh *mesh, const Vecto
     triangle_index_vertex_data_ = std::make_unique<btTriangleIndexVertexArray>(
         num_faces,
         index_ptr,
-        sizeof(int) * 3,
+        static_cast<int>(sizeof(int) * 3),
         static_cast<int>(mesh_vertex_data.size()),
         vertex_ptr,
-        sizeof(VertexData));
+        static_cast<int>(sizeof(VertexData)));
 
     shape_ = std::make_unique<btBvhTriangleMeshShape>(triangle_index_vertex_data_.get(), true);
     shape_->setLocalScaling({scale.x, scale.y, scale.z});

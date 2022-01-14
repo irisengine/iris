@@ -196,6 +196,8 @@ D3D12Renderer::D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t hei
     , height_(height)
     , frames_()
     , frame_index_(0u)
+    , fence_(nullptr)
+    , fence_event_()
     , command_queue_(nullptr)
     , command_list_(nullptr)
     , swap_chain_(nullptr)
@@ -275,19 +277,20 @@ D3D12Renderer::D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t hei
             device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&command_allocator)) == S_OK,
             "could not create command allocator");
 
-        // create a fence, used to signal when gpu has completed a frame
-        Microsoft::WRL::ComPtr<ID3D12Fence> fence = nullptr;
-        ensure(device->CreateFence(0u, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)) == S_OK, "could not create fence");
-
         frames_.emplace_back(
             frame,
             rtv_handle,
             std::make_unique<D3D12Texture>(
                 DataBuffer{}, width_ * initial_screen_scale, height_ * initial_screen_scale, TextureUsage::DEPTH),
-            command_allocator,
-            fence,
-            ::CreateEvent(NULL, FALSE, TRUE, NULL));
+            command_allocator);
     }
+
+    // create a fence, used to signal when gpu has completed a frame
+    ensure(
+        device->CreateFence(frames_[frame_index_].fence_value, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence_)) == S_OK,
+        "could not create fence");
+    fence_event_ = {::CreateEventA(NULL, FALSE, FALSE, NULL), ::CloseHandle};
+    ++frames_[frame_index_].fence_value;
 
     ensure(
         device->CreateCommandList(
@@ -307,17 +310,17 @@ D3D12Renderer::D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t hei
 
 D3D12Renderer::~D3D12Renderer()
 {
-    // build a collection of all frame events
-    std::vector<HANDLE> wait_handles{};
+    //// build a collection of all frame events
+    // std::vector<HANDLE> wait_handles{};
 
-    for (const auto &frame : frames_)
-    {
-        wait_handles.emplace_back(frame.fence_event);
-    }
+    // for (const auto &frame : frames_)
+    //{
+    //    wait_handles.emplace_back(frame.fence_event);
+    //}
 
-    // we cannot destruct whilst a frame is being rendered, so we wait for all
-    // frames to signal they are done
-    ::WaitForMultipleObjects(static_cast<DWORD>(wait_handles.size()), wait_handles.data(), TRUE, INFINITE);
+    //// we cannot destruct whilst a frame is being rendered, so we wait for all
+    //// frames to signal they are done
+    //::WaitForMultipleObjects(static_cast<DWORD>(wait_handles.size()), wait_handles.data(), TRUE, INFINITE);
 }
 
 void D3D12Renderer::set_render_passes(const std::vector<RenderPass> &render_passes)
@@ -341,10 +344,9 @@ void D3D12Renderer::set_render_passes(const std::vector<RenderPass> &render_pass
     // add a post processing pass
 
     // find the pass which renders to the screen
-    auto final_pass = std::find_if(
-        std::begin(render_passes_),
-        std::end(render_passes_),
-        [](const RenderPass &pass) { return pass.render_target == nullptr; });
+    auto final_pass = std::find_if(std::begin(render_passes_), std::end(render_passes_), [](const RenderPass &pass) {
+        return pass.render_target == nullptr;
+    });
 
     ensure(final_pass != std::cend(render_passes_), "no final pass");
 
@@ -374,8 +376,8 @@ void D3D12Renderer::set_render_passes(const std::vector<RenderPass> &render_pass
     // build the render queue from the provided passes
 
     RenderQueueBuilder queue_builder(
-        [this](RenderGraph *render_graph, RenderEntity *render_entity, const RenderTarget *target, LightType light_type)
-        {
+        [this](
+            RenderGraph *render_graph, RenderEntity *render_entity, const RenderTarget *target, LightType light_type) {
             if (materials_.count(render_graph) == 0u || materials_[render_graph].count(light_type) == 0u)
             {
                 materials_[render_graph][light_type] = std::make_unique<D3D12Material>(
@@ -436,16 +438,18 @@ RenderTarget *D3D12Renderer::create_render_target(std::uint32_t width, std::uint
 void D3D12Renderer::pre_render()
 {
     const auto &frame = frames_[frame_index_];
+    // LOG_DEBUG("d3d12", "frame index: {} {}", frame_index_, frame.fence->GetCompletedValue());
 
-    // if the gpu is still using this frame then wait
-    ::WaitForSingleObject(frame.fence_event, INFINITE);
+    //// if the gpu is still using this frame then wai
+    // LOG_DEBUG("d3d12", "wait: {}", ::WaitForSingleObject(frame.fence_event, INFINITE));
+    // std::this_thread::sleep_for(std::chrono::milliseconds(33));
 
     // reset state to non-waiting
-    frame.fence->Signal(0u);
-    ::ResetEvent(frame.fence_event);
+    // frame.fence->Signal(0u);
+    //::ResetEvent(frame.fence_event);
 
     // reset command allocator and list for new frame
-    frame.command_allocator->Reset();
+    // grame.command_allocator->Reset();
     command_list_->Reset(frame.command_allocator.Get(), nullptr);
 
     // reset descriptor allocations for new frame
@@ -702,7 +706,7 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
 
 void D3D12Renderer::execute_present(RenderCommand &)
 {
-    const auto &frame = frames_[frame_index_];
+    auto &frame = frames_[frame_index_];
 
     // transition the frame render target to present and depth buffer to shader
     // visible
@@ -725,11 +729,24 @@ void D3D12Renderer::execute_present(RenderCommand &)
     // present frame to window
     expect(swap_chain_->Present(0u, 0u) == S_OK, "could not present");
 
-    // enqueue signal so future render passes know when the frame is safe to use
-    expect(command_queue_->Signal(frame.fence.Get(), 1u) == S_OK, "could not signal");
-    frame.fence->SetEventOnCompletion(1u, frame.fence_event);
+    const auto fence_value = frame.fence_value;
+    expect(command_queue_->Signal(fence_.Get(), fence_value) == S_OK, "could not signal");
 
     frame_index_ = swap_chain_->GetCurrentBackBufferIndex();
+
+    if (fence_->GetCompletedValue() < frame.fence_value)
+    {
+        fence_->SetEventOnCompletion(frame.fence_value, fence_event_);
+        ::WaitForSingleObject(fence_event_, INFINITE);
+    }
+
+    frame.fence_value = fence_value + 1u;
+
+    // enqueue signal so future render passes know when the frame is safe to use
+    // expect(frame.fence->GetCompletedValue() == frame.fence_value - 1u, "invalid fence value");
+    // expect(command_queue_->Signal(frame.fence.Get(), frame.fence_value) == S_OK, "could not signal");
+    // frame.fence->SetEventOnCompletion(frame.fence_value, frame.fence_event);
+    //++frame.fence_value;
 }
 
 }
