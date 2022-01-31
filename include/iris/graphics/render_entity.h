@@ -115,6 +115,14 @@ class RenderEntity
     void set_orientation(const Quaternion &orientation);
 
     /**
+     * Get scale.
+     *
+     * @return
+     *   Scale.
+     */
+    Vector3 scale() const;
+
+    /**
      * Set the scale of the RenderEntity.
      *
      * @param scale

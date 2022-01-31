@@ -90,6 +90,11 @@ void RenderEntity::set_orientation(const Quaternion &orientation)
     normal_ = create_normal_transform(transform_.matrix());
 }
 
+Vector3 RenderEntity::scale() const
+{
+    return transform_.scale();
+}
+
 void RenderEntity::set_scale(const Vector3 &scale)
 {
     transform_.set_scale(scale);
