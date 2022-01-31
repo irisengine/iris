@@ -18,7 +18,11 @@
 #include "core/auto_release.h"
 #include "core/error_handling.h"
 #include "events/event.h"
+#include "events/keyboard_event.h"
+#include "events/mouse_button_event.h"
+#include "events/mouse_event.h"
 #include "events/quit_event.h"
+#include "events/scroll_wheel_event.h"
 #include "graphics/linux/scoped_error_handler.h"
 #define DONT_MAKE_GL_FUNCTIONS_EXTERN // get concrete function pointers for all
                                       // opengl functions
@@ -386,6 +390,36 @@ std::optional<Event> LinuxWindow::pump_event()
         else if (event.type == KeyRelease)
         {
             events_.emplace(KeyboardEvent{x11_key_to_engine_key(::XLookupKeysym(&event.xkey, 0)), KeyState::UP});
+        }
+        else if (event.type == ButtonPress)
+        {
+            if (event.xbutton.button == Button1)
+            {
+                events_.emplace(MouseButtonEvent{MouseButton::LEFT, MouseButtonState::DOWN});
+            }
+            else if (event.xbutton.button == Button2)
+            {
+                events_.emplace(MouseButtonEvent{MouseButton::RIGHT, MouseButtonState::DOWN});
+            }
+            else if (event.xbutton.button == Button4)
+            {
+                events_.emplace(ScrollWheelEvent{1.0f});
+            }
+            else if (event.xbutton.button == Button5)
+            {
+                events_.emplace(ScrollWheelEvent{-1.0f});
+            }
+        }
+        else if (event.type == ButtonRelease)
+        {
+            if (event.xbutton.button == Button1)
+            {
+                events_.emplace(MouseButtonEvent{MouseButton::LEFT, MouseButtonState::UP});
+            }
+            else if (event.xbutton.button == Button2)
+            {
+                events_.emplace(MouseButtonEvent{MouseButton::RIGHT, MouseButtonState::UP});
+            }
         }
         else if (event.type == MotionNotify)
         {
