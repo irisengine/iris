@@ -20,6 +20,7 @@ extern "C"
 #include "core/object_pool.h"
 #include "core/quaternion.h"
 #include "core/vector3.h"
+#include "scripting/lua/interop/vector3.h"
 
 namespace iris::interop::lua
 {
@@ -43,13 +44,26 @@ Quaternion **get_quaternion(lua_State *state)
 
 int quaternion_constructor(lua_State *state)
 {
-    const auto arg1 = static_cast<float>(::luaL_checknumber(state, 1));
-    const auto arg2 = static_cast<float>(::luaL_checknumber(state, 2));
-    const auto arg3 = static_cast<float>(::luaL_checknumber(state, 3));
-    const auto arg4 = static_cast<float>(::luaL_checknumber(state, 4));
-    auto **user_data = reinterpret_cast<Quaternion **>(::lua_newuserdata(state, sizeof(Quaternion *)));
-    *user_data = quaternion_pool.next(arg1, arg2, arg3, arg4);
-    luaL_setmetatable(state, "Quaternion");
+    // if first argument on the stack is a number then we assume we've been passed four numbers and use the appropriate
+    // constructor otherwise we assume the vector constructor
+    if (::lua_isnumber(state, 1))
+    {
+        const auto arg1 = static_cast<float>(::luaL_checknumber(state, 1));
+        const auto arg2 = static_cast<float>(::luaL_checknumber(state, 2));
+        const auto arg3 = static_cast<float>(::luaL_checknumber(state, 3));
+        const auto arg4 = static_cast<float>(::luaL_checknumber(state, 4));
+        auto **user_data = reinterpret_cast<Quaternion **>(::lua_newuserdata(state, sizeof(Quaternion *)));
+        *user_data = quaternion_pool.next(arg1, arg2, arg3, arg4);
+        luaL_setmetatable(state, "Quaternion");
+    }
+    else
+    {
+        const auto arg1 = get_vector3(state);
+        const auto arg2 = static_cast<float>(::luaL_checknumber(state, 2));
+        auto **user_data = reinterpret_cast<Quaternion **>(::lua_newuserdata(state, sizeof(Quaternion *)));
+        *user_data = quaternion_pool.next(**arg1, arg2);
+        luaL_setmetatable(state, "Quaternion");
+    }
 
     return 1;
 }

@@ -64,6 +64,25 @@ TEST(lua_script, add_multiple_functions)
     EXPECT_EQ((runner.execute<std::int32_t>("func2", 5)), 7);
 }
 
+TEST(lua_script, shared_state)
+{
+    iris::Vector3 v1{1.0f, 2.0f, 3.0f};
+    iris::Vector3 v2{1.0f, 2.0f, 3.0f};
+
+    iris::ScriptRunner runner{std::make_unique<iris::LuaScript>(R"(
+            function func1(v1, v2)
+                v = v1 + v2
+            end
+
+            function func2()
+                return v
+            end
+        )")};
+
+    runner.execute("func1", v1, v2);
+    EXPECT_EQ((runner.execute<iris::Vector3>("func2")), v1 + v2);
+}
+
 TEST(lua_script, vector3_function)
 {
     iris::ScriptRunner runner{std::make_unique<iris::LuaScript>(R"(
@@ -264,7 +283,7 @@ TEST(lua_script, pass_quaternion)
         std::make_tuple(1.1f, 2.2f, 3.3f, 4.4f));
 }
 
-TEST(lua_script, get_quaternion)
+TEST(lua_script, get_quaternion_with_components)
 {
     iris::ScriptRunner runner{std::make_unique<iris::LuaScript>(R"(
             function create_quaternion(x, y, z, w)
@@ -274,6 +293,18 @@ TEST(lua_script, get_quaternion)
     EXPECT_EQ(
         (runner.execute<iris::Quaternion>("create_quaternion", 2.1f, 2.2f, 2.3f, 2.4f)),
         iris::Quaternion(2.1f, 2.2f, 2.3f, 2.4f));
+}
+
+TEST(lua_script, get_quaternion_with_vector)
+{
+    iris::ScriptRunner runner{std::make_unique<iris::LuaScript>(R"(
+            function create_quaternion(x, y, z, w)
+                local q = Quaternion(Vector3(x, y, z), w)
+                return q
+            end)")};
+    EXPECT_EQ(
+        (runner.execute<iris::Quaternion>("create_quaternion", 2.1f, 2.2f, 2.3f, 2.4f)),
+        iris::Quaternion(iris::Vector3(2.1f, 2.2f, 2.3f), 2.4f));
 }
 
 TEST(lua_script, quaternion_setters)
