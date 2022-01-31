@@ -116,8 +116,6 @@ void AnimationController::update()
         auto *next_state = impl_->current_state[i]->update();
         if (next_state != nullptr)
         {
-            LOG_DEBUG("ac", "{} -> {}", impl_->current_state[i]->animation()->name(), next_state->animation()->name());
-
             impl_->current_state[i]->exit();
             impl_->current_state[i] = next_state;
             impl_->current_state[i]->enter();
