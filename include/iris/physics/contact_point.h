@@ -14,18 +14,21 @@ namespace iris
 class RigidBody;
 
 /**
- * Struct encapsulating data that describes a contact between two rigid bodies.
+ * Struct encapsulating data that describes a rigid body contact.
  */
 struct ContactPoint
 {
-    /** First rigid body in contact. */
-    RigidBody *contact_a;
-
-    /** Second rigid body in contact. */
-    RigidBody *contact_b;
+    /** Rigid body in contact. */
+    RigidBody *contact;
 
     /** Position in world space of contact. */
     Vector3 position;
+
+    /** Amount contact is penetrating. */
+    float penetration;
+
+    /** Normal of contact in world space. */
+    Vector3 normal;
 };
 
 }

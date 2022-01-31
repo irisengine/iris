@@ -58,30 +58,22 @@ btScalar CollisionCallback::addSingleResult(
     RigidBody *body_a = get_engine_body(colObj0Wrap);
     RigidBody *body_b = get_engine_body(colObj1Wrap);
 
-    if ((body_a != nullptr) && (body_b != nullptr))
+    // get penetration - the way bullet does its collision detection it may return contacts that are not actually
+    // penetrating however we can use the distance to differentiate false positives
+    // a negative depth means the object is penetrating and positive depth means it is not
+    const auto penetration = cp.getDistance();
+
+    if ((penetration < 0.0f) && (body_a != nullptr) && (body_b != nullptr))
     {
-        // get world position of collision contact point
+        // get world position and normal of collision contact point
         const auto bullet_world_pos = cp.getPositionWorldOnA();
+        const auto normal = cp.m_normalWorldOnB;
 
-        ContactPoint contact{
-            .contact_a = body_a,
-            .contact_b = body_b,
-            .position = {bullet_world_pos.x(), bullet_world_pos.y(), bullet_world_pos.z()},
-        };
-
-        // we always want to return the testing object as body_a
-        // as we cannot guarantee the ordering of objects from bullet we check here and swap if necessary
-
-        if (body_a != testing_body_)
-        {
-            std::swap(contact.contact_a, contact.contact_b);
-        }
-
-        // sanity check that we definitely have a contact with our testing body
-        if (body_a == testing_body_)
-        {
-            contact_points_.emplace_back(contact);
-        }
+        contact_points_.push_back(
+            {.contact = (body_a == testing_body_) ? body_b : body_a,
+             .position = {bullet_world_pos.x(), bullet_world_pos.y(), bullet_world_pos.z()},
+             .penetration = -penetration, // normalise penetration value to be positive
+             .normal = {normal.x(), normal.y(), normal.z()}});
     }
 
     // bullet ignores the return value of this function
@@ -92,6 +84,12 @@ std::vector<ContactPoint> CollisionCallback::yield_contact_points()
 {
     std::vector<ContactPoint> contacts{};
     std::swap(contacts, contact_points_);
+
+    // sort from most to least penetrated
+    std::sort(
+        std::begin(contacts),
+        std::end(contacts),
+        [](const ContactPoint &cp1, const ContactPoint &cp2) { return cp1.penetration > cp2.penetration; });
 
     return contacts;
 }
