@@ -170,11 +170,11 @@ void BulletPhysicsSystem::step(std::chrono::milliseconds time_step)
 
 RigidBody *BulletPhysicsSystem::create_rigid_body(
     const Vector3 &position,
-    CollisionShape *collision_shape,
+    const CollisionShape *collision_shape,
     RigidBodyType type)
 {
     bodies_.emplace_back(
-        std::make_unique<BulletRigidBody>(position, static_cast<BulletCollisionShape *>(collision_shape), type));
+        std::make_unique<BulletRigidBody>(position, static_cast<const BulletCollisionShape *>(collision_shape), type));
     auto *body = static_cast<BulletRigidBody *>(bodies_.back().get());
 
     if (body->type() == RigidBodyType::GHOST)
@@ -191,25 +191,19 @@ RigidBody *BulletPhysicsSystem::create_rigid_body(
     return body;
 }
 
-CharacterController *BulletPhysicsSystem::create_character_controller()
-{
-    character_controllers_.emplace_back(std::make_unique<BasicCharacterController>(this));
-    return character_controllers_.back().get();
-}
-
-CollisionShape *BulletPhysicsSystem::create_box_collision_shape(const Vector3 &half_size)
+const CollisionShape *BulletPhysicsSystem::create_box_collision_shape(const Vector3 &half_size)
 {
     collision_shapes_.emplace_back(std::make_unique<BulletBoxCollisionShape>(half_size));
     return collision_shapes_.back().get();
 }
 
-CollisionShape *BulletPhysicsSystem::create_capsule_collision_shape(float width, float height)
+const CollisionShape *BulletPhysicsSystem::create_capsule_collision_shape(float width, float height)
 {
     collision_shapes_.emplace_back(std::make_unique<BulletCapsuleCollisionShape>(width, height));
     return collision_shapes_.back().get();
 }
 
-CollisionShape *BulletPhysicsSystem::create_mesh_collision_shape(const Mesh *mesh, const Vector3 &scale)
+const CollisionShape *BulletPhysicsSystem::create_mesh_collision_shape(const Mesh *mesh, const Vector3 &scale)
 {
     collision_shapes_.emplace_back(std::make_unique<BulletMeshCollisionShape>(mesh, scale));
     return collision_shapes_.back().get();

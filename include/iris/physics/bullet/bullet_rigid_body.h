@@ -42,7 +42,7 @@ class BulletRigidBody : public RigidBody
      *   The type of rigid body, this effects how this body interacts with
      *   others.
      */
-    BulletRigidBody(const Vector3 &position, BulletCollisionShape *collision_shape, RigidBodyType type);
+    BulletRigidBody(const Vector3 &position, const BulletCollisionShape *collision_shape, RigidBodyType type);
 
     ~BulletRigidBody() override = default;
 
@@ -144,7 +144,7 @@ class BulletRigidBody : public RigidBody
      * @returns
      *   Collision shape.
      */
-    CollisionShape *collision_shape() const override;
+    const CollisionShape *collision_shape() const override;
 
     /**
      * Set collision shape.
@@ -152,7 +152,7 @@ class BulletRigidBody : public RigidBody
      * @param collision_shape
      *   New collision shape.
      */
-    void set_collision_shape(CollisionShape *collision_shape) override;
+    void set_collision_shape(const CollisionShape *collision_shape) override;
 
     /**
      * Apply an impulse (at the centre of mass).
@@ -178,7 +178,7 @@ class BulletRigidBody : public RigidBody
     RigidBodyType type_;
 
     /** Collision shape of rigid body. */
-    BulletCollisionShape *collision_shape_;
+    const BulletCollisionShape *collision_shape_;
 
     /** Bullet collision object. */
     std::unique_ptr<btCollisionObject> body_;

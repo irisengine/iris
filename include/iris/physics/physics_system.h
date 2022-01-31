@@ -75,7 +75,7 @@ class PhysicsSystem
      */
     virtual RigidBody *create_rigid_body(
         const Vector3 &position,
-        CollisionShape *collision_shape,
+        const CollisionShape *collision_shape,
         RigidBodyType type) = 0;
 
     /**
@@ -95,7 +95,7 @@ class PhysicsSystem
      * @returns
      *   Pointer to newly created CollisionShape.
      */
-    virtual CollisionShape *create_box_collision_shape(const Vector3 &half_size) = 0;
+    virtual const CollisionShape *create_box_collision_shape(const Vector3 &half_size) = 0;
 
     /**
      * Create a CollisionShape for a capsule.
@@ -109,7 +109,7 @@ class PhysicsSystem
      * @returns
      *   Pointer to newly created CollisionShape.
      */
-    virtual CollisionShape *create_capsule_collision_shape(float width, float height) = 0;
+    virtual const CollisionShape *create_capsule_collision_shape(float width, float height) = 0;
 
     /**
      * Create a CollisionShape from a Mesh.
@@ -123,7 +123,7 @@ class PhysicsSystem
      * @returns
      *   Pointer to newly created CollisionShape.
      */
-    virtual CollisionShape *create_mesh_collision_shape(const Mesh *mesh, const Vector3 &scale) = 0;
+    virtual const CollisionShape *create_mesh_collision_shape(const Mesh *mesh, const Vector3 &scale) = 0;
 
     /**
      * Remove a body from the physics system.

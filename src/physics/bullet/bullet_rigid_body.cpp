@@ -30,7 +30,10 @@
 namespace iris
 {
 
-BulletRigidBody::BulletRigidBody(const Vector3 &position, BulletCollisionShape *collision_shape, RigidBodyType type)
+BulletRigidBody::BulletRigidBody(
+    const Vector3 &position,
+    const BulletCollisionShape *collision_shape,
+    RigidBodyType type)
     : name_()
     , type_(type)
     , collision_shape_(collision_shape)
@@ -190,14 +193,14 @@ RigidBodyType BulletRigidBody::type() const
     return type_;
 }
 
-CollisionShape *BulletRigidBody::collision_shape() const
+const CollisionShape *BulletRigidBody::collision_shape() const
 {
     return collision_shape_;
 }
 
-void BulletRigidBody::set_collision_shape(CollisionShape *collision_shape)
+void BulletRigidBody::set_collision_shape(const CollisionShape *collision_shape)
 {
-    collision_shape_ = static_cast<BulletCollisionShape *>(collision_shape);
+    collision_shape_ = static_cast<const BulletCollisionShape *>(collision_shape);
 
     body_->setCollisionShape(collision_shape_->handle());
 }

@@ -76,7 +76,6 @@ class BulletPhysicsSystem : public PhysicsSystem
      * @returns
      *   A pointer to the newly created RigidBody.
      */
-    RigidBody *create_rigid_body(const Vector3 &position, CollisionShape *collision_shape, RigidBodyType type) override;
 
     /**
      * Create a CharacterController and add it to the simulation.
@@ -85,6 +84,8 @@ class BulletPhysicsSystem : public PhysicsSystem
      *   A pointer to the newly created CharacterController.
      */
     CharacterController *create_character_controller() override;
+    RigidBody *create_rigid_body(const Vector3 &position, const CollisionShape *collision_shape, RigidBodyType type)
+        override;
 
     /**
      * Create a CollisionShape for a box.
@@ -95,7 +96,7 @@ class BulletPhysicsSystem : public PhysicsSystem
      * @returns
      *   Pointer to newly created CollisionShape.
      */
-    CollisionShape *create_box_collision_shape(const Vector3 &half_size) override;
+    const CollisionShape *create_box_collision_shape(const Vector3 &half_size) override;
 
     /**
      * Create a CollisionShape for a capsule.
@@ -109,7 +110,7 @@ class BulletPhysicsSystem : public PhysicsSystem
      * @returns
      *   Pointer to newly created CollisionShape.
      */
-    CollisionShape *create_capsule_collision_shape(float width, float height) override;
+    const CollisionShape *create_capsule_collision_shape(float width, float height) override;
 
     /**
      * Create a CollisionShape from a Mesh.
@@ -123,7 +124,7 @@ class BulletPhysicsSystem : public PhysicsSystem
      * @returns
      *   Pointer to newly created CollisionShape.
      */
-    CollisionShape *create_mesh_collision_shape(const Mesh *mesh, const Vector3 &scale) override;
+    const CollisionShape *create_mesh_collision_shape(const Mesh *mesh, const Vector3 &scale) override;
 
     /**
      * Remove a body from the physics system.
