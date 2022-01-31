@@ -11,6 +11,7 @@
 #include <mutex>
 
 #include "core/error_handling.h"
+#include "log/log.h"
 
 namespace iris
 {
@@ -20,7 +21,7 @@ namespace iris
  *
  * Internally this allocates a large continuous block for all objects and returns/releases objects from the start.
  */
-template <class T, std::size_t N = 1000, class Allocator = std::allocator<T>>
+template <class T, std::size_t N = 50000, class Allocator = std::allocator<T>>
 class ObjectPool
 {
   public:
