@@ -33,12 +33,31 @@ class LuaScript : public Script
 {
   public:
     /**
+     * Tag to indicate script should be loaded from a file.
+     */
+    struct LoadFile
+    {
+    };
+
+    /**
      * Construct a new LuaScript.
      *
      * @param source
      *   The source for the lua script.
      */
-    LuaScript(const std::string &source);
+    explicit LuaScript(const std::string &source);
+
+    /**
+     * Construct a new LuaScript.
+     *
+     * @param file
+     *   File to load script from (via ResourceLoader).
+     *
+     * @param
+     *   Tag to indicate script should be loaded from a file.
+     */
+    LuaScript(const std::string &file, LoadFile);
+
     ~LuaScript() override;
 
     LuaScript(const LuaScript &) = delete;
