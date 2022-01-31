@@ -181,6 +181,10 @@ LRESULT CALLBACK window_proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         case WM_RBUTTONUP:
             event_queue.emplace(iris::MouseButtonEvent{iris::MouseButton::RIGHT, iris::MouseButtonState::UP});
             break;
+        case WM_MOUSEWHEEL:
+            event_queue.emplace(
+                iris::ScrollWheelEvent{static_cast<float>(GET_WHEEL_DELTA_WPARAM(wParam)) / WHEEL_DELTA});
+            break;
         case WM_INPUT:
         {
             UINT dwSize = sizeof(RAWINPUT);
@@ -199,7 +203,7 @@ LRESULT CALLBACK window_proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
                 event_queue.emplace(iris::MouseEvent{static_cast<float>(x), static_cast<float>(y)});
             }
-            else if ((raw.data.mouse.usButtonFlags & RI_MOUSE_HWHEEL) == RI_MOUSE_HWHEEL)
+            else if ((raw.data.mouse.usButtonFlags & RI_MOUSE_WHEEL) == RI_MOUSE_WHEEL)
             {
                 const auto delta = static_cast<float>(static_cast<std::uint16_t>(raw.data.mouse.usButtonData));
                 event_queue.emplace(iris::ScrollWheelEvent{delta});
