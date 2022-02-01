@@ -11,4 +11,5 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/physics_system.h
     ${INCLUDE_ROOT}/ray_cast_result.h
     ${INCLUDE_ROOT}/rigid_body.h
-    ${INCLUDE_ROOT}/rigid_body_type.h)
+    ${INCLUDE_ROOT}/rigid_body_type.h
+    basic_character_controller.cpp)

@@ -10,7 +10,6 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/bullet_rigid_body.h
     ${INCLUDE_ROOT}/collision_callback.h
     ${INCLUDE_ROOT}/debug_draw.h
-    basic_character_controller.cpp
     bullet_box_collision_shape.cpp
     bullet_capsule_collision_shape.cpp
     bullet_mesh_collision_shape.cpp

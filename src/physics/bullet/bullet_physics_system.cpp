@@ -57,7 +57,7 @@ void remove_body_from_world(iris::RigidBody *body, btDynamicsWorld *world)
 {
     auto *bullet_body = static_cast<iris::BulletRigidBody *>(body);
 
-    if (body->type() == iris::RigidBodyType::GHOST)
+    if ((body->type() == iris::RigidBodyType::GHOST) || (body->type() == iris::RigidBodyType::CHARACTER_CONTROLLER))
     {
         auto *bullet_ghost = static_cast<::btGhostObject *>(bullet_body->handle());
         world->removeCollisionObject(bullet_ghost);
@@ -151,6 +151,11 @@ BulletPhysicsSystem::~BulletPhysicsSystem()
 
 void BulletPhysicsSystem::step(std::chrono::milliseconds time_step)
 {
+    for (auto &controller : character_controllers_)
+    {
+        controller->update(this, time_step);
+    }
+
     const auto ticks = static_cast<float>(time_step.count());
     world_->stepSimulation(ticks / 1000.0f, 1);
 
@@ -177,7 +182,7 @@ RigidBody *BulletPhysicsSystem::create_rigid_body(
         std::make_unique<BulletRigidBody>(position, static_cast<const BulletCollisionShape *>(collision_shape), type));
     auto *body = static_cast<BulletRigidBody *>(bodies_.back().get());
 
-    if (body->type() == RigidBodyType::GHOST)
+    if ((body->type() == RigidBodyType::GHOST) || (body->type() == RigidBodyType::CHARACTER_CONTROLLER))
     {
         auto *bullet_ghost = static_cast<btGhostObject *>(body->handle());
         world_->addCollisionObject(bullet_ghost);
@@ -207,6 +212,12 @@ const CollisionShape *BulletPhysicsSystem::create_mesh_collision_shape(const Mes
 {
     collision_shapes_.emplace_back(std::make_unique<BulletMeshCollisionShape>(mesh, scale));
     return collision_shapes_.back().get();
+}
+
+CharacterController *BulletPhysicsSystem::add(std::unique_ptr<CharacterController> character_controller)
+{
+    character_controllers_.emplace_back(std::move(character_controller));
+    return character_controllers_.back().get();
 }
 
 void BulletPhysicsSystem::remove(RigidBody *body)

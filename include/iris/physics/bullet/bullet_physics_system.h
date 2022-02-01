@@ -76,14 +76,6 @@ class BulletPhysicsSystem : public PhysicsSystem
      * @returns
      *   A pointer to the newly created RigidBody.
      */
-
-    /**
-     * Create a CharacterController and add it to the simulation.
-     *
-     * @returns
-     *   A pointer to the newly created CharacterController.
-     */
-    CharacterController *create_character_controller() override;
     RigidBody *create_rigid_body(const Vector3 &position, const CollisionShape *collision_shape, RigidBodyType type)
         override;
 
@@ -125,6 +117,17 @@ class BulletPhysicsSystem : public PhysicsSystem
      *   Pointer to newly created CollisionShape.
      */
     const CollisionShape *create_mesh_collision_shape(const Mesh *mesh, const Vector3 &scale) override;
+
+    /**
+     * Add a character controller.
+     *
+     * @param character_controller
+     *   Character controller to add.
+     *
+     * @return
+     *   Pointer to added character controller.
+     */
+    CharacterController *add(std::unique_ptr<CharacterController> character_controller) override;
 
     /**
      * Remove a body from the physics system.

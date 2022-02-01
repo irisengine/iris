@@ -79,14 +79,6 @@ class PhysicsSystem
         RigidBodyType type) = 0;
 
     /**
-     * Create a CharacterController and add it to the simulation.
-     *
-     * @returns
-     *   A pointer to the newly created CharacterController.
-     */
-    virtual CharacterController *create_character_controller() = 0;
-
-    /**
      * Create a CollisionShape for a box.
      *
      * @param half_size
@@ -124,6 +116,32 @@ class PhysicsSystem
      *   Pointer to newly created CollisionShape.
      */
     virtual const CollisionShape *create_mesh_collision_shape(const Mesh *mesh, const Vector3 &scale) = 0;
+
+    /**
+     * Add a character controller.
+     *
+     * @param character_controller
+     *   Character controller to add.
+     *
+     * @return
+     *   Pointer to added character controller.
+     */
+    virtual CharacterController *add(std::unique_ptr<CharacterController> character_controller) = 0;
+
+    /**
+     * Create a CharacterController object.
+     *
+     * @param args
+     *   Arguments to forward to CharacterController constructor.
+     *
+     * @returns
+     *   Pointer to newly added CharacterController.
+     */
+    template <class T, class... Args>
+    T *create_character_controller(Args &&...args)
+    {
+        return static_cast<T *>(add(std::make_unique<T>(std::forward<Args>(args)...)));
+    }
 
     /**
      * Remove a body from the physics system.
