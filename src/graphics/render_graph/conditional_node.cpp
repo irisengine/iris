@@ -6,6 +6,8 @@
 
 #include "graphics/render_graph/conditional_node.h"
 
+#include <cstddef>
+
 #include "graphics/render_graph/node.h"
 #include "graphics/render_graph/shader_compiler.h"
 
@@ -54,6 +56,12 @@ Node *ConditionalNode::output_value2() const
 ConditionalOperator ConditionalNode::conditional_operator() const
 {
     return conditional_operator_;
+}
+
+std::size_t ConditionalNode::hash() const
+{
+    return combine_hash(
+        input_value1_, input_value2_, output_value1_, output_value2_, conditional_operator_, "conditional_node");
 }
 
 }

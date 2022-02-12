@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include "graphics/render_graph/render_node.h"
 
 namespace iris
@@ -40,6 +42,14 @@ class PostProcessingNode : public RenderNode
      *   Compiler to accept.
      */
     void accept(ShaderCompiler &compiler) const override;
+
+    /**
+     * Compute hash of node.
+     *
+     * @return
+     *   Hash of node.
+     */
+    std::size_t hash() const override;
 };
 
 }

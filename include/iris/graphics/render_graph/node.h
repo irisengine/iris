@@ -6,6 +6,9 @@
 
 #pragma once
 
+#include <cstddef>
+#include <functional>
+
 namespace iris
 {
 
@@ -14,7 +17,7 @@ class ShaderCompiler;
 
 /**
  * This is an interface for Node, which forms part of a render graph. Node
- * implementations can be connected together to describe whats a shader should
+ * implementations can be connected together to describe what a shader should
  * do.
  */
 class Node
@@ -29,5 +32,28 @@ class Node
      *   Compiler to accept.
      */
     virtual void accept(ShaderCompiler &compiler) const = 0;
+
+    /**
+     * Compute hash of node. Implementations should combine hashes of any child nodes.
+     *
+     * @return
+     *   Hash of node.
+     */
+    virtual std::size_t hash() const = 0;
 };
+}
+
+// specialise std::hash for node pointer
+namespace std
+{
+
+template <>
+struct hash<iris::Node *>
+{
+    size_t operator()(const iris::Node *node) const
+    {
+        return node == nullptr ? std::hash<nullptr_t>{}(nullptr) : node->hash();
+    }
+};
+
 }

@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <memory>
 #include <vector>
 
@@ -157,7 +158,15 @@ class RenderNode : public Node
      */
     void set_depth_only(bool depth_only);
 
-  private:
+    /**
+     * Compute hash of node.
+     *
+     * @return
+     *   Hash of node.
+     */
+    std::size_t hash() const override;
+
+  protected:
     /** Colour input. */
     Node *colour_input_;
 

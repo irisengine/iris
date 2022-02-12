@@ -6,6 +6,7 @@
 
 #include "graphics/render_graph/component_node.h"
 
+#include <cstddef>
 #include <memory>
 #include <string>
 
@@ -33,6 +34,11 @@ Node *ComponentNode::input_node() const
 std::string ComponentNode::component() const
 {
     return component_;
+}
+
+std::size_t ComponentNode::hash() const
+{
+    return combine_hash(input_node_, component_, "component_node");
 }
 
 }

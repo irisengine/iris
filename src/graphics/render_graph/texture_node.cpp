@@ -9,11 +9,9 @@
 #include <cstddef>
 
 #include "core/root.h"
-#include "core/vector3.h"
 #include "graphics/render_graph/shader_compiler.h"
 #include "graphics/texture.h"
 #include "graphics/texture_manager.h"
-#include "graphics/texture_usage.h"
 
 namespace iris
 {
@@ -36,6 +34,11 @@ void TextureNode::accept(ShaderCompiler &compiler) const
 Texture *TextureNode::texture() const
 {
     return texture_;
+}
+
+std::size_t TextureNode::hash() const
+{
+    return combine_hash(reinterpret_cast<std::ptrdiff_t>(texture_), "texture_node");
 }
 
 }

@@ -6,7 +6,10 @@
 
 #include "graphics/render_graph/colour_node.h"
 
+#include <cstddef>
+
 #include "core/colour.h"
+#include "core/utils.h"
 #include "graphics/render_graph/shader_compiler.h"
 
 namespace iris
@@ -25,6 +28,11 @@ void ColourNode::accept(ShaderCompiler &compiler) const
 Colour ColourNode::colour() const
 {
     return colour_;
+}
+
+std::size_t ColourNode::hash() const
+{
+    return combine_hash(colour_, "colour_node");
 }
 
 }

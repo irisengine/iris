@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include "graphics/render_graph/node.h"
 
 namespace iris
@@ -31,5 +33,13 @@ class VertexPositionNode : public Node
      *   Compiler to accept.
      */
     void accept(ShaderCompiler &compiler) const override;
+
+    /**
+     * Compute hash of node.
+     *
+     * @return
+     *   Hash of node.
+     */
+    std::size_t hash() const override;
 };
 }

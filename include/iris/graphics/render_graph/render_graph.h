@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <cstddef>
+#include <functional>
 #include <memory>
 #include <type_traits>
 #include <vector>
@@ -20,7 +22,7 @@ namespace iris
  * This class encapsulates a render graph - a series of connected nodes that
  * can be compiled into API specific shaders.
  *
- * This class automatically creates and managed a RenderNode.
+ * This class automatically creates and manages a RenderNode.
  */
 class RenderGraph
 {
@@ -90,4 +92,20 @@ class RenderGraph
     /** Collection of nodes in graph. */
     std::vector<std::unique_ptr<Node>> nodes_;
 };
+
+}
+
+// specialise std::hash for RenderGraph pointer
+namespace std
+{
+
+template <>
+struct hash<iris::RenderGraph *>
+{
+    size_t operator()(const iris::RenderGraph *rg) const
+    {
+        return std::hash<iris::Node *>{}(rg->render_node());
+    }
+};
+
 }

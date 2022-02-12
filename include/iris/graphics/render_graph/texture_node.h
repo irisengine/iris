@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include "core/vector3.h"
 #include "graphics/render_graph/node.h"
 #include "graphics/texture.h"
@@ -55,7 +57,14 @@ class TextureNode : public Node
      * @returns
      *   Texture.
      */
-    Texture *texture() const;
+
+    /**
+     * Compute hash of node.
+     *
+     * @return
+     *   Hash of node.
+     */
+    std::size_t hash() const override;
 
   private:
     /** Texture. */

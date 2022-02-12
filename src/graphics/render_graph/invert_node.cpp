@@ -6,6 +6,7 @@
 
 #include "graphics/render_graph/invert_node.h"
 
+#include <cstddef>
 #include <memory>
 
 #include "graphics/render_graph/shader_compiler.h"
@@ -26,6 +27,11 @@ void InvertNode::accept(ShaderCompiler &compiler) const
 Node *InvertNode::input_node() const
 {
     return input_node_;
+}
+
+std::size_t InvertNode::hash() const
+{
+    return combine_hash(input_node_, "invert_node");
 }
 
 }

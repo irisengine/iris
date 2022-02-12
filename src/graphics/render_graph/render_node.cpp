@@ -6,6 +6,7 @@
 
 #include "graphics/render_graph/render_node.h"
 
+#include <cstddef>
 #include <memory>
 
 #include "graphics/render_graph/shader_compiler.h"
@@ -97,6 +98,18 @@ bool RenderNode::is_depth_only() const
 void RenderNode::set_depth_only(bool depth_only)
 {
     depth_only_ = depth_only;
+}
+
+std::size_t RenderNode::hash() const
+{
+    return combine_hash(
+        colour_input_,
+        specular_amount_input_,
+        normal_input_,
+        position_input_,
+        shadow_map_input_,
+        depth_only_,
+        "render_node");
 }
 
 }

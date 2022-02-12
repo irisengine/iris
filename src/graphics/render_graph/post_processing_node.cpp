@@ -6,6 +6,8 @@
 
 #include "graphics/render_graph/post_processing_node.h"
 
+#include <cstddef>
+
 #include "graphics/render_graph/shader_compiler.h"
 
 namespace iris
@@ -20,6 +22,11 @@ PostProcessingNode::PostProcessingNode(Node *input)
 void PostProcessingNode::accept(ShaderCompiler &compiler) const
 {
     compiler.visit(*this);
+}
+
+std::size_t PostProcessingNode::hash() const
+{
+    return combine_hash(colour_input_, "post_processing_node");
 }
 
 }

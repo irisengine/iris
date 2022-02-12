@@ -6,6 +6,11 @@
 
 #pragma once
 
+#include <cstddef>
+#include <string_view>
+#include <typeindex>
+#include <typeinfo>
+
 #include "graphics/render_graph/node.h"
 #include "graphics/render_graph/shader_compiler.h"
 
@@ -52,6 +57,17 @@ class ValueNode : public Node
     T value() const
     {
         return value_;
+    }
+
+    /**
+     * Compute hash of node.
+     *
+     * @return
+     *   Hash of node.
+     */
+    std::size_t hash() const override
+    {
+        return combine_hash(value_, std::string_view{"value_node"}, std::type_index(typeid(T)));
     }
 
   private:

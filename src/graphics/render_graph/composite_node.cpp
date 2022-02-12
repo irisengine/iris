@@ -49,4 +49,9 @@ Node *CompositeNode::depth2() const
     return depth2_;
 }
 
+std::size_t CompositeNode::hash() const
+{
+    return combine_hash(colour1_, colour2_, depth1_, depth2_, "composite_node");
+}
+
 }
