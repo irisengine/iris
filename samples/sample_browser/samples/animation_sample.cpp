@@ -290,7 +290,7 @@ void AnimationSample::handle_input(const iris::Event &event)
 
 std::vector<iris::RenderPass> AnimationSample::render_passes()
 {
-    return {{&scene_, &camera_, target_, sky_box_}};
+    return {{.scene = &scene_, .camera = &camera_, .render_target = target_, .sky_box = sky_box_}};
 }
 
 std::string AnimationSample::title() const

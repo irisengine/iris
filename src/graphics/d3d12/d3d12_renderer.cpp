@@ -579,8 +579,15 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
 
     // setup and clear render target
     command_list_->OMSetRenderTargets(1, &rt_handle, FALSE, &depth_handle);
+    if (command.render_pass()->clear_colour)
+    {
+        static const Colour clear_colour{0.4f, 0.6f, 0.9f, 1.0f};
     command_list_->ClearRenderTargetView(rt_handle, reinterpret_cast<const FLOAT *>(&clear_colour), 0, nullptr);
+    }
+    if (command.render_pass()->clear_depth)
+    {
     command_list_->ClearDepthStencilView(depth_handle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0u, 0u, nullptr);
+    }
 
     command_list_->SetGraphicsRootSignature(D3D12Context::root_signature());
 

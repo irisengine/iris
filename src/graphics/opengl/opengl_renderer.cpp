@@ -354,8 +354,18 @@ void OpenGLRenderer::execute_pass_start(RenderCommand &command)
     }
 
     // clear current target
-    ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    expect(check_opengl_error, "could not clear");
+
+    if (command.render_pass()->clear_colour)
+    {
+        ::glClear(GL_COLOR_BUFFER_BIT);
+        expect(check_opengl_error, "could not clear");
+    }
+
+    if (command.render_pass()->clear_depth)
+    {
+        ::glClear(GL_DEPTH_BUFFER_BIT);
+        expect(check_opengl_error, "could not clear");
+    }
 }
 
 void OpenGLRenderer::execute_draw(RenderCommand &command)

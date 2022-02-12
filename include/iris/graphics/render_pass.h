@@ -15,55 +15,36 @@ namespace iris
 {
 
 /**
- * Struct encapsulating the high-level engin objects needed for a render pass.
+ * Struct encapsulating data needed for a render pass.
  * This describes:
  *  - what to render
  *  - where to render it from
  *  - where to render it to
  *
- * It is an engine convention that a nullptr target means render to the default
- * target i.e. the window.
+ * It is an engine convention that a nullptr target means render to the default target i.e. the window.
  */
 struct RenderPass
 {
-    /**
-     * Create a new RenderPass.
-     *
-     * @param scene
-     *   The scene to render.
-     *
-     * @param camera
-     *   The camera to render from
-     *
-     * @param target
-     *   The target to render to, nullptr means the default window target.c
-     *
-     * @param sky_box
-     *   Optional sky box to render scene with.
-     */
-    RenderPass(Scene *scene, Camera *camera, RenderTarget *target, CubeMap *sky_box = nullptr)
-        : scene(scene)
-        , camera(camera)
-        , render_target(target)
-        , depth_only(false)
-        , sky_box(sky_box)
-    {
-    }
-
     /** Scene to render */
-    Scene *scene;
+    Scene *scene = nullptr;
 
     /** Camera to render with. */
-    const Camera *camera;
+    const Camera *camera = nullptr;
 
     /** Target to render to. */
-    const RenderTarget *render_target;
+    const RenderTarget *render_target = nullptr;
 
     /** Flag indicating that only depth information should be rendered. */
     bool depth_only = false;
 
     /** Optional sky box. */
-    const CubeMap *sky_box;
+    const CubeMap *sky_box = nullptr;
+
+    /** Should the colour buffer be cleared before rendering. */
+    bool clear_colour = true;
+
+    /** Should the depth buffer be cleared before rendering. */
+    bool clear_depth = true;
 };
 
 }

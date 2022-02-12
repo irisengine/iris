@@ -193,9 +193,9 @@ void RenderGraphSample::handle_input(const iris::Event &event)
 std::vector<iris::RenderPass> RenderGraphSample::render_passes()
 {
     return {
-        {&scene1_, &camera_, sphere1_rt_, sky_box_},
-        {&scene2_, &camera_, sphere2_rt_, sky_box_},
-        {&scene3_, &screen_camera_, target_, sky_box_}};
+        {.scene = &scene1_, .camera = &camera_, .render_target = sphere1_rt_, .sky_box = sky_box_},
+        {.scene = &scene2_, .camera = &camera_, .render_target = sphere2_rt_, .sky_box = sky_box_},
+        {.scene = &scene3_, .camera = &screen_camera_, .render_target = target_, .sky_box = sky_box_}};
 }
 
 std::string RenderGraphSample::title() const
