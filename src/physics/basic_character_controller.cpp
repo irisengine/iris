@@ -123,11 +123,9 @@ void BasicCharacterController::update(PhysicsSystem *ps, std::chrono::millisecon
         // find the first contact which is not a ghost and has a penetration above our tolerance
         // as contacts() provides us contact points sorted by penetration and we only want negative penetrations this
         // will also find us the largest penetration
-        const auto valid_contact = std::find_if(
-            std::cbegin(contacts),
-            std::cend(contacts),
-            [](const ContactPoint &cp)
-            { return (cp.contact->type() != RigidBodyType::GHOST) && (cp.penetration > penetration_tolerace); });
+        const auto valid_contact = std::find_if(std::cbegin(contacts), std::cend(contacts), [](const ContactPoint &cp) {
+            return (cp.contact->type() != RigidBodyType::GHOST) && (cp.penetration > penetration_tolerace);
+        });
 
         // if we found a valid contact then resolve
         if (valid_contact != std::cend(contacts))
@@ -137,6 +135,8 @@ void BasicCharacterController::update(PhysicsSystem *ps, std::chrono::millisecon
 
             // always update rigid body location position for future tests
             reposition(target_position, orientation());
+
+            valid_contact->contact->apply_impulse(valid_contact->normal + 10.0f);
 
             collisions_resolved = false;
         }

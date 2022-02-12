@@ -348,7 +348,7 @@ D3D12Texture::D3D12Texture(const DataBuffer &data, std::uint32_t width, std::uin
             // copy texture data with respect to footprint
             for (auto i = 0u; i < height_; ++i)
             {
-                std::memcpy(dst_cursor, src_cursor, row_size[0]);
+                std::memcpy(dst_cursor, src_cursor, static_cast<std::size_t>(row_size[0]));
                 dst_cursor += footprint_.Footprint.RowPitch;
                 src_cursor += row_size[0];
             }

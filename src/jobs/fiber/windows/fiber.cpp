@@ -70,7 +70,7 @@ Fiber::Fiber(Job job, Counter *counter)
 {
     job_ = job;
     impl_->handle = {
-        ::CreateFiberEx(0, 0, FIBER_FLAG_FLOAT_SWITCH, implementation::job_runner, static_cast<void *>(this)),
+        ::CreateFiberEx(0, 0, FIBER_FLAG_FLOAT_SWITCH, reinterpret_cast<LPFIBER_START_ROUTINE>(implementation::job_runner), static_cast<void *>(this)),
         ::DeleteFiber};
 
     expect(impl_->handle, "create fiber failed");

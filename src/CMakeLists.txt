@@ -88,6 +88,8 @@ if(IRIS_PLATFORM MATCHES "WIN32")
   set_target_properties(LinearMath PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
   set_target_properties(BulletDynamics PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
   set_target_properties(BulletCollision PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
+  set_target_properties(IrrXML PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
+  set_target_properties(zlibstatic PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
   set_target_properties(lua PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
 
   install(

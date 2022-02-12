@@ -126,7 +126,7 @@ D3D12CubeMap::D3D12CubeMap(
         // copy texture data with respect to footprint
         for (auto j = 0u; j < heights[i]; ++j)
         {
-            std::memcpy(dst_cursor, src_cursor, row_sizes[i]);
+            std::memcpy(dst_cursor, src_cursor, static_cast<std::size_t>(row_sizes[i]));
             dst_cursor += footprints_[i].Footprint.RowPitch;
             src_cursor += row_sizes[i];
         }
