@@ -6,6 +6,9 @@
 
 #include "graphics/render_entity.h"
 
+#include <string>
+#include <string_view>
+
 #include "core/camera_type.h"
 #include "core/matrix4.h"
 #include "core/quaternion.h"
@@ -64,6 +67,7 @@ RenderEntity::RenderEntity(
     , primitive_type_(primitive_type)
     , skeleton_(std::move(skeleton))
     , receive_shadow_(true)
+    , name_()
 {
     normal_ = create_normal_transform(transform_.matrix());
 }
@@ -160,6 +164,16 @@ bool RenderEntity::receive_shadow() const
 void RenderEntity::set_receive_shadow(bool receive_shadow)
 {
     receive_shadow_ = receive_shadow;
+}
+
+std::string RenderEntity::name() const
+{
+    return name_;
+}
+
+void RenderEntity::set_name(std::string_view name)
+{
+    name_ = name;
 }
 
 }

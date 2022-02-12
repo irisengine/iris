@@ -7,6 +7,8 @@
 #pragma once
 
 #include <memory>
+#include <string>
+#include <string_view>
 #include <vector>
 
 #include "core/camera_type.h"
@@ -226,6 +228,22 @@ class RenderEntity
      */
     void set_receive_shadow(bool receive_shadow);
 
+    /**
+     * Get (optional) name.
+     *
+     * @return
+     *  Name of entity, empty string if not set.
+     */
+    std::string name() const;
+
+    /**
+     * Set the name of the entity.
+     *
+     * @param name
+     *   New name.
+     */
+    void set_name(std::string_view name);
+
   private:
     /** Mesh to render. */
     const Mesh *mesh_;
@@ -247,6 +265,9 @@ class RenderEntity
 
     /** Should object render shadows. */
     bool receive_shadow_;
+
+    /** Optional name (default is empty string). */
+    std::string name_;
 };
 
 }
