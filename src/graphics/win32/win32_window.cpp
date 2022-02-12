@@ -249,7 +249,8 @@ Win32Window::Win32Window(std::uint32_t width, std::uint32_t height)
 
     ensure(::AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false) != 0, "could not resize window");
 
-    // create window, we will resize it after for current dpi
+    // create window
+    // we cannot query dpi without first creating a window, so we will resize afterwards
     window_ = {
         CreateWindowExA(
             0,
@@ -267,11 +268,27 @@ Win32Window::Win32Window(std::uint32_t width, std::uint32_t height)
         ::DestroyWindow};
     ensure(window_, "could not create window");
 
+    const auto screen_width = ::GetSystemMetrics(SM_CXSCREEN);
+    const auto screen_height = ::GetSystemMetrics(SM_CYSCREEN);
+
     const auto scale = screen_scale();
+
+    rect = {0};
+    rect.right = static_cast<int>(width_ * scale);
+    rect.bottom = static_cast<int>(height_ * scale);
+
+    ensure(::AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false) != 0, "could not resize window");
 
     // ensure window size is correctly scaled for current dpi
     ensure(
-        ::SetWindowPos(window_, window_, 0, 0, width_ * scale, height_ * scale, SWP_NOZORDER | SWP_NOACTIVATE) != 0,
+        ::SetWindowPos(
+            window_,
+            window_,
+            rect.left + (screen_width / 2) - ((width_ * scale) / 2),
+            rect.top + (screen_height / 2) - ((height_ * scale) / 2),
+            rect.right - rect.left,
+            rect.bottom - rect.top,
+            SWP_NOZORDER | SWP_NOACTIVATE) != 0,
         "could not set window position");
 
     dc_ = {::GetDC(window_), [this](HDC dc) { ::ReleaseDC(window_, dc); }};
