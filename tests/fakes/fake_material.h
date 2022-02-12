@@ -17,7 +17,7 @@ class FakeMaterial : public iris::Material
   public:
     ~FakeMaterial() override = default;
 
-    std::vector<iris::Texture *> textures() const override
+    std::vector<const iris::Texture *> textures() const override
     {
         return {};
     }

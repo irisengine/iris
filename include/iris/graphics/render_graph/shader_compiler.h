@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -89,7 +90,7 @@ class ShaderCompiler
      * @returns
      *   Collection of Textures.
      */
-    virtual std::vector<Texture *> textures() const = 0;
+    virtual std::vector<const Texture *> textures() const = 0;
 
     /**
      * Get the CubeMap needed for this shader (if any)

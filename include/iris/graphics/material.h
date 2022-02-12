@@ -32,7 +32,7 @@ class Material
      * @returns
      *   Collection of Texture objects.
      */
-    virtual std::vector<Texture *> textures() const = 0;
+    virtual std::vector<const Texture *> textures() const = 0;
 
     /**
      * Get the CubeMap used by this Material (if any).

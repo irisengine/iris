@@ -172,7 +172,7 @@ void build_table_descriptor(
     const iris::D3D12DescriptorHandle &light_constant_buffer,
     const iris::D3D12DescriptorHandle &shadow_map,
     const iris::D3D12DescriptorHandle &sky_box,
-    const std::vector<iris::Texture *> &textures)
+    const std::vector<const iris::Texture *> &textures)
 {
     copy_descriptor(table_descriptor, vertex_constant_buffer, descriptor_size);
     copy_descriptor(table_descriptor, light_constant_buffer, descriptor_size);
@@ -181,7 +181,7 @@ void build_table_descriptor(
 
     for (auto *texture : textures)
     {
-        auto *d3d12_tex = static_cast<iris::D3D12Texture *>(texture);
+        auto *d3d12_tex = static_cast<const iris::D3D12Texture *>(texture);
         copy_descriptor(table_descriptor, d3d12_tex->handle(), descriptor_size);
     }
 }
@@ -564,7 +564,7 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
         height = target->height();
 
         rt_handle = static_cast<const D3D12RenderTarget *>(target)->handle().cpu_handle();
-        depth_handle = static_cast<D3D12Texture *>(target->depth_texture())->depth_handle().cpu_handle();
+        depth_handle = static_cast<const D3D12Texture *>(target->depth_texture())->depth_handle().cpu_handle();
 
         // if we are rendering to a custom render target we just need to make
         // its depth buffer writable

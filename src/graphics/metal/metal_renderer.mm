@@ -212,7 +212,7 @@ void bind_textures(
     const auto textures = material->textures();
     for (auto i = 0u; i < textures.size(); ++i)
     {
-        const auto *metal_texture = static_cast<iris::MetalTexture *>(textures[i]);
+        const auto *metal_texture = static_cast<const iris::MetalTexture *>(textures[i]);
         [render_encoder setVertexTexture:metal_texture->handle() atIndex:i];
         [render_encoder setFragmentTexture:metal_texture->handle() atIndex:i + 2];
     }

@@ -66,7 +66,7 @@ class D3D12Material : public Material
      * @returns
      *   Textures used.
      */
-    std::vector<Texture *> textures() const override;
+    std::vector<const Texture *> textures() const override;
 
     /**
      * Get the CubeMap used by this Material (if any).
@@ -89,7 +89,7 @@ class D3D12Material : public Material
     ::Microsoft::WRL::ComPtr<ID3D12PipelineState> pso_;
 
     /** Collection of textures used. */
-    std::vector<Texture *> textures_;
+    std::vector<const Texture *> textures_;
 
     /** Optional CubeMap for material. */
     const CubeMap *cube_map_;

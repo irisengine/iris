@@ -16,7 +16,7 @@
 namespace iris
 {
 
-TextureNode::TextureNode(Texture *texture)
+TextureNode::TextureNode(const Texture *texture)
     : texture_(texture)
 {
 }
@@ -31,7 +31,7 @@ void TextureNode::accept(ShaderCompiler &compiler) const
     compiler.visit(*this);
 }
 
-Texture *TextureNode::texture() const
+const Texture *TextureNode::texture() const
 {
     return texture_;
 }

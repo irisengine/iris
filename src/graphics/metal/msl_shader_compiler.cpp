@@ -47,7 +47,7 @@ namespace
  * @returns
  *   Unique variable name for the texture.
  */
-std::string texture_name(iris::Texture *texture, std::vector<iris::Texture *> &textures)
+std::string texture_name(const iris::Texture *texture, std::vector<const iris::Texture *> &textures)
 {
     std::size_t id = 0u;
 
@@ -557,7 +557,7 @@ fragment float4 fragment_main(
     return stream.str();
 }
 
-std::vector<Texture *> MSLShaderCompiler::textures() const
+std::vector<const Texture *> MSLShaderCompiler::textures() const
 {
     return textures_;
 }

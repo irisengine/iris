@@ -147,7 +147,7 @@ D3D12Material::D3D12Material(
     pso_->SetName(name.c_str());
 }
 
-std::vector<Texture *> D3D12Material::textures() const
+std::vector<const Texture *> D3D12Material::textures() const
 {
     return textures_;
 }

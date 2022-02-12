@@ -31,7 +31,7 @@ class TextureNode : public Node
      * @param texture
      *   Texture to provide access to.
      */
-    TextureNode(Texture *texture);
+    TextureNode(const Texture *texture);
 
     /**
      * Create a new TextureNode.
@@ -57,6 +57,7 @@ class TextureNode : public Node
      * @returns
      *   Texture.
      */
+    const Texture *texture() const;
 
     /**
      * Compute hash of node.
@@ -68,6 +69,6 @@ class TextureNode : public Node
 
   private:
     /** Texture. */
-    Texture *texture_;
+    const Texture *texture_;
 };
 }

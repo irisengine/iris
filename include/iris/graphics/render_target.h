@@ -45,7 +45,7 @@ class RenderTarget
      * @returns
      *   Colour texture.
      */
-    Texture *colour_texture() const;
+    const Texture *colour_texture() const;
 
     /**
      * Get a pointer to the texture storing the target depth data.
@@ -53,7 +53,7 @@ class RenderTarget
      * @returns
      *   Depth texture.
      */
-    Texture *depth_texture() const;
+    const Texture *depth_texture() const;
 
     /**
      * Get the width of the RenderTarget.

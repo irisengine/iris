@@ -59,7 +59,7 @@ class OpenGLMaterial : public Material
      * @returns
      *   Collection of Texture objects used by this material.
      */
-    std::vector<Texture *> textures() const override;
+    std::vector<const Texture *> textures() const override;
 
     /**
      * Get the CubeMap used by this Material (if any).
@@ -74,7 +74,7 @@ class OpenGLMaterial : public Material
     GLuint handle_;
 
     /** Collection of Texture objects used by material. */
-    std::vector<Texture *> textures_;
+    std::vector<const Texture *> textures_;
 
     /** Optional CubeMap for material. */
     const CubeMap *cube_map_;

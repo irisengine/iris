@@ -104,7 +104,7 @@ class MSLShaderCompiler : public ShaderCompiler
      * @returns
      *   Collection of Textures.
      */
-    std::vector<Texture *> textures() const override;
+    std::vector<const Texture *> textures() const override;
 
     /**
      * Get the CubeMap needed for this shader (if any)
@@ -134,7 +134,7 @@ class MSLShaderCompiler : public ShaderCompiler
     std::set<std::string> *current_functions_;
 
     /** Textures needed for shaders. */
-    std::vector<Texture *> textures_;
+    std::vector<const Texture *> textures_;
 
     /** Type of light to render with. */
     LightType light_type_;

@@ -29,12 +29,12 @@ RenderTarget::RenderTarget(std::unique_ptr<Texture> colour_texture, std::unique_
 
 RenderTarget::~RenderTarget() = default;
 
-Texture *RenderTarget::colour_texture() const
+const Texture *RenderTarget::colour_texture() const
 {
     return colour_texture_.get();
 }
 
-Texture *RenderTarget::depth_texture() const
+const Texture *RenderTarget::depth_texture() const
 {
     return depth_texture_.get();
 }

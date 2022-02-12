@@ -159,7 +159,7 @@ float calculate_shadow(float3 n, float4 frag_pos_light_space, float3 light_dir, 
  * @returns
  *   Unique id for the texture.
  */
-std::size_t texture_id(iris::Texture *texture, std::vector<iris::Texture *> &textures)
+std::size_t texture_id(const iris::Texture *texture, std::vector<const iris::Texture *> &textures)
 {
     std::size_t id = 0u;
 
@@ -710,7 +710,7 @@ std::string HLSLShaderCompiler::fragment_shader() const
     return strm.str();
 }
 
-std::vector<Texture *> HLSLShaderCompiler::textures() const
+std::vector<const Texture *> HLSLShaderCompiler::textures() const
 {
     return textures_;
 }

@@ -115,7 +115,7 @@ id<MTLRenderPipelineState> MetalMaterial::pipeline_state() const
     return pipeline_state_;
 }
 
-std::vector<Texture *> MetalMaterial::textures() const
+std::vector<const Texture *> MetalMaterial::textures() const
 {
     return textures_;
 }

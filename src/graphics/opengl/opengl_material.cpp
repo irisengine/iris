@@ -111,7 +111,7 @@ GLuint OpenGLMaterial::handle() const
     return handle_;
 }
 
-std::vector<Texture *> OpenGLMaterial::textures() const
+std::vector<const Texture *> OpenGLMaterial::textures() const
 {
     return textures_;
 }
