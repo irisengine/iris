@@ -29,7 +29,6 @@
 #include "graphics/render_graph/sky_box_node.h"
 #include "graphics/render_graph/texture_node.h"
 #include "graphics/render_graph/value_node.h"
-#include "graphics/render_graph/vertex_position_node.h"
 #include "graphics/texture.h"
 
 namespace
@@ -406,11 +405,6 @@ void GLSLShaderCompiler::visit(const CompositeNode &node)
     *current_stream_ << ", ";
     node.depth2()->accept(*this);
     *current_stream_ << ", tex_coord)";
-}
-
-void GLSLShaderCompiler::visit(const VertexPositionNode &)
-{
-    *current_stream_ << "position";
 }
 
 void GLSLShaderCompiler::visit(const ValueNode<float> &node)

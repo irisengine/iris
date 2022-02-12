@@ -28,7 +28,6 @@
 #include "graphics/render_graph/sky_box_node.h"
 #include "graphics/render_graph/texture_node.h"
 #include "graphics/render_graph/value_node.h"
-#include "graphics/render_graph/vertex_position_node.h"
 #include "graphics/texture.h"
 
 namespace
@@ -578,10 +577,6 @@ void HLSLShaderCompiler::visit(const CompositeNode &node)
     *current_stream_ << ", ";
     node.depth2()->accept(*this);
     *current_stream_ << ", input.tex_coord)";
-}
-
-void HLSLShaderCompiler::visit(const VertexPositionNode &)
-{
 }
 
 void HLSLShaderCompiler::visit(const ValueNode<float> &node)

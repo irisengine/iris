@@ -31,7 +31,6 @@ class TextureNode;
 class InvertNode;
 class BlurNode;
 class CompositeNode;
-class VertexPositionNode;
 class ArithmeticNode;
 class ConditionalNode;
 class ComponentNode;
@@ -68,7 +67,6 @@ class GLSLShaderCompiler : public ShaderCompiler
     void visit(const InvertNode &node) override;
     void visit(const BlurNode &node) override;
     void visit(const CompositeNode &node) override;
-    void visit(const VertexPositionNode &node) override;
     void visit(const ValueNode<float> &node) override;
     void visit(const ValueNode<Vector3> &node) override;
     void visit(const ValueNode<Colour> &node) override;

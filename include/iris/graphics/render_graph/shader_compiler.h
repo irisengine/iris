@@ -26,7 +26,6 @@ class TextureNode;
 class InvertNode;
 class BlurNode;
 class CompositeNode;
-class VertexPositionNode;
 class ArithmeticNode;
 class ConditionalNode;
 class ComponentNode;
@@ -53,7 +52,6 @@ class ShaderCompiler
     virtual void visit(const InvertNode &node) = 0;
     virtual void visit(const BlurNode &node) = 0;
     virtual void visit(const CompositeNode &node) = 0;
-    virtual void visit(const VertexPositionNode &node) = 0;
     virtual void visit(const ValueNode<float> &node) = 0;
     virtual void visit(const ValueNode<Vector3> &node) = 0;
     virtual void visit(const ValueNode<Colour> &node) = 0;

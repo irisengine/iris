@@ -28,7 +28,6 @@
 #include "graphics/render_graph/sky_box_node.h"
 #include "graphics/render_graph/texture_node.h"
 #include "graphics/render_graph/value_node.h"
-#include "graphics/render_graph/vertex_position_node.h"
 #include "graphics/texture.h"
 #include "graphics/vertex_attributes.h"
 
@@ -394,11 +393,6 @@ void MSLShaderCompiler::visit(const CompositeNode &node)
     *current_stream_ << ", ";
     node.depth2()->accept(*this);
     *current_stream_ << ", uv)";
-}
-
-void MSLShaderCompiler::visit(const VertexPositionNode &node)
-{
-    *current_stream_ << "vertices[vid].position";
 }
 
 void MSLShaderCompiler::visit(const ValueNode<float> &node)
