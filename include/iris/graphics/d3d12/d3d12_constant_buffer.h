@@ -27,25 +27,30 @@ namespace iris
 {
 
 /**
- * This class encapsulates a constant shader buffer. This is data that is set
- * once then made available to all vertices/fragments. It is analogous to an
- * OpenGL uniform.
+ * This class encapsulates a constant shader buffer. This is data that is set once then made available to all
+ * vertices/fragments. It is analogous to an OpenGL uniform.
  */
 class D3D12ConstantBuffer
 {
   public:
     /**
      * Construct a null D3D12ConstantBuffer.
+     *
+     * @param frame
+     *   The frame number using this buffer.
      */
-    D3D12ConstantBuffer();
+    D3D12ConstantBuffer(std::uint32_t frame);
 
     /**
      * Construct a new D3D12ConstantBuffer.
      *
+     * @param frame
+     *   The frame number using this buffer.
+     *
      * @param capacity
      *   Size (in bytes) of buffer.
      */
-    D3D12ConstantBuffer(std::uint32_t capacity);
+    D3D12ConstantBuffer(std::uint32_t frame, std::uint32_t capacity);
 
     /**
      * Get descriptor handle to buffer.

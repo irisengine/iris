@@ -7,6 +7,7 @@
 #include "graphics/d3d12/d3d12_material.h"
 
 #include <any>
+#include <functional>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -23,6 +24,7 @@
 #include "graphics/d3d12/hlsl_shader_compiler.h"
 #include "graphics/lights/lighting_rig.h"
 #include "graphics/shader_type.h"
+#include "log/log.h"
 
 #pragma comment(lib, "d3dcompiler.lib")
 
@@ -108,6 +110,8 @@ D3D12Material::D3D12Material(
 
     auto depth_state = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
     depth_state.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+    depth_state.DepthWriteMask =
+        (light_type == LightType::AMBIENT) ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
 
     D3D12_RASTERIZER_DESC rasterizer_description = {0};
     rasterizer_description.FillMode = D3D12_FILL_MODE_SOLID;

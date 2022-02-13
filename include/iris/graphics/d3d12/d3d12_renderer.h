@@ -105,22 +105,42 @@ class D3D12Renderer : public Renderer
 
   private:
     /**
+     * Custom equality functor for our unordered maps of render graphs. This is because we want no collisions, any graph
+     * hashing the same should be considered equal.
+     */
+    struct RenderGraphPtrEqual
+    {
+        bool operator()(const RenderGraph *a, const RenderGraph *b) const
+        {
+            return std::hash<RenderGraph *>{}(a) == std::hash<RenderGraph *>{}(b);
+        }
+    };
+
+    /**
      * Internal struct encapsulating data needed for a frame.
      */
     struct Frame
     {
         Frame(
+            std::uint32_t frame,
             Microsoft::WRL::ComPtr<ID3D12Resource> buffer,
             D3D12DescriptorHandle render_target,
             std::unique_ptr<D3D12Texture> depth_buffer,
             Microsoft::WRL::ComPtr<ID3D12CommandAllocator> command_allocator)
-            : buffer(buffer)
+            : frame_id(frame)
+            , buffer(buffer)
             , render_target(render_target)
             , depth_buffer(std::move(depth_buffer))
             , command_allocator(command_allocator)
             , fence_value(0u)
+            , vertex_data_buffers()
+            , light_data_buffers()
+            , constant_buffer_pool(frame_id)
         {
         }
+
+        /** Unique id for frame.*/
+        std::uint32_t frame_id;
 
         /** D3D12 back buffer to render to and present. */
         Microsoft::WRL::ComPtr<ID3D12Resource> buffer;
@@ -134,10 +154,17 @@ class D3D12Renderer : public Renderer
         /** Command allocate for frame. */
         Microsoft::WRL::ComPtr<ID3D12CommandAllocator> command_allocator;
 
-        /** Map of RenderCommand objects to constant data buffer pools. */
-        std::unordered_map<const RenderCommand *, D3D12ConstantBufferPool> constant_data_buffers;
-
+        /** Current fence value for frame. */
         std::uint64_t fence_value;
+
+        /** Cache of constant data buffers for render entities in this frame. */
+        std::unordered_map<const RenderEntity *, D3D12ConstantBuffer *> vertex_data_buffers;
+
+        /** Cache of constant data buffers for lights in this frame. */
+        std::unordered_map<const Light *, D3D12ConstantBuffer *> light_data_buffers;
+
+        /** Constant buffer pool for this frame. */
+        D3D12ConstantBufferPool constant_buffer_pool;
     };
 
     /** Width of window to present to. */
@@ -178,7 +205,12 @@ class D3D12Renderer : public Renderer
     std::vector<std::unique_ptr<RenderTarget>> render_targets_;
 
     /** This collection stores materials per light type per render graph. */
-    std::unordered_map<RenderGraph *, std::unordered_map<LightType, std::unique_ptr<D3D12Material>>> materials_;
+    std::unordered_map<
+        RenderGraph *,
+        std::unordered_map<LightType, std::unique_ptr<D3D12Material>>,
+        std::hash<RenderGraph *>,
+        RenderGraphPtrEqual>
+        materials_;
 
     /** Collection of textures that have been uploaded. */
     std::set<const D3D12Texture *> uploaded_;

@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <iostream>
 #include <map>
+#include <unordered_map>
 #include <vector>
 
 #define WIN32_LEAN_AND_MEAN
@@ -69,15 +70,11 @@ static const iris::Matrix4 directx_translate{
  *
  * @param entity
  *   Entity being rendered.
- *
- * @param light_data
- *   Light for current render pass.
  */
 void write_vertex_data_constant_buffer(
     iris::D3D12ConstantBuffer &constant_buffer,
     const iris::Camera *camera,
-    const iris::RenderEntity *entity,
-    const iris::Light *light)
+    const iris::RenderEntity *entity)
 {
     iris::ConstantBufferWriter writer(constant_buffer);
 
@@ -91,16 +88,10 @@ void write_vertex_data_constant_buffer(
     const auto &bones = entity->skeleton().transforms();
     writer.write(bones);
     writer.advance((100u - bones.size()) * sizeof(iris::Matrix4));
-
-    writer.write(light->colour_data());
-    writer.write(light->world_space_data());
-    writer.write(light->attenuation_data());
 }
 
 /**
- * Helper function to write light specific data to a constant buffer. Note that
- * this is for additional light data not written to the main vertex constant
- * buffer.
+ * Helper function to write light specific data to a constant buffer.
  *
  * @param constant_buffer
  *   D3D12ConstantBuffer object to write to.
@@ -108,13 +99,26 @@ void write_vertex_data_constant_buffer(
  * @param light
  *   Light to get data from.
  */
-void write_directional_light_data_constant_buffer(iris::D3D12ConstantBuffer &constant_buffer, const iris::Light *light)
+void write_light_data_constant_buffer(iris::D3D12ConstantBuffer &constant_buffer, const iris::Light *light)
 {
-    const auto *d3d12_light = static_cast<const iris::DirectionalLight *>(light);
-
     iris::ConstantBufferWriter writer(constant_buffer);
-    writer.write(directx_translate * d3d12_light->shadow_camera().projection());
-    writer.write(d3d12_light->shadow_camera().view());
+
+    if (light->type() == iris::LightType::DIRECTIONAL)
+    {
+        const auto *d3d12_light = static_cast<const iris::DirectionalLight *>(light);
+
+        writer.write(directx_translate * d3d12_light->shadow_camera().projection());
+        writer.write(d3d12_light->shadow_camera().view());
+    }
+    else
+    {
+        writer.advance(sizeof(iris::Matrix4) * 2u);
+    }
+
+    writer.write(light->colour_data());
+    writer.write(light->world_space_data());
+    writer.write(light->attenuation_data());
+    writer.write(0.0f);
 }
 
 /**
@@ -278,6 +282,7 @@ D3D12Renderer::D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t hei
             "could not create command allocator");
 
         frames_.emplace_back(
+            i,
             frame,
             rtv_handle,
             std::make_unique<D3D12Texture>(
@@ -292,6 +297,11 @@ D3D12Renderer::D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t hei
     fence_event_ = {::CreateEventA(NULL, FALSE, FALSE, NULL), ::CloseHandle};
     ++frames_[frame_index_].fence_value;
 
+    command_queue_->Signal(fence_.Get(), frames_[frame_index_].fence_value);
+    fence_->SetEventOnCompletion(frames_[frame_index_].fence_value, fence_event_);
+    ::WaitForSingleObject(fence_event_, INFINITE);
+    ++frames_[frame_index_].fence_value;
+
     ensure(
         device->CreateCommandList(
             0u,
@@ -302,7 +312,7 @@ D3D12Renderer::D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t hei
         "could not create command list");
 
     // create a single null buffer, used for padding buffer arrays
-    null_buffer_ = std::make_unique<D3D12ConstantBuffer>();
+    null_buffer_ = std::make_unique<D3D12ConstantBuffer>(0u);
 
     // close the list so we can start recording to it
     command_list_->Close();
@@ -310,21 +320,16 @@ D3D12Renderer::D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t hei
 
 D3D12Renderer::~D3D12Renderer()
 {
-    //// build a collection of all frame events
-    // std::vector<HANDLE> wait_handles{};
-
-    // for (const auto &frame : frames_)
-    //{
-    //    wait_handles.emplace_back(frame.fence_event);
-    //}
-
-    //// we cannot destruct whilst a frame is being rendered, so we wait for all
-    //// frames to signal they are done
-    //::WaitForMultipleObjects(static_cast<DWORD>(wait_handles.size()), wait_handles.data(), TRUE, INFINITE);
+    command_queue_->Signal(fence_.Get(), frames_[frame_index_].fence_value);
+    fence_->SetEventOnCompletion(frames_[frame_index_].fence_value, fence_event_);
+    ::WaitForSingleObject(fence_event_, INFINITE);
+    ++frames_[frame_index_].fence_value;
 }
 
 void D3D12Renderer::set_render_passes(const std::vector<RenderPass> &render_passes)
 {
+    materials_.clear();
+
     render_passes_ = render_passes;
 
     // check if pass has a sky box and if so create a cube for it and add it to the scene
@@ -350,8 +355,7 @@ void D3D12Renderer::set_render_passes(const std::vector<RenderPass> &render_pass
 
     ensure(final_pass != std::cend(render_passes_), "no final pass");
 
-    // deferred creating of render target to ensure this class is full
-    // constructed
+    // deferred creating of render target to ensure this class is fully constructed
     if (post_processing_target_ == nullptr)
     {
         post_processing_target_ = create_render_target(width_, height_);
@@ -392,26 +396,6 @@ void D3D12Renderer::set_render_passes(const std::vector<RenderPass> &render_pass
         },
         [this](std::uint32_t width, std::uint32_t height) { return create_render_target(width, height); });
     render_queue_ = queue_builder.build(render_passes_);
-
-    // clear all constant data buffers
-    for (auto &frame : frames_)
-    {
-        frame.constant_data_buffers.clear();
-    }
-
-    // create a constant data buffer for each draw command
-    for (const auto &command : render_queue_)
-    {
-        if (command.type() == RenderCommandType::DRAW)
-        {
-            const auto *command_ptr = std::addressof(command);
-
-            for (auto &frame : frames_)
-            {
-                frame.constant_data_buffers.emplace(command_ptr, D3D12ConstantBufferPool{});
-            }
-        }
-    }
 }
 
 RenderTarget *D3D12Renderer::create_render_target(std::uint32_t width, std::uint32_t height)
@@ -437,25 +421,17 @@ RenderTarget *D3D12Renderer::create_render_target(std::uint32_t width, std::uint
 
 void D3D12Renderer::pre_render()
 {
-    const auto &frame = frames_[frame_index_];
-    // LOG_DEBUG("d3d12", "frame index: {} {}", frame_index_, frame.fence->GetCompletedValue());
-
-    //// if the gpu is still using this frame then wai
-    // LOG_DEBUG("d3d12", "wait: {}", ::WaitForSingleObject(frame.fence_event, INFINITE));
-    // std::this_thread::sleep_for(std::chrono::milliseconds(33));
-
-    // reset state to non-waiting
-    // frame.fence->Signal(0u);
-    //::ResetEvent(frame.fence_event);
+    auto &frame = frames_[frame_index_];
 
     // reset command allocator and list for new frame
-    // grame.command_allocator->Reset();
+    frame.command_allocator->Reset();
     command_list_->Reset(frame.command_allocator.Get(), nullptr);
 
     // reset descriptor allocations for new frame
-    D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).reset();
+    D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).reset(frame.frame_id);
+    D3D12DescriptorManager::cpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).reset_dynamic(frame.frame_id);
 
-    D3D12DescriptorManager::cpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).reset_dynamic();
+    frame.constant_buffer_pool.reset();
 }
 
 void D3D12Renderer::execute_upload_texture(RenderCommand &command)
@@ -527,8 +503,6 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
         D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).heap()};
     command_list_->SetDescriptorHeaps(_countof(heaps), heaps);
 
-    const Colour clear_colour{0.4f, 0.6f, 0.9f, 1.0f};
-
     D3D12_CPU_DESCRIPTOR_HANDLE rt_handle;
     D3D12_CPU_DESCRIPTOR_HANDLE depth_handle;
 
@@ -538,7 +512,7 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
     auto width = width_ * scale;
     auto height = height_ * scale;
 
-    const auto &frame = frames_[frame_index_];
+    auto &frame = frames_[frame_index_];
 
     if (target == nullptr)
     {
@@ -582,11 +556,11 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
     if (command.render_pass()->clear_colour)
     {
         static const Colour clear_colour{0.4f, 0.6f, 0.9f, 1.0f};
-    command_list_->ClearRenderTargetView(rt_handle, reinterpret_cast<const FLOAT *>(&clear_colour), 0, nullptr);
+        command_list_->ClearRenderTargetView(rt_handle, reinterpret_cast<const FLOAT *>(&clear_colour), 0, nullptr);
     }
     if (command.render_pass()->clear_depth)
     {
-    command_list_->ClearDepthStencilView(depth_handle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0u, 0u, nullptr);
+        command_list_->ClearDepthStencilView(depth_handle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0u, 0u, nullptr);
     }
 
     command_list_->SetGraphicsRootSignature(D3D12Context::root_signature());
@@ -597,6 +571,9 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
 
     command_list_->RSSetViewports(1u, &viewport_);
     command_list_->RSSetScissorRects(1u, &scissor_rect_);
+
+    frame.vertex_data_buffers.clear();
+    frame.light_data_buffers.clear();
 }
 
 void D3D12Renderer::execute_pass_end(RenderCommand &command)
@@ -653,28 +630,35 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
     //                  |      texture 4     | |
     //                  +--------------------+-'
     const auto table_descriptors = D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)
-                                       .allocate(D3D12Context::num_descriptors());
+                                       .allocate(frame.frame_id, D3D12Context::num_descriptors());
     const auto descriptor_size =
         D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).descriptor_size();
 
     auto table_descriptor_start = table_descriptors.cpu_handle();
 
-    // create and write our constant data buffers
-    auto &vertex_buffer = frame.constant_data_buffers.at(std::addressof(command)).next();
-    write_vertex_data_constant_buffer(vertex_buffer, camera, entity, light);
+    if (!frame.vertex_data_buffers.contains(entity))
+    {
+        auto &cb = frame.constant_buffer_pool.next();
+        frame.vertex_data_buffers[entity] = std::addressof(cb);
+        write_vertex_data_constant_buffer(cb, camera, entity);
+    }
 
-    auto &light_buffer = frame.constant_data_buffers.at(std::addressof(command)).next();
-    write_directional_light_data_constant_buffer(light_buffer, light);
+    if (!frame.light_data_buffers.contains(light))
+    {
+        auto &cb = frame.constant_buffer_pool.next();
+        frame.light_data_buffers[light] = std::addressof(cb);
+        write_light_data_constant_buffer(cb, light);
+    }
+
+    auto *vertex_buffer = frame.vertex_data_buffers[entity];
+    auto *light_buffer = frame.light_data_buffers[light];
 
     // create handles to light and shadow map data, these may be a null handle
     // depending on the material
 
-    const auto light_data_handle = (light->type() == LightType::DIRECTIONAL) ? light_buffer.descriptor_handle()
-                                                                             : null_buffer_->descriptor_handle();
-
     auto shadow_map_handle = (shadow_map == nullptr)
                                  ? static_cast<D3D12Texture *>(Root::texture_manager().blank())->handle()
-                                 : static_cast<D3D12Texture *>(command.shadow_map()->depth_texture())->handle();
+                                 : static_cast<const D3D12Texture *>(command.shadow_map()->depth_texture())->handle();
 
     const auto sky_box_handle = (sky_box == nullptr)
                                     ? static_cast<const D3D12Texture *>(Root::texture_manager().blank())->handle()
@@ -684,8 +668,8 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
     build_table_descriptor(
         table_descriptor_start,
         descriptor_size,
-        vertex_buffer.descriptor_handle(),
-        light_buffer.descriptor_handle(),
+        vertex_buffer->descriptor_handle(),
+        light_buffer->descriptor_handle(),
         shadow_map_handle,
         sky_box_handle,
         material->textures());
@@ -734,26 +718,20 @@ void D3D12Renderer::execute_present(RenderCommand &)
     command_queue_->ExecuteCommandLists(1u, command_lists);
 
     // present frame to window
-    expect(swap_chain_->Present(0u, 0u) == S_OK, "could not present");
+    expect(swap_chain_->Present(0u, DXGI_PRESENT_ALLOW_TEARING) == S_OK, "could not present");
 
     const auto fence_value = frame.fence_value;
     expect(command_queue_->Signal(fence_.Get(), fence_value) == S_OK, "could not signal");
 
     frame_index_ = swap_chain_->GetCurrentBackBufferIndex();
 
-    if (fence_->GetCompletedValue() < frame.fence_value)
+    if (fence_->GetCompletedValue() < frames_[frame_index_].fence_value)
     {
-        fence_->SetEventOnCompletion(frame.fence_value, fence_event_);
+        fence_->SetEventOnCompletion(frames_[frame_index_].fence_value, fence_event_);
         ::WaitForSingleObject(fence_event_, INFINITE);
     }
 
-    frame.fence_value = fence_value + 1u;
-
-    // enqueue signal so future render passes know when the frame is safe to use
-    // expect(frame.fence->GetCompletedValue() == frame.fence_value - 1u, "invalid fence value");
-    // expect(command_queue_->Signal(frame.fence.Get(), frame.fence_value) == S_OK, "could not signal");
-    // frame.fence->SetEventOnCompletion(frame.fence_value, frame.fence_event);
-    //++frame.fence_value;
+    frames_[frame_index_].fence_value = fence_value + 1u;
 }
 
 }

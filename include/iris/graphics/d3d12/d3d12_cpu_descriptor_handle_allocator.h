@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstdint>
 
 #define WIN32_LEAN_AND_MEAN
@@ -15,51 +16,65 @@
 #include "directx/d3d12.h"
 #include "directx/d3dx12.h"
 
+#include "core/error_handling.h"
+#include "graphics/d3d12/d3d12_context.h"
 #include "graphics/d3d12/d3d12_descriptor_handle.h"
 
 namespace iris
 {
 
 /**
- * This class provides the mechanisms for allocating cpu descriptor heaps and
- * descriptor handles. An instance of this class will pre-allocate a fixed sized
- * pool of descriptors for a given d3d12 heap type, it then provides methods for
- * allocating handles from this pool. This class maintains two types of
- * allocation:
+ * This class provides the mechanisms for allocating cpu descriptor heaps and descriptor handles. An instance of this
+ * class will pre-allocate a fixed sized pool of descriptors for a given d3d12 heap type, it then provides methods for
+ * allocating handles from this pool. This class maintains two types of allocation:
  *  - static : allocated for the lifetime of the class
  *  - dynamic : reserved until reset
  *
- * This allows for handles to be allocated that only live for one render pass
- * (dynamic) or multiple frames (static).
+ * This allows for handles to be allocated that only live for one render pass (dynamic) or multiple frames (static).
+ *
+ * The dynamic section is split into N sections, one for each frame in the swap chain. This allows a frame to
+ * independently manage its own handles.
  *
  * Example heap layout:
  *
- *i                Pool of all descriptor handles
- *                  +----------------------+ -.
- *                  | static descriptor 1  |  |
- *                  +----------------------+  |
- *                  | static descriptor 2  |  |
- *                  +----------------------+  |
- *                  |                      |  | Static pool
- *                  |                      |  |
- *                  |                      |  |
- *                  |                      |  |
- *                  |                      |  |
- *               ,- +----------------------+ -'
- *               |  | dynamic descriptor 1 |
+ *                Pool of all descriptor handles
+ *               .- +----------------------+
+ *               |  | static descriptor 1  |
  *               |  +----------------------+
- *               |  | dynamic descriptor 2 |
+ *               |  | static descriptor 2  |
  *               |  +----------------------+
- *               |  | dynamic descriptor 3 |
- *  Dynamic pool |  +----------------------+
+ *  Static pool  |  |                      |
  *               |  |                      |
  *               |  |                      |
  *               |  |                      |
  *               |  |                      |
- *               |  |                      |
- *               |  |                      |
- *                '-+----------------------+
+ *               +- +----------------------+ -.
+ *               |  | dynamic descriptor 1 |  |
+ *               |  +----------------------+  |
+ *               |  | dynamic descriptor 2 |  |
+ *               |  +----------------------+  | Frame 1
+ *               |  | dynamic descriptor 3 |  |
+ *               |  +----------------------+  |
+ *               |  |          ...         |  |
+ *               |  +----------------------+ -+
+ *               |  | dynamic descriptor 1 |  |
+ *               |  +----------------------+  |
+ *  Dynamic pool |  | dynamic descriptor 2 |  |
+ *               |  +----------------------+  | Frame 2
+ *               |  | dynamic descriptor 3 |  |
+ *               |  +----------------------+  |
+ *               |  |          ...         |  |
+ *               |  +----------------------+ -+
+ *               |  | dynamic descriptor 1 |  |
+ *               |  +----------------------+  |
+ *               |  | dynamic descriptor 2 |  |
+ *               |  +----------------------+  | Frame 3
+ *               |  | dynamic descriptor 3 |  |
+ *               |  +----------------------+  |
+ *               |  |         ...          |  |
+ *                '-+----------------------+ -'
  */
+template <std::uint32_t N>
 class D3D12CPUDescriptorHandleAllocator
 {
   public:
@@ -83,7 +98,40 @@ class D3D12CPUDescriptorHandleAllocator
         D3D12_DESCRIPTOR_HEAP_TYPE type,
         std::uint32_t num_descriptors,
         std::uint32_t static_size,
-        bool shader_visible = false);
+        bool shader_visible = false)
+        : descriptor_heap_(nullptr)
+        , heap_start_()
+        , descriptor_size_(0u)
+        , static_index_(0u)
+        , dynamic_indices_()
+        , static_capacity_(static_size)
+        , dynamic_capacity_((num_descriptors - static_size) / N)
+    {
+        auto *device = D3D12Context::device();
+
+        // setup heap description
+        D3D12_DESCRIPTOR_HEAP_DESC heap_description;
+        heap_description.NumDescriptors = num_descriptors;
+        heap_description.Type = type;
+        heap_description.Flags =
+            shader_visible ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+        heap_description.NodeMask = 0;
+
+        // create heap
+        expect(
+            device->CreateDescriptorHeap(&heap_description, IID_PPV_ARGS(&descriptor_heap_)) == S_OK,
+            "could not create descriptor heap");
+
+        descriptor_size_ = device->GetDescriptorHandleIncrementSize(type);
+
+        heap_start_ = descriptor_heap_->GetCPUDescriptorHandleForHeapStart();
+
+        // set indices for dynamic pools
+        for (auto i = 0u; i < N; ++i)
+        {
+            dynamic_indices_[i] = static_size + (i * dynamic_capacity_);
+        }
+    }
 
     /**
      * Allocate a static descriptor from the pool.
@@ -91,29 +139,60 @@ class D3D12CPUDescriptorHandleAllocator
      * @returns
      *   A new static descriptor.
      */
-    D3D12DescriptorHandle allocate_static();
+    D3D12DescriptorHandle allocate_static()
+    {
+        expect(static_index_ < static_capacity_, "heap too small");
 
+        // get next free descriptor form static pool
+        D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle = heap_start_;
+        cpu_handle.ptr += descriptor_size_ * static_index_;
+
+        ++static_index_;
+
+        return {cpu_handle};
+    }
     /**
      * Allocate a dynamic descriptor from the pool.
      *
      * @returns
      *   A new dynamic descriptor.
      */
-    D3D12DescriptorHandle allocate_dynamic();
+    D3D12DescriptorHandle allocate_dynamic(std::uint32_t frame)
+    {
+        expect(frame < N, "invalid frame number");
+        expect(dynamic_indices_[frame] < static_capacity_ + ((frame + 1u) * dynamic_capacity_), "heap too small");
 
+        // get next free descriptor form dynamic pool
+        D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle = heap_start_;
+        cpu_handle.ptr += descriptor_size_ * (static_capacity_ + dynamic_indices_[frame]);
+
+        ++dynamic_indices_[frame];
+
+        return {cpu_handle};
+    }
     /**
      * Get the size of a descriptor handle.
      *
      * @returns
      *   Descriptor handle size.
      */
-    std::uint32_t descriptor_size() const;
-
+    std::uint32_t descriptor_size() const
+    {
+        return descriptor_size_;
+    }
     /**
-     * Reset the dynamic allocation. This means future calls to allocate_dynamic
-     * could return handles that have been previously allocated.
+     * Reset the dynamic allocation for a given frame. This means future calls to allocate_dynamic could return handles
+     * that have been previously allocated.
+     *
+     * @param frame
+     *   Frame number to reset.
      */
-    void reset_dynamic();
+    void reset_dynamic(std::uint32_t frame)
+    {
+        expect(frame < N, "invalid frame number");
+
+        dynamic_indices_[frame] = static_capacity_ + (frame * dynamic_capacity_);
+    }
 
   private:
     /** D3D12 handle to descriptor heap. */
@@ -128,13 +207,13 @@ class D3D12CPUDescriptorHandleAllocator
     /** The current index into the static pool. */
     std::uint32_t static_index_;
 
-    /** The current index into the dynamic pool. */
-    std::uint32_t dynamic_index_;
+    /** The current index into each dynamic pool. */
+    std::array<std::uint32_t, N> dynamic_indices_;
 
     /** Maximum number of static handles. */
     std::uint32_t static_capacity_;
 
-    /** Maximum number of dynamic handles. */
+    /** Maximum number of dynamic handles in a frame. */
     std::uint32_t dynamic_capacity_;
 };
 

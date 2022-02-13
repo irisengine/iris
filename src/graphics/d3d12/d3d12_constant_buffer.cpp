@@ -6,6 +6,9 @@
 
 #include "graphics/d3d12/d3d12_constant_buffer.h"
 
+#include <cstddef>
+#include <cstdint>
+
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <wrl.h>
@@ -27,6 +30,9 @@ namespace
 /**
  * Helper function to create a D3D12 buffer on the upload heap.
  *
+ * @param frame
+ *   The frame number using this buffer.
+ *
  * @param capacity
  *   Size of buffer (in bytes).
  *
@@ -36,7 +42,10 @@ namespace
  * @returns
  *   Descriptor handle to buffer.
  */
-iris::D3D12DescriptorHandle create_resource(std::size_t capacity, Microsoft::WRL::ComPtr<ID3D12Resource> &resource)
+iris::D3D12DescriptorHandle create_resource(
+    std::uint32_t frame,
+    std::size_t capacity,
+    Microsoft::WRL::ComPtr<ID3D12Resource> &resource)
 {
     const auto upload_heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
     const auto heap_descriptor = CD3DX12_RESOURCE_DESC::Buffer(capacity);
@@ -54,7 +63,7 @@ iris::D3D12DescriptorHandle create_resource(std::size_t capacity, Microsoft::WRL
     iris::expect(commit_resource == S_OK, "could not create constant buffer");
 
     // allocate descriptor for buffer
-    return iris::D3D12DescriptorManager::cpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).allocate_dynamic();
+    return iris::D3D12DescriptorManager::cpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).allocate_dynamic(frame);
 }
 
 }
@@ -62,11 +71,11 @@ iris::D3D12DescriptorHandle create_resource(std::size_t capacity, Microsoft::WRL
 namespace iris
 {
 
-D3D12ConstantBuffer::D3D12ConstantBuffer()
+D3D12ConstantBuffer::D3D12ConstantBuffer(std::uint32_t frame)
     : capacity_(1u)
     , mapped_buffer_(nullptr)
     , resource_(nullptr)
-    , descriptor_handle_(create_resource(capacity_, resource_))
+    , descriptor_handle_(create_resource(frame, capacity_, resource_))
 {
     auto *device = iris::D3D12Context::device();
 
@@ -76,11 +85,11 @@ D3D12ConstantBuffer::D3D12ConstantBuffer()
     // there are no valid actions on it
 }
 
-D3D12ConstantBuffer::D3D12ConstantBuffer(std::uint32_t capacity)
+D3D12ConstantBuffer::D3D12ConstantBuffer(std::uint32_t frame, std::uint32_t capacity)
     : capacity_(capacity)
     , mapped_buffer_(nullptr)
     , resource_(nullptr)
-    , descriptor_handle_(create_resource(capacity_, resource_))
+    , descriptor_handle_(create_resource(frame, capacity_, resource_))
 {
     auto *device = D3D12Context::device();
 

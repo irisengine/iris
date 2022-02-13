@@ -42,29 +42,29 @@ cbuffer DefaultUniforms : register(b0)
     matrix model;
     matrix normal_matrix;
     matrix bones[100];
-    float4 light_colour;
-    float4 light_position;
-    float4 light_attenuation;
 };
 
-cbuffer DirectionalLight : register(b1)
+cbuffer Light : register(b1)
 {
     matrix light_projection;
     matrix light_view;
+    float4 light_colour;
+    float4 light_position;
+    float4 light_attenuation;
 };)";
 
 static constexpr auto ps_input = R"(
 struct PSInput
 {
-    float4 position : SV_POSITION;
-    float4 frag_position : POSITION0;
-    float4 tangent_view_pos : POSITION1;
-    float4 tangent_frag_pos : POSITION2;
-    float4 tangent_light_pos : POSITION3;
-    float4 frag_pos_light_space : POSITION4;
-    float4 normal : NORMAL;
-    float4 colour : COLOR;
-    float2 tex_coord : TEXCOORD;
+    precise float4 position : SV_POSITION;
+    precise float4 frag_position : POSITION0;
+    precise float4 tangent_view_pos : POSITION1;
+    precise float4 tangent_frag_pos : POSITION2;
+    precise float4 tangent_light_pos : POSITION3;
+    precise float4 frag_pos_light_space : POSITION4;
+    precise float4 normal : NORMAL;
+    precise float4 colour : COLOR;
+    precise float2 tex_coord : TEXCOORD;
 };)";
 
 static constexpr auto invert_function = R"(
@@ -509,8 +509,7 @@ float4 main(PSInput input) : SV_TARGET
     build_fragment_colour(*current_stream_, node.colour_input(), this);
 
     *current_stream_ << R"(
-        float3 c = g_sky_box.SampleLevel(g_sampler, normalize(input.normal.xyz), 0).rgb;
-        return float4(c, 1.0f);
+        return g_sky_box.SampleLevel(g_sampler, normalize(input.normal.xyz), 0).rgba;
     })";
 
     cube_map_ = node.sky_box();
