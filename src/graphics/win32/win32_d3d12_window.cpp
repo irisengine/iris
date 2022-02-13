@@ -34,6 +34,8 @@ Win32D3D12Window::Win32D3D12Window(std::uint32_t width, std::uint32_t height)
     : Win32Window(width, height)
 {
     renderer_ = std::make_unique<D3D12Renderer>(window_, width_, height_, screen_scale());
+
+    ::SetWindowTextA(window_, "iris::d3d12");
 }
 
 }

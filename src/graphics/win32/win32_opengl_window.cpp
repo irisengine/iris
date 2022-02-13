@@ -256,6 +256,8 @@ Win32OpenGLWindow::Win32OpenGLWindow(std::uint32_t width, std::uint32_t height)
     resolve_global_opengl_functions();
 
     renderer_ = std::make_unique<OpenGLRenderer>(width_, height_);
+
+    ::SetWindowTextA(window_, "iris::opengl");
 }
 
 }
