@@ -316,15 +316,12 @@ void OpenGLRenderer::set_render_passes(const std::vector<RenderPass> &render_pas
 
 RenderTarget *OpenGLRenderer::create_render_target(std::uint32_t width, std::uint32_t height)
 {
-    auto &tex_man = static_cast<OpenGLTextureManager &>(Root::texture_manager());
 
     const auto scale = Root::window_manager().current_window()->screen_scale();
 
     render_targets_.emplace_back(std::make_unique<OpenGLRenderTarget>(
-        std::make_unique<OpenGLTexture>(
-            DataBuffer{}, width * scale, height * scale, TextureUsage::RENDER_TARGET, tex_man.next_id()),
-        std::make_unique<OpenGLTexture>(
-            DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH, tex_man.next_id())));
+        Root::texture_manager().create(DataBuffer{}, width * scale, height * scale, TextureUsage::RENDER_TARGET),
+        Root::texture_manager().create(DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH)));
 
     return render_targets_.back().get();
 }

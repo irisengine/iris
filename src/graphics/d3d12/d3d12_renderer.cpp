@@ -402,17 +402,16 @@ RenderTarget *D3D12Renderer::create_render_target(std::uint32_t width, std::uint
 {
     const auto scale = Root::window_manager().current_window()->screen_scale();
 
-    auto colour_texture =
-        std::make_unique<D3D12Texture>(DataBuffer{}, width * scale, height * scale, TextureUsage::RENDER_TARGET);
-    auto depth_texture =
-        std::make_unique<D3D12Texture>(DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH);
+    auto *colour_texture = static_cast<D3D12Texture *>(
+        Root::texture_manager().create(DataBuffer{}, width * scale, height * scale, TextureUsage::RENDER_TARGET));
+    auto *depth_texture = static_cast<D3D12Texture *>(
+        Root::texture_manager().create(DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH));
 
     // add these to uploaded so the next render pass doesn't try to upload them
-    uploaded_.emplace(colour_texture.get());
-    uploaded_.emplace(depth_texture.get());
+    uploaded_.emplace(colour_texture);
+    uploaded_.emplace(depth_texture);
 
-    render_targets_.emplace_back(
-        std::make_unique<D3D12RenderTarget>(std::move(colour_texture), std::move(depth_texture)));
+    render_targets_.emplace_back(std::make_unique<D3D12RenderTarget>(colour_texture, depth_texture));
 
     auto *rt = render_targets_.back().get();
 

@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include <memory>
-
 #include "graphics/metal/metal_texture.h"
 #include "graphics/render_target.h"
 
@@ -29,7 +27,7 @@ class MetalRenderTarget : public RenderTarget
      * @param depth_texture
      *   Texture to render depth data to.
      */
-    MetalRenderTarget(std::unique_ptr<MetalTexture> colour_texture, std::unique_ptr<MetalTexture> depth_texture);
+    MetalRenderTarget(MetalTexture *colour_texture, MetalTexture *depth_texture);
 
     ~MetalRenderTarget() override = default;
 };

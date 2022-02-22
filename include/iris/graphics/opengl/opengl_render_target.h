@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include <memory>
-
 #include "graphics/opengl/opengl.h"
 #include "graphics/render_target.h"
 #include "graphics/texture.h"
@@ -30,7 +28,7 @@ class OpenGLRenderTarget : public RenderTarget
      * @param depth_texture
      *   Texture to render depth data to.
      */
-    OpenGLRenderTarget(std::unique_ptr<Texture> colour_texture, std::unique_ptr<Texture> depth_texture);
+    OpenGLRenderTarget(const Texture *colour_texture, const Texture *depth_texture);
 
     /**
      * Clean up OpenGL objects.

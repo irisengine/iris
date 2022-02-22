@@ -404,8 +404,10 @@ RenderTarget *MetalRenderer::create_render_target(std::uint32_t width, std::uint
     const auto scale = Root::window_manager().current_window()->screen_scale();
 
     render_targets_.emplace_back(std::make_unique<MetalRenderTarget>(
-        std::make_unique<MetalTexture>(DataBuffer{}, width * scale, height * scale, TextureUsage::RENDER_TARGET),
-        std::make_unique<MetalTexture>(DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH)));
+        static_cast<MetalTexture *>(
+            Root::texture_manager().create(DataBuffer{}, width * scale, height * scale, TextureUsage::RENDER_TARGET)),
+        static_cast<MetalTexture *>(
+            Root::texture_manager().create(DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH))));
 
     return render_targets_.back().get();
 }
