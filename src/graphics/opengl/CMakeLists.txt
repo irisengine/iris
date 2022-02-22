@@ -18,7 +18,6 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/opengl_uniform.h
     glsl_shader_compiler.cpp
     opengl.cpp
-    opengl_buffer.cpp
     opengl_cube_map.cpp
     opengl_material.cpp
     opengl_mesh.cpp
