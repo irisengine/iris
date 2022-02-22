@@ -26,8 +26,8 @@ namespace iris
 /**
  * Implementation of Texture for d3d12.
  *
- * Internally texture data is first copied to an upload heap. The renderer can
- * then encode a command to copy that data to a shader visible heap.
+ * Internally texture data is first copied to an upload heap. The renderer can then encode a command to copy that data
+ * to a shader visible heap.
  */
 class D3D12Texture : public Texture
 {
@@ -46,8 +46,15 @@ class D3D12Texture : public Texture
      *
      * @param usage
      *   Texture usage.
+     *
+     * @param index
      */
-    D3D12Texture(const DataBuffer &data, std::uint32_t width, std::uint32_t height, TextureUsage usage);
+    D3D12Texture(
+        const DataBuffer &data,
+        std::uint32_t width,
+        std::uint32_t height,
+        TextureUsage usage,
+        std::uint32_t index);
 
     ~D3D12Texture() override = default;
 

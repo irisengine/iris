@@ -191,8 +191,13 @@ id<MTLTexture> create_texture(
 namespace iris
 {
 
-MetalTexture::MetalTexture(const DataBuffer &data, std::uint32_t width, std::uint32_t height, TextureUsage usage)
-    : Texture(data, width, height, usage)
+MetalTexture::MetalTexture(
+    const DataBuffer &data,
+    std::uint32_t width,
+    std::uint32_t height,
+    TextureUsage usage,
+    std::uint32_t index)
+    : Texture(data, width, height, usage, index)
     , texture_()
 {
     texture_ = create_texture(data, width, height, usage);

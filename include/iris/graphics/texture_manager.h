@@ -22,28 +22,27 @@ namespace iris
 {
 
 /**
- * Abstract class for creating and managing Texture/CubeMap objects. This class handles
- * caching and lifetime management of all created objects. Implementers just
- * need to provide a graphics API specific method for creating Texture objects.
+ * Abstract class for creating and managing Texture/CubeMap objects. This class handles caching and lifetime management
+ * of all created objects. Implementers just need to provide a graphics API specific method for creating Texture
+ * objects.
  */
 class TextureManager
 {
   public:
+    TextureManager();
     virtual ~TextureManager() = default;
 
     /**
      * Load a texture from the supplied file. Will use ResourceManager.
      *
-     * This function uses caching, so loading the same resource more than once
-     * will return the same handle.
+     * This function uses caching, so loading the same resource more than once will return the same handle.
      *
      * @param resource
      *   File to load.
      *
      * @param usage
-     *   The usage of the texture. Default is IMAGE i.e. something that will be
-     *   rendered. If Texture represents something like a normal or height map
-     *   the DATA should be used.
+     *   The usage of the texture. Default is IMAGE i.e. something that will be rendered. If Texture represents
+     * something like a normal or height map the DATA should be used.
      *
      * @returns
      *   Pointer to loaded texture.
@@ -53,8 +52,8 @@ class TextureManager
     /**
      * Load a CubeMap from the supplied file. Will use ResourceManager.
      *
-     * This function uses caching, so loading the same series of six resources more than once
-     * will return the same handle.
+     * This function uses caching, so loading the same series of six resources more than once will return the same
+     * handle.
      *
      * @param right_resource
      *   File to load for right face of cube.
@@ -171,12 +170,11 @@ class TextureManager
     /**
      * Unloaded the supplied texture (if there are no other references to it).
      *
-     * Normally we would want textures to stay loaded to avoid excess loads.
-     * However in some cases it may be necessary to unload a texture (if we know
-     * we don't want to use it again).
+     * Normally we would want textures to stay loaded to avoid excess loads. However in some cases it may be necessary
+     * to unload a texture (if we know we don't want to use it again).
      *
-     * This function decrements an internal reference count and will only
-     * actually unload texture memory if that reference count reaches 0.
+     * This function decrements an internal reference count and will only actually unload texture memory if that
+     * reference count reaches 0.
      *
      * @param texture
      *   Texture to unload.
@@ -186,12 +184,11 @@ class TextureManager
     /**
      * Unloaded the supplied CubeMap (if there are no other references to it).
      *
-     * Normally we would want CubeMaps to stay loaded to avoid excess loads.
-     * However in some cases it may be necessary to unload a CubeMap (if we know
-     * we don't want to use it again).
+     * Normally we would want CubeMaps to stay loaded to avoid excess loads. However in some cases it may be necessary
+     * to unload a CubeMap (if we know we don't want to use it again).
      *
-     * This function decrements an internal reference count and will only
-     * actually unload texture memory if that reference count reaches 0.
+     * This function decrements an internal reference count and will only actually unload texture memory if that
+     * reference count reaches 0.
      *
      * @param cube_map
      *   CubeMap to unload.
@@ -205,6 +202,22 @@ class TextureManager
      *   Blank texture.
      */
     Texture *blank();
+
+    /**
+     * Get the next available index for a new texture.
+     *
+     * @returns
+     *   Next available index.
+     */
+    std::uint32_t next_index();
+
+    /**
+     * Get a copy of all Texture pointers.
+     *
+     * @return
+     *   All Texture pointers.
+     */
+    std::vector<const Texture *> textures() const;
 
   protected:
     /**
@@ -222,6 +235,9 @@ class TextureManager
      * @param usage
      *   Usage of the texture.
      *
+     * @param index
+     *   Index into the global array of all allocated textures.
+     *
      * @returns
      *   Created texture.
      */
@@ -229,7 +245,8 @@ class TextureManager
         const DataBuffer &data,
         std::uint32_t width,
         std::uint32_t height,
-        TextureUsage usage) = 0;
+        TextureUsage usage,
+        std::uint32_t index) = 0;
 
     /**
      * Create a CubeMap from six DataBuffers (one for each face).
@@ -275,9 +292,8 @@ class TextureManager
         std::uint32_t height) = 0;
 
     /**
-     * Implementors should override this method to provide implementation
-     * specific unloading logic. Called automatically when a Texture is being
-     * unloaded (after its reference count is zero), default is a no-op.
+     * Implementors should override this method to provide implementation specific unloading logic. Called automatically
+     * when a Texture is being unloaded (after its reference count is zero), default is a no-op.
      *
      * @param texture
      *   Texture about to be unloaded.
@@ -285,9 +301,8 @@ class TextureManager
     virtual void destroy(Texture *texture);
 
     /**
-     * Implementors should override this method to provide implementation
-     * specific unloading logic. Called automatically when a CubeMap is being
-     * unloaded (after its reference count is zero), default is a no-op.
+     * Implementors should override this method to provide implementation specific unloading logic. Called automatically
+     * when a CubeMap is being unloaded (after its reference count is zero), default is a no-op.
      *
      * @param cube_map
      *  CubeMap about to be unloaded.
@@ -310,6 +325,12 @@ class TextureManager
 
     /** Collection of loaded CubeMaps. */
     std::unordered_map<std::string, LoadedAsset<CubeMap>> loaded_cube_maps_;
+
+    /** Next index to use (if free list is empty). */
+    std::uint32_t index_counter_;
+
+    /** Collection if returned indices (which will be recycled). */
+    std::vector<std::uint32_t> index_free_list_;
 };
 
 }

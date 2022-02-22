@@ -24,10 +24,11 @@ std::unique_ptr<Texture> D3D12TextureManager::do_create(
     const DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
-    TextureUsage usage)
+    TextureUsage usage,
+    std::uint32_t index)
 
 {
-    return std::make_unique<D3D12Texture>(data, width, height, usage);
+    return std::make_unique<D3D12Texture>(data, width, height, usage, index);
 }
 
 std::unique_ptr<CubeMap> D3D12TextureManager::do_create(
@@ -38,10 +39,11 @@ std::unique_ptr<CubeMap> D3D12TextureManager::do_create(
     const DataBuffer &near_data,
     const DataBuffer &far_data,
     std::uint32_t width,
-    std::uint32_t height)
+    std::uint32_t height,
+    std::uint32_t index)
 {
     return std::make_unique<D3D12CubeMap>(
-        right_data, left_data, top_data, bottom_data, near_data, far_data, width, height);
+        right_data, left_data, top_data, bottom_data, near_data, far_data, width, height, index);
 }
 
 }

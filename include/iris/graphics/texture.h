@@ -32,10 +32,13 @@ class Texture
      * @param height
      *   Height of image.
      *
-     * @param pixel_format
-     *   Pixel format.
+     * @param usage
+     *   Texture usage.
+     *
+     * @param index
+     *   Index into the global array of all allocated textures.
      */
-    Texture(const DataBuffer &data, std::uint32_t width, std::uint32_t height, TextureUsage usage);
+    Texture(const DataBuffer &data, std::uint32_t width, std::uint32_t height, TextureUsage usage, std::uint32_t index);
 
     virtual ~Texture() = 0;
 
@@ -90,6 +93,16 @@ class Texture
      */
     void set_flip(bool flip);
 
+    /**
+     * Get index into global array of all allocated textures.
+     *
+     * This is most useful for bindless texturing as the texture knows where in the mapped texture table to find itself.
+     *
+     * @returns
+     *   Index of texture.
+     */
+    std::uint32_t index() const;
+
   protected:
     /** Raw image data. */
     DataBuffer data_;
@@ -105,6 +118,9 @@ class Texture
 
     /** Texture usage. */
     TextureUsage usage_;
+
+    /** Index into the global array of all allocated textures. */
+    std::uint32_t index_;
 };
 
 }

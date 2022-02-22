@@ -22,9 +22,10 @@ std::unique_ptr<Texture> MetalTextureManager::do_create(
     const DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
-    TextureUsage usage)
+    TextureUsage usage,
+    std::uint32_t index)
 {
-    return std::make_unique<MetalTexture>(data, width, height, usage);
+    return std::make_unique<MetalTexture>(data, width, height, usage, index);
 }
 
 std::unique_ptr<CubeMap> MetalTextureManager::do_create(

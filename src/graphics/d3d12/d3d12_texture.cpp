@@ -276,8 +276,13 @@ D3D12_RESOURCE_DESC depth_texture_descriptor(
 namespace iris
 {
 
-D3D12Texture::D3D12Texture(const DataBuffer &data, std::uint32_t width, std::uint32_t height, TextureUsage usage)
-    : Texture(data, width, height, usage)
+D3D12Texture::D3D12Texture(
+    const DataBuffer &data,
+    std::uint32_t width,
+    std::uint32_t height,
+    TextureUsage usage,
+    std::uint32_t index)
+    : Texture(data, width, height, usage, index)
     , resource_()
     , upload_()
     , resource_view_()

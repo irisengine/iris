@@ -37,8 +37,16 @@ class MetalTexture : public Texture
      *
      * @param usage
      *   Texture usage.
+     *
+     * @param index
+     *   Index into the global array of all allocated textures.
      */
-    MetalTexture(const DataBuffer &data, std::uint32_t width, std::uint32_t height, TextureUsage usage);
+    MetalTexture(
+        const DataBuffer &data,
+        std::uint32_t width,
+        std::uint32_t height,
+        TextureUsage usage,
+        std::uint32_t index);
 
     ~MetalTexture() override = default;
 

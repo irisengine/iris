@@ -182,6 +182,14 @@ iris::DataBuffer create_texture_data(
 namespace iris
 {
 
+TextureManager::TextureManager()
+    : loaded_textures_()
+    , loaded_cube_maps_()
+    , index_counter_(0u)
+    , index_free_list_()
+{
+}
+
 Texture *TextureManager::load(const std::string &resource, TextureUsage usage)
 {
     expect((usage == TextureUsage::IMAGE) || (usage == TextureUsage::DATA), "can only load IMAGE or DATA from file");
@@ -192,7 +200,7 @@ Texture *TextureManager::load(const std::string &resource, TextureUsage usage)
         const auto file_data = ResourceLoader::instance().load(resource);
         auto [data, width, height] = parse_image(file_data);
 
-        auto texture = do_create(data, width, height, usage);
+        auto texture = do_create(data, width, height, usage, next_index());
 
         loaded_textures_[resource] = {1u, std::move(texture)};
     }
@@ -234,8 +242,9 @@ CubeMap *TextureManager::load(
             std::all_of(
                 std::cbegin(parsed_sides) + 1u,
                 std::cend(parsed_sides),
-                [width, height](const auto &side)
-                { return (std::get<1>(side) == width) && (std::get<2>(side) == height); }),
+                [width, height](const auto &side) {
+                    return (std::get<1>(side) == width) && (std::get<2>(side) == height);
+                }),
             "cube map images must all have the same dimensions");
 
         auto cube_map = do_create(
@@ -269,7 +278,7 @@ Texture *TextureManager::create(const DataBuffer &data, std::uint32_t width, std
 
     const auto resource = strm.str();
 
-    auto texture = do_create(data, width, height, usage);
+    auto texture = do_create(data, width, height, usage, next_index());
 
     loaded_textures_[resource] = {1u, std::move(texture)};
 
@@ -313,17 +322,14 @@ CubeMap *TextureManager::create(const Colour &start, const Colour &end, std::uin
 
 void TextureManager::unload(Texture *texture)
 {
-    // allow for implementation specific unloading logic
-    destroy(texture);
-
     // don't unload the static blank texture!
     if (texture != blank())
     {
         // find the texture that we want to unload
-        auto loaded = std::find_if(
-            std::begin(loaded_textures_),
-            std::end(loaded_textures_),
-            [texture](const auto &element) { return element.second.asset.get() == texture; });
+        auto loaded =
+            std::find_if(std::begin(loaded_textures_), std::end(loaded_textures_), [texture](const auto &element) {
+                return element.second.asset.get() == texture;
+            });
 
         expect(loaded != std::cend(loaded_textures_), "texture has not been loaded");
 
@@ -331,6 +337,10 @@ void TextureManager::unload(Texture *texture)
         --loaded->second.ref_count;
         if (loaded->second.ref_count == 0u)
         {
+            // allow for implementation specific unloading logic
+            destroy(texture);
+
+            index_free_list_.emplace_back(texture->index());
             loaded_textures_.erase(loaded);
         }
     }
@@ -338,14 +348,11 @@ void TextureManager::unload(Texture *texture)
 
 void TextureManager::unload(CubeMap *cube_map)
 {
-    // allow for implementation specific unloading logic
-    destroy(cube_map);
-
     // find the texture that we want to unload
-    auto loaded = std::find_if(
-        std::begin(loaded_cube_maps_),
-        std::end(loaded_cube_maps_),
-        [cube_map](const auto &element) { return element.second.asset.get() == cube_map; });
+    auto loaded =
+        std::find_if(std::begin(loaded_cube_maps_), std::end(loaded_cube_maps_), [cube_map](const auto &element) {
+            return element.second.asset.get() == cube_map;
+        });
 
     expect(loaded != std::cend(loaded_cube_maps_), "cube_map has not been loaded");
 
@@ -353,6 +360,9 @@ void TextureManager::unload(CubeMap *cube_map)
     --loaded->second.ref_count;
     if (loaded->second.ref_count == 0u)
     {
+        // allow for implementation specific unloading logic
+        destroy(cube_map);
+
         loaded_cube_maps_.erase(loaded);
     }
 }
@@ -363,6 +373,42 @@ Texture *TextureManager::blank()
         create({std::byte{0xff}, std::byte{0xff}, std::byte{0xff}, std::byte{0xff}}, 1u, 1u, TextureUsage::IMAGE);
 
     return texture;
+}
+
+std::uint32_t TextureManager::next_index()
+{
+    auto index = 0u;
+
+    // first check free list for available indices, if empty then use main counter
+
+    if (!index_free_list_.empty())
+    {
+        index = index_free_list_.back();
+        index_free_list_.pop_back();
+    }
+    else
+    {
+        index = index_counter_++;
+    }
+
+    return index;
+}
+
+std::vector<const Texture *> TextureManager::textures() const
+{
+    std::vector<const Texture *> textures{};
+
+    std::transform(
+        std::cbegin(loaded_textures_),
+        std::cend(loaded_textures_),
+        std::back_inserter(textures),
+        [](const auto &element) { return element.second.asset.get(); });
+
+    std::sort(std::begin(textures), std::end(textures), [](const Texture *a, const Texture *b) {
+        return a->index() < b->index();
+    });
+
+    return textures;
 }
 
 void TextureManager::destroy(Texture *)

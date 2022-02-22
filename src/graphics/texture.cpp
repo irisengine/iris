@@ -6,19 +6,25 @@
 
 #include "graphics/texture.h"
 
-#include <memory>
+#include <cstdint>
 
 #include "graphics/texture_usage.h"
 
 namespace iris
 {
 
-Texture::Texture(const DataBuffer &data, std::uint32_t width, std::uint32_t height, TextureUsage usage)
+Texture::Texture(
+    const DataBuffer &data,
+    std::uint32_t width,
+    std::uint32_t height,
+    TextureUsage usage,
+    std::uint32_t index)
     : data_(data)
     , width_(width)
     , height_(height)
     , flip_(false)
     , usage_(usage)
+    , index_(index)
 {
 }
 
@@ -52,6 +58,11 @@ bool Texture::flip() const
 void Texture::set_flip(bool flip)
 {
     flip_ = flip;
+}
+
+std::uint32_t Texture::index() const
+{
+    return index_;
 }
 
 }

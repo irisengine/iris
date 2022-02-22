@@ -64,6 +64,9 @@ class OpenGLTextureManager : public TextureManager
      * @param usage
      *   Usage of the texture.
      *
+     * @param index
+     *   Index into the global array of all allocated textures.
+     *
      * @returns
      *   Created texture.
      */
@@ -71,7 +74,8 @@ class OpenGLTextureManager : public TextureManager
         const DataBuffer &data,
         std::uint32_t width,
         std::uint32_t height,
-        TextureUsage usage) override;
+        TextureUsage usage,
+        std::uint32_t index) override;
 
     /**
      * Create a CubeMap from six DataBuffers (one for each face).

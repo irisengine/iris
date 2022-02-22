@@ -50,9 +50,10 @@ std::unique_ptr<Texture> OpenGLTextureManager::do_create(
     const DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
-    TextureUsage usage)
+    TextureUsage usage,
+    std::uint32_t index)
 {
-    return std::make_unique<OpenGLTexture>(data, width, height, usage, next_id());
+    return std::make_unique<OpenGLTexture>(data, width, height, usage, index, next_id());
 }
 
 std::unique_ptr<CubeMap> OpenGLTextureManager::do_create(
