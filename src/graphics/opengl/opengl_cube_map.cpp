@@ -30,11 +30,11 @@ OpenGLCubeMap::OpenGLCubeMap(
     ::glGenTextures(1u, &handle_);
     expect(check_opengl_error, "could not generate texture");
 
-    ::glBindTexture(GL_TEXTURE_CUBE_MAP, handle_);
-    expect(check_opengl_error, "could not bind texture");
-
     ::glActiveTexture(id_);
     expect(check_opengl_error, "could not activate texture");
+
+    ::glBindTexture(GL_TEXTURE_CUBE_MAP, handle_);
+    expect(check_opengl_error, "could not bind texture");
 
     const std::byte *data_ptrs[] = {
         right_data.data(), left_data.data(), top_data.data(), bottom_data.data(), back_data.data(), front_data.data()};
