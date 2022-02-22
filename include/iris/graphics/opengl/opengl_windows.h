@@ -16,6 +16,7 @@
 #define GL_ARRAY_BUFFER 0x8892
 #define GL_ELEMENT_ARRAY_BUFFER 0x8893
 #define GL_STATIC_DRAW 0x88E4
+#define GL_DYNAMIC_DRAW 0x88E8
 #define GL_LINK_STATUS 0x8B82
 #define GL_INFO_LOG_LENGTH 0x8B84
 #define GL_FRAMEBUFFER 0x8D40
@@ -37,6 +38,10 @@
 #define GL_TEXTURE_WRAP_R 0x8072
 #define GL_TEXTURE_CUBE_MAP 0x8513
 #define GL_TEXTURE_CUBE_MAP_POSITIVE_X 0x8515
+#define GL_UNIFORM_BUFFER 0x8A11
+#define GL_COPY_READ_BUFFER 0x8F36
+#define GL_COPY_WRITE_BUFFER 0x8F37
+#define GL_SHADER_STORAGE_BUFFER 0x90D2
 
 #define WGL_CONTEXT_MAJOR_VERSION_ARB 0x2091
 #define WGL_CONTEXT_MINOR_VERSION_ARB 0x2092
@@ -57,6 +62,7 @@
 using GLsizeiptr = std::ptrdiff_t;
 using GLintptr = std::ptrdiff_t;
 using GLchar = char;
+using GLuint64 = std::uint64_t;
 
 // opengl function pointers
 // because windows supports multiple implementations of the opengl functions we
@@ -104,3 +110,10 @@ EXTERN void (*glGetShaderiv)(GLuint, GLenum, GLint *);
 EXTERN void (*glGetShaderInfoLog)(GLuint, GLsizei, GLsizei *, GLchar *);
 EXTERN void (*glDeleteShader)(GLuint);
 EXTERN void (*glGenerateMipmap)(GLenum);
+EXTERN void (*glBindBufferBase)(GLenum, GLuint, GLuint);
+EXTERN void (*glBindBufferRange)(GLenum, GLuint, GLuint, GLintptr, GLsizeiptr);
+EXTERN GLuint64 (*glGetTextureHandleARB)(GLuint);
+EXTERN void (*glMakeTextureHandleResidentARB)(GLuint64);
+EXTERN void (*glMakeTextureHandleNonResidentARB)(GLuint64);
+EXTERN void (*glCopyBufferSubData)(GLenum, GLenum, GLintptr, GLintptr, GLsizeiptr);
+EXTERN void (*glDrawElementsInstanced)(GLenum, GLsizei, GLenum, const void *, GLsizei);

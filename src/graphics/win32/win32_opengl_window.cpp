@@ -76,7 +76,6 @@ void resolve_global_opengl_functions()
     resolve_opengl_function(glGetProgramiv, "glGetProgramiv");
     resolve_opengl_function(glGetProgramInfoLog, "glGetProgramInfoLog");
     resolve_opengl_function(glDeleteProgram, "glDeleteProgram");
-
     resolve_opengl_function(glGenFramebuffers, "glGenFramebuffers");
     resolve_opengl_function(glBindFramebuffer, "glBindFramebuffer");
     resolve_opengl_function(glFramebufferTexture2D, "glFramebufferTexture2D");
@@ -97,6 +96,13 @@ void resolve_global_opengl_functions()
     resolve_opengl_function(glGetShaderInfoLog, "glGetShaderInfoLog");
     resolve_opengl_function(glDeleteShader, "glDeleteShader");
     resolve_opengl_function(glGenerateMipmap, "glGenerateMipmap");
+    resolve_opengl_function(glBindBufferBase, "glBindBufferBase");
+    resolve_opengl_function(glBindBufferRange, "glBindBufferRange");
+    resolve_opengl_function(glGetTextureHandleARB, "glGetTextureHandleARB");
+    resolve_opengl_function(glMakeTextureHandleResidentARB, "glMakeTextureHandleResidentARB");
+    resolve_opengl_function(glMakeTextureHandleNonResidentARB, "glMakeTextureHandleNonResidentARB");
+    resolve_opengl_function(glCopyBufferSubData, "glCopyBufferSubData");
+    resolve_opengl_function(glDrawElementsInstanced, "glDrawElementsInstanced");
 }
 
 /**
@@ -221,10 +227,10 @@ void init_opengl(HDC dc)
 
     iris::ensure(::SetPixelFormat(dc, pixel_format, &pfd) == TRUE, "could not set pixel format");
 
-    // opengl 3.3
+    // opengl 4.3
     int gl_attribs[] = {
         WGL_CONTEXT_MAJOR_VERSION_ARB,
-        3,
+        4,
         WGL_CONTEXT_MINOR_VERSION_ARB,
         3,
         WGL_CONTEXT_PROFILE_MASK_ARB,
