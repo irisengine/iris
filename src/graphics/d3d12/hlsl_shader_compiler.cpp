@@ -28,6 +28,7 @@
 #include "graphics/render_graph/sky_box_node.h"
 #include "graphics/render_graph/texture_node.h"
 #include "graphics/render_graph/value_node.h"
+#include "graphics/render_graph/vertex_node.h"
 #include "graphics/texture.h"
 
 namespace
@@ -665,6 +666,18 @@ void HLSLShaderCompiler::visit(const SinNode &node)
     *current_stream_ << "sin(";
     node.input_node()->accept(*this);
     *current_stream_ << ")";
+}
+
+void HLSLShaderCompiler::visit(const VertexNode &node)
+{
+    switch (node.vertex_data_type())
+    {
+        case VertexDataType::POSITION: *current_stream_ << "input.vertex_position"; break;
+        case VertexDataType::NORMAL: *current_stream_ << "input.normal"; break;
+        default: throw Exception("unknown vertex data type operator");
+    }
+
+    *current_stream_ << node.swizzle().value_or("");
 }
 
 std::string HLSLShaderCompiler::vertex_shader() const

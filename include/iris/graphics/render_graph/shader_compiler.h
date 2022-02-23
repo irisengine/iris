@@ -32,6 +32,7 @@ class CombineNode;
 class SinNode;
 template <typename>
 class ValueNode;
+class VertexNode;
 
 /**
  * Interface for a class that compiles a RenderGraph into API specific shaders.
@@ -59,6 +60,7 @@ class ShaderCompiler
     virtual void visit(const ComponentNode &node) = 0;
     virtual void visit(const CombineNode &node) = 0;
     virtual void visit(const SinNode &node) = 0;
+    virtual void visit(const VertexNode &node) = 0;
 
     /**
      * Get the compiled vertex shader.
