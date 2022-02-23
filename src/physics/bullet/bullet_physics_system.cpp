@@ -31,6 +31,7 @@
 #include "physics/bullet/bullet_box_collision_shape.h"
 #include "physics/bullet/bullet_capsule_collision_shape.h"
 #include "physics/bullet/bullet_collision_shape.h"
+#include "physics/bullet/bullet_heightmap_collision_shape.h"
 #include "physics/bullet/bullet_mesh_collision_shape.h"
 #include "physics/bullet/bullet_rigid_body.h"
 #include "physics/bullet/collision_callback.h"
@@ -214,6 +215,14 @@ const CollisionShape *BulletPhysicsSystem::create_mesh_collision_shape(const Mes
     return collision_shapes_.back().get();
 }
 
+const CollisionShape *BulletPhysicsSystem::create_heightmap_collision_shape(
+    const Texture *heightmap,
+    const Vector3 &scale)
+{
+    collision_shapes_.emplace_back(std::make_unique<BulletHeightmapCollisionShape>(heightmap, scale));
+    return collision_shapes_.back().get();
+}
+
 CharacterController *BulletPhysicsSystem::add(std::unique_ptr<CharacterController> character_controller)
 {
     character_controllers_.emplace_back(std::move(character_controller));
@@ -261,8 +270,7 @@ std::vector<RayCastResult> BulletPhysicsSystem::ray_cast(
         std::cbegin(ignore),
         std::cend(ignore),
         std::inserter(bullet_ignore, std::begin(bullet_ignore)),
-        [](const RigidBody *element)
-        {
+        [](const RigidBody *element) {
             const auto *bullet_body = static_cast<const iris::BulletRigidBody *>(element);
             return bullet_body->handle();
         });
@@ -289,11 +297,9 @@ std::vector<RayCastResult> BulletPhysicsSystem::ray_cast(
     }
 
     // sort the hits from closest to origin
-    std::sort(
-        std::begin(hits),
-        std::end(hits),
-        [&origin](const auto &e1, const auto &e2)
-        { return Vector3::distance(origin, e1.position) < Vector3::distance(origin, e2.position); });
+    std::sort(std::begin(hits), std::end(hits), [&origin](const auto &e1, const auto &e2) {
+        return Vector3::distance(origin, e1.position) < Vector3::distance(origin, e2.position);
+    });
 
     return hits;
 }

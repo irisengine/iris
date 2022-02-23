@@ -33,6 +33,7 @@ namespace iris
 {
 
 class Mesh;
+class Texture;
 
 /**
  * Implementation of PhysicsSystem for bullet.
@@ -117,6 +118,20 @@ class BulletPhysicsSystem : public PhysicsSystem
      *   Pointer to newly created CollisionShape.
      */
     const CollisionShape *create_mesh_collision_shape(const Mesh *mesh, const Vector3 &scale) override;
+
+    /**
+     * Create a CollisionShape from a Texture (reads height data from r component).
+     *
+     * @param heightmap
+     *   Texture containing height data.
+     *
+     * @param scale
+     *   Scale of mesh as it will be rendered.
+     *
+     * @returns
+     *   Pointer to newly created CollisionShape.
+     */
+    const CollisionShape *create_heightmap_collision_shape(const Texture *heightmap, const Vector3 &scale) override;
 
     /**
      * Add a character controller.

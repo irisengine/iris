@@ -25,6 +25,7 @@ namespace iris
 
 class RenderEntity;
 class Mesh;
+class Texture;
 
 /**
  * Interface for a class which stores the current state of a PhysicsSystem.
@@ -116,6 +117,20 @@ class PhysicsSystem
      *   Pointer to newly created CollisionShape.
      */
     virtual const CollisionShape *create_mesh_collision_shape(const Mesh *mesh, const Vector3 &scale) = 0;
+
+    /**
+     * Create a CollisionShape from a Texture (reads height data from r component).
+     *
+     * @param heightmap
+     *   Texture containing height data.
+     *
+     * @param scale
+     *   Scale of mesh as it will be rendered.
+     *
+     * @returns
+     *   Pointer to newly created CollisionShape.
+     */
+    virtual const CollisionShape *create_heightmap_collision_shape(const Texture *heightmap, const Vector3 &scale) = 0;
 
     /**
      * Add a character controller.

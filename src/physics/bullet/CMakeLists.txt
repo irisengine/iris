@@ -4,6 +4,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/bullet_box_collision_shape.h
     ${INCLUDE_ROOT}/bullet_capsule_collision_shape.h
     ${INCLUDE_ROOT}/bullet_collision_shape.h
+    ${INCLUDE_ROOT}/bullet_heightmap_collision_shape.h
     ${INCLUDE_ROOT}/bullet_mesh_collision_shape.h
     ${INCLUDE_ROOT}/bullet_physics_manager.h
     ${INCLUDE_ROOT}/bullet_physics_system.h
@@ -12,6 +13,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/debug_draw.h
     bullet_box_collision_shape.cpp
     bullet_capsule_collision_shape.cpp
+    bullet_heightmap_collision_shape.cpp
     bullet_mesh_collision_shape.cpp
     bullet_physics_manager.cpp
     bullet_physics_system.cpp
