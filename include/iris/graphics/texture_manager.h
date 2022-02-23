@@ -201,7 +201,15 @@ class TextureManager
      * @returns
      *   Blank texture.
      */
-    Texture *blank();
+    Texture *blank_texture();
+
+    /**
+     * Get a blank white cube_map
+     *
+     * @returns
+     *   Blank cube map.
+     */
+    CubeMap *blank_cube_map();
 
     /**
      * Get the next available index for a new texture.
@@ -209,15 +217,31 @@ class TextureManager
      * @returns
      *   Next available index.
      */
-    std::uint32_t next_index();
+    std::uint32_t next_texture_index();
 
     /**
-     * Get a copy of all Texture pointers.
+     * Get the next available index for a new cube map.
+     *
+     * @returns
+     *   Next available index.
+     */
+    std::uint32_t next_cube_map_index();
+
+    /**
+     * Get a copy of all Texture pointers (sorted by index).
      *
      * @return
      *   All Texture pointers.
      */
     std::vector<const Texture *> textures() const;
+
+    /**
+     * Get a copy of all CubeMap pointers (sorted by index).
+     *
+     * @return
+     *   All CubeMap pointers.
+     */
+    std::vector<const CubeMap *> cube_maps() const;
 
   protected:
     /**
@@ -278,6 +302,9 @@ class TextureManager
      * @param height
      *   Height of each image face.
      *
+     * @param index
+     *   Index into the global array of all allocated textures.
+     *
      * @returns
      *   Created CubeMap.
      */
@@ -289,10 +316,11 @@ class TextureManager
         const DataBuffer &near_data,
         const DataBuffer &far_data,
         std::uint32_t width,
-        std::uint32_t height) = 0;
+        std::uint32_t height,
+        std::uint32_t index) = 0;
 
     /**
-     * Implementors should override this method to provide implementation specific unloading logic. Called automatically
+     * Implementers should override this method to provide implementation specific unloading logic. Called automatically
      * when a Texture is being unloaded (after its reference count is zero), default is a no-op.
      *
      * @param texture
@@ -301,7 +329,7 @@ class TextureManager
     virtual void destroy(Texture *texture);
 
     /**
-     * Implementors should override this method to provide implementation specific unloading logic. Called automatically
+     * Implementers should override this method to provide implementation specific unloading logic. Called automatically
      * when a CubeMap is being unloaded (after its reference count is zero), default is a no-op.
      *
      * @param cube_map
@@ -327,10 +355,16 @@ class TextureManager
     std::unordered_map<std::string, LoadedAsset<CubeMap>> loaded_cube_maps_;
 
     /** Next index to use (if free list is empty). */
-    std::uint32_t index_counter_;
+    std::uint32_t texture_index_counter_;
 
     /** Collection if returned indices (which will be recycled). */
-    std::vector<std::uint32_t> index_free_list_;
+    std::vector<std::uint32_t> texture_index_free_list_;
+
+    /** Next index to use (if free list is empty). */
+    std::uint32_t cube_map_index_counter_;
+
+    /** Collection if returned indices (which will be recycled). */
+    std::vector<std::uint32_t> cube_map_index_free_list_;
 };
 
 }

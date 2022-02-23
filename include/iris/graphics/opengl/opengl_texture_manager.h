@@ -107,6 +107,9 @@ class OpenGLTextureManager : public TextureManager
      * @param height
      *   Height of each image face.
      *
+     * @param index
+     *   Index into the global array of all allocated textures.
+     *
      * @returns
      *   Created CubeMap.
      */
@@ -118,7 +121,8 @@ class OpenGLTextureManager : public TextureManager
         const DataBuffer &near_data,
         const DataBuffer &far_data,
         std::uint32_t width,
-        std::uint32_t height) override;
+        std::uint32_t height,
+        std::uint32_t index) override;
 
     /**
      * Unload a texture.

@@ -185,8 +185,10 @@ namespace iris
 TextureManager::TextureManager()
     : loaded_textures_()
     , loaded_cube_maps_()
-    , index_counter_(0u)
-    , index_free_list_()
+    , texture_index_counter_(0u)
+    , texture_index_free_list_()
+    , cube_map_index_counter_(0u)
+    , cube_map_index_free_list_()
 {
 }
 
@@ -200,7 +202,7 @@ Texture *TextureManager::load(const std::string &resource, TextureUsage usage)
         const auto file_data = ResourceLoader::instance().load(resource);
         auto [data, width, height] = parse_image(file_data);
 
-        auto texture = do_create(data, width, height, usage, next_index());
+        auto texture = do_create(data, width, height, usage, next_texture_index());
 
         loaded_textures_[resource] = {1u, std::move(texture)};
     }
@@ -255,7 +257,8 @@ CubeMap *TextureManager::load(
             std::get<0>(parsed_sides[4]),
             std::get<0>(parsed_sides[5]),
             width,
-            height);
+            height,
+            next_cube_map_index());
 
         loaded_cube_maps_[resource] = {1u, std::move(cube_map)};
     }
@@ -278,7 +281,7 @@ Texture *TextureManager::create(const DataBuffer &data, std::uint32_t width, std
 
     const auto resource = strm.str();
 
-    auto texture = do_create(data, width, height, usage, next_index());
+    auto texture = do_create(data, width, height, usage, next_texture_index());
 
     loaded_textures_[resource] = {1u, std::move(texture)};
 
@@ -304,7 +307,8 @@ CubeMap *TextureManager::create(
 
     const auto resource = strm.str();
 
-    auto cube_map = do_create(right_data, left_data, top_data, bottom_data, near_data, far_data, width, height);
+    auto cube_map = do_create(
+        right_data, left_data, top_data, bottom_data, near_data, far_data, width, height, next_cube_map_index());
 
     loaded_cube_maps_[resource] = {1u, std::move(cube_map)};
 
@@ -323,7 +327,7 @@ CubeMap *TextureManager::create(const Colour &start, const Colour &end, std::uin
 void TextureManager::unload(Texture *texture)
 {
     // don't unload the static blank texture!
-    if (texture != blank())
+    if (texture != blank_texture())
     {
         // find the texture that we want to unload
         auto loaded =
@@ -340,7 +344,7 @@ void TextureManager::unload(Texture *texture)
             // allow for implementation specific unloading logic
             destroy(texture);
 
-            index_free_list_.emplace_back(texture->index());
+            texture_index_free_list_.emplace_back(texture->index());
             loaded_textures_.erase(loaded);
         }
     }
@@ -348,47 +352,86 @@ void TextureManager::unload(Texture *texture)
 
 void TextureManager::unload(CubeMap *cube_map)
 {
-    // find the texture that we want to unload
-    auto loaded =
-        std::find_if(std::begin(loaded_cube_maps_), std::end(loaded_cube_maps_), [cube_map](const auto &element) {
-            return element.second.asset.get() == cube_map;
-        });
-
-    expect(loaded != std::cend(loaded_cube_maps_), "cube_map has not been loaded");
-
-    // decrement reference count and, if 0, unload
-    --loaded->second.ref_count;
-    if (loaded->second.ref_count == 0u)
+    // don't unload the static blank cube map!
+    if (cube_map != blank_cube_map())
     {
-        // allow for implementation specific unloading logic
-        destroy(cube_map);
+        // find the texture that we want to unload
+        auto loaded =
+            std::find_if(std::begin(loaded_cube_maps_), std::end(loaded_cube_maps_), [cube_map](const auto &element) {
+                return element.second.asset.get() == cube_map;
+            });
 
-        loaded_cube_maps_.erase(loaded);
+        expect(loaded != std::cend(loaded_cube_maps_), "cube_map has not been loaded");
+
+        // decrement reference count and, if 0, unload
+        --loaded->second.ref_count;
+        if (loaded->second.ref_count == 0u)
+        {
+            // allow for implementation specific unloading logic
+            destroy(cube_map);
+
+            cube_map_index_free_list_.emplace_back(cube_map->index());
+            loaded_cube_maps_.erase(loaded);
+        }
     }
 }
 
-Texture *TextureManager::blank()
+Texture *TextureManager::blank_texture()
 {
-    static Texture *texture =
+    static auto *texture =
         create({std::byte{0xff}, std::byte{0xff}, std::byte{0xff}, std::byte{0xff}}, 1u, 1u, TextureUsage::IMAGE);
 
     return texture;
 }
 
-std::uint32_t TextureManager::next_index()
+CubeMap *TextureManager::blank_cube_map()
+{
+    static auto *cube_map = create(
+        {std::byte{0xff}},
+        {std::byte{0xff}},
+        {std::byte{0xff}},
+        {std::byte{0xff}},
+        {std::byte{0xff}},
+        {std::byte{0xff}},
+        1u,
+        1u);
+
+    return cube_map;
+}
+
+std::uint32_t TextureManager::next_texture_index()
 {
     auto index = 0u;
 
     // first check free list for available indices, if empty then use main counter
 
-    if (!index_free_list_.empty())
+    if (!texture_index_free_list_.empty())
     {
-        index = index_free_list_.back();
-        index_free_list_.pop_back();
+        index = texture_index_free_list_.back();
+        texture_index_free_list_.pop_back();
     }
     else
     {
-        index = index_counter_++;
+        index = texture_index_counter_++;
+    }
+
+    return index;
+}
+
+std::uint32_t TextureManager::next_cube_map_index()
+{
+    auto index = 0u;
+
+    // first check free list for available indices, if empty then use main counter
+
+    if (!cube_map_index_free_list_.empty())
+    {
+        index = cube_map_index_free_list_.back();
+        cube_map_index_free_list_.pop_back();
+    }
+    else
+    {
+        index = cube_map_index_counter_++;
     }
 
     return index;
@@ -409,6 +452,23 @@ std::vector<const Texture *> TextureManager::textures() const
     });
 
     return textures;
+}
+
+std::vector<const CubeMap *> TextureManager::cube_maps() const
+{
+    std::vector<const CubeMap *> cube_maps{};
+
+    std::transform(
+        std::cbegin(loaded_cube_maps_),
+        std::cend(loaded_cube_maps_),
+        std::back_inserter(cube_maps),
+        [](const auto &element) { return element.second.asset.get(); });
+
+    std::sort(std::begin(cube_maps), std::end(cube_maps), [](const CubeMap *a, const CubeMap *b) {
+        return a->index() < b->index();
+    });
+
+    return cube_maps;
 }
 
 void TextureManager::destroy(Texture *)

@@ -6,6 +6,7 @@
 
 #include "graphics/d3d12/d3d12_cube_map.h"
 
+#include <cstdint>
 #include <vector>
 
 #define WIN32_LEAN_AND_MEAN
@@ -17,7 +18,6 @@
 
 #include "core/data_buffer.h"
 #include "core/error_handling.h"
-#include "graphics/cube_map.h"
 #include "graphics/d3d12/d3d12_context.h"
 #include "graphics/d3d12/d3d12_descriptor_handle.h"
 #include "graphics/d3d12/d3d12_descriptor_manager.h"
@@ -33,8 +33,9 @@ D3D12CubeMap::D3D12CubeMap(
     const DataBuffer &back_data,
     const DataBuffer &front_data,
     std::uint32_t width,
-    std::uint32_t height)
-    : CubeMap()
+    std::uint32_t height,
+    std::uint32_t index)
+    : CubeMap(index)
     , resource_()
     , upload_()
     , resource_view_()

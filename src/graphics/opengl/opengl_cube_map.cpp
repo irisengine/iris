@@ -10,6 +10,7 @@
 #include "graphics/cube_map.h"
 #include "graphics/opengl/opengl.h"
 #include "graphics/opengl/opengl_texture.h"
+#include "log/log.h"
 
 namespace iris
 {
@@ -23,8 +24,10 @@ OpenGLCubeMap::OpenGLCubeMap(
     const DataBuffer &front_data,
     std::uint32_t width,
     std::uint32_t height,
+    std::uint32_t index,
     GLuint id)
-    : handle_(0u)
+    : CubeMap(index)
+    , handle_(0u)
     , id_(id)
 {
     ::glGenTextures(1u, &handle_);
@@ -69,11 +72,20 @@ OpenGLCubeMap::OpenGLCubeMap(
 
     ::glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
     expect(check_opengl_error, "could not set parameter");
+
+    // create a bindless handle and make it resident
+    bindless_handle_ = ::glGetTextureHandleARB(handle_);
+    expect(check_opengl_error, "could not create bindless handle");
+
+    ::glMakeTextureHandleResidentARB(bindless_handle_);
+    expect(check_opengl_error, "could not make bindless handle resident");
+
+    LOG_ENGINE_INFO("opengl_texture", "loaded from data");
 }
 
 OpenGLCubeMap::~OpenGLCubeMap()
 {
-    // cleanup opengl resources
+    ::glMakeTextureHandleNonResidentARB(bindless_handle_);
     ::glDeleteTextures(1, &handle_);
 }
 
@@ -85,6 +97,11 @@ GLuint OpenGLCubeMap::handle() const
 GLuint OpenGLCubeMap::id() const
 {
     return id_;
+}
+
+GLuint64 OpenGLCubeMap::bindless_handle() const
+{
+    return bindless_handle_;
 }
 
 }

@@ -48,6 +48,9 @@ class OpenGLCubeMap : public CubeMap
      * @param height
      *   Height of each image face.
      *
+     * @param index
+     *   Index into the global array of all allocated textures.
+     *
      * @param id
      *    OpenGL texture unit.
      */
@@ -60,6 +63,7 @@ class OpenGLCubeMap : public CubeMap
         const DataBuffer &front_data,
         std::uint32_t width,
         std::uint32_t height,
+        std::uint32_t index,
         GLuint id);
 
     /**
@@ -83,12 +87,23 @@ class OpenGLCubeMap : public CubeMap
      */
     GLuint id() const;
 
+    /**
+     * Get the OpenGL bindless handle for this cube map.
+     *
+     * @returns
+     *   Bindless handle.
+     */
+    GLuint64 bindless_handle() const;
+
   private:
-    GLuint handle_;
     /** OpenGL texture handle. */
+    GLuint handle_;
 
     /** OpenGL texture unit. */
     GLuint id_;
+
+    /** OpengGL bindless handle. */
+    GLuint64 bindless_handle_;
 };
 
 }

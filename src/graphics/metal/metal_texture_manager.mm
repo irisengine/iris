@@ -36,10 +36,11 @@ std::unique_ptr<CubeMap> MetalTextureManager::do_create(
     const DataBuffer &near_data,
     const DataBuffer &far_data,
     std::uint32_t width,
-    std::uint32_t height)
+    std::uint32_t height,
+    std::uint32_t index)
 {
     return std::make_unique<MetalCubeMap>(
-        right_data, left_data, top_data, bottom_data, near_data, far_data, width, height);
+        right_data, left_data, top_data, bottom_data, near_data, far_data, width, height, index);
 }
 
 }

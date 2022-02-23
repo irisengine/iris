@@ -7,6 +7,7 @@
 #pragma once
 
 #include <array>
+#include <cstdint>
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -54,6 +55,9 @@ class D3D12CubeMap : public CubeMap
      *
      * @param height
      *   Height of each image face.
+     *
+     * @param index
+     *   Index into the global array of all allocated textures.
      */
     D3D12CubeMap(
         const DataBuffer &right_data,
@@ -63,7 +67,8 @@ class D3D12CubeMap : public CubeMap
         const DataBuffer &back_data,
         const DataBuffer &front_data,
         std::uint32_t width,
-        std::uint32_t height);
+        std::uint32_t height,
+        std::uint32_t index);
 
     ~D3D12CubeMap() override = default;
 

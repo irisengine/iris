@@ -48,6 +48,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/window_manager.h
     ${INCLUDE_ROOT}/window.h
     bone.cpp
+    cube_map.cpp
     mesh.cpp
     mesh_loader.cpp
     mesh_manager.cpp
