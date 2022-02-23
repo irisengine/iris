@@ -549,14 +549,4 @@ std::string GLSLShaderCompiler::fragment_shader() const
     return stream.str();
 }
 
-std::vector<const Texture *> GLSLShaderCompiler::textures() const
-{
-    return textures_;
-}
-
-const CubeMap *GLSLShaderCompiler::cube_map() const
-{
-    return cube_map_;
-}
-
 }

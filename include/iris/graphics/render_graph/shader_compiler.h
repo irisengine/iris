@@ -12,9 +12,7 @@
 
 #include "core/colour.h"
 #include "core/vector3.h"
-#include "graphics/cube_map.h"
 #include "graphics/lights/light_type.h"
-#include "graphics/texture.h"
 
 namespace iris
 {
@@ -83,21 +81,5 @@ class ShaderCompiler
      *   Fragment shader.
      */
     virtual std::string fragment_shader() const = 0;
-
-    /**
-     * Collection of textures needed for the shaders.
-     *
-     * @returns
-     *   Collection of Textures.
-     */
-    virtual std::vector<const Texture *> textures() const = 0;
-
-    /**
-     * Get the CubeMap needed for this shader (if any)
-     *
-     * @returns
-     *   CubeMap, or nullptr if not used by shader.
-     */
-    virtual const CubeMap *cube_map() const = 0;
 };
 }

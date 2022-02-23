@@ -98,22 +98,6 @@ class MSLShaderCompiler : public ShaderCompiler
      */
     std::string fragment_shader() const override;
 
-    /**
-     * Collection of textures needed for the shaders.
-     *
-     * @returns
-     *   Collection of Textures.
-     */
-    std::vector<const Texture *> textures() const override;
-
-    /**
-     * Get the CubeMap needed for this shader (if any)
-     *
-     * @returns
-     *   CubeMap, or nullptr if not used by shader.
-     */
-    const CubeMap *cube_map() const override;
-
   private:
     /** Stream for vertex shader. */
     std::stringstream vertex_stream_;
@@ -133,13 +117,7 @@ class MSLShaderCompiler : public ShaderCompiler
     /** Pointer to current function collection. */
     std::set<std::string> *current_functions_;
 
-    /** Textures needed for shaders. */
-    std::vector<const Texture *> textures_;
-
     /** Type of light to render with. */
     LightType light_type_;
-
-    /** Optional CubeMap for shader. */
-    const CubeMap *cube_map_;
 };
 }

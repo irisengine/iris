@@ -167,9 +167,7 @@ MSLShaderCompiler::MSLShaderCompiler(const RenderGraph *render_graph, LightType 
     , vertex_functions_()
     , fragment_functions_()
     , current_functions_(nullptr)
-    , textures_()
     , light_type_(light_type)
-    , cube_map_(nullptr)
 {
     render_graph->render_node()->accept(*this);
 }
@@ -556,15 +554,4 @@ fragment float4 fragment_main(
 
     return stream.str();
 }
-
-std::vector<const Texture *> MSLShaderCompiler::textures() const
-{
-    return textures_;
-}
-
-const CubeMap *MSLShaderCompiler::cube_map() const
-{
-    return cube_map_;
-}
-
 }

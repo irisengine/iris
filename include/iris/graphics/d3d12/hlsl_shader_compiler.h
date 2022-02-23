@@ -13,12 +13,9 @@
 
 #include "core/colour.h"
 #include "core/vector3.h"
-#include "graphics/cube_map.h"
 #include "graphics/lights/light_type.h"
 #include "graphics/render_graph/render_graph.h"
 #include "graphics/render_graph/shader_compiler.h"
-#include "graphics/texture.h"
-#include "graphics/vertex_attributes.h"
 
 namespace iris
 {
@@ -98,22 +95,6 @@ class HLSLShaderCompiler : public ShaderCompiler
      */
     std::string fragment_shader() const override;
 
-    /**
-     * Collection of textures needed for the shaders.
-     *
-     * @returns
-     *   Collection of Textures.
-     */
-    std::vector<const Texture *> textures() const override;
-
-    /**
-     * Get the CubeMap needed for this shader (if any)
-     *
-     * @returns
-     *   CubeMap, or nullptr if not used by shader.
-     */
-    const CubeMap *cube_map() const override;
-
   private:
     /** Stream for vertex shader. */
     std::stringstream vertex_stream_;
@@ -133,13 +114,7 @@ class HLSLShaderCompiler : public ShaderCompiler
     /** Pointer to current function collection. */
     std::set<std::string> *current_functions_;
 
-    /** Textures needed for shaders. */
-    std::vector<const Texture *> textures_;
-
     /** Type of light to render with. */
     LightType light_type_;
-
-    /** Optional CubeMap for shader. */
-    const CubeMap *cube_map_;
 };
 }

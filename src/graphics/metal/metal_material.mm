@@ -15,11 +15,11 @@
 
 #include "core/error_handling.h"
 #include "core/macos/macos_ios_utility.h"
-#include "graphics/cube_map.h"
 #include "graphics/lights/lighting_rig.h"
 #include "graphics/mesh.h"
 #include "graphics/metal/msl_shader_compiler.h"
 #include "graphics/render_graph/render_graph.h"
+#include "log/log.h"
 
 namespace
 {
@@ -51,7 +51,9 @@ id<MTLFunction> load_function(const std::string &source, const std::string &func
     {
         // an error occurred so parse error and throw
         const std::string error_message{[[error localizedDescription] UTF8String]};
-        IRIS_DEBUG_BREAK();
+
+        LOG_ENGINE_ERROR("metal_material", "{}\n{}", source, error_message);
+
         throw iris::Exception("failed to load shader: " + error_message);
     }
 
@@ -65,8 +67,6 @@ namespace iris
 
 MetalMaterial::MetalMaterial(const RenderGraph *render_graph, MTLVertexDescriptor *descriptors, LightType light_type)
     : pipeline_state_()
-    , textures_()
-    , cube_map_(nullptr)
 {
     MSLShaderCompiler compiler{render_graph, light_type};
 
@@ -105,24 +105,11 @@ MetalMaterial::MetalMaterial(const RenderGraph *render_graph, MTLVertexDescripto
     pipeline_state_ = [device newRenderPipelineStateWithDescriptor:pipeline_state_descriptor error:&error];
 
     expect(error == nullptr, "failed to create pipeline state");
-
-    textures_ = compiler.textures();
-    cube_map_ = compiler.cube_map();
 }
 
 id<MTLRenderPipelineState> MetalMaterial::pipeline_state() const
 {
     return pipeline_state_;
-}
-
-std::vector<const Texture *> MetalMaterial::textures() const
-{
-    return textures_;
-}
-
-const CubeMap *MetalMaterial::cube_map() const
-{
-    return cube_map_;
 }
 
 }

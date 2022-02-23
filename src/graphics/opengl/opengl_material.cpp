@@ -16,6 +16,7 @@
 #include "graphics/opengl/opengl_shader.h"
 #include "graphics/render_graph/render_graph.h"
 #include "graphics/shader_type.h"
+#include "log/log.h"
 
 namespace
 {
@@ -71,6 +72,8 @@ GLuint create_program(const std::string &vertex_shader_source, const std::string
             iris::expect(iris::check_opengl_error, "failed to get error log");
 
             const std::string error(error_log.data(), log_length);
+            LOG_ENGINE_ERROR("opengl_material", "{}\n{}\n{}", vertex_shader_source, fragment_shader_source, error);
+
             throw iris::Exception("program link failed: " + error);
         }
     }
@@ -85,14 +88,10 @@ namespace iris
 
 OpenGLMaterial::OpenGLMaterial(const RenderGraph *render_graph, LightType light_type)
     : handle_(0u)
-    , textures_()
-    , cube_map_(nullptr)
 {
     GLSLShaderCompiler compiler{render_graph, light_type};
 
     handle_ = create_program(compiler.vertex_shader(), compiler.fragment_shader());
-    textures_ = compiler.textures();
-    cube_map_ = compiler.cube_map();
 }
 
 OpenGLMaterial::~OpenGLMaterial()
@@ -109,16 +108,6 @@ void OpenGLMaterial::bind() const
 GLuint OpenGLMaterial::handle() const
 {
     return handle_;
-}
-
-std::vector<const Texture *> OpenGLMaterial::textures() const
-{
-    return textures_;
-}
-
-const CubeMap *OpenGLMaterial::cube_map() const
-{
-    return cube_map_;
 }
 
 }

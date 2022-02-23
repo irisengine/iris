@@ -21,6 +21,7 @@
 
 #include "core/error_handling.h"
 #include "graphics/d3d12/d3d12_context.h"
+#include "graphics/d3d12/d3d12_root_signature.h"
 #include "graphics/d3d12/hlsl_shader_compiler.h"
 #include "graphics/lights/lighting_rig.h"
 #include "graphics/shader_type.h"
@@ -44,7 +45,7 @@ namespace
  */
 Microsoft::WRL::ComPtr<ID3DBlob> create_shader(const std::string &source, iris::ShaderType type)
 {
-    const auto target = type == iris::ShaderType::VERTEX ? "vs_5_0" : "ps_5_0";
+    const auto target = type == iris::ShaderType::VERTEX ? "vs_5_1" : "ps_5_1";
 
     Microsoft::WRL::ComPtr<ID3DBlob> shader = nullptr;
     Microsoft::WRL::ComPtr<ID3DBlob> error = nullptr;
@@ -56,7 +57,7 @@ Microsoft::WRL::ComPtr<ID3DBlob> create_shader(const std::string &source, iris::
             NULL,
             "main",
             target,
-            D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
+            D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_ENABLE_UNBOUNDED_DESCRIPTOR_TABLES,
             0u,
             &shader,
             &error) != S_OK)
@@ -91,11 +92,7 @@ D3D12Material::D3D12Material(
     const auto vertex_shader = create_shader(vertex_source, ShaderType::VERTEX);
     const auto fragment_shader = create_shader(fragment_source, ShaderType::FRAGMENT);
 
-    textures_ = compiler.textures();
-    cube_map_ = compiler.cube_map();
-
     auto *device = D3D12Context::device();
-    auto *root_signature = D3D12Context::root_signature();
 
     // setup various descriptors for pipeline state
 
@@ -149,16 +146,6 @@ D3D12Material::D3D12Material(
     strm << L"pso_" << counter++;
     const auto name = strm.str();
     pso_->SetName(name.c_str());
-}
-
-std::vector<const Texture *> D3D12Material::textures() const
-{
-    return textures_;
-}
-
-const CubeMap *D3D12Material::cube_map() const
-{
-    return cube_map_;
 }
 
 ID3D12PipelineState *D3D12Material::pso() const

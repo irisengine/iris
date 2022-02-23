@@ -10,11 +10,9 @@
 
 #import <Metal/Metal.h>
 
-#include "graphics/cube_map.h"
 #include "graphics/lights/light_type.h"
 #include "graphics/material.h"
 #include "graphics/render_graph/render_graph.h"
-#include "graphics/texture.h"
 
 namespace iris
 {
@@ -42,22 +40,6 @@ class MetalMaterial : public Material
     ~MetalMaterial() override = default;
 
     /**
-     * Get all textures used by this material.
-     *
-     * @returns
-     *   Collection of Texture objects used by this material.
-     */
-    std::vector<const Texture *> textures() const override;
-
-    /**
-     * Get the CubeMap used by this Material (if any).
-     *
-     * @returns
-     *   CuveMap, or nullptr if not used by Material.
-     */
-    const CubeMap *cube_map() const override;
-
-    /**
      * Get the metal pipeline state for this material.
      *
      * @returns
@@ -68,12 +50,6 @@ class MetalMaterial : public Material
   private:
     /** Pipeline state object. */
     id<MTLRenderPipelineState> pipeline_state_;
-
-    /** Collection of Texture objects used by material. */
-    std::vector<const Texture *> textures_;
-
-    /** Optional CubeMap for material. */
-    const CubeMap *cube_map_;
 };
 
 }

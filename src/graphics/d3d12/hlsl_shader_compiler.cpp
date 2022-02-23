@@ -709,14 +709,4 @@ std::string HLSLShaderCompiler::fragment_shader() const
     return strm.str();
 }
 
-std::vector<const Texture *> HLSLShaderCompiler::textures() const
-{
-    return textures_;
-}
-
-const CubeMap *HLSLShaderCompiler::cube_map() const
-{
-    return cube_map_;
-}
-
 }
