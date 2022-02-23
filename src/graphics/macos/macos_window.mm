@@ -11,9 +11,6 @@
 #import <Appkit/Appkit.h>
 #import <Foundation/Foundation.h>
 
-#include <OpenGL/gl3.h>
-#include <OpenGL/gl3ext.h>
-
 #include "core/error_handling.h"
 #include "core/root.h"
 #include "events/keyboard_event.h"
@@ -21,9 +18,7 @@
 #include "events/mouse_event.h"
 #include "events/scroll_wheel_event.h"
 #include "graphics/macos/metal_app_delegate.h"
-#include "graphics/macos/opengl_app_delegate.h"
 #include "graphics/metal/metal_renderer.h"
-#include "graphics/opengl/opengl_renderer.h"
 #include "graphics/render_target.h"
 #include "log/log.h"
 
@@ -222,20 +217,8 @@ MacosWindow::MacosWindow(std::uint32_t width, std::uint32_t height)
     const auto api = Root::graphics_api();
 
     // create a graphics api specific Renderer and app delegate
-    if (api == "metal")
-    {
-        app_delegate = [[MetalAppDelegate alloc] initWithRect:NSMakeRect(0.0f, 0.0f, width_, height_)];
-        renderer_ = std::make_unique<MetalRenderer>(width_, height_);
-    }
-    else if (api == "opengl")
-    {
-        app_delegate = [[OpenGLAppDelegate alloc] initWithRect:NSMakeRect(0.0f, 0.0f, width_, height_)];
-        renderer_ = std::make_unique<OpenGLRenderer>(width_, height_);
-    }
-    else
-    {
-        throw Exception("unsupported graphics api");
-    }
+    app_delegate = [[MetalAppDelegate alloc] initWithRect:NSMakeRect(0.0f, 0.0f, width_, height_)];
+    renderer_ = std::make_unique<MetalRenderer>(width_, height_);
 
     // check that we created the delegate
     ensure(app_delegate != nil, "failed to create AppDelegate");
@@ -247,10 +230,6 @@ MacosWindow::MacosWindow(std::uint32_t width, std::uint32_t height)
     [app finishLaunching];
 
     [NSCursor hide];
-
-    // opengl window won't render till we pump events, so we do that here as it
-    // doesn't matter if we are using opengl or metal
-    pump_event();
 
     LOG_ENGINE_INFO("window", "macos window created {} {}", width_, height_);
 }

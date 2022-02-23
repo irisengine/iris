@@ -63,12 +63,6 @@ endif()
 if(IRIS_PLATFORM MATCHES "MACOS" OR IRIS_PLATFORM MATCHES "WINDOWS")
   find_package(OpenGL REQUIRED)
   target_include_directories(iris SYSTEM PRIVATE ${OPENGL_INCLUDE_DIR})
-  if(IRIS_PLATFORM MATCHES "MACOS")
-    target_link_libraries(iris PUBLIC "-framework OpenGL")
-    # opengl is technically deprecated on macos, so silence the deprecation
-    # warnings
-    target_compile_definitions(iris PRIVATE GL_SILENCE_DEPRECATION)
-  endif()
 endif()
 
 message(STATUS "Building iris-${CMAKE_PROJECT_VERSION} for ${IRIS_PLATFORM})")

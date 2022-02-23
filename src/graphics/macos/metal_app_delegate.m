@@ -61,8 +61,8 @@
         [window makeKeyAndOrderFront:self];
 
         [window makeFirstResponder:view];
-
         [window setColorSpace:[NSColorSpace genericRGBColorSpace]];
+        [window setTitle:@"iris::metal"];
 
         // redraw the view before displaying
         [view setNeedsDisplay:YES];
