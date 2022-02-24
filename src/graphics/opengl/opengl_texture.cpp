@@ -199,7 +199,7 @@ OpenGLTexture::OpenGLTexture(
     ::glMakeTextureHandleResidentARB(bindless_handle_);
     expect(check_opengl_error, "could not make bindless handle resident");
 
-    LOG_ENGINE_INFO("texture", "loaded from data");
+    LOG_ENGINE_INFO("opengl_texture", "loaded from data");
 }
 
 OpenGLTexture::~OpenGLTexture()

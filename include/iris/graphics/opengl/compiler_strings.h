@@ -13,8 +13,10 @@ namespace iris
 {
 
 static constexpr auto preamble = R"(
-#version 330 core
+#version 430 core
 precision mediump float;
+
+#extension GL_ARB_bindless_texture : require
 )";
 
 static constexpr auto layouts = R"(
@@ -26,23 +28,67 @@ layout (location = 4) in vec4 tangent;
 layout (location = 5) in vec4 bitangent;
 layout (location = 6) in ivec4 bone_ids;
 layout (location = 7) in vec4 bone_weights;
+
+invariant gl_Position;
 )";
 
-static constexpr auto uniforms = R"(
-uniform mat4 projection;
-uniform mat4 view;
-uniform mat4 model;
-uniform mat4 normal_matrix;
-uniform mat4 bones[100];
-uniform vec3 camera_;
-uniform vec4 light_colour;
-uniform vec4 light_position;
-uniform float light_attenuation[3];
-uniform mat4 light_projection;
-uniform mat4 light_view;
+static constexpr auto camera_data_block = R"(
+layout (std140, binding = 0) uniform CameraData
+{
+    mat4 projection;
+    mat4 view;
+    vec3 camera;
+};
+)";
+
+static constexpr auto bone_data_block = R"(
+layout (std140, binding = 1) uniform BoneData
+{
+    mat4 bones[100];
+};
+)";
+
+static constexpr auto light_data_block = R"(
+layout (std140, binding = 2) uniform LightData
+{
+    mat4 light_projection;
+    mat4 light_view;
+    vec4 light_colour;
+    vec4 light_position;
+    vec4 light_attenuation;
+};
+)";
+
+static constexpr auto texture_table_block = R"(
+layout (std430, binding = 3) buffer TextureData
+{
+    uvec2 texture_table[];
+};
+)";
+
+static constexpr auto cube_map_table_block = R"(
+layout (std430, binding = 4) buffer CubeMapData
+{
+    uvec2 cube_map_table[];
+};
+)";
+
+static constexpr auto model_data_block = R"(
+
+struct Model
+{
+    mat4 model;
+    mat4 normal_matrix;
+};
+
+layout (std430, binding = 5) buffer ModelData
+{
+    Model models[];
+};
 )";
 
 static constexpr auto vertex_out = R"(
+out vec4 vertex_pos;
 out vec4 frag_pos;
 out vec2 tex_coord;
 out vec4 col;
@@ -54,6 +100,7 @@ out vec3 tangent_frag_pos;
 )";
 
 static constexpr auto fragment_in = R"(
+in vec4 vertex_pos;
 in vec2 tex_coord;
 in vec4 col;
 in vec4 norm;
@@ -70,14 +117,14 @@ out vec4 outColour;
 
 static constexpr auto vertex_begin = R"(
     mat4 bone_transform = calculate_bone_transform(bone_ids, bone_weights);
-    mat3 tbn = calculate_tbn(bone_transform);
+    mat3 tbn = calculate_tbn(bone_transform, transpose(models[gl_InstanceID].normal_matrix));
 
+    vertex_pos = position;
+    frag_pos = transpose(models[gl_InstanceID].model) * bone_transform * position;
+    gl_Position = transpose(projection) * transpose(view) * frag_pos;
+    norm = transpose(models[gl_InstanceID].normal_matrix) * bone_transform * normal;
     col = colour;
-    norm = normal_matrix * bone_transform * normal;
     tex_coord = vec2(tex.x, tex.y);
-    frag_pos = model * bone_transform * position;
-    gl_Position = projection * view * frag_pos;
-
 )";
 
 static constexpr auto blur_function = R"(
@@ -143,12 +190,12 @@ mat4 calculate_bone_transform(ivec4 bone_ids, vec4 bone_weights)
     bone_transform += bones[bone_ids[2]] * bone_weights[2];
     bone_transform += bones[bone_ids[3]] * bone_weights[3];
 
-    return bone_transform;
+    return transpose(bone_transform);
 
 })";
 
 static constexpr auto tbn_function = R"(
-mat3 calculate_tbn(mat4 bone_transform)
+mat3 calculate_tbn(mat4 bone_transform, mat4 normal_matrix)
 {
     vec3 T = normalize(vec3(normal_matrix * bone_transform * tangent));
     vec3 B = normalize(vec3(normal_matrix * bone_transform * bitangent));

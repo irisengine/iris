@@ -14,9 +14,10 @@
 #include "core/error_handling.h"
 #include "core/root.h"
 #include "core/vector3.h"
+#include "graphics/constant_buffer_writer.h"
+#include "graphics/instanced_entity.h"
 #include "graphics/lights/lighting_rig.h"
 #include "graphics/mesh_manager.h"
-#include "graphics/opengl/default_uniforms.h"
 #include "graphics/opengl/opengl.h"
 #include "graphics/opengl/opengl_cube_map.h"
 #include "graphics/opengl/opengl_material.h"
@@ -29,6 +30,7 @@
 #include "graphics/render_graph/sky_box_node.h"
 #include "graphics/render_graph/texture_node.h"
 #include "graphics/render_queue_builder.h"
+#include "graphics/single_entity.h"
 #include "graphics/texture_manager.h"
 #include "graphics/window.h"
 #include "graphics/window_manager.h"
@@ -68,98 +70,6 @@ void render_setup(const iris::OpenGLRenderTarget *target)
 }
 
 /**
- * Helper function to set uniforms for a render pass.
- *
- * @param uniforms
- *   Uniforms to set.
- *
- * @param camera
- *   Camera for current render pass.
- *
- * @param entity
- *   Entity being rendered.
- *
- * @param shadow_map
- *   RenderTarget for shadow map, maybe nullptr.
- *
- * @param light
- *   Light effecting entity.
- */
-void set_uniforms(
-    const iris::DefaultUniforms *uniforms,
-    const iris::Camera *camera,
-    const iris::RenderEntity *entity,
-    const iris::RenderTarget *shadow_map,
-    const iris::Light *light)
-{
-    uniforms->projection.set_value(camera->projection());
-    uniforms->view.set_value(camera->view());
-    uniforms->model.set_value(entity->transform());
-    uniforms->normal_matrix.set_value(entity->normal_transform());
-    uniforms->light_colour.set_value(light->colour_data());
-    uniforms->light_position.set_value(light->world_space_data());
-    uniforms->light_attenuation.set_value(light->attenuation_data());
-
-    // set shadow map specific texture and uniforms, if it was provided
-    if ((shadow_map != nullptr) && (light->type() == iris::LightType::DIRECTIONAL))
-    {
-        const auto *directional_light = static_cast<const iris::DirectionalLight *>(light);
-        const auto *opengl_texture = static_cast<const iris::OpenGLTexture *>(shadow_map->depth_texture());
-        const auto tex_handle = opengl_texture->handle();
-
-        ::glActiveTexture(opengl_texture->id());
-        iris::expect(iris::check_opengl_error, "could not activate texture");
-
-        ::glBindTexture(GL_TEXTURE_2D, tex_handle);
-        iris::expect(iris::check_opengl_error, "could not bind texture");
-
-        uniforms->shadow_map.set_value(opengl_texture->id() - GL_TEXTURE0);
-        uniforms->light_projection.set_value(directional_light->shadow_camera().projection());
-        uniforms->light_view.set_value(directional_light->shadow_camera().view());
-    }
-
-    uniforms->bones.set_value(entity->skeleton().transforms());
-}
-
-/**
- * Helper function to bind all textures for a material.
- *
- * @param uniforms
- *   Uniforms to set.
- *
- * @param material
- *   Material to bind textures for.
- */
-void bind_textures(const iris::DefaultUniforms *uniforms, const iris::OpenGLMaterial *material)
-{
-    const auto textures = material->textures();
-    for (auto i = 0u; i < textures.size(); ++i)
-    {
-        const auto *opengl_texture = static_cast<const iris::OpenGLTexture *>(textures[i]);
-        const auto tex_handle = opengl_texture->handle();
-
-        ::glActiveTexture(opengl_texture->id());
-        iris::expect(iris::check_opengl_error, "could not activate texture");
-
-        ::glBindTexture(GL_TEXTURE_2D, tex_handle);
-        iris::expect(iris::check_opengl_error, "could not bind texture");
-
-        uniforms->textures[i].set_value(opengl_texture->id() - GL_TEXTURE0);
-    }
-
-    if (material->cube_map() != nullptr)
-    {
-        const auto *opengl_cube_map = static_cast<const iris::OpenGLCubeMap *>(material->cube_map());
-
-        ::glActiveTexture(opengl_cube_map->id());
-        iris::expect(iris::check_opengl_error, "could not activate texture");
-
-        ::glBindTexture(GL_TEXTURE_CUBE_MAP, opengl_cube_map->handle());
-        iris::expect(iris::check_opengl_error, "could not bind texture");
-    }
-}
-
-/**
  * Helper function to draw all meshes in a RenderEntity.
  *
  * @param entity
@@ -173,7 +83,8 @@ void draw_meshes(const iris::RenderEntity *entity)
     const auto type = entity->primitive_type() == iris::PrimitiveType::TRIANGLES ? GL_TRIANGLES : GL_LINES;
 
     // draw!
-    ::glDrawElements(type, mesh->element_count(), GL_UNSIGNED_INT, 0);
+    ::glDrawElementsInstanced(
+        type, mesh->element_count(), GL_UNSIGNED_INT, 0, static_cast<GLsizei>(entity->instance_count()));
     iris::expect(iris::check_opengl_error, "could not draw triangles");
 
     mesh->unbind();
@@ -182,6 +93,77 @@ void draw_meshes(const iris::RenderEntity *entity)
     {
         ::glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
+}
+
+/**
+ * Helper function to create a SSBO for the global texture table.
+ *
+ * @return
+ *   SSBO with all textures loaded at the correct index.
+ */
+std::unique_ptr<iris::SSBO> create_texture_table_ssbo()
+{
+    const auto textures = iris::Root::texture_manager().textures();
+    const auto max_index = textures.back()->index();
+    auto texture_table = std::make_unique<iris::SSBO>((max_index + 1u) * sizeof(GLuint64), 3u);
+    const auto *blank_texture = static_cast<const iris::OpenGLTexture *>(iris::Root::texture_manager().blank_texture());
+    auto iter = std::cbegin(textures);
+
+    // write bindless handles into the SSBO
+    iris::ConstantBufferWriter writer{*texture_table};
+    for (auto i = 0u; i <= max_index; ++i)
+    {
+        // if a texture exits at the current index we write it in
+        if (i == (*iter)->index())
+        {
+            const auto *opengl_texture = static_cast<const iris::OpenGLTexture *>(*iter);
+            writer.write(opengl_texture->bindless_handle());
+            ++iter;
+        }
+        else
+        {
+            // no texture at current index, so write default texture
+            writer.write(blank_texture->bindless_handle());
+        }
+    }
+
+    return texture_table;
+}
+
+/**
+ * Helper function to create a SSBO for the global cube map table.
+ *
+ * @return
+ *   SSBO with all cube maps loaded at the correct index.
+ */
+std::unique_ptr<iris::SSBO> create_cube_map_table_ssbo()
+{
+    const auto cube_maps = iris::Root::texture_manager().cube_maps();
+    const auto max_index = cube_maps.back()->index();
+    auto cube_map_table = std::make_unique<iris::SSBO>((max_index + 1u) * sizeof(GLuint64), 4u);
+    const auto *blank_cube_map =
+        static_cast<const iris::OpenGLCubeMap *>(iris::Root::texture_manager().blank_cube_map());
+    auto iter = std::cbegin(cube_maps);
+
+    // write bindless handles into the SSBO
+    iris::ConstantBufferWriter writer{*cube_map_table};
+    for (auto i = 0u; i <= max_index; ++i)
+    {
+        // if a cube map exits at the current index we write it in
+        if (i == (*iter)->index())
+        {
+            const auto *opengl_cube_map = static_cast<const iris::OpenGLCubeMap *>(*iter);
+            writer.write(opengl_cube_map->bindless_handle());
+            ++iter;
+        }
+        else
+        {
+            // no cube map at current index, so write default cube map
+            writer.write(blank_cube_map->bindless_handle());
+        }
+    }
+
+    return cube_map_table;
 }
 
 }
@@ -193,9 +175,10 @@ OpenGLRenderer::OpenGLRenderer(std::uint32_t width, std::uint32_t height)
     : Renderer()
     , render_targets_()
     , materials_()
-    , uniforms_()
     , width_(width)
     , height_(height)
+    , bone_data_()
+    , light_data_()
 {
     ::glClearColor(0.39f, 0.58f, 0.93f, 1.0f);
     expect(check_opengl_error, "could not set clear colour");
@@ -211,28 +194,17 @@ OpenGLRenderer::OpenGLRenderer(std::uint32_t width, std::uint32_t height)
 
 void OpenGLRenderer::set_render_passes(const std::vector<RenderPass> &render_passes)
 {
+    materials_.clear();
+
     render_passes_ = render_passes;
-
-    // check if pass has a sky box and if so create a cube for it and add it to the scene
-    for (auto &pass : render_passes_)
-    {
-        if (pass.sky_box != nullptr)
-        {
-            auto *scene = pass.scene;
-
-            auto *sky_box_rg = scene->create_render_graph();
-            sky_box_rg->set_render_node<SkyBoxNode>(pass.sky_box);
-
-            scene->create_entity(sky_box_rg, Root::mesh_manager().cube({}), Transform({}, {}, {0.5f}));
-        }
-    }
 
     // add a post processing pass
 
     // find the pass which renders to the screen
-    auto final_pass = std::find_if(std::begin(render_passes_), std::end(render_passes_), [](const RenderPass &pass) {
-        return pass.render_target == nullptr;
-    });
+    auto final_pass = std::find_if(
+        std::begin(render_passes_),
+        std::end(render_passes_),
+        [](const RenderPass &pass) { return pass.render_target == nullptr; });
 
     ensure(final_pass != std::cend(render_passes_), "no final pass");
 
@@ -249,19 +221,20 @@ void OpenGLRenderer::set_render_passes(const std::vector<RenderPass> &render_pas
     // processing node
     auto *rg = post_processing_scene_->create_render_graph();
     rg->set_render_node<PostProcessingNode>(rg->create<TextureNode>(post_processing_target_->colour_texture()));
-    post_processing_scene_->create_entity(
+    post_processing_scene_->create_entity<SingleEntity>(
         rg,
         Root::mesh_manager().sprite({}),
-        Transform({}, {}, {static_cast<float>(width_), static_cast<float>(height_), 1.0}));
+        Transform({}, {}, {static_cast<float>(width_), static_cast<float>(height_), 1. - 1}));
 
     // wire up this pass
     final_pass->render_target = post_processing_target_;
-    render_passes_.emplace_back(post_processing_scene_.get(), post_processing_camera_.get(), nullptr);
+    render_passes_.push_back({.scene = post_processing_scene_.get(), .camera = post_processing_camera_.get()});
 
     // build the render queue from the provided passes
 
     RenderQueueBuilder queue_builder(
-        [this](RenderGraph *render_graph, RenderEntity *, const RenderTarget *, LightType light_type) {
+        [this](RenderGraph *render_graph, RenderEntity *, const RenderTarget *, LightType light_type)
+        {
             if (materials_.count(render_graph) == 0u || materials_[render_graph].count(light_type) == 0u)
             {
                 materials_[render_graph][light_type] = std::make_unique<OpenGLMaterial>(render_graph, light_type);
@@ -273,42 +246,35 @@ void OpenGLRenderer::set_render_passes(const std::vector<RenderPass> &render_pas
 
     render_queue_ = queue_builder.build(render_passes_);
 
-    uniforms_.clear();
+    texture_table_ = create_texture_table_ssbo();
+    cube_map_table_ = create_cube_map_table_ssbo();
 
-    // loop through all draw commands, for each drawn entity create a uniform
-    // object so they can be esily set during render
+    render_queue_.erase(
+        std::remove_if(
+            std::begin(render_queue_),
+            std::end(render_queue_),
+            [](const RenderCommand &cmd) { return cmd.type() == RenderCommandType::UPLOAD_TEXTURE; }),
+        std::end(render_queue_));
+
+    instance_data_.clear();
+
+    // loop through all draw commands, for each drawn entity create a uniform object so they can be easily set during
+    // render
     for (const auto &command : render_queue_)
     {
         if (command.type() == RenderCommandType::DRAW)
         {
-            const auto *material = static_cast<const OpenGLMaterial *>(command.material());
             const auto *render_entity = command.render_entity();
 
-            // we store uniforms per entity per material
-            if (!uniforms_[material][render_entity])
+            if (render_entity->instance_count() > 1u)
             {
-                const auto program = material->handle();
+                const auto *instanced_entity = static_cast<const InstancedEntity *>(render_entity);
+                instance_data_[render_entity] =
+                    std::make_unique<SSBO>(instanced_entity->data().size() * sizeof(Matrix4), 5u);
 
-                // create default uniforms
-                uniforms_[material][render_entity] = std::make_unique<DefaultUniforms>(
-                    OpenGLUniform(program, "projection"),
-                    OpenGLUniform(program, "view"),
-                    OpenGLUniform(program, "model", false),
-                    OpenGLUniform(program, "normal_matrix", false),
-                    OpenGLUniform(program, "light_colour", false),
-                    OpenGLUniform(program, "light_position", false),
-                    OpenGLUniform(program, "light_attenuation", false),
-                    OpenGLUniform(program, "g_shadow_map", false),
-                    OpenGLUniform(program, "light_projection", false),
-                    OpenGLUniform(program, "light_view", false),
-                    OpenGLUniform(program, "bones", false));
+                ConstantBufferWriter writer{*instance_data_[render_entity]};
 
-                // create uniforms for each texture
-                for (auto i = 0u; i < material->textures().size(); ++i)
-                {
-                    uniforms_[material][render_entity]->textures.emplace_back(
-                        OpenGLUniform{program, "texture" + std::to_string(i), false});
-                }
+                writer.write(instanced_entity->data());
             }
         }
     }
@@ -329,6 +295,7 @@ RenderTarget *OpenGLRenderer::create_render_target(std::uint32_t width, std::uin
 void OpenGLRenderer::execute_pass_start(RenderCommand &command)
 {
     const auto *target = static_cast<const OpenGLRenderTarget *>(command.render_pass()->render_target);
+    const auto *camera = command.render_pass()->camera;
 
     // if we have no target then we render to the default framebuffer
     // else we bind the supplied target
@@ -363,11 +330,21 @@ void OpenGLRenderer::execute_pass_start(RenderCommand &command)
         ::glClear(GL_DEPTH_BUFFER_BIT);
         expect(check_opengl_error, "could not clear");
     }
+
+    bone_data_.clear();
+    model_data_.clear();
+    light_data_.clear();
+
+    camera_data_ = std::make_unique<UBO>(sizeof(Matrix4) + sizeof(Matrix4) + sizeof(Vector3), 0u);
+
+    ConstantBufferWriter writer{*camera_data_};
+    writer.write(camera->projection());
+    writer.write(camera->view());
+    writer.write(camera->position());
 }
 
 void OpenGLRenderer::execute_draw(RenderCommand &command)
 {
-    const auto *camera = command.render_pass()->camera;
     const auto *render_entity = command.render_entity();
     const auto *light = command.light();
 
@@ -410,10 +387,110 @@ void OpenGLRenderer::execute_draw(RenderCommand &command)
         ::glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
 
-    const auto *uniforms = uniforms_[material][render_entity].get();
+    // we use caching to minimise the CPU->GPU communication
+    // the first time we see a RenderEntity we cache its bone data (and if its single entity its transform data) we can
+    // then reuse these buffers for any subsequent renders of that entity (in this pass)
 
-    set_uniforms(uniforms, camera, render_entity, command.shadow_map(), light);
-    bind_textures(uniforms, material);
+    if (!bone_data_.contains(render_entity))
+    {
+        // first time seeing this entity this pass, so create a new UBO
+        bone_data_[render_entity] = std::make_unique<UBO>(sizeof(Matrix4) * 100u, 1u);
+
+        ConstantBufferWriter writer{*bone_data_[render_entity]};
+
+        if (render_entity->instance_count() == 1u)
+        {
+            // a single entity, so write in bone data
+
+            const auto *single_entity = static_cast<const SingleEntity *>(render_entity);
+            const auto &bones = single_entity->skeleton().transforms();
+            writer.write(bones);
+            writer.advance((100u - bones.size()) * sizeof(iris::Matrix4));
+
+            // also cache the entities transform data
+            model_data_[render_entity] = std::make_unique<SSBO>(128u, 5u);
+            ConstantBufferWriter writer2{*model_data_[render_entity]};
+            writer2.write(single_entity->transform());
+            writer2.write(single_entity->normal_transform());
+        }
+        else
+        {
+            // we don't support animation of instanced entities - so just send default bone transforms
+            static std::vector<Matrix4> default_bones(100u);
+            writer.write(default_bones);
+        }
+    }
+
+    // we also cache light data per pass
+    // the first time we see  alight we write its data to a UBO and reuse it for subsequent renders
+
+    if (!light_data_.contains(light))
+    {
+        light_data_[light] = std::make_unique<UBO>(256u, 2u);
+
+        ConstantBufferWriter writer{*light_data_[light]};
+
+        if (light->type() == iris::LightType::DIRECTIONAL)
+        {
+            // directional lights have additional data
+            const auto *direction_light = static_cast<const iris::DirectionalLight *>(light);
+
+            writer.write(direction_light->shadow_camera().projection());
+            writer.write(direction_light->shadow_camera().view());
+        }
+        else
+        {
+            // skip over directional light specific data
+            writer.advance(sizeof(iris::Matrix4) * 2u);
+        }
+
+        writer.write(light->colour_data());
+        writer.write(light->world_space_data());
+        const auto attenuation = light->attenuation_data();
+        std::array<float, 4u> padded{attenuation[0], attenuation[1], attenuation[2], 0.0f};
+        writer.write(padded);
+    }
+
+    // if we are rendering with a directional light check if it casts shadows
+    if (light->type() == LightType::DIRECTIONAL)
+    {
+        const auto *directional_light = static_cast<const DirectionalLight *>(light);
+        if (directional_light->casts_shadows())
+        {
+            // if we are rendering with a shadow casting directional light then pass the index of the shadow map (into
+            // the texture table) as a uniform
+            OpenGLUniform shadow_map_index_uniform{material->handle(), "shadow_map_index", true};
+            shadow_map_index_uniform.set_value(command.shadow_map()->depth_texture()->index());
+        }
+    }
+
+    ::glBindBufferBase(GL_UNIFORM_BUFFER, 0, camera_data_->handle());
+    expect(check_opengl_error, "could not bind camera data ubo");
+
+    ::glBindBufferBase(GL_UNIFORM_BUFFER, 1, bone_data_[render_entity]->handle());
+    expect(check_opengl_error, "could not bind vertex data ubo");
+
+    ::glBindBufferBase(GL_UNIFORM_BUFFER, 2, light_data_[light]->handle());
+    expect(check_opengl_error, "could not bind light data ubo");
+
+    ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, texture_table_->handle());
+    expect(check_opengl_error, "could not bind texture data ssbo");
+
+    ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, cube_map_table_->handle());
+    expect(check_opengl_error, "could not bind cube map data ssbo");
+
+    // bind model data, depending on if we're rendering a single or instanced entity
+    if (render_entity->instance_count() == 1u)
+    {
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, model_data_[render_entity]->handle());
+        expect(check_opengl_error, "could not bind model data ssbo");
+    }
+    else
+    {
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, instance_data_[render_entity]->handle());
+        expect(check_opengl_error, "could not bind model data ssbo");
+    }
+
     draw_meshes(render_entity);
 }
 
@@ -429,5 +506,4 @@ void OpenGLRenderer::execute_present(RenderCommand &)
     ::glXSwapBuffers(window->display(), window->window());
 #endif
 }
-
 }

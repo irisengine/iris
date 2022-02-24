@@ -10,6 +10,7 @@
 #include <string>
 
 #include "core/colour.h"
+#include "core/error_handling.h"
 #include "core/exception.h"
 #include "core/vector3.h"
 #include "graphics/lights/lighting_rig.h"
@@ -36,37 +37,22 @@ namespace
 {
 
 /**
- * Helper function to create a variable name for a texture. Always returns the
- * same name for the same texture.
+ * Helper function to create a variable name for a texture. Always returns the same name for the same texture.
  *
  * @param texture
  *   Texture to generate name for.
  *
- * @param textures
- *   Collection of textures, texture will be inserted if it does not exist.
- *
  * @returns
  *   Unique variable name for the texture.
  */
-std::string texture_name(const iris::Texture *texture, std::vector<const iris::Texture *> &textures)
+std::string texture_name(const iris::Texture *texture)
 {
-    std::size_t id = 0u;
+    return "sampler2D(texture_table[" + std::to_string(texture->index()) + "])";
+}
 
-    // id will be index into the textures collection
-
-    const auto find = std::find(std::cbegin(textures), std::cend(textures), texture);
-
-    if (find != std::cend(textures))
-    {
-        id = std::distance(std::cbegin(textures), find);
-    }
-    else
-    {
-        id = textures.size();
-        textures.emplace_back(texture);
-    }
-
-    return "texture" + std::to_string(id);
+std::string cube_map_name(const iris::CubeMap *cube_map)
+{
+    return "samplerCube(cube_map_table[" + std::to_string(cube_map->index()) + "])";
 }
 
 /**
@@ -125,12 +111,12 @@ void build_tangent_values(std::stringstream &strm, iris::LightType light_type)
 {
     if (light_type == iris::LightType::DIRECTIONAL)
     {
-        strm << "frag_pos_light_space = light_projection * light_view * "
+        strm << "frag_pos_light_space = transpose(light_projection) * transpose(light_view) * "
                 "frag_pos;\n";
     }
 
     strm << "tangent_light_pos = tbn * light_position.xyz;\n";
-    strm << "tangent_view_pos = tbn * camera_.xyz;\n";
+    strm << "tangent_view_pos = tbn * camera.xyz;\n";
     strm << "tangent_frag_pos = tbn * frag_pos.xyz;\n";
 }
 
@@ -193,9 +179,7 @@ GLSLShaderCompiler::GLSLShaderCompiler(const RenderGraph *render_graph, LightTyp
     , vertex_functions_()
     , fragment_functions_()
     , current_functions_(nullptr)
-    , textures_()
     , light_type_(light_type)
-    , cube_map_(nullptr)
 {
     render_graph->render_node()->accept(*this);
 }
@@ -245,9 +229,8 @@ void GLSLShaderCompiler::visit(const RenderNode &node)
                                                        : "normalize(-tangent_light_pos.xyz);\n");
 
                 *current_stream_ << "float shadow = 0.0;\n";
-                *current_stream_ <<
-                    R"(shadow = calculate_shadow(n, frag_pos_light_space, light_position.xyz, g_shadow_map);
-                )";
+                *current_stream_ << "shadow = calculate_shadow(n, frag_pos_light_space, light_position.xyz, "
+                                    "sampler2D(texture_table[shadow_map_index]));\n";
 
                 *current_stream_ << R"(
                  float diff = (1.0 - shadow) * max(dot(n, light_dir), 0.0);
@@ -264,9 +247,9 @@ void GLSLShaderCompiler::visit(const RenderNode &node)
                                                          "tangent_frag_pos.xyz);\n");
                 *current_stream_ << R"(
                 float distance  = length(light_position.xyz - frag_pos.xyz);
-                float constant = light_attenuation[0];
-                float linear = light_attenuation[1];
-                float quadratic = light_attenuation[2];
+                float constant = light_attenuation.x;
+                float linear = light_attenuation.y;
+                float quadratic = light_attenuation.z;
                 float attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));    
 
                 float diff = max(dot(n, light_dir), 0.0);
@@ -334,7 +317,7 @@ void GLSLShaderCompiler::visit(const SkyBoxNode &node)
     vertex_stream_ << " void main()\n{\n";
     vertex_stream_ << R"(
         col = position;
-        gl_Position = (projection * mat4(mat3(view)) * position).xyww;
+        gl_Position = (transpose(projection) * transpose(mat4(mat3(view))) * position).xyww;
     )";
 
     vertex_stream_ << "}";
@@ -350,11 +333,8 @@ void GLSLShaderCompiler::visit(const SkyBoxNode &node)
 
     build_fragment_colour(*current_stream_, node.colour_input(), this);
 
-    *current_stream_ << R"(
-        outColour = texture(g_sky_box, col.xyz);
-    })";
-
-    cube_map_ = node.sky_box();
+    *current_stream_ << "outColour = texture(" << cube_map_name(node.sky_box()) << ", col.xyz);\n";
+    *current_stream_ << "}\n";
 }
 
 void GLSLShaderCompiler::visit(const ColourNode &node)
@@ -365,7 +345,7 @@ void GLSLShaderCompiler::visit(const ColourNode &node)
 
 void GLSLShaderCompiler::visit(const TextureNode &node)
 {
-    *current_stream_ << "texture(" << texture_name(node.texture(), textures_);
+    *current_stream_ << "texture(" << texture_name(node.texture());
 
     if (node.texture()->flip())
     {
@@ -390,7 +370,7 @@ void GLSLShaderCompiler::visit(const BlurNode &node)
 {
     current_functions_->emplace(blur_function);
 
-    *current_stream_ << "blur(" << texture_name(node.input_node()->texture(), textures_) << ", tex_coord)";
+    *current_stream_ << "blur(" << texture_name(node.input_node()->texture()) << ", tex_coord)";
 }
 
 void GLSLShaderCompiler::visit(const CompositeNode &node)
@@ -420,7 +400,7 @@ void GLSLShaderCompiler::visit(const ValueNode<Vector3> &node)
 
 void GLSLShaderCompiler::visit(const ValueNode<Colour> &node)
 {
-    *current_stream_ << "vec4(" << node.value().g << ", " << node.value().g << ", " << node.value().b << ", "
+    *current_stream_ << "vec4(" << node.value().r << ", " << node.value().g << ", " << node.value().b << ", "
                      << node.value().a << ")";
 }
 
@@ -516,12 +496,12 @@ std::string GLSLShaderCompiler::vertex_shader() const
 
     stream << preamble << '\n';
     stream << layouts << '\n';
-    stream << uniforms << '\n';
-
-    for (auto i = 0u; i < textures_.size(); ++i)
-    {
-        stream << "uniform sampler2D texture" << i << ";\n";
-    }
+    stream << camera_data_block << '\n';
+    stream << bone_data_block << '\n';
+    stream << light_data_block << '\n';
+    stream << texture_table_block << '\n';
+    stream << cube_map_table_block << '\n';
+    stream << model_data_block << '\n';
 
     stream << vertex_out << '\n';
 
@@ -540,17 +520,16 @@ std::string GLSLShaderCompiler::fragment_shader() const
     std::stringstream stream{};
 
     stream << preamble << '\n';
-    stream << uniforms << '\n';
-    stream << "uniform sampler2D g_shadow_map;\n";
-    stream << "uniform samplerCube g_sky_box;\n";
-
-    for (auto i = 0u; i < textures_.size(); ++i)
-    {
-        stream << "uniform sampler2D texture" << i << ";\n";
-    }
-
+    stream << camera_data_block << '\n';
+    stream << bone_data_block << '\n';
+    stream << light_data_block << '\n';
+    stream << texture_table_block << '\n';
+    stream << cube_map_table_block << '\n';
+    stream << model_data_block << '\n';
     stream << fragment_in << '\n';
     stream << fragment_out << '\n';
+
+    stream << "uniform int shadow_map_index;\n";
 
     for (const auto &function : fragment_functions_)
     {
