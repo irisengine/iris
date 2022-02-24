@@ -78,10 +78,9 @@ void Scene::set_ambient_light(const Colour &colour)
 
 RenderGraph *Scene::render_graph(RenderEntity *entity) const
 {
-    auto found = std::find_if(
-        std::cbegin(entities_),
-        std::cend(entities_),
-        [entity](const auto &element) { return std::get<1>(element).get() == entity; });
+    auto found = std::find_if(std::cbegin(entities_), std::cend(entities_), [entity](const auto &element) {
+        return std::get<1>(element).get() == entity;
+    });
 
     expect(found == std::cend(entities_), "entity not in scene");
 

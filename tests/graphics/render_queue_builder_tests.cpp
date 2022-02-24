@@ -12,6 +12,8 @@
 #include "graphics/render_queue_builder.h"
 #include "graphics/render_target.h"
 #include "graphics/scene.h"
+#include "graphics/single_entity.h"
+
 
 #include "fakes/fake_material.h"
 #include "fakes/fake_render_target.h"
@@ -32,8 +34,7 @@ class RenderQueueBuilderFixture : public ::testing::Test
                 return materials_.back().get();
             },
             [this](auto, auto) {
-                render_targets_.emplace_back(
-                    std::make_unique<FakeRenderTarget>());
+                render_targets_.emplace_back(std::make_unique<FakeRenderTarget>());
                 return render_targets_.back().get();
             });
     }
@@ -55,12 +56,11 @@ class RenderQueueBuilderFixture : public ::testing::Test
         auto &scene2 = scenes_[1];
 
         scene1.create_light<iris::DirectionalLight>(iris::Vector3{}, true);
-        scene1.create_entity(nullptr, nullptr, iris::Transform{});
-        scene2.create_entity(nullptr, nullptr, iris::Transform{});
+        scene1.create_entity<iris::SingleEntity>(nullptr, nullptr, iris::Transform{});
+        scene2.create_entity<iris::SingleEntity>(nullptr, nullptr, iris::Transform{});
 
-        passes_.emplace_back(
-            std::addressof(scenes_[0]), nullptr, render_targets_.back().get());
-        passes_.emplace_back(std::addressof(scenes_[1]), nullptr, nullptr);
+        passes_.push_back({.scene = std::addressof(scenes_[0]), .render_target = render_targets_.back().get()});
+        passes_.push_back({.scene = std::addressof(scenes_[1])});
 
         return passes_;
     }
@@ -84,12 +84,7 @@ TEST_F(RenderQueueBuilderFixture, complex_scene)
     const auto queue = builder_->build(passes);
 
     std::vector<iris::RenderCommand> expected{
-        {iris::RenderCommandType::PASS_START,
-         std::addressof(passes[0]),
-         nullptr,
-         nullptr,
-         nullptr,
-         nullptr},
+        {iris::RenderCommandType::PASS_START, std::addressof(passes[0]), nullptr, nullptr, nullptr, nullptr},
         {iris::RenderCommandType::UPLOAD_TEXTURE,
          std::addressof(passes[0]),
          materials_[0].get(),

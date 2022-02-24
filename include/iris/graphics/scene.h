@@ -10,6 +10,7 @@
 #include <tuple>
 #include <vector>
 
+#include "graphics/instanced_entity.h"
 #include "graphics/lights/lighting_rig.h"
 #include "graphics/render_entity.h"
 #include "graphics/render_graph/render_graph.h"
@@ -70,12 +71,12 @@ class Scene
      * @returns
      *   Pointer to the newly created RenderEntity.
      */
-    template <class... Args>
-    RenderEntity *create_entity(RenderGraph *render_graph, Args &&...args)
+    template <class T, class... Args>
+    T *create_entity(RenderGraph *render_graph, Args &&...args)
     {
-        auto element = std::make_unique<RenderEntity>(std::forward<Args>(args)...);
+        auto element = std::make_unique<T>(std::forward<Args>(args)...);
 
-        return add(std::move(render_graph), std::move(element));
+        return static_cast<T *>(add(std::move(render_graph), std::move(element)));
     }
 
     /**
