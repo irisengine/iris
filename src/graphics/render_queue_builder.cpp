@@ -9,9 +9,14 @@
 #include <map>
 #include <vector>
 
+#include "core/root.h"
+#include "graphics/mesh_manager.h"
 #include "graphics/render_graph/render_graph.h"
+#include "graphics/render_graph/sky_box_node.h"
 #include "graphics/render_target.h"
 #include "graphics/renderer.h"
+#include "graphics/single_entity.h"
+#include "log/log.h"
 
 namespace
 {
@@ -147,10 +152,6 @@ std::vector<RenderCommand> RenderQueueBuilder::build(std::vector<RenderPass> &re
     // convert each pass into a series of commands which will render it
     for (auto &pass : render_passes)
     {
-        const auto has_directional_light_pass =
-            !pass.depth_only && !pass.scene->lighting_rig()->directional_lights.empty();
-        const auto has_point_light_pass = !pass.depth_only && !pass.scene->lighting_rig()->point_lights.empty();
-
         cmd.set_render_pass(std::addressof(pass));
 
         cmd.set_type(RenderCommandType::PASS_START);
@@ -160,18 +161,46 @@ std::vector<RenderCommand> RenderQueueBuilder::build(std::vector<RenderPass> &re
         encode_light_pass_commands(
             pass.scene, LightType::AMBIENT, cmd, create_material_callback_, render_queue, shadow_maps);
 
-        // encode point lights if there are any
-        if (has_point_light_pass)
+        if (!pass.depth_only)
         {
-            encode_light_pass_commands(
-                pass.scene, LightType::POINT, cmd, create_material_callback_, render_queue, shadow_maps);
-        }
+            // encode point lights if there are any
+            if (!pass.scene->lighting_rig()->point_lights.empty())
+            {
+                encode_light_pass_commands(
+                    pass.scene, LightType::POINT, cmd, create_material_callback_, render_queue, shadow_maps);
+            }
 
-        // encode directional lights if there are any
-        if (has_directional_light_pass)
-        {
-            encode_light_pass_commands(
-                pass.scene, LightType::DIRECTIONAL, cmd, create_material_callback_, render_queue, shadow_maps);
+            // encode directional lights if there are any
+            if (!pass.scene->lighting_rig()->directional_lights.empty())
+            {
+                encode_light_pass_commands(
+                    pass.scene, LightType::DIRECTIONAL, cmd, create_material_callback_, render_queue, shadow_maps);
+            }
+
+            if (pass.sky_box != nullptr)
+            {
+                auto *scene = pass.scene;
+
+                auto *sky_box_rg = scene->create_render_graph();
+                sky_box_rg->set_render_node<SkyBoxNode>(pass.sky_box);
+
+                auto *sky_box_entity = scene->create_entity<SingleEntity>(
+                    sky_box_rg, Root::mesh_manager().cube({}), Transform({}, {}, {0.5f}));
+
+                auto *material = create_material_callback_(
+                    sky_box_rg, sky_box_entity, cmd.render_pass()->render_target, LightType::AMBIENT);
+                cmd.set_material(material);
+
+                // renderer implementation will handle duplicate checking
+                cmd.set_type(iris::RenderCommandType::UPLOAD_TEXTURE);
+                render_queue.push_back(cmd);
+
+                cmd.set_render_entity(sky_box_entity);
+
+                cmd.set_type(iris::RenderCommandType::DRAW);
+                cmd.set_light(scene->lighting_rig()->ambient_light.get());
+                render_queue.push_back(cmd);
+            }
         }
 
         cmd.set_type(RenderCommandType::PASS_END);
