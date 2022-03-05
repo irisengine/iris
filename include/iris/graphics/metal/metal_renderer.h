@@ -83,6 +83,7 @@ class MetalRenderer : public Renderer
     // handlers for the supported RenderCommandTypes
 
     void pre_render() override;
+    void execute_pass_start(RenderCommand &command) override;
     void execute_draw(RenderCommand &command) override;
     void execute_pass_end(RenderCommand &command) override;
     void execute_present(RenderCommand &command) override;
@@ -103,11 +104,14 @@ class MetalRenderer : public Renderer
          * */
         std::mutex lock;
 
-        /**
-         * Map of render commands to constant buffers - this ensures each draw
-         * command gets its own buffer.
-         */
-        std::unordered_map<const RenderCommand *, MetalConstantBuffer> constant_data_buffers;
+        /** Map of bone data buffers to render entities. */
+        std::unordered_map<const RenderEntity *, std::unique_ptr<MetalConstantBuffer>> bone_data;
+
+        /** Map of model data buffers to render entities. */
+        std::unordered_map<const RenderEntity *, std::unique_ptr<MetalConstantBuffer>> model_data;
+
+        /** Map of light data buffers to lights. */
+        std::unordered_map<const Light *, std::unique_ptr<MetalConstantBuffer>> light_data;
     };
 
     /** Width of window to render to. */
@@ -157,6 +161,18 @@ class MetalRenderer : public Renderer
 
     /** Default sampler for CubeMaps. */
     id<MTLSamplerState> sky_box_sampler_;
+
+    /** Map of instance data buffers to render entities.  */
+    std::unordered_map<const RenderEntity *, std::unique_ptr<MetalConstantBuffer>> instance_data_;
+
+    /** Buffer for camera data. */
+    std::unique_ptr<MetalConstantBuffer> camera_data_;
+
+    /** Buffer for bindless texture table. */
+    std::unique_ptr<MetalConstantBuffer> texture_table_;
+
+    /** Buffer for bindless cube map table. */
+    std::unique_ptr<MetalConstantBuffer> cube_map_table_;
 };
 
 }

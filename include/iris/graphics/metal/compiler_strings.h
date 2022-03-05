@@ -19,7 +19,7 @@ using namespace metal;
 )";
 
 static constexpr auto vertex_in = R"(
-typedef struct
+struct VertexIn
 {
     float4 position;
     float4 normal;
@@ -29,13 +29,14 @@ typedef struct
     float4 bitangent;
     int4 bone_ids;
     float4 bone_weights;
-} VertexIn;
+};
 )";
 
 static constexpr auto vertex_out = R"(
-typedef struct
+struct VertexOut
 {
     float4 position [[position]];
+    float4 vertex_position;
     float4 frag_position;
     float3 tangent_view_pos;
     float3 tangent_frag_pos;
@@ -44,55 +45,74 @@ typedef struct
     float4 normal;
     float4 color;
     float4 tex;
-} VertexOut;
+};
 )";
 
-static constexpr auto default_uniform = R"(
-typedef struct
+static constexpr auto bone_data_struct = R"(
+struct BoneData
+{
+    float4x4 bones[100];
+};
+)";
+
+static constexpr auto camera_data_struct = R"(
+struct CameraData
 {
     float4x4 projection;
     float4x4 view;
-    float4x4 model;
-    float4x4 normal_matrix;
-    float4x4 bones[100];
     float4 camera;
-    float4 light_colour;
-    float4 light_position;
-    float light_attenuation[3];
-    float time;
-} DefaultUniform;
+};
 )";
 
-static constexpr auto directional_light_uniform = R"(
-typedef struct
+static constexpr auto light_data_struct = R"(
+struct LightData
 {
+    float4 colour;
+    float4 position;
+    float4 attenuation;
     float4x4 proj;
     float4x4 view;
-} DirectionalLightUniform;
+};
 )";
 
-static constexpr auto point_light_uniform = R"(
-typedef struct
+static constexpr auto model_data_struct = R"(
+struct ModelData
 {
-    float4 position;
-} PointLightUniform;
+    float4x4 model;
+    float4x4 normal_matrix;
+};
+)";
+
+static constexpr auto texture_struct = R"(
+struct Texture
+{
+    texture2d<float> texture;
+};
+)";
+
+static constexpr auto cube_map_struct = R"(
+struct CubeMap
+{
+    texturecube<float> cube_map;
+};
 )";
 
 static constexpr auto vertex_begin = R"(
-float4x4 bone_transform = calculate_bone_transform(uniform, vid, vertices);
+float4x4 bone_transform = calculate_bone_transform(bone_data, vid, vertices);
 float2 uv = vertices[vid].tex.xy;
 
 VertexOut out;
-out.frag_position = transpose(uniform->model) * bone_transform * vertices[vid].position;
-out.position = transpose(uniform->projection) * transpose(uniform->view) * out.frag_position;
-out.normal = transpose(uniform->normal_matrix) * bone_transform * vertices[vid].normal;
+out.vertex_position = vertices[vid].position;
+out.frag_position = transpose(model_data[instance_id].model) * bone_transform * vertices[vid].position;
+out.position = transpose(camera_data->projection) * transpose(camera_data->view) * out.frag_position;
+out.normal = transpose(model_data[instance_id].normal_matrix) * bone_transform * vertices[vid].normal;
 out.color = vertices[vid].color;
 out.tex = vertices[vid].tex;
 
-const float3x3 tbn = calculate_tbn(uniform, bone_transform, vid, vertices);
+const float3x3 tbn = calculate_tbn(bone_transform, vid, vertices, transpose(model_data[instance_id].normal_matrix));
 
-out.tangent_light_pos = tbn * uniform->light_position.xyz;
-out.tangent_view_pos = tbn * uniform->camera.xyz;
+out.tangent_light_pos = tbn * light_data->position.xyz;
+out.tangent_view_pos = tbn * camera_data->camera.xyz;
 out.tangent_frag_pos = tbn * out.frag_position.xyz;
 )";
 
@@ -153,23 +173,23 @@ float4 invert(float4 colour)
 })";
 
 static constexpr auto bone_transform_function = R"(
-float4x4 calculate_bone_transform(constant DefaultUniform *uniform, uint vid, device VertexIn *vertices)
+float4x4 calculate_bone_transform(constant BoneData *bone_data, uint vid, device VertexIn *vertices)
 {
-    float4x4 bone_transform = uniform->bones[vertices[vid].bone_ids.x] * vertices[vid].bone_weights.x;
-    bone_transform += uniform->bones[vertices[vid].bone_ids.y] * vertices[vid].bone_weights.y;
-    bone_transform += uniform->bones[vertices[vid].bone_ids.z] * vertices[vid].bone_weights.z;
-    bone_transform += uniform->bones[vertices[vid].bone_ids.w] * vertices[vid].bone_weights.w;
+    float4x4 bone_transform = bone_data->bones[vertices[vid].bone_ids.x] * vertices[vid].bone_weights.x;
+    bone_transform += bone_data->bones[vertices[vid].bone_ids.y] * vertices[vid].bone_weights.y;
+    bone_transform += bone_data->bones[vertices[vid].bone_ids.z] * vertices[vid].bone_weights.z;
+    bone_transform += bone_data->bones[vertices[vid].bone_ids.w] * vertices[vid].bone_weights.w;
 
     return transpose(bone_transform);
 
 })";
 
 static constexpr auto tbn_function = R"(
-float3x3 calculate_tbn(constant DefaultUniform *uniform, float4x4 bone_transform, uint vid, device VertexIn *vertices)
+float3x3 calculate_tbn(float4x4 bone_transform, uint vid, device VertexIn *vertices, float4x4 normal_matrix)
 {
-    float3 T = normalize(float3(transpose(uniform->normal_matrix) * bone_transform * vertices[vid].tangent));
-    float3 B = normalize(float3(transpose(uniform->normal_matrix) * bone_transform * vertices[vid].bitangent));
-    float3 N = normalize(float3(transpose(uniform->normal_matrix) * bone_transform * vertices[vid].normal));
+    float3 T = normalize(float3(normal_matrix * bone_transform * vertices[vid].tangent));
+    float3 B = normalize(float3(normal_matrix * bone_transform * vertices[vid].bitangent));
+    float3 N = normalize(float3(normal_matrix * bone_transform * vertices[vid].normal));
     return transpose(float3x3(T, B, N));
 })";
 

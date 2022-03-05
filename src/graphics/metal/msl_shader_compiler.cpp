@@ -36,35 +36,31 @@ namespace
 {
 
 /**
- * Helper function to create a variable name for a texture. Always returns the
- * same name for the same texture.
+ * Helper function to create a variable name for a texture. Always returns the same name for the same texture.
  *
  * @param texture
- *   Texture to generate name for.
- *
- * @param textures
- *   Collection of textures, texture will be inserted if it does not exist.
+ *   Texture to create name for.
  *
  * @returns
  *   Unique variable name for the texture.
  */
-std::string texture_name(const iris::Texture *texture, std::vector<const iris::Texture *> &textures)
+std::string texture_name(const iris::Texture *texture)
 {
-    std::size_t id = 0u;
+    return "texture_table[" + std::to_string(texture->index()) + "].texture";
+}
 
-    const auto find = std::find(std::cbegin(textures), std::cend(textures), texture);
-
-    if (find != std::cend(textures))
-    {
-        id = std::distance(std::cbegin(textures), find);
-    }
-    else
-    {
-        id = textures.size();
-        textures.emplace_back(texture);
-    }
-
-    return "tex" + std::to_string(id);
+/**
+ * Helper function to create a variable name for a cube map. Always returns the same name for the same cube map.
+ *
+ * @param cube_map
+ *   Cube map to create name for.
+ *
+ * @returns
+ *   Unique variable name for the cube map.
+ */
+std::string cube_map_name(const iris::CubeMap *cube_map)
+{
+    return "cube_map_table[" + std::to_string(cube_map->index()) + "].cube_map";
 }
 
 /**
@@ -188,7 +184,7 @@ void MSLShaderCompiler::visit(const RenderNode &node)
     if (light_type_ == LightType::DIRECTIONAL)
     {
         *current_stream_ << R"(
-        out.frag_pos_light_space = light_uniform->proj * light_uniform->view * out.frag_position;
+        out.frag_pos_light_space = transpose(light_data->proj) * transpose(light_data->view) * out.frag_position;
 )";
     }
 
@@ -211,17 +207,16 @@ void MSLShaderCompiler::visit(const RenderNode &node)
     // uniform and how we calculate lighting
     switch (light_type_)
     {
-        case LightType::AMBIENT: *current_stream_ << "return uniform->light_colour * fragment_colour;\n"; break;
+        case LightType::AMBIENT: *current_stream_ << "return light_data->colour * fragment_colour;\n"; break;
         case LightType::DIRECTIONAL:
             *current_stream_ << "float3 light_dir = ";
             *current_stream_
-                << (node.normal_input() == nullptr ? "normalize(-uniform->light_position.xyz);\n"
+                << (node.normal_input() == nullptr ? "normalize(-light_data->position.xyz);\n"
                                                    : "normalize(-in.tangent_light_pos.xyz);\n");
 
             *current_stream_ << "float shadow = 0.0;\n";
-            *current_stream_ <<
-                R"(shadow = calculate_shadow(n, in.frag_pos_light_space, light_dir, shadow_map, shadow_sampler);
-                )";
+            *current_stream_ << "shadow = calculate_shadow(n, in.frag_pos_light_space, light_dir, "
+                                "texture_table[shadow_map_index].texture, shadow_sampler);\n";
 
             *current_stream_ << R"(
                 float diff = (1.0 - shadow) * max(dot(n, light_dir), 0.0);
@@ -233,27 +228,25 @@ void MSLShaderCompiler::visit(const RenderNode &node)
         case LightType::POINT:
             *current_stream_ << "float3 light_dir = ";
             *current_stream_
-                << (node.normal_input() == nullptr ? "normalize(uniform->light_position.xyz - "
+                << (node.normal_input() == nullptr ? "normalize(light_data->position.xyz - "
                                                      "in.frag_position.xyz);\n"
                                                    : "normalize(in.tangent_light_pos.xyz - "
                                                      "in.tangent_frag_pos.xyz);\n");
             *current_stream_ << R"(
-                float distance  = length(uniform->light_position.xyz - in.frag_position.xyz);
-                float constant_term = uniform->light_attenuation[0];
-                float linear = uniform->light_attenuation[1];
-                float quadratic = uniform->light_attenuation[2];
+                float distance  = length(light_data->position.xyz - in.frag_position.xyz);
+                float constant_term = light_data->attenuation.x;
+                float linear = light_data->attenuation.y;
+                float quadratic = light_data->attenuation.z;
                 float attenuation = 1.0 / (constant_term + linear * distance + quadratic * (distance * distance));    
                 float3 att = float3(attenuation, attenuation, attenuation);
 
                 float diff = max(dot(n, light_dir), 0.0);
                 float3 diffuse = float3(diff, diff, diff);
                 
-                return float4(diffuse * uniform->light_colour.xyz * fragment_colour.xyz * att, 1.0);
+                return float4(diffuse * light_data->colour.xyz * fragment_colour.xyz * att, 1.0);
                 )";
             break;
     }
-
-    *current_stream_ << "}";
 }
 
 void MSLShaderCompiler::visit(const PostProcessingNode &node)
@@ -284,7 +277,7 @@ void MSLShaderCompiler::visit(const PostProcessingNode &node)
         mapped = pow(mapped, float3(1.0 / 2.2));
 
         return float4(mapped, 1.0);
-    })";
+    )";
 }
 
 void MSLShaderCompiler::visit(const SkyBoxNode &node)
@@ -300,12 +293,12 @@ void MSLShaderCompiler::visit(const SkyBoxNode &node)
     *current_stream_ << R"(
         VertexOut out;
 
-        float4x4 adj_view = uniform->view;
+        float4x4 adj_view = transpose(camera_data->view);
         adj_view[3] = 0.0f;
         adj_view[3][3] = 1.0f;
         
         out.tex = vertices[vid].position;
-        out.position = float4(uniform->projection * adj_view * out.tex).xyww;
+        out.position = float4(transpose(camera_data->projection) * adj_view * out.tex).xyww;
     )";
 
     *current_stream_ << "return out;";
@@ -318,12 +311,8 @@ void MSLShaderCompiler::visit(const SkyBoxNode &node)
 
     build_fragment_colour(fragment_stream_, node.colour_input(), this);
 
-    *current_stream_ << R"(
-        float3 tex_coords = float3(in.tex.x, in.tex.y, -in.tex.z);
-        return sky_box.sample(sky_box_sampler, tex_coords);
-    })";
-
-    cube_map_ = node.sky_box();
+    *current_stream_ << "float3 tex_coords = float3(in.tex.x, in.tex.y, -in.tex.z);\n"
+                     << "return " << cube_map_name(node.sky_box()) << ".sample(sky_box_sampler, tex_coords);\n";
 }
 
 void MSLShaderCompiler::visit(const ColourNode &node)
@@ -342,7 +331,7 @@ float4 sample_texture(texture2d<float> texture, float2 coord)
 }
 )");
 
-    *current_stream_ << "sample_texture(" << texture_name(node.texture(), textures_);
+    *current_stream_ << "sample_texture(" << texture_name(node.texture());
 
     if (node.texture()->flip())
     {
@@ -367,7 +356,7 @@ void MSLShaderCompiler::visit(const BlurNode &node)
 {
     current_functions_->emplace(blur_function);
 
-    *current_stream_ << "blur(" << texture_name(node.input_node()->texture(), textures_);
+    *current_stream_ << "blur(" << texture_name(node.input_node()->texture());
 
     if (node.input_node()->texture()->flip())
     {
@@ -406,7 +395,7 @@ void MSLShaderCompiler::visit(const ValueNode<Vector3> &node)
 
 void MSLShaderCompiler::visit(const ValueNode<Colour> &node)
 {
-    *current_stream_ << "float4(" << node.value().g << ", " << node.value().g << ", " << node.value().b << ", "
+    *current_stream_ << "float4(" << node.value().r << ", " << node.value().g << ", " << node.value().b << ", "
                      << node.value().a << ")";
 }
 
@@ -502,9 +491,10 @@ std::string MSLShaderCompiler::vertex_shader() const
     stream << preamble << '\n';
     stream << vertex_in << '\n';
     stream << vertex_out << '\n';
-    stream << default_uniform << '\n';
-    stream << directional_light_uniform << '\n';
-    stream << point_light_uniform << '\n';
+    stream << bone_data_struct << '\n';
+    stream << camera_data_struct << '\n';
+    stream << light_data_struct << '\n';
+    stream << model_data_struct << '\n';
 
     for (const auto &function : vertex_functions_)
     {
@@ -514,14 +504,12 @@ std::string MSLShaderCompiler::vertex_shader() const
     stream << R"(
  vertex VertexOut vertex_main(
     device VertexIn *vertices [[buffer(0)]],
-    constant DefaultUniform *uniform [[buffer(1)]],
-    constant DirectionalLightUniform *light_uniform [[buffer(2)]],
-    uint vid [[vertex_id]])";
-    for (auto i = 0u; i < textures_.size(); ++i)
-    {
-        stream << "    ,texture2d<float> tex" << i << " [[texture(" << i << ")]]" << '\n';
-    }
-    stream << R"() {)";
+    constant BoneData *bone_data [[buffer(1)]],
+    constant CameraData *camera_data [[buffer(2)]],
+    constant LightData *light_data [[buffer(3)]],
+    constant ModelData *model_data [[buffer(4)]],
+    uint vid [[vertex_id]],
+    uint instance_id [[instance_id]]) {)";
 
     stream << vertex_stream_.str() << '\n';
 
@@ -535,9 +523,10 @@ std::string MSLShaderCompiler::fragment_shader() const
     stream << preamble << '\n';
     stream << vertex_in << '\n';
     stream << vertex_out << '\n';
-    stream << default_uniform << '\n';
-    stream << directional_light_uniform << '\n';
-    stream << point_light_uniform << '\n';
+    stream << camera_data_struct << '\n';
+    stream << light_data_struct << '\n';
+    stream << texture_struct << '\n';
+    stream << cube_map_struct << '\n';
 
     for (const auto &function : fragment_functions_)
     {
@@ -547,23 +536,18 @@ std::string MSLShaderCompiler::fragment_shader() const
     stream << R"(
 fragment float4 fragment_main(
     VertexOut in [[stage_in]],
-    constant DefaultUniform *uniform [[buffer(0)]],
-    constant DirectionalLightUniform *light_uniform [[buffer(1)]],
+    constant CameraData *camera_data [[buffer(0)]],
+    constant LightData *light_data [[buffer(1)]],
+    device Texture *texture_table [[buffer(2)]],
+    device CubeMap *cube_map_table [[buffer(3)]],
+    constant int &shadow_map_index [[buffer(4)]],
     sampler shadow_sampler [[sampler(0)]],
-    texture2d<float> shadow_map [[texture(0)]],
-    sampler sky_box_sampler [[sampler(1)]],
-    texturecube<float> sky_box [[texture(1)]])";
-
-    for (auto i = 0u; i < textures_.size(); ++i)
+    sampler sky_box_sampler [[sampler(1)]])
     {
-        stream << "    ,texture2d<float> tex" << i << " [[texture(" << i + 2 << ")]]" << '\n';
-    }
-    stream << R"(
-    )
-{
 )";
 
     stream << fragment_stream_.str() << '\n';
+    stream << "}\n";
 
     return stream.str();
 }

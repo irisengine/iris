@@ -19,13 +19,14 @@
 #include "core/error_handling.h"
 #include "core/macos/macos_ios_utility.h"
 #include "core/matrix4.h"
+#include "core/root.h"
 #include "core/vector3.h"
 #include "graphics/constant_buffer_writer.h"
+#include "graphics/instanced_entity.h"
 #include "graphics/lights/lighting_rig.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/metal/metal_constant_buffer.h"
 #include "graphics/metal/metal_cube_map.h"
-#include "graphics/metal/metal_default_constant_buffer_types.h"
 #include "graphics/metal/metal_material.h"
 #include "graphics/metal/metal_mesh.h"
 #include "graphics/metal/metal_render_target.h"
@@ -36,11 +37,18 @@
 #include "graphics/render_graph/texture_node.h"
 #include "graphics/render_queue_builder.h"
 #include "graphics/render_target.h"
+#include "graphics/single_entity.h"
+#include "graphics/texture_manager.h"
 #include "graphics/window.h"
 #include "log/log.h"
 
 namespace
 {
+
+// this matrix is used to translate projection matrices from engine NDC to
+// metal NDC
+static const iris::Matrix4 metal_translate{
+    {{1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f}}};
 
 /**
  * Helper function to create a render encoder for render pass.
@@ -83,139 +91,108 @@ id<MTLRenderCommandEncoder> create_render_encoder(
 }
 
 /**
- * Helper function to set constant data for a render pass.
+ * Helper function to build the texture table - a global GPU buffer of all textures (used for bindless rendering)
  *
- * @param render_encoder
- *   Render encoder for current pass.
- *
- * @param constant_buffer
- *   The constant buffer to write to.
- *
- * @param camera
- *   Camera for current render pass.
- *
- * @param light_data
- *   Date for the current render pass light.
- *
- * @param entity
- *   Entity being rendered.
- *
- * @param shadow_map
- *   Optional RenderTarget for shadow map.
- *
- * @param light
- *   Light for current render pass.
+ * @returns
+ *   Metal buffer with all loaded textures.
  */
-void set_constant_data(
-    id<MTLRenderCommandEncoder> render_encoder,
-    iris::MetalConstantBuffer &constant_buffer,
-    const iris::Camera *camera,
-    const iris::RenderEntity *entity,
-    const iris::RenderTarget *shadow_map,
-    const iris::Light *light)
+std::unique_ptr<iris::MetalConstantBuffer> create_texture_table()
 {
-    // this matrix is used to translate projection matrices from engine NDC to
-    // metal NDC
-    static const iris::Matrix4 metal_translate{
-        {{1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f}}};
+    const auto *device = iris::core::utility::metal_device();
 
-    // set shadow map specific data, if it is present
-    if ((shadow_map != nullptr) && (light->type() == iris::LightType::DIRECTIONAL))
+    const auto textures = iris::Root::texture_manager().textures();
+    const auto max_index = textures.back()->index();
+    const auto *blank_texture = static_cast<const iris::MetalTexture *>(iris::Root::texture_manager().blank_texture());
+    auto iter = std::cbegin(textures);
+
+    // create descriptor for arguments we want to write
+    auto *argument_descriptor = [MTLArgumentDescriptor argumentDescriptor];
+    [argument_descriptor setIndex:0];
+    [argument_descriptor setDataType:MTLDataTypeTexture];
+    [argument_descriptor setAccess:MTLArgumentAccessReadOnly];
+    [argument_descriptor setTextureType:MTLTextureType2D];
+    [argument_descriptor setArrayLength:max_index + 1u];
+
+    auto *argument_descriptors = [NSArray arrayWithObjects:argument_descriptor, nil];
+
+    // create encoder to actually set arguments
+    auto texture_table_argument_encoder = [device newArgumentEncoderWithArguments:argument_descriptors];
+
+    // create table buffer
+    auto texture_table =
+        std::make_unique<iris::MetalConstantBuffer>([texture_table_argument_encoder encodedLength] * (max_index + 1u));
+    [texture_table_argument_encoder setArgumentBuffer:texture_table->handle() offset:0];
+
+    for (auto i = 0u; i <= max_index; ++i)
     {
-        const auto *directional_light = static_cast<const iris::DirectionalLight *>(light);
-        iris::DirectionalLightConstantBuffer light_consant_buffer{};
-
-        light_consant_buffer.proj =
-            iris::Matrix4::transpose(metal_translate * directional_light->shadow_camera().projection());
-        light_consant_buffer.view = iris::Matrix4::transpose(directional_light->shadow_camera().view());
-
-        [render_encoder setVertexBytes:static_cast<const void *>(&light_consant_buffer)
-                                length:sizeof(light_consant_buffer)
-                               atIndex:2];
-
-        [render_encoder setFragmentBytes:static_cast<const void *>(&light_consant_buffer)
-                                  length:sizeof(light_consant_buffer)
-                                 atIndex:1];
+        // if a texture exits at the current index we write it in
+        if (i == (*iter)->index())
+        {
+            const auto *metal_texture = static_cast<const iris::MetalTexture *>(*iter);
+            [texture_table_argument_encoder setTexture:metal_texture->handle() atIndex:i];
+            ++iter;
+        }
+        else
+        {
+            // no texture at current index, so write default texture
+            [texture_table_argument_encoder setTexture:blank_texture->handle() atIndex:i];
+        }
     }
 
-    iris::ConstantBufferWriter writer(constant_buffer);
-
-    writer.write(metal_translate * camera->projection());
-    writer.write(camera->view());
-    writer.write(entity->transform());
-    writer.write(entity->normal_transform());
-
-    // write all the bone data and ensure we advance past the end of the array
-    // note that the transposing of the bone matrices is done by the shader
-    writer.write(entity->skeleton().transforms());
-    writer.advance(
-        sizeof(iris::DefaultConstantBuffer::bones) - entity->skeleton().transforms().size() * sizeof(iris::Matrix4));
-
-    writer.write(camera->position());
-    writer.write(0.0f);
-
-    writer.write(light->colour_data());
-    writer.write(light->world_space_data());
-    writer.write(light->attenuation_data());
-
-    writer.write(0.0f);
-
-    [render_encoder setVertexBuffer:constant_buffer.handle() offset:0 atIndex:1];
-    [render_encoder setFragmentBuffer:constant_buffer.handle() offset:0 atIndex:0];
+    return texture_table;
 }
 
 /**
- * Helper function to bind all textures for a material.
+ * Helper function to build the cube map table - a global GPU buffer of all cube maps (used for bindless rendering)
  *
- * @param render_encoder
- *   Encoder for current render pass.
- *
- * @param material
- *   Material to bind textures for.
- *
- * @param shadow_map
- *   Optional RenderTarget for shadow_map.
- *
- * @param shadow_sampler
- *   Sampler to use for shadow map.
- *
- * @param sky_box
- *   Optional CubeMap for sky box.
- *
- * @param sky_box_sampler
- *   Sampler to use for sky box.
+ * @returns
+ *   Metal buffer with all loaded cube map.
  */
-void bind_textures(
-    id<MTLRenderCommandEncoder> render_encoder,
-    const iris::Material *material,
-    const iris::RenderTarget *shadow_map,
-    id<MTLSamplerState> shadow_sampler,
-    const iris::CubeMap *sky_box,
-    id<MTLSamplerState> sky_box_sampler)
+std::unique_ptr<iris::MetalConstantBuffer> create_cube_map_table()
 {
-    // bind shadow map if present
-    if (shadow_map != nullptr)
+    const auto *device = iris::core::utility::metal_device();
+
+    const auto cube_maps = iris::Root::texture_manager().cube_maps();
+    const auto max_index = cube_maps.back()->index();
+    const auto *blank_cube_map =
+        static_cast<const iris::MetalCubeMap *>(iris::Root::texture_manager().blank_cube_map());
+    auto iter = std::cbegin(cube_maps);
+
+    // create descriptor for arguments we want to write
+    auto *argument_descriptor = [MTLArgumentDescriptor argumentDescriptor];
+    [argument_descriptor setIndex:0];
+    [argument_descriptor setDataType:MTLDataTypeTexture];
+    [argument_descriptor setAccess:MTLArgumentAccessReadOnly];
+    [argument_descriptor setTextureType:MTLTextureTypeCube];
+    [argument_descriptor setArrayLength:max_index + 1u];
+
+    auto *argument_descriptors = [NSArray arrayWithObjects:argument_descriptor, nil];
+
+    // create encoder to actually set arguments
+    auto cube_map_table_argument_encoder = [device newArgumentEncoderWithArguments:argument_descriptors];
+
+    // create table buffer
+    auto cube_map_table =
+        std::make_unique<iris::MetalConstantBuffer>([cube_map_table_argument_encoder encodedLength] * (max_index + 1u));
+    [cube_map_table_argument_encoder setArgumentBuffer:cube_map_table->handle() offset:0];
+
+    for (auto i = 0u; i <= max_index; ++i)
     {
-        const auto *metal_texture = static_cast<const iris::MetalTexture *>(shadow_map->depth_texture());
-        [render_encoder setFragmentTexture:metal_texture->handle() atIndex:0];
-        [render_encoder setFragmentSamplerState:shadow_sampler atIndex:0];
+        // if a cube map exits at the current index we write it in
+        if (i == (*iter)->index())
+        {
+            const auto *metal_cube_map = static_cast<const iris::MetalCubeMap *>(*iter);
+            [cube_map_table_argument_encoder setTexture:metal_cube_map->handle() atIndex:i];
+            ++iter;
+        }
+        else
+        {
+            // no cube map at current index, so write default cube map
+            [cube_map_table_argument_encoder setTexture:blank_cube_map->handle() atIndex:i];
+        }
     }
 
-    if (sky_box != nullptr)
-    {
-        const auto *metal_sky_box = static_cast<const iris::MetalCubeMap *>(sky_box);
-        [render_encoder setFragmentTexture:metal_sky_box->handle() atIndex:1];
-        [render_encoder setFragmentSamplerState:sky_box_sampler atIndex:1];
-    }
-
-    // bind all textures in material
-    const auto textures = material->textures();
-    for (auto i = 0u; i < textures.size(); ++i)
-    {
-        const auto *metal_texture = static_cast<const iris::MetalTexture *>(textures[i]);
-        [render_encoder setVertexTexture:metal_texture->handle() atIndex:i];
-        [render_encoder setFragmentTexture:metal_texture->handle() atIndex:i + 2];
-    }
+    return cube_map_table;
 }
 
 }
@@ -241,8 +218,16 @@ MetalRenderer::MetalRenderer(std::uint32_t width, std::uint32_t height)
     , default_depth_buffer_()
     , shadow_sampler_()
     , sky_box_sampler_()
+    , instance_data_()
+    , camera_data_()
+    , texture_table_()
+    , cube_map_table_()
 {
     const auto *device = iris::core::utility::metal_device();
+
+    ensure(
+        [device argumentBuffersSupport] == MTLArgumentBuffersTier::MTLArgumentBuffersTier2,
+        "need tier 2 argument buffer support");
 
     command_queue_ = [device newCommandQueue];
     ensure(command_queue_ != nullptr, "could not create command queue");
@@ -278,7 +263,8 @@ MetalRenderer::MetalRenderer(std::uint32_t width, std::uint32_t height)
     [[descriptor_ depthAttachment] setStoreAction:MTLStoreActionStore];
 
     // create default depth buffer
-    default_depth_buffer_ = std::make_unique<MetalTexture>(DataBuffer{}, width * 2u, height * 2u, TextureUsage::DEPTH);
+    default_depth_buffer_ = std::make_unique<MetalTexture>(
+        DataBuffer{}, width * 2u, height * 2u, TextureUsage::DEPTH, Root::texture_manager().next_texture_index()),
 
     render_encoder_ = nullptr;
 
@@ -312,29 +298,15 @@ MetalRenderer::~MetalRenderer()
 
 void MetalRenderer::set_render_passes(const std::vector<RenderPass> &render_passes)
 {
+    materials_.clear();
     render_passes_ = render_passes;
-
-    // check if pass has a sky box and if so create a cube for it and add it to the scene
-    for (auto &pass : render_passes_)
-    {
-        if (pass.sky_box != nullptr)
-        {
-            auto *scene = pass.scene;
-
-            auto *sky_box_rg = scene->create_render_graph();
-            sky_box_rg->set_render_node<SkyBoxNode>(pass.sky_box);
-
-            scene->create_entity(sky_box_rg, Root::mesh_manager().cube({}), Transform({}, {}, {0.5f}));
-        }
-    }
 
     // add a post processing pass
 
     // find the pass which renders to the screen
-    auto final_pass = std::find_if(
-        std::begin(render_passes_),
-        std::end(render_passes_),
-        [](const RenderPass &pass) { return pass.render_target == nullptr; });
+    auto final_pass = std::find_if(std::begin(render_passes_), std::end(render_passes_), [](const RenderPass &pass) {
+        return pass.render_target == nullptr;
+    });
 
     ensure(final_pass != std::cend(render_passes_), "no final pass");
 
@@ -352,20 +324,19 @@ void MetalRenderer::set_render_passes(const std::vector<RenderPass> &render_pass
     // processing node
     auto *rg = post_processing_scene_->create_render_graph();
     rg->set_render_node<PostProcessingNode>(rg->create<TextureNode>(post_processing_target_->colour_texture()));
-    post_processing_scene_->create_entity(
+    post_processing_scene_->create_entity<SingleEntity>(
         rg,
         Root::mesh_manager().sprite({}),
         Transform({}, {}, {static_cast<float>(width_), static_cast<float>(height_), 1.0}));
 
     // wire up this pass
     final_pass->render_target = post_processing_target_;
-    render_passes_.emplace_back(post_processing_scene_.get(), post_processing_camera_.get(), nullptr);
+    render_passes_.push_back({.scene = post_processing_scene_.get(), .camera = post_processing_camera_.get()});
 
     // build the render queue from the provided passes
 
     RenderQueueBuilder queue_builder(
-        [this](RenderGraph *render_graph, RenderEntity *entity, const RenderTarget *target, LightType light_type)
-        {
+        [this](RenderGraph *render_graph, RenderEntity *entity, const RenderTarget *target, LightType light_type) {
             if (materials_.count(render_graph) == 0u || materials_[render_graph].count(light_type) == 0u)
             {
                 materials_[render_graph][light_type] = std::make_unique<MetalMaterial>(
@@ -375,28 +346,38 @@ void MetalRenderer::set_render_passes(const std::vector<RenderPass> &render_pass
             return materials_[render_graph][light_type].get();
         },
         [this](std::uint32_t width, std::uint32_t height) { return create_render_target(width, height); });
-
     render_queue_ = queue_builder.build(render_passes_);
 
-    // clear all constant data buffers
+    instance_data_.clear();
+
     for (auto &frame : frames_)
     {
-        frame.constant_data_buffers.clear();
+        frame.model_data.clear();
     }
 
-    // create a constant data buffer for each draw command
+    // find all instanced render entities and write their instance data to buffers - this allows us to quickly set them
+    // during rendering
     for (const auto &command : render_queue_)
     {
         if (command.type() == RenderCommandType::DRAW)
         {
-            const auto *command_ptr = std::addressof(command);
+            const auto *render_entity = command.render_entity();
 
-            for (auto &frame : frames_)
+            if (render_entity->instance_count() > 1u)
             {
-                frame.constant_data_buffers.emplace(command_ptr, sizeof(DefaultConstantBuffer));
+                const auto *instanced_entity = static_cast<const InstancedEntity *>(render_entity);
+                instance_data_[render_entity] =
+                    std::make_unique<MetalConstantBuffer>(instanced_entity->data().size() * sizeof(Matrix4) * 2u);
+
+                ConstantBufferWriter writer{*instance_data_[render_entity]};
+
+                writer.write(instanced_entity->data());
             }
         }
     }
+
+    texture_table_ = create_texture_table();
+    cube_map_table_ = create_cube_map_table();
 }
 
 RenderTarget *MetalRenderer::create_render_target(std::uint32_t width, std::uint32_t height)
@@ -416,8 +397,7 @@ void MetalRenderer::pre_render()
 {
     @autoreleasepool
     {
-        // acquire the lock, this will be released when the GPU has finished
-        // rendering the frame
+        // acquire the lock, this will be released when the GPU has finished rendering the frame
         frames_[current_frame_ % 3u].lock.lock();
 
         const auto layer = core::utility::metal_layer();
@@ -433,13 +413,33 @@ void MetalRenderer::pre_render()
     }
 }
 
+void MetalRenderer::execute_pass_start(RenderCommand &command)
+{
+    const auto *camera = command.render_pass()->camera;
+
+    // only need to set camera data once per pass
+    camera_data_ = std::make_unique<MetalConstantBuffer>(sizeof(Matrix4) + sizeof(Matrix4) + (sizeof(float) * 4u));
+
+    ConstantBufferWriter writer{*camera_data_};
+    writer.write(camera->projection());
+    writer.write(camera->view());
+    writer.write(camera->position());
+
+    const auto frame_index = current_frame_ % 3u;
+    auto &frame = frames_[frame_index];
+
+    frame.bone_data.clear();
+    frame.light_data.clear();
+}
+
 void MetalRenderer::execute_draw(RenderCommand &command)
 {
     const auto *material = static_cast<const MetalMaterial *>(command.material());
     const auto *entity = command.render_entity();
     const auto *mesh = static_cast<const MetalMesh *>(entity->mesh());
-    const auto *camera = command.render_pass()->camera;
     const auto *target = command.render_pass()->render_target;
+    const auto *light = command.light();
+    auto &frame = frames_[current_frame_ % 3u];
 
     @autoreleasepool
     {
@@ -473,17 +473,73 @@ void MetalRenderer::execute_draw(RenderCommand &command)
 
     render_encoder_ = render_encoders_[target];
 
-    const auto frame = current_frame_ % 3u;
+    // if we haven't seen this entity yet this pass then create buffers for its data
+    if (!frame.bone_data.contains(entity))
+    {
+        frame.bone_data[entity] = std::make_unique<MetalConstantBuffer>(sizeof(Matrix4) * 100u);
+        frame.model_data[entity] = std::make_unique<MetalConstantBuffer>(sizeof(Matrix4) * 2u);
 
-    set_constant_data(
-        render_encoder_,
-        frames_[frame].constant_data_buffers.at(std::addressof(command)),
-        camera,
-        entity,
-        command.shadow_map(),
-        command.light());
-    bind_textures(
-        render_encoder_, material, command.shadow_map(), shadow_sampler_, material->cube_map(), sky_box_sampler_);
+        ConstantBufferWriter writer{*frame.bone_data[entity]};
+
+        if (entity->instance_count() == 1u)
+        {
+            const auto *single_entity = static_cast<const SingleEntity *>(entity);
+            const auto &bones = single_entity->skeleton().transforms();
+            writer.write(bones);
+            writer.advance((100u - bones.size()) * sizeof(iris::Matrix4));
+
+            iris::ConstantBufferWriter writer2(*frame.model_data[entity]);
+            writer2.write(single_entity->transform());
+            writer2.write(single_entity->normal_transform());
+        }
+        else
+        {
+            static std::vector<iris::Matrix4> default_bones(100u);
+            writer.write(default_bones);
+        }
+    }
+
+    // if we haven't seen this light yet this pass then create buffers for its data
+    if (!frame.light_data.contains(light))
+    {
+        frame.light_data[light] = std::make_unique<MetalConstantBuffer>(176u);
+
+        ConstantBufferWriter writer{*frame.light_data[light]};
+        writer.write(light->colour_data());
+        writer.write(light->world_space_data());
+        writer.write(light->attenuation_data());
+        writer.write(0.0f);
+
+        if (light->type() == LightType::DIRECTIONAL)
+        {
+            const auto *directional_light = static_cast<const iris::DirectionalLight *>(light);
+            writer.write(metal_translate * directional_light->shadow_camera().projection());
+            writer.write(directional_light->shadow_camera().view());
+
+            if (directional_light->casts_shadows())
+            {
+                // if we are rendering with a shadow casting directional light then pass the index of the shadow map
+                // (into the texture table)
+                const auto index = static_cast<int>(command.shadow_map()->depth_texture()->index());
+                [render_encoder_ setFragmentBytes:&index length:sizeof(index) atIndex:4];
+            }
+        }
+    }
+
+    auto *model_buffer = entity->instance_count() == 1u ? frame.model_data[entity].get() : instance_data_[entity].get();
+
+    [render_encoder_ setVertexBuffer:frame.bone_data[entity]->handle() offset:0 atIndex:1];
+    [render_encoder_ setVertexBuffer:camera_data_->handle() offset:0 atIndex:2];
+    [render_encoder_ setVertexBuffer:frame.light_data[light]->handle() offset:0 atIndex:3];
+    [render_encoder_ setVertexBuffer:model_buffer->handle() offset:0 atIndex:4];
+
+    [render_encoder_ setFragmentBuffer:camera_data_->handle() offset:0 atIndex:0];
+    [render_encoder_ setFragmentBuffer:frame.light_data[light]->handle() offset:0 atIndex:1];
+    [render_encoder_ setFragmentBuffer:texture_table_->handle() offset:0 atIndex:2];
+    [render_encoder_ setFragmentBuffer:cube_map_table_->handle() offset:0 atIndex:3];
+
+    [render_encoder_ setFragmentSamplerState:shadow_sampler_ atIndex:0];
+    [render_encoder_ setFragmentSamplerState:sky_box_sampler_ atIndex:1];
 
     const auto &vertex_buffer = mesh->vertex_buffer();
     const auto &index_buffer = mesh->index_buffer();
@@ -501,7 +557,8 @@ void MetalRenderer::execute_draw(RenderCommand &command)
                                 indexCount:index_buffer.element_count()
                                  indexType:MTLIndexTypeUInt32
                                indexBuffer:index_buffer.handle()
-                         indexBufferOffset:0];
+                         indexBufferOffset:0
+                             instanceCount:entity->instance_count()];
 }
 
 void MetalRenderer::execute_pass_end(RenderCommand &)
@@ -514,13 +571,11 @@ void MetalRenderer::execute_present(RenderCommand &)
 {
     [command_buffer_ presentDrawable:drawable_];
 
-    // store local copy of frame so it can be correctly accessed via the
-    // completion handler
+    // store local copy of frame so it can be correctly accessed via the completion handler
     const auto frame = current_frame_ % 3u;
 
-    // set completion handler for command buffer, when the GPU is finished
-    // rendering it will fire the handler, which will unlock the lock, allowing
-    // the frame to be rendered to again
+    // set completion handler for command buffer, when the GPU is finished rendering it will fire the handler, which
+    // will unlock the lock, allowing the frame to be rendered to again
     [command_buffer_ addCompletedHandler:^(id<MTLCommandBuffer> commandBuffer) {
       frames_[frame].lock.unlock();
     }];
