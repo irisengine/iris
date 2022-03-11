@@ -15,6 +15,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/d3d12_mesh_manager.h
     ${INCLUDE_ROOT}/d3d12_render_target.h
     ${INCLUDE_ROOT}/d3d12_renderer.h
+    ${INCLUDE_ROOT}/d3d12_root_signature.h
     ${INCLUDE_ROOT}/d3d12_structured_buffer.h
     ${INCLUDE_ROOT}/d3d12_texture.h
     ${INCLUDE_ROOT}/d3d12_texture_manager.h
