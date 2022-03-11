@@ -8,6 +8,8 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <optional>
+#include <sstream>
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -62,6 +64,14 @@ iris::D3D12DescriptorHandle create_resource(
         IID_PPV_ARGS(&resource));
     iris::expect(commit_resource == S_OK, "could not create constant buffer");
 
+    // set a name for the resource
+    static int counter = 0;
+    std::wstringstream strm{};
+    strm << L"cb_" << counter++;
+    const auto name = strm.str();
+
+    resource->SetName(name.c_str());
+
     // allocate descriptor for buffer
     return iris::D3D12DescriptorManager::cpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).allocate_dynamic(frame);
 }
@@ -85,7 +95,7 @@ D3D12ConstantBuffer::D3D12ConstantBuffer(std::uint32_t frame)
     // there are no valid actions on it
 }
 
-D3D12ConstantBuffer::D3D12ConstantBuffer(std::uint32_t frame, std::uint32_t capacity)
+D3D12ConstantBuffer::D3D12ConstantBuffer(std::uint32_t frame, std::size_t capacity)
     : capacity_(capacity)
     , mapped_buffer_(nullptr)
     , resource_(nullptr)
@@ -95,7 +105,7 @@ D3D12ConstantBuffer::D3D12ConstantBuffer(std::uint32_t frame, std::uint32_t capa
 
     D3D12_CONSTANT_BUFFER_VIEW_DESC cbv_descriptor = {0};
     cbv_descriptor.BufferLocation = resource_->GetGPUVirtualAddress();
-    cbv_descriptor.SizeInBytes = capacity_;
+    cbv_descriptor.SizeInBytes = static_cast<UINT>(capacity_);
 
     // create a view onto the buffer
     device->CreateConstantBufferView(&cbv_descriptor, descriptor_handle_.cpu_handle());
