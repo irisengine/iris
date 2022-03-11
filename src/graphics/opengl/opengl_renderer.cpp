@@ -201,10 +201,9 @@ void OpenGLRenderer::set_render_passes(const std::vector<RenderPass> &render_pas
     // add a post processing pass
 
     // find the pass which renders to the screen
-    auto final_pass = std::find_if(
-        std::begin(render_passes_),
-        std::end(render_passes_),
-        [](const RenderPass &pass) { return pass.render_target == nullptr; });
+    auto final_pass = std::find_if(std::begin(render_passes_), std::end(render_passes_), [](const RenderPass &pass) {
+        return pass.render_target == nullptr;
+    });
 
     ensure(final_pass != std::cend(render_passes_), "no final pass");
 
@@ -233,8 +232,7 @@ void OpenGLRenderer::set_render_passes(const std::vector<RenderPass> &render_pas
     // build the render queue from the provided passes
 
     RenderQueueBuilder queue_builder(
-        [this](RenderGraph *render_graph, RenderEntity *, const RenderTarget *, LightType light_type)
-        {
+        [this](RenderGraph *render_graph, RenderEntity *, const RenderTarget *, LightType light_type) {
             if (materials_.count(render_graph) == 0u || materials_[render_graph].count(light_type) == 0u)
             {
                 materials_[render_graph][light_type] = std::make_unique<OpenGLMaterial>(render_graph, light_type);
@@ -248,13 +246,6 @@ void OpenGLRenderer::set_render_passes(const std::vector<RenderPass> &render_pas
 
     texture_table_ = create_texture_table_ssbo();
     cube_map_table_ = create_cube_map_table_ssbo();
-
-    render_queue_.erase(
-        std::remove_if(
-            std::begin(render_queue_),
-            std::end(render_queue_),
-            [](const RenderCommand &cmd) { return cmd.type() == RenderCommandType::UPLOAD_TEXTURE; }),
-        std::end(render_queue_));
 
     instance_data_.clear();
 

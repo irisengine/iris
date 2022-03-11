@@ -59,10 +59,6 @@ void encode_light_pass_commands(
             create_material_callback(render_graph, render_entity.get(), cmd.render_pass()->render_target, light_type);
         cmd.set_material(material);
 
-        // renderer implementation will handle duplicate checking
-        cmd.set_type(iris::RenderCommandType::UPLOAD_TEXTURE);
-        render_queue.push_back(cmd);
-
         cmd.set_render_entity(render_entity.get());
 
         // light specific draw commands
@@ -190,10 +186,6 @@ std::vector<RenderCommand> RenderQueueBuilder::build(std::vector<RenderPass> &re
                 auto *material = create_material_callback_(
                     sky_box_rg, sky_box_entity, cmd.render_pass()->render_target, LightType::AMBIENT);
                 cmd.set_material(material);
-
-                // renderer implementation will handle duplicate checking
-                cmd.set_type(iris::RenderCommandType::UPLOAD_TEXTURE);
-                render_queue.push_back(cmd);
 
                 cmd.set_render_entity(sky_box_entity);
 

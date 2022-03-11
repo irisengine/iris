@@ -64,7 +64,6 @@ class Renderer
     // ones needed for their graphics api
 
     virtual void pre_render();
-    virtual void execute_upload_texture(RenderCommand &command);
     virtual void execute_pass_start(RenderCommand &command);
     virtual void execute_draw(RenderCommand &command);
     virtual void execute_pass_end(RenderCommand &command);

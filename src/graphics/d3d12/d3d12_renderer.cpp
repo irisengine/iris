@@ -586,10 +586,6 @@ void D3D12Renderer::pre_render()
     frame.camera_data_buffers.clear();
 }
 
-void D3D12Renderer::execute_upload_texture(RenderCommand &)
-{
-}
-
 void D3D12Renderer::execute_pass_start(RenderCommand &command)
 {
     ID3D12DescriptorHeap *heaps[] = {

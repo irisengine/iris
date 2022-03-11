@@ -99,7 +99,6 @@ class D3D12Renderer : public Renderer
     // handlers for the supported RenderCommandTypes
 
     void pre_render() override;
-    void execute_upload_texture(RenderCommand &command) override;
     void execute_pass_start(RenderCommand &command) override;
     void execute_draw(RenderCommand &command) override;
     void execute_pass_end(RenderCommand &command) override;

@@ -18,14 +18,9 @@ class FakeRenderTarget : public iris::RenderTarget
 {
   public:
     FakeRenderTarget()
-        : colour_(std::make_unique<FakeTexture>())
-        , depth_(std::make_unique<FakeTexture>())
-        , iris::RenderTarget(colour_.get(), depth_.get())
+        : iris::RenderTarget(nullptr, nullptr)
     {
     }
 
     ~FakeRenderTarget() override = default;
-
-    std::unique_ptr<FakeTexture> colour_;
-    std::unique_ptr<FakeTexture> depth_;
 };

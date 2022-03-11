@@ -22,6 +22,8 @@
 namespace iris
 {
 
+class Texture;
+
 /**
  * Abstract class for creating and managing Mesh objects. This class handles
  * caching and lifetime management of all created objects. Implementers just
@@ -70,7 +72,7 @@ class MeshManager
     std::unique_ptr<Mesh> unique_cube(const Colour &colour);
 
     /**
-     * Create a plane mesh.
+     * Create a (XY) plane mesh.
      *
      * @param colour
      *   Colour of plane.
@@ -79,9 +81,23 @@ class MeshManager
      *   Number of divisions (both horizontal and vertical).
      *
      * @returns
-     *   Mesh for cube.
+     *   Mesh for place.
      */
     const Mesh *plane(const Colour &colour, std::uint32_t divisions);
+
+    /**
+     * Create a (XY) height map mesh.
+     *
+     * @param colour
+     *   Colour of height map.
+     *
+     * @param height_image.
+     *   Image data to source heights from (will use r component).
+     *
+     * @returns
+     *   Mesh for heightmap.
+     */
+    const Mesh *heightmap(const Colour &colour, const Texture *height_image);
 
     /**
      * Create a Quad mesh.
@@ -102,7 +118,7 @@ class MeshManager
      *   World coords of upper right of quad.
      *
      * @returns
-     *   Mesh for sprite.
+     *   Mesh for quad.
      */
     const Mesh *quad(
         const Colour &colour,

@@ -14,7 +14,6 @@
 TEST(renderer_test, command_execution)
 {
     const std::vector<iris::RenderCommandType> expected{
-        iris::RenderCommandType::UPLOAD_TEXTURE,
         iris::RenderCommandType::PASS_START,
         iris::RenderCommandType::DRAW,
         iris::RenderCommandType::PASS_END,

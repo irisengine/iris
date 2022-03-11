@@ -37,19 +37,13 @@ class FakeRenderer : public iris::Renderer
     {
     }
 
-    iris::RenderTarget *create_render_target(std::uint32_t, std::uint32_t)
-        override
+    iris::RenderTarget *create_render_target(std::uint32_t, std::uint32_t) override
     {
         return nullptr;
     }
 
     void pre_render() override
     {
-    }
-
-    void execute_upload_texture(iris::RenderCommand &) override
-    {
-        call_log_.emplace_back(iris::RenderCommandType::UPLOAD_TEXTURE);
     }
 
     void execute_pass_start(iris::RenderCommand &) override

@@ -135,7 +135,7 @@ const Mesh *MeshManager::plane(const Colour &colour, std::uint32_t divisions)
                     {(x * width) - 0.5f, (y * width) - 0.5f, 0.0f},
                     normal,
                     colour,
-                    {(x * width), 1.0f - (y * width), 0.0f},
+                    {(x * width) * divisions, (1.0f - (y * width)) * divisions, 0.0f},
                     tangent,
                     bitangent};
             }
@@ -153,6 +153,101 @@ const Mesh *MeshManager::plane(const Colour &colour, std::uint32_t divisions)
                 indices.emplace_back((y * (divisions + 1u) + x + 1u));
                 indices.emplace_back(((y + 1) * (divisions + 1u) + x));
                 indices.emplace_back(((y + 1) * (divisions + 1u) + x + 1u));
+            }
+        }
+
+        loaded_meshes_[id] = create_mesh(vertices, indices);
+    }
+
+    return loaded_meshes_[id].get();
+}
+
+const Mesh *MeshManager::heightmap(const Colour &colour, const Texture *height_image)
+{
+    ensure(height_image->width() == height_image->height(), "height_image must be square");
+
+    // create a unique for this mesh
+    std::stringstream strm{};
+    strm << "!height_map" << colour << ":" << height_image;
+    const auto id = strm.str();
+
+    const auto divisions = height_image->width();
+    const auto &height_data = height_image->data();
+
+    if (loaded_meshes_.count(id) == 0u)
+    {
+        std::vector<VertexData> vertices(static_cast<std::size_t>(std::pow(divisions, 2u)));
+
+        const Vector3 tangent{1.0f, 0.0f, 0.0f};
+        const Vector3 bitangent{0.0f, 1.0f, 0.0f};
+
+        const auto width = 1.0f / static_cast<float>(divisions);
+
+        // lambda to get adjacent points (clamped to edges)
+        const auto get_adjacent =
+            [&height_data,
+             divisions,
+             width](std::uint32_t x, std::uint32_t z, std::int32_t offset_x, std::int32_t offset_z) -> Vector3 {
+            auto adj_x = x;
+            if (x != 0u && offset_x == -1)
+            {
+                --adj_x;
+            }
+            else if (x != (divisions - 1u) && offset_x == 1)
+            {
+                ++adj_x;
+            }
+
+            auto adj_z = z;
+            if (z != 0u && offset_z == -1)
+            {
+                --adj_z;
+            }
+            else if (z != (divisions - 1u) && offset_z == 1)
+            {
+                ++adj_z;
+            }
+
+            const auto raw_y = height_data[((adj_z * divisions) + adj_x) * 4u];
+            const auto y = static_cast<float>(raw_y) / 255.0f;
+
+            return {(adj_x * width) - 0.5f, y, (adj_z * width) - 0.5f};
+        };
+
+        for (auto z = 0u; z < divisions; ++z)
+        {
+            for (auto x = 0u; x < divisions; ++x)
+            {
+                const auto right = get_adjacent(x, z, 1, 0);
+                const auto left = get_adjacent(x, z, -1, 0);
+                const auto top = get_adjacent(x, z, 0, -1);
+                const auto bottom = get_adjacent(x, z, 0, 1);
+
+                const auto raw_y = height_data[((z * divisions) + x) * 4u];
+                const auto y = static_cast<float>(raw_y) / 255.0f;
+
+                vertices[(z * (divisions)) + x] = {
+                    {(x * width) - 0.5f, y, (z * width) - 0.5f},
+                    Vector3::normalise(Vector3::cross((right - left), (top - bottom))),
+                    colour,
+                    {(x * width) * 30.0f, (1.0f - (z * width)) * 30.0f, 0.0f},
+                    tangent,
+                    bitangent};
+            }
+        }
+
+        std::vector<std::uint32_t> indices{};
+
+        for (auto z = 0u; z < divisions - 1u; ++z)
+        {
+            for (auto x = 0u; x < divisions - 1u; ++x)
+            {
+                indices.emplace_back((z * (divisions) + x));
+                indices.emplace_back(((z + 1) * (divisions) + x));
+                indices.emplace_back((z * (divisions) + x + 1u));
+                indices.emplace_back((z * (divisions) + x + 1u));
+                indices.emplace_back(((z + 1) * (divisions) + x));
+                indices.emplace_back(((z + 1) * (divisions) + x + 1u));
             }
         }
 

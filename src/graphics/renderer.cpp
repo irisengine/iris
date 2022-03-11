@@ -29,7 +29,6 @@ void Renderer::render()
     {
         switch (command.type())
         {
-            case RenderCommandType::UPLOAD_TEXTURE: execute_upload_texture(command); break;
             case RenderCommandType::PASS_START: execute_pass_start(command); break;
             case RenderCommandType::DRAW: execute_draw(command); break;
             case RenderCommandType::PASS_END: execute_pass_end(command); break;
@@ -42,11 +41,6 @@ void Renderer::render()
 }
 
 void Renderer::pre_render()
-{
-    // default is to do nothing
-}
-
-void Renderer::execute_upload_texture(RenderCommand &)
 {
     // default is to do nothing
 }

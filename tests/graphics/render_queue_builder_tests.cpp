@@ -14,7 +14,6 @@
 #include "graphics/scene.h"
 #include "graphics/single_entity.h"
 
-
 #include "fakes/fake_material.h"
 #include "fakes/fake_render_target.h"
 
@@ -85,12 +84,6 @@ TEST_F(RenderQueueBuilderFixture, complex_scene)
 
     std::vector<iris::RenderCommand> expected{
         {iris::RenderCommandType::PASS_START, std::addressof(passes[0]), nullptr, nullptr, nullptr, nullptr},
-        {iris::RenderCommandType::UPLOAD_TEXTURE,
-         std::addressof(passes[0]),
-         materials_[0].get(),
-         nullptr,
-         nullptr,
-         nullptr},
         {iris::RenderCommandType::DRAW,
          std::addressof(passes[0]),
          materials_[0].get(),
@@ -109,21 +102,9 @@ TEST_F(RenderQueueBuilderFixture, complex_scene)
          std::get<1>(scenes_[0].entities()[0]).get(),
          nullptr,
          scenes_[0].lighting_rig()->ambient_light.get()},
-        {iris::RenderCommandType::UPLOAD_TEXTURE,
-         std::addressof(passes[1]),
-         materials_[1].get(),
-         std::get<1>(scenes_[0].entities()[0]).get(),
-         nullptr,
-         scenes_[0].lighting_rig()->ambient_light.get()},
         {iris::RenderCommandType::DRAW,
          std::addressof(passes[1]),
          materials_[1].get(),
-         std::get<1>(scenes_[0].entities()[0]).get(),
-         nullptr,
-         scenes_[0].lighting_rig()->ambient_light.get()},
-        {iris::RenderCommandType::UPLOAD_TEXTURE,
-         std::addressof(passes[1]),
-         materials_[2].get(),
          std::get<1>(scenes_[0].entities()[0]).get(),
          nullptr,
          scenes_[0].lighting_rig()->ambient_light.get()},
@@ -142,12 +123,6 @@ TEST_F(RenderQueueBuilderFixture, complex_scene)
         {iris::RenderCommandType::PASS_START,
          std::addressof(passes[2]),
          materials_[2].get(),
-         std::get<1>(scenes_[0].entities()[0]).get(),
-         nullptr,
-         scenes_[0].lighting_rig()->directional_lights[0].get()},
-        {iris::RenderCommandType::UPLOAD_TEXTURE,
-         std::addressof(passes[2]),
-         materials_[3].get(),
          std::get<1>(scenes_[0].entities()[0]).get(),
          nullptr,
          scenes_[0].lighting_rig()->directional_lights[0].get()},
