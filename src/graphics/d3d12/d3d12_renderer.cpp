@@ -41,6 +41,7 @@
 #include "graphics/render_graph/sky_box_node.h"
 #include "graphics/render_graph/texture_node.h"
 #include "graphics/render_queue_builder.h"
+#include "graphics/single_entity.h"
 #include "graphics/texture.h"
 #include "graphics/texture_manager.h"
 #include "graphics/window.h"
@@ -55,39 +56,44 @@ namespace
 {
 
 // this matrix is used to translate projection matrices from engine NDC to
-// metal NDC
+// d3d12 NDC
 static const iris::Matrix4 directx_translate{
     {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f}};
 
 /**
- * Helper function to write vertex data into a constant buffer.
+ * Helper function to write entity data to buffers.
  *
- * @param constant_buffer
- *   D3D12ConstantBuffer object to write to.
+ * @param bone_buffer
+ *   D3D12ConstantBuffer object to write bone data to.
  *
- * @param camera
- *   Camera for currently rendered scene.
+ * @param model_buffer
+ *   D3D12StructuredBuffer object to write model data to.
  *
  * @param entity
  *   Entity being rendered.
  */
-void write_vertex_data_constant_buffer(
-    iris::D3D12ConstantBuffer &constant_buffer,
-    const iris::Camera *camera,
+void write_entity_data_constant_buffer(
+    iris::D3D12ConstantBuffer &bone_buffer,
+    iris::D3D12StructuredBuffer &model_buffer,
     const iris::RenderEntity *entity)
 {
-    iris::ConstantBufferWriter writer(constant_buffer);
+    iris::ConstantBufferWriter writer(bone_buffer);
 
-    writer.write(directx_translate * camera->projection());
-    writer.write(camera->view());
-    writer.write(camera->position());
-    writer.write(0.0f);
-    writer.write(entity->transform());
-    writer.write(entity->normal_transform());
+    if (entity->instance_count() == 1u)
+    {
+        const auto *single_entity = static_cast<const iris::SingleEntity *>(entity);
+        const auto &bones = single_entity->skeleton().transforms();
+        writer.write(bones);
 
-    const auto &bones = entity->skeleton().transforms();
-    writer.write(bones);
-    writer.advance((100u - bones.size()) * sizeof(iris::Matrix4));
+        iris::ConstantBufferWriter writer2(model_buffer);
+        writer2.write(single_entity->transform());
+        writer2.write(single_entity->normal_transform());
+    }
+    else
+    {
+        static std::vector<iris::Matrix4> default_bones(100u);
+        writer.write(default_bones);
+    }
 }
 
 /**
@@ -146,48 +152,162 @@ void copy_descriptor(
 }
 
 /**
- * Build the table descriptor.
+ * Helper function to encode commands for uploading textures.
  *
- * @param table_descriptor
- *   The start of the table to write descriptors to.
+ * @param uploaded_textures
+ *   Set of all textures that have been uploaded (will be updated).
  *
- * @param descriptor_size
- *   Size of the descriptor handle.
+ * @param uploaded_cube_maps
+ *   Set of all cube maps that have been uploaded (will be updated).
  *
- * @param vertex_constant_buffer
- *   D3D12DescriptorHandle for vertex data.
- *
- * @param light_constant_buffer
- *   D3D12DescriptorHandle for additional light data.
- *
- * @param shadow_map
- *   D3D12DescriptorHandle for shadow map texture.
- *
- * @param sky_box
- *   D3D12DescriptorHandle for sky box cube map.
- *
- * @param textures
- *   Collection of textures for the render pass.
+ * @param command_list
+ *   D3D12 command list to encode command to.
  */
-void build_table_descriptor(
-    D3D12_CPU_DESCRIPTOR_HANDLE &table_descriptor,
-    std::size_t descriptor_size,
-    const iris::D3D12DescriptorHandle &vertex_constant_buffer,
-    const iris::D3D12DescriptorHandle &light_constant_buffer,
-    const iris::D3D12DescriptorHandle &shadow_map,
-    const iris::D3D12DescriptorHandle &sky_box,
-    const std::vector<const iris::Texture *> &textures)
+void upload_textures(
+    std::set<const iris::D3D12Texture *> &uploaded_textures,
+    std::set<const iris::D3D12CubeMap *> &uploaded_cube_maps,
+    ID3D12GraphicsCommandList *command_list)
 {
-    copy_descriptor(table_descriptor, vertex_constant_buffer, descriptor_size);
-    copy_descriptor(table_descriptor, light_constant_buffer, descriptor_size);
-    copy_descriptor(table_descriptor, shadow_map, descriptor_size);
-    copy_descriptor(table_descriptor, sky_box, descriptor_size);
-
-    for (auto *texture : textures)
+    // encode commands to copy all textures to their target heaps
+    for (auto *texture : iris::Root::texture_manager().textures())
     {
-        auto *d3d12_tex = static_cast<const iris::D3D12Texture *>(texture);
-        copy_descriptor(table_descriptor, d3d12_tex->handle(), descriptor_size);
+        const auto *d3d12_tex = static_cast<const iris::D3D12Texture *>(texture);
+
+        // only upload once
+        if (!uploaded_textures.contains(d3d12_tex))
+        {
+            uploaded_textures.emplace(d3d12_tex);
+
+            D3D12_TEXTURE_COPY_LOCATION destination = {};
+            destination.pResource = d3d12_tex->resource();
+            destination.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+            destination.SubresourceIndex = 0u;
+
+            D3D12_TEXTURE_COPY_LOCATION source = {};
+            source.pResource = d3d12_tex->upload();
+            source.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+            source.PlacedFootprint = d3d12_tex->footprint();
+
+            command_list->CopyTextureRegion(&destination, 0u, 0u, 0u, &source, NULL);
+
+            const auto barrier = ::CD3DX12_RESOURCE_BARRIER::Transition(
+                d3d12_tex->resource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+            command_list->ResourceBarrier(1u, &barrier);
+        }
     }
+
+    // encode commands to copy all cube maps to their target heaps
+    for (auto *cube_map : iris::Root::texture_manager().cube_maps())
+    {
+        const auto *d3d12_cube_map = static_cast<const iris::D3D12CubeMap *>(cube_map);
+
+        // encode commands to copy all cube map textures to their target heaps
+        if (!uploaded_cube_maps.contains(d3d12_cube_map))
+        {
+            uploaded_cube_maps.emplace(d3d12_cube_map);
+
+            // encode a copy command for each face
+            UINT index = 0u;
+            for (const auto &footprint : d3d12_cube_map->footprints())
+            {
+                D3D12_TEXTURE_COPY_LOCATION destination = {};
+                destination.pResource = d3d12_cube_map->resource();
+                destination.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+                destination.SubresourceIndex = index++;
+
+                D3D12_TEXTURE_COPY_LOCATION source = {};
+                source.pResource = d3d12_cube_map->upload();
+                source.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+                source.PlacedFootprint = footprint;
+
+                command_list->CopyTextureRegion(&destination, 0u, 0u, 0u, &source, NULL);
+            }
+
+            const auto barrier = ::CD3DX12_RESOURCE_BARRIER::Transition(
+                d3d12_cube_map->resource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+            command_list->ResourceBarrier(1u, &barrier);
+        }
+    }
+}
+
+/**
+ * Helper function to build the texture table - a global GPU buffer of all textures (used for bindless rendering)
+ *
+ * @returns
+ *   D3D12DescriptorHandle to a first element in cable with all loaded textures.
+ */
+iris::D3D12DescriptorHandle create_texture_table()
+{
+    const auto textures = iris::Root::texture_manager().textures();
+    const auto max_index = textures.back()->index();
+    const auto *blank_texture = static_cast<const iris::D3D12Texture *>(iris::Root::texture_manager().blank_texture());
+    auto iter = std::cbegin(textures);
+
+    // create table buffer
+    auto texture_table = iris::D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)
+                             .allocate_static(static_cast<std::uint32_t>(max_index + 1u));
+    const auto descriptor_size =
+        iris::D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).descriptor_size();
+    auto texture_table_descriptor_start = texture_table.cpu_handle();
+
+    for (auto i = 0u; i <= max_index; ++i)
+    {
+        // if a texture exits at the current index we write it in
+        if (i == (*iter)->index())
+        {
+            const auto *d3d12_texture = static_cast<const iris::D3D12Texture *>(*iter);
+            copy_descriptor(texture_table_descriptor_start, d3d12_texture->handle(), descriptor_size);
+            ++iter;
+        }
+        else
+        {
+            // no texture at current index, so write default texture
+            copy_descriptor(texture_table_descriptor_start, blank_texture->handle(), descriptor_size);
+        }
+    }
+
+    return texture_table;
+}
+
+/**
+ * Helper function to build the cube map table - a global GPU buffer of all cube maps (used for bindless rendering)
+ *
+ * @returns
+ *   D3D12DescriptorHandle to a first element in cable with all loaded cube maps.
+ */
+iris::D3D12DescriptorHandle create_cube_map_table()
+{
+    const auto cube_maps = iris::Root::texture_manager().cube_maps();
+    const auto max_index = cube_maps.back()->index();
+    const auto *blank_cube_map =
+        static_cast<const iris::D3D12CubeMap *>(iris::Root::texture_manager().blank_cube_map());
+    auto iter = std::cbegin(cube_maps);
+
+    auto cube_map_table = iris::D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)
+                              .allocate_static(static_cast<std::uint32_t>(max_index + 1u));
+    const auto descriptor_size =
+        iris::D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).descriptor_size();
+    auto cube_map_table_descriptor_start = cube_map_table.cpu_handle();
+
+    for (auto i = 0u; i <= max_index; ++i)
+    {
+        // if a cube map exits at the current index we write it in
+        if (i == (*iter)->index())
+        {
+            const auto *d3d12_cube_map = static_cast<const iris::D3D12CubeMap *>(*iter);
+            copy_descriptor(cube_map_table_descriptor_start, d3d12_cube_map->handle(), descriptor_size);
+            ++iter;
+        }
+        else
+        {
+            // no cube map at current index, so write default cube map
+            copy_descriptor(cube_map_table_descriptor_start, blank_cube_map->handle(), descriptor_size);
+        }
+    }
+
+    return cube_map_table;
 }
 
 }
@@ -205,13 +325,16 @@ D3D12Renderer::D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t hei
     , command_queue_(nullptr)
     , command_list_(nullptr)
     , swap_chain_(nullptr)
-    , null_buffer_(nullptr)
     , viewport_()
     , scissor_rect_()
     , render_targets_()
     , materials_()
-    , uploaded_()
-
+    , uploaded_textures_()
+    , uploaded_cube_maps_()
+    , instance_data_buffers_()
+    , texture_table_()
+    , cube_map_table_()
+    , root_signature_()
 {
     // we will use triple buffering
     const auto num_frames = 3u;
@@ -286,7 +409,11 @@ D3D12Renderer::D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t hei
             frame,
             rtv_handle,
             std::make_unique<D3D12Texture>(
-                DataBuffer{}, width_ * initial_screen_scale, height_ * initial_screen_scale, TextureUsage::DEPTH),
+                DataBuffer{},
+                width_ * initial_screen_scale,
+                height_ * initial_screen_scale,
+                TextureUsage::DEPTH,
+                Root::texture_manager().next_texture_index()),
             command_allocator);
     }
 
@@ -311,15 +438,14 @@ D3D12Renderer::D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t hei
             IID_PPV_ARGS(&command_list_)) == S_OK,
         "could not create command list");
 
-    // create a single null buffer, used for padding buffer arrays
-    null_buffer_ = std::make_unique<D3D12ConstantBuffer>(0u);
-
     // close the list so we can start recording to it
     command_list_->Close();
 }
 
 D3D12Renderer::~D3D12Renderer()
 {
+    // block and wait for current frame to finish - this prevents us unloading resources whilst the gpu is still using
+    // them
     command_queue_->Signal(fence_.Get(), frames_[frame_index_].fence_value);
     fence_->SetEventOnCompletion(frames_[frame_index_].fence_value, fence_event_);
     ::WaitForSingleObject(fence_event_, INFINITE);
@@ -328,23 +454,13 @@ D3D12Renderer::~D3D12Renderer()
 
 void D3D12Renderer::set_render_passes(const std::vector<RenderPass> &render_passes)
 {
+    command_queue_->Signal(fence_.Get(), frames_[frame_index_].fence_value);
+    fence_->SetEventOnCompletion(frames_[frame_index_].fence_value, fence_event_);
+    ::WaitForSingleObject(fence_event_, INFINITE);
+    ++frames_[frame_index_].fence_value;
+
     materials_.clear();
-
     render_passes_ = render_passes;
-
-    // check if pass has a sky box and if so create a cube for it and add it to the scene
-    for (auto &pass : render_passes_)
-    {
-        if (pass.sky_box != nullptr)
-        {
-            auto *scene = pass.scene;
-
-            auto *sky_box_rg = scene->create_render_graph();
-            sky_box_rg->set_render_node<SkyBoxNode>(pass.sky_box);
-
-            scene->create_entity(sky_box_rg, Root::mesh_manager().cube({}), Transform({}, {}, {0.5f}));
-        }
-    }
 
     // add a post processing pass
 
@@ -368,7 +484,7 @@ void D3D12Renderer::set_render_passes(const std::vector<RenderPass> &render_pass
     // processing node
     auto *rg = post_processing_scene_->create_render_graph();
     rg->set_render_node<PostProcessingNode>(rg->create<TextureNode>(post_processing_target_->colour_texture()));
-    post_processing_scene_->create_entity(
+    post_processing_scene_->create_entity<SingleEntity>(
         rg,
         Root::mesh_manager().sprite({}),
         Transform({}, {}, {static_cast<float>(width_), static_cast<float>(height_), 1.0}));
@@ -389,6 +505,7 @@ void D3D12Renderer::set_render_passes(const std::vector<RenderPass> &render_pass
                     static_cast<const D3D12Mesh *>(render_entity->mesh())->input_descriptors(),
                     render_entity->primitive_type(),
                     light_type,
+                    root_signature_.handle(),
                     target == nullptr);
             }
 
@@ -396,6 +513,36 @@ void D3D12Renderer::set_render_passes(const std::vector<RenderPass> &render_pass
         },
         [this](std::uint32_t width, std::uint32_t height) { return create_render_target(width, height); });
     render_queue_ = queue_builder.build(render_passes_);
+
+    instance_data_buffers_.clear();
+
+    for (auto &frame : frames_)
+    {
+        frame.model_data_buffers.clear();
+    }
+
+    // create structured buffers for any instanced entities in the scene
+    for (const auto &command : render_queue_)
+    {
+        if (command.type() == RenderCommandType::DRAW)
+        {
+            const auto *render_entity = command.render_entity();
+
+            if (render_entity->instance_count() > 1u)
+            {
+                const auto *instanced_entity = static_cast<const InstancedEntity *>(render_entity);
+                instance_data_buffers_[render_entity] =
+                    std::make_unique<D3D12StructuredBuffer>(instanced_entity->data().size(), sizeof(Matrix4) * 2u);
+
+                ConstantBufferWriter writer{*instance_data_buffers_[render_entity]};
+
+                writer.write(instanced_entity->data());
+            }
+        }
+    }
+
+    texture_table_ = create_texture_table();
+    cube_map_table_ = create_cube_map_table();
 }
 
 RenderTarget *D3D12Renderer::create_render_target(std::uint32_t width, std::uint32_t height)
@@ -408,8 +555,8 @@ RenderTarget *D3D12Renderer::create_render_target(std::uint32_t width, std::uint
         Root::texture_manager().create(DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH));
 
     // add these to uploaded so the next render pass doesn't try to upload them
-    uploaded_.emplace(colour_texture);
-    uploaded_.emplace(depth_texture);
+    uploaded_textures_.emplace(colour_texture);
+    uploaded_textures_.emplace(depth_texture);
 
     render_targets_.emplace_back(std::make_unique<D3D12RenderTarget>(colour_texture, depth_texture));
 
@@ -427,73 +574,20 @@ void D3D12Renderer::pre_render()
     command_list_->Reset(frame.command_allocator.Get(), nullptr);
 
     // reset descriptor allocations for new frame
-    D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).reset(frame.frame_id);
+    D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).reset_dynamic(frame.frame_id);
     D3D12DescriptorManager::cpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).reset_dynamic(frame.frame_id);
 
-    frame.constant_buffer_pool.reset();
+    // upload any new textures
+    upload_textures(uploaded_textures_, uploaded_cube_maps_, command_list_.Get());
+
+    // clear frame specific buffers
+    frame.bone_data_buffers.clear();
+    frame.light_data_buffers.clear();
+    frame.camera_data_buffers.clear();
 }
 
-void D3D12Renderer::execute_upload_texture(RenderCommand &command)
+void D3D12Renderer::execute_upload_texture(RenderCommand &)
 {
-    const auto *material = static_cast<const D3D12Material *>(command.material());
-    const auto *cube_map = static_cast<const D3D12CubeMap *>(material->cube_map());
-
-    // encode commands to copy all textures to their target heaps
-    for (auto *texture : material->textures())
-    {
-        const auto *d3d12_tex = static_cast<const D3D12Texture *>(texture);
-
-        // only upload once
-        if (uploaded_.count(d3d12_tex) == 0u)
-        {
-            uploaded_.emplace(d3d12_tex);
-
-            D3D12_TEXTURE_COPY_LOCATION destination = {};
-            destination.pResource = d3d12_tex->resource();
-            destination.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-            destination.SubresourceIndex = 0u;
-
-            D3D12_TEXTURE_COPY_LOCATION source = {};
-            source.pResource = d3d12_tex->upload();
-            source.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-            source.PlacedFootprint = d3d12_tex->footprint();
-
-            command_list_->CopyTextureRegion(&destination, 0u, 0u, 0u, &source, NULL);
-
-            const auto barrier = ::CD3DX12_RESOURCE_BARRIER::Transition(
-                d3d12_tex->resource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
-            command_list_->ResourceBarrier(1u, &barrier);
-        }
-    }
-
-    // encode commands to copy all cube map textures to their target heaps
-    if ((cube_map != nullptr) && (uploaded_cube_maps_.count(cube_map) == 0u))
-    {
-        uploaded_cube_maps_.emplace(cube_map);
-
-        // encode a copy command for each face
-        UINT index = 0u;
-        for (const auto &footprint : cube_map->footprints())
-        {
-            D3D12_TEXTURE_COPY_LOCATION destination = {};
-            destination.pResource = cube_map->resource();
-            destination.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-            destination.SubresourceIndex = index++;
-
-            D3D12_TEXTURE_COPY_LOCATION source = {};
-            source.pResource = cube_map->upload();
-            source.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-            source.PlacedFootprint = footprint;
-
-            command_list_->CopyTextureRegion(&destination, 0u, 0u, 0u, &source, NULL);
-        }
-
-        const auto barrier = ::CD3DX12_RESOURCE_BARRIER::Transition(
-            cube_map->resource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
-        command_list_->ResourceBarrier(1u, &barrier);
-    }
 }
 
 void D3D12Renderer::execute_pass_start(RenderCommand &command)
@@ -562,7 +656,7 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
         command_list_->ClearDepthStencilView(depth_handle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0u, 0u, nullptr);
     }
 
-    command_list_->SetGraphicsRootSignature(D3D12Context::root_signature());
+    command_list_->SetGraphicsRootSignature(root_signature_.handle());
 
     // update viewport incase it's changed for current render target
     viewport_ = CD3DX12_VIEWPORT{0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)};
@@ -570,9 +664,6 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
 
     command_list_->RSSetViewports(1u, &viewport_);
     command_list_->RSSetScissorRects(1u, &scissor_rect_);
-
-    frame.vertex_data_buffers.clear();
-    frame.light_data_buffers.clear();
 }
 
 void D3D12Renderer::execute_pass_end(RenderCommand &command)
@@ -597,85 +688,58 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
     const auto *entity = command.render_entity();
     const auto *material = static_cast<const D3D12Material *>(command.material());
     const auto *mesh = static_cast<const D3D12Mesh *>(entity->mesh());
-    const auto *camera = command.render_pass()->camera;
     const auto *light = command.light();
-    const auto *shadow_map = command.shadow_map();
-    const auto *sky_box = material->cube_map();
+    const auto *camera = command.render_pass()->camera;
 
     command_list_->SetPipelineState(material->pso());
 
     auto &frame = frames_[frame_index_];
 
-    // create a table descriptor which is a continuous block of all descriptors
-    // needed by the shader
-    // the number of descriptors is set by the root signature but this is how
-    // we organise them:
-    //
-    //                .-+--------------------+
-    //                | |    vertex data     |
-    // constant data  | +--------------------+
-    //                | |     light data     |
-    //                '-+--------------------+-.
-    //                  | shadow map texture | |
-    //                  +--------------------+ |
-    //                  |  cube map texture  | |
-    //                  +--------------------+ |
-    //                  |      texture 1     | |
-    //                  +--------------------+ |
-    //                  |      texture 2     | | shader resources
-    //                  +--------------------+ |
-    //                  |      texture 3     | |
-    //                  +--------------------+ |
-    //                  |      texture 4     | |
-    //                  +--------------------+-'
-    const auto table_descriptors = D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)
-                                       .allocate(frame.frame_id, D3D12Context::num_descriptors());
-    const auto descriptor_size =
-        D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).descriptor_size();
+    // any frame specific buffers that we are seeing for the first time need to be created
 
-    auto table_descriptor_start = table_descriptors.cpu_handle();
-
-    if (!frame.vertex_data_buffers.contains(entity))
+    if (!frame.bone_data_buffers.contains(entity))
     {
-        auto &cb = frame.constant_buffer_pool.next();
-        frame.vertex_data_buffers[entity] = std::addressof(cb);
-        write_vertex_data_constant_buffer(cb, camera, entity);
+        frame.bone_data_buffers[entity] = std::make_unique<D3D12ConstantBuffer>(frame_index_, 7168u);
+        frame.model_data_buffers[entity] =
+            std::make_unique<D3D12StructuredBuffer>(1u, sizeof(Matrix4) * 2u, frame_index_);
+
+        write_entity_data_constant_buffer(*frame.bone_data_buffers[entity], *frame.model_data_buffers[entity], entity);
     }
 
     if (!frame.light_data_buffers.contains(light))
     {
-        auto &cb = frame.constant_buffer_pool.next();
-        frame.light_data_buffers[light] = std::addressof(cb);
-        write_light_data_constant_buffer(cb, light);
+        frame.light_data_buffers[light] = std::make_unique<D3D12ConstantBuffer>(frame_index_, 256u);
+        write_light_data_constant_buffer(*frame.light_data_buffers[light], light);
     }
 
-    auto *vertex_buffer = frame.vertex_data_buffers[entity];
-    auto *light_buffer = frame.light_data_buffers[light];
+    if (!frame.camera_data_buffers.contains(camera))
+    {
+        frame.camera_data_buffers[camera] = std::make_unique<D3D12ConstantBuffer>(frame_index_, 256u);
 
-    // create handles to light and shadow map data, these may be a null handle
-    // depending on the material
+        ConstantBufferWriter writer{*frame.camera_data_buffers[camera]};
+        writer.write(directx_translate * camera->projection());
+        writer.write(camera->view());
+        writer.write(camera->position());
+    }
 
-    auto shadow_map_handle = (shadow_map == nullptr)
-                                 ? static_cast<D3D12Texture *>(Root::texture_manager().blank())->handle()
-                                 : static_cast<const D3D12Texture *>(command.shadow_map()->depth_texture())->handle();
+    auto *vertex_buffer = frame.bone_data_buffers[entity].get();
+    auto *light_buffer = frame.light_data_buffers[light].get();
+    auto *model_buffer =
+        entity->instance_count() == 1u ? frame.model_data_buffers[entity].get() : instance_data_buffers_[entity].get();
+    auto *camera_buffer = frame.camera_data_buffers[camera].get();
+    const auto shadow_map_index =
+        (command.shadow_map() == nullptr) ? 0u : command.shadow_map()->depth_texture()->index();
 
-    const auto sky_box_handle = (sky_box == nullptr)
-                                    ? static_cast<const D3D12Texture *>(Root::texture_manager().blank())->handle()
-                                    : static_cast<const D3D12CubeMap *>(sky_box)->handle();
-
-    // build the table descriptor from all our handles
-    build_table_descriptor(
-        table_descriptor_start,
-        descriptor_size,
-        vertex_buffer->descriptor_handle(),
-        light_buffer->descriptor_handle(),
-        shadow_map_handle,
-        sky_box_handle,
-        material->textures());
-
-    // set the table descriptor for the vertex and pixel shader
-    command_list_->SetGraphicsRootDescriptorTable(0u, table_descriptors.gpu_handle());
-    command_list_->SetGraphicsRootDescriptorTable(1u, table_descriptors.gpu_handle());
+    // encode all out root signature arguments
+    root_signature_.encode_arguments(
+        command_list_.Get(),
+        vertex_buffer,
+        light_buffer,
+        camera_buffer,
+        shadow_map_index,
+        model_buffer,
+        texture_table_,
+        cube_map_table_);
 
     const auto vertex_view = mesh->vertex_buffer().vertex_view();
     const auto index_view = mesh->index_buffer().index_view();
@@ -691,7 +755,7 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
 
     command_list_->IASetVertexBuffers(0u, 1u, &vertex_view);
     command_list_->IASetIndexBuffer(&index_view);
-    command_list_->DrawIndexedInstanced(num_indices, 1u, 0u, 0u, 0u);
+    command_list_->DrawIndexedInstanced(num_indices, static_cast<UINT>(entity->instance_count()), 0u, 0u, 0u);
 }
 
 void D3D12Renderer::execute_present(RenderCommand &)

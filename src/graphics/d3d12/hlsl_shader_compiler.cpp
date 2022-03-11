@@ -35,13 +35,8 @@ namespace
 {
 
 static constexpr auto uniforms = R"(
-cbuffer DefaultUniforms : register(b0)
+cbuffer BoneData : register(b0)
 {
-    matrix projection;
-    matrix view;
-    float4 camera;
-    matrix model;
-    matrix normal_matrix;
     matrix bones[100];
 };
 
@@ -52,17 +47,42 @@ cbuffer Light : register(b1)
     float4 light_colour;
     float4 light_position;
     float4 light_attenuation;
-};)";
+};
+
+cbuffer CameraData : register(b2)
+{
+    matrix projection;
+    matrix view;
+    float4 camera;
+};
+
+struct ShadowMapIndex
+{
+    int index;
+};
+
+ConstantBuffer<ShadowMapIndex> shadow_map_index : register(b3);
+
+struct ModelData
+{
+    matrix model;
+    matrix normal_matrix;
+};
+
+StructuredBuffer<ModelData> model_data : register(t0);
+
+)";
 
 static constexpr auto ps_input = R"(
 struct PSInput
 {
     precise float4 position : SV_POSITION;
-    precise float4 frag_position : POSITION0;
-    precise float4 tangent_view_pos : POSITION1;
-    precise float4 tangent_frag_pos : POSITION2;
-    precise float4 tangent_light_pos : POSITION3;
-    precise float4 frag_pos_light_space : POSITION4;
+    precise float4 vertex_position : POSITION0;
+    precise float4 frag_position : POSITION1;
+    precise float4 tangent_view_pos : POSITION2;
+    precise float4 tangent_frag_pos : POSITION3;
+    precise float4 tangent_light_pos : POSITION4;
+    precise float4 frag_pos_light_space : POSITION5;
     precise float4 normal : NORMAL;
     precise float4 colour : COLOR;
     precise float2 tex_coord : TEXCOORD;
@@ -148,35 +168,22 @@ float calculate_shadow(float3 n, float4 frag_pos_light_space, float3 light_dir, 
 })";
 
 /**
- * Helper function to create a unique id for a texture. Always returns the
- * same name for the same texture.
+ * Helper function to create a unique id for a texture. Always returns the same name for the same texture.
  *
  * @param texture
  *   Texture to generate id for.
  *
- * @param textures
- *   Collection of textures, texture will be inserted if it does not exist.
- *
  * @returns
  *   Unique id for the texture.
  */
-std::size_t texture_id(const iris::Texture *texture, std::vector<const iris::Texture *> &textures)
+std::string texture_name(const iris::Texture *texture)
 {
-    std::size_t id = 0u;
+    return "texture_table[" + std::to_string(texture->index()) + "]";
+}
 
-    const auto find = std::find(std::cbegin(textures), std::cend(textures), texture);
-
-    if (find != std::cend(textures))
-    {
-        id = std::distance(std::cbegin(textures), find);
-    }
-    else
-    {
-        id = textures.size();
-        textures.emplace_back(texture);
-    }
-
-    return id + 2u;
+std::string cube_map_name(const iris::CubeMap *cube_map)
+{
+    return "cube_map_table[" + std::to_string(cube_map->index()) + "]";
 }
 
 /**
@@ -279,9 +286,7 @@ HLSLShaderCompiler::HLSLShaderCompiler(const RenderGraph *render_graph, LightTyp
     , vertex_functions_()
     , fragment_functions_()
     , current_functions_(nullptr)
-    , textures_()
     , light_type_(light_type)
-    , cube_map_(nullptr)
 {
     render_graph->render_node()->accept(*this);
 }
@@ -302,23 +307,24 @@ PSInput main(
     float4 tangent : TEXCOORD4,
     float4 bitangent : TEXCOORD5,
     uint4 bone_ids : TEXCOORD6,
-    float4 bone_weights : TEXCOORD7)
+    float4 bone_weights : TEXCOORD7,
+    uint instance_id : SV_InstanceID)
 {
     matrix bone_transform = mul(bones[bone_ids[0]], bone_weights[0]);
     bone_transform += mul(bones[bone_ids[1]], bone_weights[1]);
     bone_transform += mul(bones[bone_ids[2]], bone_weights[2]);
     bone_transform += mul(bones[bone_ids[3]], bone_weights[3]);
 
-    float3 T = normalize(mul(mul(bone_transform, tangent), normal_matrix).xyz);
-    float3 B = normalize(mul(mul(bone_transform, bitangent), normal_matrix).xyz);
-    float3 N = normalize(mul(mul(bone_transform, normal), normal_matrix).xyz);
+    float3 T = normalize(mul(mul(bone_transform, tangent), model_data[instance_id].normal_matrix).xyz);
+    float3 B = normalize(mul(mul(bone_transform, bitangent), model_data[instance_id].normal_matrix).xyz);
+    float3 N = normalize(mul(mul(bone_transform, normal), model_data[instance_id].normal_matrix).xyz);
 
     float3x3 tbn = transpose(float3x3(T, B, N));
 
     PSInput result;
 
     result.frag_position = mul(position, bone_transform);
-    result.frag_position = mul(result.frag_position, model);
+    result.frag_position = mul(result.frag_position, model_data[instance_id].model);
 
     result.tangent_light_pos = float4(mul(light_position.xyz, tbn), 0.0);
     result.tangent_view_pos = float4(mul(camera.xyz, tbn), 0.0);
@@ -332,10 +338,11 @@ PSInput main(
 )";
     }
     *current_stream_ << R"(
+    result.vertex_position = position;
     result.position = mul(result.frag_position, view);
     result.position = mul(result.position, projection);
     result.normal = mul(normal, bone_transform);
-    result.normal = mul(result.normal, normal_matrix);
+    result.normal = mul(result.normal, model_data[instance_id].normal_matrix);
     result.colour = colour;
     result.tex_coord = tex_coord;
 
@@ -369,7 +376,7 @@ float4 main(PSInput input) : SV_TARGET
 
             *current_stream_ << "float shadow = 0.0;\n";
             *current_stream_ <<
-                R"(shadow = calculate_shadow(n, input.frag_pos_light_space, light_dir, g_shadow_map);
+                R"(shadow = calculate_shadow(n, input.frag_pos_light_space, light_dir, texture_table[shadow_map_index.index]);
                 )";
 
             *current_stream_ << R"(
@@ -422,7 +429,8 @@ PSInput main(
     float4 tangent : TEXCOORD4,
     float4 bitangent : TEXCOORD5,
     uint4 bone_ids : TEXCOORD6,
-    float4 bone_weights : TEXCOORD7)
+    float4 bone_weights : TEXCOORD7,
+    uint instance_id : SV_InstanceID)
 {
     matrix bone_transform = mul(bones[bone_ids[0]], bone_weights[0]);
     bone_transform += mul(bones[bone_ids[1]], bone_weights[1]);
@@ -432,7 +440,7 @@ PSInput main(
     PSInput result;
 
     result.frag_position = mul(position, bone_transform);
-    result.frag_position = mul(result.frag_position, model);
+    result.frag_position = mul(result.frag_position, model_data[instance_id].model);
     result.position = mul(result.frag_position, view);
     result.position = mul(result.position, projection);
     result.colour = colour;
@@ -509,11 +517,8 @@ float4 main(PSInput input) : SV_TARGET
 
     build_fragment_colour(*current_stream_, node.colour_input(), this);
 
-    *current_stream_ << R"(
-        return g_sky_box.SampleLevel(g_sampler, normalize(input.normal.xyz), 0).rgba;
-    })";
-
-    cube_map_ = node.sky_box();
+    *current_stream_ << "return " << cube_map_name(node.sky_box())
+                     << ".SampleLevel(g_sampler, normalize(input.normal.xyz), 0).rgba;\n}";
 }
 
 void HLSLShaderCompiler::visit(const ColourNode &node)
@@ -524,9 +529,7 @@ void HLSLShaderCompiler::visit(const ColourNode &node)
 
 void HLSLShaderCompiler::visit(const TextureNode &node)
 {
-    const auto id = texture_id(node.texture(), textures_);
-
-    *current_stream_ << "g_texture" << id << ".Sample(g_sampler,";
+    *current_stream_ << texture_name(node.texture()) << ".Sample(g_sampler,";
 
     if (node.texture()->flip())
     {
@@ -549,11 +552,9 @@ void HLSLShaderCompiler::visit(const InvertNode &node)
 
 void HLSLShaderCompiler::visit(const BlurNode &node)
 {
-    const auto id = texture_id(node.input_node()->texture(), textures_);
-
     current_functions_->emplace(blur_function);
 
-    *current_stream_ << "blur(g_texture" << id << ",";
+    *current_stream_ << "blur(" << texture_name(node.input_node()->texture()) << ",";
     if (node.input_node()->texture()->flip())
     {
         *current_stream_ << "float2(input.tex_coord.x, 1.0 - input.tex_coord.y))";
@@ -591,7 +592,7 @@ void HLSLShaderCompiler::visit(const ValueNode<Vector3> &node)
 
 void HLSLShaderCompiler::visit(const ValueNode<Colour> &node)
 {
-    *current_stream_ << "float4(" << node.value().g << ", " << node.value().g << ", " << node.value().b << ", "
+    *current_stream_ << "float4(" << node.value().r << ", " << node.value().g << ", " << node.value().b << ", "
                      << node.value().a << ")";
 }
 
@@ -701,21 +702,16 @@ std::string HLSLShaderCompiler::fragment_shader() const
 {
     std::stringstream strm{};
 
+    strm << uniforms << '\n';
     strm << "SamplerState g_sampler : register(s0);\n";
-    strm << "Texture2D g_shadow_map : register(t0);\n";
-    strm << "TextureCube g_sky_box : register(t1);\n";
-
-    for (auto i = 0u; i < textures_.size(); ++i)
-    {
-        strm << "Texture2D g_texture" << i + 2u << " : register(t" << i + 2u << ");\n";
-    }
+    strm << "Texture2D texture_table[] : register(t0, space1);\n";
+    strm << "TextureCube cube_map_table[] : register(t0, space2);\n";
 
     for (const auto &function : fragment_functions_)
     {
         strm << function << '\n';
     }
 
-    strm << uniforms << '\n';
     strm << ps_input << '\n';
     strm << fragment_stream_.str() << '\n';
 

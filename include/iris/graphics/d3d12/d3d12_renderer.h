@@ -29,6 +29,8 @@
 #include "graphics/d3d12/d3d12_cube_map.h"
 #include "graphics/d3d12/d3d12_descriptor_handle.h"
 #include "graphics/d3d12/d3d12_material.h"
+#include "graphics/d3d12/d3d12_root_signature.h"
+#include "graphics/d3d12/d3d12_structured_buffer.h"
 #include "graphics/d3d12/d3d12_texture.h"
 #include "graphics/render_target.h"
 #include "graphics/renderer.h"
@@ -133,9 +135,10 @@ class D3D12Renderer : public Renderer
             , depth_buffer(std::move(depth_buffer))
             , command_allocator(command_allocator)
             , fence_value(0u)
-            , vertex_data_buffers()
+            , bone_data_buffers()
+            , model_data_buffers()
             , light_data_buffers()
-            , constant_buffer_pool(frame_id)
+            , camera_data_buffers()
         {
         }
 
@@ -157,14 +160,17 @@ class D3D12Renderer : public Renderer
         /** Current fence value for frame. */
         std::uint64_t fence_value;
 
-        /** Cache of constant data buffers for render entities in this frame. */
-        std::unordered_map<const RenderEntity *, D3D12ConstantBuffer *> vertex_data_buffers;
+        /** Cache of bone data buffers for render entities in this frame. */
+        std::unordered_map<const RenderEntity *, std::unique_ptr<D3D12ConstantBuffer>> bone_data_buffers;
 
-        /** Cache of constant data buffers for lights in this frame. */
-        std::unordered_map<const Light *, D3D12ConstantBuffer *> light_data_buffers;
+        /** Cache of model data buffers for render entities in this frame. */
+        std::unordered_map<const RenderEntity *, std::unique_ptr<D3D12StructuredBuffer>> model_data_buffers;
 
-        /** Constant buffer pool for this frame. */
-        D3D12ConstantBufferPool constant_buffer_pool;
+        /** Cache of data buffers for lights in this frame. */
+        std::unordered_map<const Light *, std::unique_ptr<D3D12ConstantBuffer>> light_data_buffers;
+
+        /** Cache of data buffers for cameras in this frame. */
+        std::unordered_map<const Camera *, std::unique_ptr<D3D12ConstantBuffer>> camera_data_buffers;
     };
 
     /** Width of window to present to. */
@@ -192,9 +198,6 @@ class D3D12Renderer : public Renderer
     /** Swap chain for triple buffering. */
     Microsoft::WRL::ComPtr<IDXGISwapChain4> swap_chain_;
 
-    /** Special null buffer to use as padding in table descriptors. */
-    std::unique_ptr<D3D12ConstantBuffer> null_buffer_;
-
     /** Viewport for window. */
     CD3DX12_VIEWPORT viewport_;
 
@@ -213,9 +216,29 @@ class D3D12Renderer : public Renderer
         materials_;
 
     /** Collection of textures that have been uploaded. */
-    std::set<const D3D12Texture *> uploaded_;
+    std::set<const D3D12Texture *> uploaded_textures_;
 
     /** Collection of CubeMaps that have been uploaded. */
     std::set<const D3D12CubeMap *> uploaded_cube_maps_;
+
+    /** Cache of instance model data buffers for instanced entities in the current scene. */
+    std::unordered_map<const RenderEntity *, std::unique_ptr<D3D12StructuredBuffer>> instance_data_buffers_;
+
+    /** Descriptor handle to a global texture table (for bindless). */
+    D3D12DescriptorHandle texture_table_;
+
+    /** Descriptor handle to a global cube map table (for bindless). */
+    D3D12DescriptorHandle cube_map_table_;
+
+    /** Root signature for materials. */
+    D3D12RootSignature<
+        ConstantBufferViewParameter<0u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
+        ConstantBufferViewParameter<1u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
+        ConstantBufferViewParameter<2u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
+        ConstantParameter<3u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
+        ShaderResourceViewParameter<0u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
+        TableParameter<D3D12_DESCRIPTOR_RANGE_TYPE_SRV, UINT_MAX, 0u, 1u, D3D12_SHADER_VISIBILITY_PIXEL>,
+        TableParameter<D3D12_DESCRIPTOR_RANGE_TYPE_SRV, UINT_MAX, 0u, 2u, D3D12_SHADER_VISIBILITY_PIXEL>>
+        root_signature_;
 };
 }
