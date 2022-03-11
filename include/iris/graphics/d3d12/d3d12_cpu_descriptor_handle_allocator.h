@@ -8,6 +8,7 @@
 
 #include <array>
 #include <cstdint>
+#include <vector>
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -19,6 +20,7 @@
 #include "core/error_handling.h"
 #include "graphics/d3d12/d3d12_context.h"
 #include "graphics/d3d12/d3d12_descriptor_handle.h"
+#include "log/log.h"
 
 namespace iris
 {
@@ -106,6 +108,7 @@ class D3D12CPUDescriptorHandleAllocator
         , dynamic_indices_()
         , static_capacity_(static_size)
         , dynamic_capacity_((num_descriptors - static_size) / N)
+        , static_free_list_()
     {
         auto *device = D3D12Context::device();
 
@@ -141,13 +144,23 @@ class D3D12CPUDescriptorHandleAllocator
      */
     D3D12DescriptorHandle allocate_static()
     {
-        expect(static_index_ < static_capacity_, "heap too small");
+        auto index = static_index_;
+
+        // try and get an index from the free list before using the next available one
+        if (!static_free_list_.empty())
+        {
+            index = static_free_list_.back();
+            static_free_list_.pop_back();
+        }
+        else
+        {
+            expect(static_index_ < static_capacity_, "heap too small");
+            ++static_index_;
+        }
 
         // get next free descriptor form static pool
         D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle = heap_start_;
-        cpu_handle.ptr += descriptor_size_ * static_index_;
-
-        ++static_index_;
+        cpu_handle.ptr += descriptor_size_ * index;
 
         return {cpu_handle};
     }
@@ -170,6 +183,22 @@ class D3D12CPUDescriptorHandleAllocator
 
         return {cpu_handle};
     }
+
+    /**
+     * Release a statically allocate handle.
+     *
+     * @param handle
+     *   Handle to release.
+     */
+    void release_static(const D3D12DescriptorHandle &handle)
+    {
+        // recompute index from ptr
+        const auto ptr = handle.cpu_handle().ptr;
+        const auto index = (ptr - heap_start_.ptr) / descriptor_size_;
+
+        static_free_list_.emplace_back(static_cast<std::uint32_t>(index));
+    }
+
     /**
      * Get the size of a descriptor handle.
      *
@@ -180,6 +209,7 @@ class D3D12CPUDescriptorHandleAllocator
     {
         return descriptor_size_;
     }
+
     /**
      * Reset the dynamic allocation for a given frame. This means future calls to allocate_dynamic could return handles
      * that have been previously allocated.
@@ -215,6 +245,9 @@ class D3D12CPUDescriptorHandleAllocator
 
     /** Maximum number of dynamic handles in a frame. */
     std::uint32_t dynamic_capacity_;
+
+    /** Free list of released handles. */
+    std::vector<std::uint32_t> static_free_list_;
 };
 
 }
