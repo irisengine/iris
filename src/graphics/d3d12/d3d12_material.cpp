@@ -80,10 +80,9 @@ D3D12Material::D3D12Material(
     const std::vector<D3D12_INPUT_ELEMENT_DESC> &input_descriptors,
     PrimitiveType primitive_type,
     LightType light_type,
+    ID3D12RootSignature *root_signature,
     bool render_to_swapchain)
     : pso_()
-    , textures_()
-    , cube_map_(nullptr)
 {
     HLSLShaderCompiler compiler{render_graph, light_type};
     const auto vertex_source = compiler.vertex_shader();

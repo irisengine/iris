@@ -39,22 +39,6 @@ class D3D12Context
      */
     static ID3D12Device2 *device();
 
-    /**
-     * Get the root signature.
-     *
-     * @returns
-     *   Root signature.
-     */
-    static ID3D12RootSignature *root_signature();
-
-    /**
-     * Get the number of descriptors in a descriptors table.
-     *
-     * @returns
-     *   Number of descriptors.
-     */
-    static std::uint32_t num_descriptors();
-
   private:
     // private to force access through above public static methods
     D3D12Context();
@@ -67,10 +51,6 @@ class D3D12Context
 
     ID3D12Device2 *device_impl() const;
 
-    ID3D12RootSignature *root_signature_impl() const;
-
-    std::uint32_t num_descriptors_impl() const;
-
     /** D3D12 handle to dxgi factory. */
     Microsoft::WRL::ComPtr<IDXGIFactory4> dxgi_factory_;
 
@@ -79,12 +59,6 @@ class D3D12Context
 
     /** D3D12 handle to d3d12 info queue. */
     Microsoft::WRL::ComPtr<ID3D12InfoQueue> info_queue_;
-
-    /** D3D12 handle to d3d12 root signature. */
-    Microsoft::WRL::ComPtr<ID3D12RootSignature> root_signature_;
-
-    /* Number of descriptors in descriptor table. */
-    std::uint32_t num_descriptors_;
 };
 
 }
