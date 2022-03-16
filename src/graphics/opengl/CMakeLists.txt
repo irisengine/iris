@@ -11,6 +11,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/opengl_mesh_manager.h
     ${INCLUDE_ROOT}/opengl_render_target.h
     ${INCLUDE_ROOT}/opengl_renderer.h
+    ${INCLUDE_ROOT}/opengl_sampler.h
     ${INCLUDE_ROOT}/opengl_shader.h
     ${INCLUDE_ROOT}/opengl_texture.h
     ${INCLUDE_ROOT}/opengl_texture_manager.h
@@ -23,6 +24,7 @@ target_sources(iris PRIVATE
     opengl_mesh_manager.cpp
     opengl_render_target.cpp
     opengl_renderer.cpp
+    opengl_sampler.cpp
     opengl_shader.cpp
     opengl_texture.cpp
     opengl_texture_manager.cpp
