@@ -36,6 +36,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/render_queue_builder.h
     ${INCLUDE_ROOT}/render_target.h
     ${INCLUDE_ROOT}/renderer.h
+    ${INCLUDE_ROOT}/sampler.h
     ${INCLUDE_ROOT}/scene.h
     ${INCLUDE_ROOT}/single_entity.h
     ${INCLUDE_ROOT}/skeleton.h
@@ -59,6 +60,7 @@ target_sources(iris PRIVATE
     render_queue_builder.cpp
     render_target.cpp
     renderer.cpp
+    sampler.cpp
     scene.cpp
     single_entity.cpp
     skeleton.cpp
