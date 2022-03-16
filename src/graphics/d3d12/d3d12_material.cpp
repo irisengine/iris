@@ -64,6 +64,8 @@ Microsoft::WRL::ComPtr<ID3DBlob> create_shader(const std::string &source, iris::
     {
         const std::string error_message(static_cast<char *>(error->GetBufferPointer()), error->GetBufferSize());
 
+        LOG_ENGINE_ERROR("d3d12_material", "{}\n{}", source, error_message);
+
         throw iris::Exception("shader compile failed: " + error_message);
     }
 
