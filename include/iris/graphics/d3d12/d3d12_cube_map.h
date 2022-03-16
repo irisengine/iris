@@ -56,6 +56,9 @@ class D3D12CubeMap : public CubeMap
      * @param height
      *   Height of each image face.
      *
+     * @param sampler
+     *   Sampler to use for this cube map.
+     *
      * @param index
      *   Index into the global array of all allocated textures.
      */
@@ -68,6 +71,7 @@ class D3D12CubeMap : public CubeMap
         const DataBuffer &front_data,
         std::uint32_t width,
         std::uint32_t height,
+        const Sampler *sampler,
         std::uint32_t index);
 
     ~D3D12CubeMap() override = default;

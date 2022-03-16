@@ -9,7 +9,9 @@
 #include "core/error_handling.h"
 #include "graphics/cube_map.h"
 #include "graphics/opengl/opengl.h"
+#include "graphics/opengl/opengl_sampler.h"
 #include "graphics/opengl/opengl_texture.h"
+#include "graphics/sampler.h"
 #include "log/log.h"
 
 namespace iris
@@ -24,12 +26,15 @@ OpenGLCubeMap::OpenGLCubeMap(
     const DataBuffer &front_data,
     std::uint32_t width,
     std::uint32_t height,
+    const Sampler *sampler,
     std::uint32_t index,
     GLuint id)
-    : CubeMap(index)
+    : CubeMap(sampler, index)
     , handle_(0u)
     , id_(id)
 {
+    const auto *opengl_sampler = static_cast<const iris::OpenGLSampler *>(sampler);
+
     ::glGenTextures(1u, &handle_);
     expect(check_opengl_error, "could not generate texture");
 
@@ -38,6 +43,9 @@ OpenGLCubeMap::OpenGLCubeMap(
 
     ::glBindTexture(GL_TEXTURE_CUBE_MAP, handle_);
     expect(check_opengl_error, "could not bind texture");
+
+    ::glBindSampler(id - GL_TEXTURE0, opengl_sampler->handle());
+    iris::ensure(iris::check_opengl_error, "could not bind sampler");
 
     const std::byte *data_ptrs[] = {
         right_data.data(), left_data.data(), top_data.data(), bottom_data.data(), back_data.data(), front_data.data()};
@@ -58,23 +66,8 @@ OpenGLCubeMap::OpenGLCubeMap(
         expect(check_opengl_error, "could not specify image texture");
     }
 
-    ::glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    expect(check_opengl_error, "could not set parameter");
-
-    ::glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    expect(check_opengl_error, "could not set parameter");
-
-    ::glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    expect(check_opengl_error, "could not set parameter");
-
-    ::glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    expect(check_opengl_error, "could not set parameter");
-
-    ::glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    expect(check_opengl_error, "could not set parameter");
-
     // create a bindless handle and make it resident
-    bindless_handle_ = ::glGetTextureHandleARB(handle_);
+    bindless_handle_ = ::glGetTextureSamplerHandleARB(handle_, opengl_sampler->handle());
     expect(check_opengl_error, "could not create bindless handle");
 
     ::glMakeTextureHandleResidentARB(bindless_handle_);

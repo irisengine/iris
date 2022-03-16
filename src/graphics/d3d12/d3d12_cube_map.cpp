@@ -21,6 +21,7 @@
 #include "graphics/d3d12/d3d12_context.h"
 #include "graphics/d3d12/d3d12_descriptor_handle.h"
 #include "graphics/d3d12/d3d12_descriptor_manager.h"
+#include "graphics/sampler.h"
 
 namespace iris
 {
@@ -34,8 +35,9 @@ D3D12CubeMap::D3D12CubeMap(
     const DataBuffer &front_data,
     std::uint32_t width,
     std::uint32_t height,
+    const Sampler *sampler,
     std::uint32_t index)
-    : CubeMap(index)
+    : CubeMap(sampler, index)
     , resource_()
     , upload_()
     , resource_view_()
