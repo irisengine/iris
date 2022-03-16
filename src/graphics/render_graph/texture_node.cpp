@@ -10,6 +10,7 @@
 
 #include "core/root.h"
 #include "graphics/render_graph/shader_compiler.h"
+#include "graphics/sampler.h"
 #include "graphics/texture.h"
 #include "graphics/texture_manager.h"
 
@@ -21,8 +22,8 @@ TextureNode::TextureNode(const Texture *texture)
 {
 }
 
-TextureNode::TextureNode(const std::string &path, TextureUsage usage)
-    : texture_(Root::texture_manager().load(path, usage))
+TextureNode::TextureNode(const std::string &path, TextureUsage usage, const Sampler *sampler)
+    : texture_(Root::texture_manager().load(path, usage, sampler))
 {
 }
 

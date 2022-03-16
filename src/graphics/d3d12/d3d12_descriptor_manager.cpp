@@ -29,12 +29,15 @@ D3D12DescriptorManager::D3D12DescriptorManager()
     : cpu_allocators_()
     , gpu_allocators_()
 {
-    cpu_allocators_.insert(
-        {D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, {D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 10240u * 20u, 1000u}});
-    cpu_allocators_.insert({D3D12_DESCRIPTOR_HEAP_TYPE_RTV, {D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 10240u * 20u, 1000u}});
-    cpu_allocators_.insert({D3D12_DESCRIPTOR_HEAP_TYPE_DSV, {D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 10240u * 20u, 1000u}});
+    for (auto i = 0u; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i)
+    {
+        const auto type = static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(i);
+        cpu_allocators_.insert({type, {type, 10240u * 20u, 1000u}});
+    }
+
     gpu_allocators_.insert(
         {D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, {D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 10240u * 20u, 1000u}});
+    gpu_allocators_.insert({D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, {D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 2048u, 100u}});
 }
 
 D3D12DescriptorManager &D3D12DescriptorManager::instance()

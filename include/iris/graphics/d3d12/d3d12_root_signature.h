@@ -145,25 +145,9 @@ class D3D12RootSignature
                                                           D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
                                                           D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
-        // create a sampler to store in the root signature
-        D3D12_STATIC_SAMPLER_DESC sampler = {};
-        sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-        sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-        sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-        sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-        sampler.MipLODBias = 0;
-        sampler.MaxAnisotropy = 0;
-        sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_LESS;
-        sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE;
-        sampler.MinLOD = 0.0f;
-        sampler.MaxLOD = D3D12_FLOAT32_MAX;
-        sampler.ShaderRegister = 0;
-        sampler.RegisterSpace = 0;
-        sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_description{};
         root_signature_description.Init_1_1(
-            static_cast<UINT>(root_parameters.size()), root_parameters.data(), 1u, &sampler, root_signature_flags);
+            static_cast<UINT>(root_parameters.size()), root_parameters.data(), 0u, nullptr, root_signature_flags);
 
         Microsoft::WRL::ComPtr<ID3DBlob> signature = nullptr;
         Microsoft::WRL::ComPtr<ID3DBlob> error = nullptr;

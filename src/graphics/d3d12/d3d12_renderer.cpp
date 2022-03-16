@@ -34,6 +34,7 @@
 #include "graphics/d3d12/d3d12_descriptor_manager.h"
 #include "graphics/d3d12/d3d12_mesh.h"
 #include "graphics/d3d12/d3d12_render_target.h"
+#include "graphics/d3d12/d3d12_sampler.h"
 #include "graphics/d3d12/d3d12_texture.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/render_entity.h"
@@ -138,15 +139,19 @@ void write_light_data_constant_buffer(iris::D3D12ConstantBuffer &constant_buffer
  *
  * @param descriptor_size
  *   Size of the descriptor handle.
+ *
+ * @param heap_type
+ *   Type of heap being copied to.
  */
 void copy_descriptor(
     D3D12_CPU_DESCRIPTOR_HANDLE &dest,
     const iris::D3D12DescriptorHandle &source,
-    std::size_t descriptor_size)
+    std::size_t descriptor_size,
+    D3D12_DESCRIPTOR_HEAP_TYPE heap_type)
 {
     auto *device = iris::D3D12Context::device();
 
-    device->CopyDescriptorsSimple(1u, dest, source.cpu_handle(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    device->CopyDescriptorsSimple(1u, dest, source.cpu_handle(), heap_type);
 
     dest.ptr += descriptor_size;
 }
@@ -178,17 +183,22 @@ void upload_textures(
         {
             uploaded_textures.emplace(d3d12_tex);
 
-            D3D12_TEXTURE_COPY_LOCATION destination = {};
-            destination.pResource = d3d12_tex->resource();
-            destination.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-            destination.SubresourceIndex = 0u;
+            const auto footprints = d3d12_tex->footprints();
 
-            D3D12_TEXTURE_COPY_LOCATION source = {};
-            source.pResource = d3d12_tex->upload();
-            source.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-            source.PlacedFootprint = d3d12_tex->footprint();
+            for (auto i = 0u; i < footprints.size(); ++i)
+            {
+                D3D12_TEXTURE_COPY_LOCATION destination = {};
+                destination.pResource = d3d12_tex->resource();
+                destination.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+                destination.SubresourceIndex = i;
 
-            command_list->CopyTextureRegion(&destination, 0u, 0u, 0u, &source, NULL);
+                D3D12_TEXTURE_COPY_LOCATION source = {};
+                source.pResource = d3d12_tex->upload();
+                source.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+                source.PlacedFootprint = footprints[i];
+
+                command_list->CopyTextureRegion(&destination, 0u, 0u, 0u, &source, NULL);
+            }
 
             const auto barrier = ::CD3DX12_RESOURCE_BARRIER::Transition(
                 d3d12_tex->resource(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -236,7 +246,7 @@ void upload_textures(
  * Helper function to build the texture table - a global GPU buffer of all textures (used for bindless rendering)
  *
  * @returns
- *   D3D12DescriptorHandle to a first element in cable with all loaded textures.
+ *   D3D12DescriptorHandle to a first element in table with all loaded textures.
  */
 iris::D3D12DescriptorHandle create_texture_table()
 {
@@ -258,13 +268,21 @@ iris::D3D12DescriptorHandle create_texture_table()
         if (i == (*iter)->index())
         {
             const auto *d3d12_texture = static_cast<const iris::D3D12Texture *>(*iter);
-            copy_descriptor(texture_table_descriptor_start, d3d12_texture->handle(), descriptor_size);
+            copy_descriptor(
+                texture_table_descriptor_start,
+                d3d12_texture->handle(),
+                descriptor_size,
+                D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
             ++iter;
         }
         else
         {
             // no texture at current index, so write default texture
-            copy_descriptor(texture_table_descriptor_start, blank_texture->handle(), descriptor_size);
+            copy_descriptor(
+                texture_table_descriptor_start,
+                blank_texture->handle(),
+                descriptor_size,
+                D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
         }
     }
 
@@ -275,7 +293,7 @@ iris::D3D12DescriptorHandle create_texture_table()
  * Helper function to build the cube map table - a global GPU buffer of all cube maps (used for bindless rendering)
  *
  * @returns
- *   D3D12DescriptorHandle to a first element in cable with all loaded cube maps.
+ *   D3D12DescriptorHandle to a first element in table with all loaded cube maps.
  */
 iris::D3D12DescriptorHandle create_cube_map_table()
 {
@@ -297,17 +315,73 @@ iris::D3D12DescriptorHandle create_cube_map_table()
         if (i == (*iter)->index())
         {
             const auto *d3d12_cube_map = static_cast<const iris::D3D12CubeMap *>(*iter);
-            copy_descriptor(cube_map_table_descriptor_start, d3d12_cube_map->handle(), descriptor_size);
+            copy_descriptor(
+                cube_map_table_descriptor_start,
+                d3d12_cube_map->handle(),
+                descriptor_size,
+                D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
             ++iter;
         }
         else
         {
             // no cube map at current index, so write default cube map
-            copy_descriptor(cube_map_table_descriptor_start, blank_cube_map->handle(), descriptor_size);
+            copy_descriptor(
+                cube_map_table_descriptor_start,
+                blank_cube_map->handle(),
+                descriptor_size,
+                D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
         }
     }
 
     return cube_map_table;
+}
+
+/**
+ * Helper function to build the sampler table - a global GPU buffer of all samplers (used for bindless rendering)
+ *
+ * @returns
+ *   D3D12DescriptorHandle to a first element in table with all loaded samplers.
+ */
+iris::D3D12DescriptorHandle create_sampler_table()
+{
+    const auto samplers = iris::Root::texture_manager().samplers();
+    const auto max_index = samplers.back()->index();
+    const auto *default_sampler =
+        static_cast<const iris::D3D12Sampler *>(iris::Root::texture_manager().default_texture_sampler());
+    auto iter = std::cbegin(samplers);
+
+    // create table buffer
+    auto sampler_table = iris::D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER)
+                             .allocate_static(static_cast<std::uint32_t>(max_index + 1u));
+    const auto descriptor_size =
+        iris::D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).descriptor_size();
+    auto sampler_table_descriptor_start = sampler_table.cpu_handle();
+
+    for (auto i = 0u; i <= max_index; ++i)
+    {
+        // if a sampler exits at the current index we write it in
+        if (i == (*iter)->index())
+        {
+            const auto *d3d12_sampler = static_cast<const iris::D3D12Sampler *>(*iter);
+            copy_descriptor(
+                sampler_table_descriptor_start,
+                d3d12_sampler->handle(),
+                descriptor_size,
+                D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+            ++iter;
+        }
+        else
+        {
+            // no sampler at current index, so write default sampler
+            copy_descriptor(
+                sampler_table_descriptor_start,
+                default_sampler->handle(),
+                descriptor_size,
+                D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+        }
+    }
+
+    return sampler_table;
 }
 
 }
@@ -334,6 +408,7 @@ D3D12Renderer::D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t hei
     , instance_data_buffers_()
     , texture_table_()
     , cube_map_table_()
+    , sampler_table_()
     , root_signature_()
 {
     // we will use triple buffering
@@ -404,6 +479,12 @@ D3D12Renderer::D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t hei
             device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&command_allocator)) == S_OK,
             "could not create command allocator");
 
+        const auto *rt_sampler = Root::texture_manager().create(SamplerDescriptor{
+            .s_address_mode = SamplerAddressMode::CLAMP_TO_BORDER,
+            .t_address_mode = SamplerAddressMode::CLAMP_TO_BORDER,
+            .border_colour = Colour{1.0f, 1.0f, 1.0f, 1.0f},
+            .uses_mips = false});
+
         frames_.emplace_back(
             i,
             frame,
@@ -412,6 +493,7 @@ D3D12Renderer::D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t hei
                 DataBuffer{},
                 width_ * initial_screen_scale,
                 height_ * initial_screen_scale,
+                rt_sampler,
                 TextureUsage::DEPTH,
                 Root::texture_manager().next_texture_index()),
             command_allocator);
@@ -543,16 +625,23 @@ void D3D12Renderer::set_render_passes(const std::vector<RenderPass> &render_pass
 
     texture_table_ = create_texture_table();
     cube_map_table_ = create_cube_map_table();
+    sampler_table_ = create_sampler_table();
 }
 
 RenderTarget *D3D12Renderer::create_render_target(std::uint32_t width, std::uint32_t height)
 {
     const auto scale = Root::window_manager().current_window()->screen_scale();
 
-    auto *colour_texture = static_cast<D3D12Texture *>(
-        Root::texture_manager().create(DataBuffer{}, width * scale, height * scale, TextureUsage::RENDER_TARGET));
+    const auto *rt_sampler = Root::texture_manager().create(SamplerDescriptor{
+        .s_address_mode = SamplerAddressMode::CLAMP_TO_BORDER,
+        .t_address_mode = SamplerAddressMode::CLAMP_TO_BORDER,
+        .border_colour = Colour{1.0f, 1.0f, 1.0f, 1.0f},
+        .uses_mips = false});
+
+    auto *colour_texture = static_cast<D3D12Texture *>(Root::texture_manager().create(
+        DataBuffer{}, width * scale, height * scale, TextureUsage::RENDER_TARGET, rt_sampler));
     auto *depth_texture = static_cast<D3D12Texture *>(
-        Root::texture_manager().create(DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH));
+        Root::texture_manager().create(DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH, rt_sampler));
 
     // add these to uploaded so the next render pass doesn't try to upload them
     uploaded_textures_.emplace(colour_texture);
@@ -589,7 +678,8 @@ void D3D12Renderer::pre_render()
 void D3D12Renderer::execute_pass_start(RenderCommand &command)
 {
     ID3D12DescriptorHeap *heaps[] = {
-        D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).heap()};
+        D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).heap(),
+        D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).heap()};
     command_list_->SetDescriptorHeaps(_countof(heaps), heaps);
 
     D3D12_CPU_DESCRIPTOR_HANDLE rt_handle;
@@ -725,6 +815,8 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
     auto *camera_buffer = frame.camera_data_buffers[camera].get();
     const auto shadow_map_index =
         (command.shadow_map() == nullptr) ? 0u : command.shadow_map()->depth_texture()->index();
+    const auto shadow_map_sampler_index =
+        (command.shadow_map() == nullptr) ? 0u : command.shadow_map()->depth_texture()->sampler()->index();
 
     // encode all out root signature arguments
     root_signature_.encode_arguments(
@@ -733,9 +825,11 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
         light_buffer,
         camera_buffer,
         shadow_map_index,
+        shadow_map_sampler_index,
         model_buffer,
         texture_table_,
-        cube_map_table_);
+        cube_map_table_,
+        sampler_table_);
 
     const auto vertex_view = mesh->vertex_buffer().vertex_view();
     const auto index_view = mesh->index_buffer().index_view();

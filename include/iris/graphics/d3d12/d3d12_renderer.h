@@ -229,15 +229,20 @@ class D3D12Renderer : public Renderer
     /** Descriptor handle to a global cube map table (for bindless). */
     D3D12DescriptorHandle cube_map_table_;
 
+    /** Descriptor handle to a global sampler table (for bindless). */
+    D3D12DescriptorHandle sampler_table_;
+
     /** Root signature for materials. */
     D3D12RootSignature<
         ConstantBufferViewParameter<0u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
         ConstantBufferViewParameter<1u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
         ConstantBufferViewParameter<2u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
         ConstantParameter<3u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
+        ConstantParameter<4u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
         ShaderResourceViewParameter<0u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
         TableParameter<D3D12_DESCRIPTOR_RANGE_TYPE_SRV, UINT_MAX, 0u, 1u, D3D12_SHADER_VISIBILITY_PIXEL>,
-        TableParameter<D3D12_DESCRIPTOR_RANGE_TYPE_SRV, UINT_MAX, 0u, 2u, D3D12_SHADER_VISIBILITY_PIXEL>>
+        TableParameter<D3D12_DESCRIPTOR_RANGE_TYPE_SRV, UINT_MAX, 0u, 2u, D3D12_SHADER_VISIBILITY_PIXEL>,
+        TableParameter<D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, UINT_MAX, 0u, 0u, D3D12_SHADER_VISIBILITY_PIXEL>>
         root_signature_;
 };
 }

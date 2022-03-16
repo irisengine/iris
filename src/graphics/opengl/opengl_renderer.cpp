@@ -30,6 +30,7 @@
 #include "graphics/render_graph/sky_box_node.h"
 #include "graphics/render_graph/texture_node.h"
 #include "graphics/render_queue_builder.h"
+#include "graphics/sampler.h"
 #include "graphics/single_entity.h"
 #include "graphics/texture_manager.h"
 #include "graphics/window.h"
@@ -273,12 +274,19 @@ void OpenGLRenderer::set_render_passes(const std::vector<RenderPass> &render_pas
 
 RenderTarget *OpenGLRenderer::create_render_target(std::uint32_t width, std::uint32_t height)
 {
-
     const auto scale = Root::window_manager().current_window()->screen_scale();
+    const auto *sampler = Root::texture_manager().create(SamplerDescriptor{.uses_mips = false});
+    const auto *depth_sampler = Root::texture_manager().create(SamplerDescriptor{
+        .s_address_mode = SamplerAddressMode::CLAMP_TO_BORDER,
+        .t_address_mode = SamplerAddressMode::CLAMP_TO_BORDER,
+        .border_colour = Colour{1.0f, 1.0f, 1.0f, 1.0f},
+        .uses_mips = false});
 
     render_targets_.emplace_back(std::make_unique<OpenGLRenderTarget>(
-        Root::texture_manager().create(DataBuffer{}, width * scale, height * scale, TextureUsage::RENDER_TARGET),
-        Root::texture_manager().create(DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH)));
+        Root::texture_manager().create(
+            DataBuffer{}, width * scale, height * scale, TextureUsage::RENDER_TARGET, sampler),
+        Root::texture_manager().create(
+            DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH, depth_sampler)));
 
     return render_targets_.back().get();
 }

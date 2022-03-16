@@ -10,6 +10,7 @@
 
 #include "core/vector3.h"
 #include "graphics/render_graph/node.h"
+#include "graphics/sampler.h"
 #include "graphics/texture.h"
 #include "graphics/texture_usage.h"
 
@@ -38,8 +39,14 @@ class TextureNode : public Node
      *
      * @param path
      *   Path of texture.
+     *
+     * @param usage
+     *   The usage of the texture.
+     *
+     * @param sampler
+     *   Sampler to use for this texture.
      */
-    TextureNode(const std::string &path, TextureUsage usage = TextureUsage::IMAGE);
+    TextureNode(const std::string &path, TextureUsage usage = TextureUsage::IMAGE, const Sampler *sampler = nullptr);
 
     ~TextureNode() override = default;
 

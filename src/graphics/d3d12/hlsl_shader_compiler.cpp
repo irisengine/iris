@@ -12,6 +12,7 @@
 
 #include "core/colour.h"
 #include "core/exception.h"
+#include "core/root.h"
 #include "core/vector3.h"
 #include "graphics/lights/lighting_rig.h"
 #include "graphics/render_graph/arithmetic_node.h"
@@ -29,7 +30,9 @@
 #include "graphics/render_graph/texture_node.h"
 #include "graphics/render_graph/value_node.h"
 #include "graphics/render_graph/vertex_node.h"
+#include "graphics/sampler.h"
 #include "graphics/texture.h"
+#include "graphics/texture_manager.h"
 
 namespace
 {
@@ -62,6 +65,8 @@ struct ShadowMapIndex
 };
 
 ConstantBuffer<ShadowMapIndex> shadow_map_index : register(b3);
+
+ConstantBuffer<ShadowMapIndex> shadow_map_sampler_index : register(b4);
 
 struct ModelData
 {
@@ -108,7 +113,7 @@ float4 composite(float4 colour1, float4 colour2, float4 depth1, float4 depth2, f
 })";
 
 static constexpr auto blur_function = R"(
-float4 blur(Texture2D tex, float2 tex_coords)
+float4 blur(Texture2D tex, float2 tex_coords, SamplerState smpler)
 {
     const float offset = 1.0 / 500.0;  
     float2 offsets[9] = {
@@ -133,7 +138,7 @@ float4 blur(Texture2D tex, float2 tex_coords)
     float3 sampleTex[9];
     for(int i = 0; i < 9; i++)
     {
-        sampleTex[i] = tex.Sample(g_sampler, tex_coords + offsets[i]);
+        sampleTex[i] = tex.Sample(smpler, tex_coords + offsets[i]);
     }
 
     float3 col = float3(0.0, 0.0, 0.0);
@@ -145,7 +150,7 @@ float4 blur(Texture2D tex, float2 tex_coords)
 })";
 
 static constexpr auto shadow_function = R"(
-float calculate_shadow(float3 n, float4 frag_pos_light_space, float3 light_dir, Texture2D tex)
+float calculate_shadow(float3 n, float4 frag_pos_light_space, float3 light_dir, Texture2D tex, SamplerState smpler)
 {
     float shadow = 0.0;
 
@@ -154,7 +159,7 @@ float calculate_shadow(float3 n, float4 frag_pos_light_space, float3 light_dir, 
     float2 proj_uv = float2(proj_coord.x, -proj_coord.y);
     proj_uv = proj_uv * 0.5 + 0.5;
 
-    float closest_depth = tex.Sample(g_sampler, proj_uv).r;
+    float closest_depth = tex.Sample(smpler, proj_uv).r;
     float current_depth = proj_coord.z;
     float bias = 0.001;// max(0.05 * (1.0 - dot(n, light_dir)), 0.005);
 
@@ -168,22 +173,45 @@ float calculate_shadow(float3 n, float4 frag_pos_light_space, float3 light_dir, 
 })";
 
 /**
- * Helper function to create a unique id for a texture. Always returns the same name for the same texture.
+ * Helper function to create a string loading a texture from the global table.
  *
  * @param texture
- *   Texture to generate id for.
+ *   Texture to generate string for.
  *
  * @returns
- *   Unique id for the texture.
+ *   String loading the texture.
  */
 std::string texture_name(const iris::Texture *texture)
 {
     return "texture_table[" + std::to_string(texture->index()) + "]";
 }
 
+/**
+ * Helper function to create a string loading a cube map from the global table.
+ *
+ * @param cube_map
+ *   CubeMap to generate string for.
+ *
+ * @returns
+ *   String loading the cube map.
+ */
 std::string cube_map_name(const iris::CubeMap *cube_map)
 {
     return "cube_map_table[" + std::to_string(cube_map->index()) + "]";
+}
+
+/**
+ * Helper function to create a string loading a sampler from the global table.
+ *
+ * @param sampler
+ *   Sampler to generate string for.
+ *
+ * @returns
+ *   String loading the sampler.
+ */
+std::string sampler_name(const iris::Sampler *sampler = nullptr)
+{
+    return "sampler_table[" + std::to_string(sampler->index()) + "]";
 }
 
 /**
@@ -375,9 +403,9 @@ float4 main(PSInput input) : SV_TARGET
                                                    : "normalize(-input.tangent_light_pos.xyz);\n");
 
             *current_stream_ << "float shadow = 0.0;\n";
-            *current_stream_ <<
-                R"(shadow = calculate_shadow(n, input.frag_pos_light_space, light_dir, texture_table[shadow_map_index.index]);
-                )";
+            *current_stream_
+                << "shadow = calculate_shadow(n, input.frag_pos_light_space, light_dir, "
+                   "texture_table[shadow_map_index.index], sampler_table[shadow_map_sampler_index.index]);";
 
             *current_stream_ << R"(
                 float diff = (1.0 - shadow) * max(dot(n, light_dir), 0.0);
@@ -517,8 +545,8 @@ float4 main(PSInput input) : SV_TARGET
 
     build_fragment_colour(*current_stream_, node.colour_input(), this);
 
-    *current_stream_ << "return " << cube_map_name(node.sky_box())
-                     << ".SampleLevel(g_sampler, normalize(input.normal.xyz), 0).rgba;\n}";
+    *current_stream_ << "return " << cube_map_name(node.sky_box()) << ".SampleLevel("
+                     << sampler_name(node.sky_box()->sampler()) << ", normalize(input.normal.xyz), 0).rgba;\n}";
 }
 
 void HLSLShaderCompiler::visit(const ColourNode &node)
@@ -529,7 +557,7 @@ void HLSLShaderCompiler::visit(const ColourNode &node)
 
 void HLSLShaderCompiler::visit(const TextureNode &node)
 {
-    *current_stream_ << texture_name(node.texture()) << ".Sample(g_sampler,";
+    *current_stream_ << texture_name(node.texture()) << ".Sample(" << sampler_name(node.texture()->sampler()) << ",";
 
     if (node.texture()->flip())
     {
@@ -557,11 +585,12 @@ void HLSLShaderCompiler::visit(const BlurNode &node)
     *current_stream_ << "blur(" << texture_name(node.input_node()->texture()) << ",";
     if (node.input_node()->texture()->flip())
     {
-        *current_stream_ << "float2(input.tex_coord.x, 1.0 - input.tex_coord.y))";
+        *current_stream_ << "float2(input.tex_coord.x, 1.0 - input.tex_coord.y), "
+                         << sampler_name(node.input_node()->texture()->sampler()) << ")";
     }
     else
     {
-        *current_stream_ << " input.tex_coord)";
+        *current_stream_ << " input.tex_coord, " << sampler_name(node.input_node()->texture()->sampler()) << ")";
     }
 }
 
@@ -703,7 +732,7 @@ std::string HLSLShaderCompiler::fragment_shader() const
     std::stringstream strm{};
 
     strm << uniforms << '\n';
-    strm << "SamplerState g_sampler : register(s0);\n";
+    strm << "SamplerState sampler_table[] : register(s0);\n";
     strm << "Texture2D texture_table[] : register(t0, space1);\n";
     strm << "TextureCube cube_map_table[] : register(t0, space2);\n";
 
