@@ -9,6 +9,7 @@
 #include <cstdint>
 
 #include "core/data_buffer.h"
+#include "graphics/sampler.h"
 #include "graphics/texture_usage.h"
 
 namespace iris
@@ -32,13 +33,22 @@ class Texture
      * @param height
      *   Height of image.
      *
+     * @param sampler
+     *   Sampler to use for this texture.
+     *
      * @param usage
      *   Texture usage.
      *
      * @param index
      *   Index into the global array of all allocated textures.
      */
-    Texture(const DataBuffer &data, std::uint32_t width, std::uint32_t height, TextureUsage usage, std::uint32_t index);
+    Texture(
+        const DataBuffer &data,
+        std::uint32_t width,
+        std::uint32_t height,
+        const Sampler *sampler,
+        TextureUsage usage,
+        std::uint32_t index);
 
     virtual ~Texture() = 0;
 
@@ -68,6 +78,14 @@ class Texture
      *   Image height.
      */
     std::uint32_t height() const;
+
+    /**
+     * Get texture sampler.
+     *
+     * @returns
+     *   Sampler for texture.
+     */
+    const Sampler *sampler() const;
 
     /**
      * Get the texture usage.
@@ -112,6 +130,9 @@ class Texture
 
     /** Image height. */
     std::uint32_t height_;
+
+    /** Sampler for texture. */
+    const Sampler *sampler_;
 
     /** Should texture be flipped vertically. */
     bool flip_;

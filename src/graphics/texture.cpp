@@ -8,7 +8,9 @@
 
 #include <cstdint>
 
+#include "graphics/sampler.h"
 #include "graphics/texture_usage.h"
+
 
 namespace iris
 {
@@ -17,11 +19,13 @@ Texture::Texture(
     const DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
+    const Sampler *sampler,
     TextureUsage usage,
     std::uint32_t index)
     : data_(data)
     , width_(width)
     , height_(height)
+    , sampler_(sampler)
     , flip_(false)
     , usage_(usage)
     , index_(index)
@@ -43,6 +47,11 @@ std::uint32_t Texture::width() const
 std::uint32_t Texture::height() const
 {
     return height_;
+}
+
+const Sampler *Texture::sampler() const
+{
+    return sampler_;
 }
 
 TextureUsage Texture::usage() const
