@@ -44,6 +44,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/texture.h
     ${INCLUDE_ROOT}/texture_manager.h
     ${INCLUDE_ROOT}/texture_usage.h
+    ${INCLUDE_ROOT}/utils.h
     ${INCLUDE_ROOT}/vertex_attributes.h
     ${INCLUDE_ROOT}/vertex_data.h
     ${INCLUDE_ROOT}/weight.h
@@ -66,5 +67,6 @@ target_sources(iris PRIVATE
     skeleton.cpp
     texture.cpp
     texture_manager.cpp
+    utils.cpp
     vertex_attributes.cpp
     window.cpp)
