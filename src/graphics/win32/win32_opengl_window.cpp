@@ -99,10 +99,16 @@ void resolve_global_opengl_functions()
     resolve_opengl_function(glBindBufferBase, "glBindBufferBase");
     resolve_opengl_function(glBindBufferRange, "glBindBufferRange");
     resolve_opengl_function(glGetTextureHandleARB, "glGetTextureHandleARB");
+    resolve_opengl_function(glGetTextureSamplerHandleARB, "glGetTextureSamplerHandleARB");
     resolve_opengl_function(glMakeTextureHandleResidentARB, "glMakeTextureHandleResidentARB");
     resolve_opengl_function(glMakeTextureHandleNonResidentARB, "glMakeTextureHandleNonResidentARB");
     resolve_opengl_function(glCopyBufferSubData, "glCopyBufferSubData");
     resolve_opengl_function(glDrawElementsInstanced, "glDrawElementsInstanced");
+    resolve_opengl_function(glGenSamplers, "glGenSamplers");
+    resolve_opengl_function(glBindSampler, "glBindSampler");
+    resolve_opengl_function(glDeleteSamplers, "glDeleteSamplers");
+    resolve_opengl_function(glSamplerParameteri, "glSamplerParameteri");
+    resolve_opengl_function(glSamplerParameterfv, "glSamplerParameterfv");
 }
 
 /**

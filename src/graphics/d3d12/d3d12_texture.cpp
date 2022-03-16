@@ -20,7 +20,9 @@
 #include "graphics/d3d12/d3d12_context.h"
 #include "graphics/d3d12/d3d12_descriptor_handle.h"
 #include "graphics/d3d12/d3d12_descriptor_manager.h"
+#include "graphics/sampler.h"
 #include "graphics/texture_usage.h"
+#include "graphics/utils.h"
 
 namespace
 {
@@ -59,6 +61,9 @@ void set_name(const std::wstring &prefix, ID3D12Resource *resource)
  * @param height
  *   Height of texture.
  *
+ * @param mip_count
+ *   The number of mipmap levels.
+ *
  * @param resource
  *   Handle to store created resource in.
  *
@@ -68,6 +73,7 @@ void set_name(const std::wstring &prefix, ID3D12Resource *resource)
 D3D12_RESOURCE_DESC image_texture_descriptor(
     std::uint32_t width,
     std::uint32_t height,
+    std::size_t mip_count,
     Microsoft::WRL::ComPtr<ID3D12Resource> &resource)
 {
     auto *device = iris::D3D12Context::device();
@@ -79,7 +85,7 @@ D3D12_RESOURCE_DESC image_texture_descriptor(
     texture_description.Height = height;
     texture_description.Flags = D3D12_RESOURCE_FLAG_NONE;
     texture_description.DepthOrArraySize = 1;
-    texture_description.MipLevels = 1;
+    texture_description.MipLevels = static_cast<UINT16>(mip_count);
     texture_description.SampleDesc.Count = 1;
     texture_description.SampleDesc.Quality = 0;
     texture_description.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -112,6 +118,9 @@ D3D12_RESOURCE_DESC image_texture_descriptor(
  * @param height
  *   Height of texture.
  *
+ * @param mip_count
+ *   The number of mipmap levels.
+ *
  * @param resource
  *   Handle to store created resource in.
  *
@@ -121,6 +130,7 @@ D3D12_RESOURCE_DESC image_texture_descriptor(
 D3D12_RESOURCE_DESC data_texture_descriptor(
     std::uint32_t width,
     std::uint32_t height,
+    std::size_t mip_count,
     Microsoft::WRL::ComPtr<ID3D12Resource> &resource)
 {
     auto *device = iris::D3D12Context::device();
@@ -132,7 +142,7 @@ D3D12_RESOURCE_DESC data_texture_descriptor(
     texture_description.Height = height;
     texture_description.Flags = D3D12_RESOURCE_FLAG_NONE;
     texture_description.DepthOrArraySize = 1;
-    texture_description.MipLevels = 1;
+    texture_description.MipLevels = static_cast<UINT16>(mip_count);
     texture_description.SampleDesc.Count = 1;
     texture_description.SampleDesc.Quality = 0;
     texture_description.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -280,24 +290,35 @@ D3D12Texture::D3D12Texture(
     const DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
+    const Sampler *sampler,
     TextureUsage usage,
     std::uint32_t index)
-    : Texture(data, width, height, usage, index)
+    : Texture(data, width, height, sampler, usage, index)
     , resource_()
     , upload_()
     , resource_view_()
     , depth_resource_view_()
-    , footprint_()
+    , footprints_()
     , type_()
 {
     auto *device = D3D12Context::device();
     const auto default_heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 
-    const auto &texture_description = [this, usage]() {
+    std::vector<MipLevelData> mip_levels{{.data = data, .width = width_, .height = height_}};
+
+    if (sampler->descriptor().uses_mips)
+    {
+        mip_levels = generate_mip_maps(mip_levels.front());
+    }
+
+    const auto mip_count = mip_levels.size();
+    footprints_.resize(mip_count);
+
+    const auto texture_description = [this, usage, mip_count]() {
         switch (usage)
         {
-            case TextureUsage::IMAGE: return image_texture_descriptor(width_, height_, resource_); break;
-            case TextureUsage::DATA: return data_texture_descriptor(width_, height_, resource_); break;
+            case TextureUsage::IMAGE: return image_texture_descriptor(width_, height_, mip_count, resource_); break;
+            case TextureUsage::DATA: return data_texture_descriptor(width_, height_, mip_count, resource_); break;
             case TextureUsage::RENDER_TARGET:
                 return render_target_texture_descriptor(width_, height_, resource_);
                 break;
@@ -311,7 +332,7 @@ D3D12Texture::D3D12Texture(
 
     if (usage != TextureUsage::DEPTH)
     {
-        const UINT64 capacity = GetRequiredIntermediateSize(resource_.Get(), 0, 1);
+        const UINT64 capacity = GetRequiredIntermediateSize(resource_.Get(), 0, static_cast<UINT>(mip_count));
 
         const auto upload_heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
         const auto heap_description = CD3DX12_RESOURCE_DESC::Buffer(capacity);
@@ -340,22 +361,37 @@ D3D12Texture::D3D12Texture(
 
         if (!data.empty())
         {
-            UINT heights[] = {height_};
-            UINT64 row_size[] = {width_ * 4u};
+            std::vector<UINT> heights(mip_count);
+            std::vector<UINT64> row_size(mip_count);
 
             // create footprint for image data layout
             std::uint64_t memory_size = 0u;
-            device->GetCopyableFootprints(&texture_description, 0, 1, 0, &footprint_, heights, row_size, &memory_size);
+            device->GetCopyableFootprints(
+                &texture_description,
+                0,
+                static_cast<UINT>(mip_count),
+                0,
+                footprints_.data(),
+                heights.data(),
+                row_size.data(),
+                &memory_size);
 
-            auto *dst_cursor = reinterpret_cast<std::byte *>(mapped_buffer);
-            auto *src_cursor = data_.data();
-
-            // copy texture data with respect to footprint
-            for (auto i = 0u; i < height_; ++i)
+            // copy texture data with respect to each footprint
+            for (auto i = 0u; i < mip_count; ++i)
             {
-                std::memcpy(dst_cursor, src_cursor, static_cast<std::size_t>(row_size[0]));
-                dst_cursor += footprint_.Footprint.RowPitch;
-                src_cursor += row_size[0];
+                const auto &footprint = footprints_[i];
+
+                const auto sub_resource_height = heights[i];
+                const auto sub_resource_pitch = footprint.Footprint.RowPitch;
+                auto *dst_cursor = reinterpret_cast<std::byte *>(mapped_buffer) + footprint.Offset;
+                auto *src_cursor = mip_levels[i].data.data();
+
+                for (auto j = 0u; j < sub_resource_height; ++j)
+                {
+                    std::memcpy(dst_cursor, src_cursor, static_cast<std::size_t>(row_size[i]));
+                    dst_cursor += sub_resource_pitch;
+                    src_cursor += row_size[i];
+                }
             }
         }
     }
@@ -398,9 +434,9 @@ ID3D12Resource *D3D12Texture::upload() const
     return upload_.Get();
 }
 
-D3D12_PLACED_SUBRESOURCE_FOOTPRINT D3D12Texture::footprint() const
+std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> D3D12Texture::footprints() const
 {
-    return footprint_;
+    return footprints_;
 }
 
 D3D12DescriptorHandle D3D12Texture::handle() const

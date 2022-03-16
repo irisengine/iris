@@ -29,6 +29,8 @@
 #define GL_FRAGMENT_SHADER 0x8B30
 #define GL_VERTEX_SHADER 0x8B31
 #define GL_COMPILE_STATUS 0x8B81
+#define GL_READ_FRAMEBUFFER 0x8CA8
+#define GL_MIRRORED_REPEAT 0x8370
 #define GL_CLAMP_TO_BORDER 0x812D
 #define GL_CLAMP_TO_EDGE 0x812F
 #define GL_RGBA16F 0x881A
@@ -113,7 +115,13 @@ EXTERN void (*glGenerateMipmap)(GLenum);
 EXTERN void (*glBindBufferBase)(GLenum, GLuint, GLuint);
 EXTERN void (*glBindBufferRange)(GLenum, GLuint, GLuint, GLintptr, GLsizeiptr);
 EXTERN GLuint64 (*glGetTextureHandleARB)(GLuint);
+EXTERN GLuint64 (*glGetTextureSamplerHandleARB)(GLuint, GLuint);
 EXTERN void (*glMakeTextureHandleResidentARB)(GLuint64);
 EXTERN void (*glMakeTextureHandleNonResidentARB)(GLuint64);
 EXTERN void (*glCopyBufferSubData)(GLenum, GLenum, GLintptr, GLintptr, GLsizeiptr);
 EXTERN void (*glDrawElementsInstanced)(GLenum, GLsizei, GLenum, const void *, GLsizei);
+EXTERN void (*glGenSamplers)(GLsizei, GLuint *);
+EXTERN void (*glBindSampler)(GLuint, GLuint);
+EXTERN void (*glDeleteSamplers)(GLsizei, const GLuint *);
+EXTERN void (*glSamplerParameteri)(GLuint, GLenum, GLint);
+EXTERN void (*glSamplerParameterfv)(GLuint, GLenum, const GLfloat *);

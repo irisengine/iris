@@ -11,6 +11,7 @@
 #include "graphics/opengl/opengl.h"
 
 #include "core/data_buffer.h"
+#include "graphics/sampler.h"
 #include "graphics/texture.h"
 #include "graphics/texture_usage.h"
 
@@ -35,6 +36,9 @@ class OpenGLTexture : public Texture
      * @param height
      *   Height of data.
      *
+     * @param sampler
+     *   Sampler to use for this texture.
+     *
      * @param usage
      *   Texture usage.
      *
@@ -48,6 +52,7 @@ class OpenGLTexture : public Texture
         const DataBuffer &data,
         std::uint32_t width,
         std::uint32_t height,
+        const Sampler *sampler,
         TextureUsage usage,
         std::uint32_t index,
         GLuint id);
