@@ -14,7 +14,9 @@
 #include "core/error_handling.h"
 #include "graphics/opengl/opengl.h"
 #include "graphics/opengl/opengl_cube_map.h"
+#include "graphics/opengl/opengl_sampler.h"
 #include "graphics/opengl/opengl_texture.h"
+#include "graphics/sampler.h"
 #include "graphics/texture_manager.h"
 #include "graphics/texture_usage.h"
 
@@ -50,10 +52,11 @@ std::unique_ptr<Texture> OpenGLTextureManager::do_create(
     const DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
+    const Sampler *sampler,
     TextureUsage usage,
     std::uint32_t index)
 {
-    return std::make_unique<OpenGLTexture>(data, width, height, usage, index, next_id());
+    return std::make_unique<OpenGLTexture>(data, width, height, sampler, usage, index, next_id());
 }
 
 std::unique_ptr<CubeMap> OpenGLTextureManager::do_create(
@@ -65,10 +68,16 @@ std::unique_ptr<CubeMap> OpenGLTextureManager::do_create(
     const DataBuffer &far_data,
     std::uint32_t width,
     std::uint32_t height,
+    const Sampler *sampler,
     std::uint32_t index)
 {
     return std::make_unique<OpenGLCubeMap>(
-        right_data, left_data, top_data, bottom_data, near_data, far_data, width, height, index, next_id());
+        right_data, left_data, top_data, bottom_data, near_data, far_data, width, height, sampler, index, next_id());
+}
+
+std::unique_ptr<Sampler> OpenGLTextureManager::do_create(const SamplerDescriptor &descriptor, std::uint32_t index)
+{
+    return std::make_unique<OpenGLSampler>(descriptor, index);
 }
 
 void OpenGLTextureManager::destroy(Texture *texture)

@@ -11,6 +11,7 @@
 
 #include "core/data_buffer.h"
 #include "graphics/cube_map.h"
+#include "graphics/sampler.h"
 #include "graphics/texture.h"
 #include "graphics/texture_manager.h"
 #include "graphics/texture_usage.h"
@@ -39,6 +40,9 @@ class D3D12TextureManager : public TextureManager
      * @param height
      *   Height of image.
      *
+     * @param sampler
+     *   Sampler to use for this texture.
+     *
      * @param usage
      *   Usage of the texture.
      *
@@ -52,6 +56,7 @@ class D3D12TextureManager : public TextureManager
         const DataBuffer &data,
         std::uint32_t width,
         std::uint32_t height,
+        const Sampler *sampler,
         TextureUsage usage,
         std::uint32_t index) override;
 
@@ -85,6 +90,9 @@ class D3D12TextureManager : public TextureManager
      * @param height
      *   Height of each image face.
      *
+     * @param sampler
+     *   Sampler to use for this texture.
+     *
      * @param index
      *   Index into the global array of all allocated textures.
      *
@@ -100,7 +108,10 @@ class D3D12TextureManager : public TextureManager
         const DataBuffer &far_data,
         std::uint32_t width,
         std::uint32_t height,
+        const Sampler *sampler,
         std::uint32_t index) override;
+
+    std::unique_ptr<Sampler> do_create(const SamplerDescriptor &descriptor, std::uint32_t index) override;
 };
 
 }

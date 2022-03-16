@@ -10,11 +10,13 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "core/colour.h"
 #include "core/data_buffer.h"
 #include "graphics/cube_map.h"
+#include "graphics/sampler.h"
 #include "graphics/texture.h"
 #include "graphics/texture_usage.h"
 
@@ -42,12 +44,18 @@ class TextureManager
      *
      * @param usage
      *   The usage of the texture. Default is IMAGE i.e. something that will be rendered. If Texture represents
-     * something like a normal or height map the DATA should be used.
+     *   something like a normal or height map the DATA should be used.
+     *
+     * @param sampler
+     *   Sampler to sue for texture, if nullptr the default sampler will be used.
      *
      * @returns
      *   Pointer to loaded texture.
      */
-    Texture *load(const std::string &resource, TextureUsage usage = TextureUsage::IMAGE);
+    Texture *load(
+        const std::string &resource,
+        TextureUsage usage = TextureUsage::IMAGE,
+        const Sampler *sampler = nullptr);
 
     /**
      * Load a CubeMap from the supplied file. Will use ResourceManager.
@@ -73,6 +81,9 @@ class TextureManager
      * @param front_resource
      *   File to load for front face of cube.
      *
+     * @param sampler
+     *   Sampler to sue for texture, if nullptr the default sampler will be used.
+     *
      * @returns
      *   Pointer to loaded CubeMap.
      */
@@ -82,7 +93,8 @@ class TextureManager
         const std::string &top_resource,
         const std::string &bottom_resource,
         const std::string &back_resource,
-        const std::string &front_resource);
+        const std::string &front_resource,
+        const Sampler *sampler = nullptr);
 
     /**
      * Create a texture from a DataBuffer.
@@ -99,10 +111,18 @@ class TextureManager
      * @param usage
      *   The usage of the texture.
      *
+     * @param sampler
+     *   Sampler to sue for texture, if nullptr the default sampler will be used.
+     *
      * @returns
      *   Pointer to created texture.
      */
-    Texture *create(const DataBuffer &data, std::uint32_t width, std::uint32_t height, TextureUsage usage);
+    Texture *create(
+        const DataBuffer &data,
+        std::uint32_t width,
+        std::uint32_t height,
+        TextureUsage usage,
+        const Sampler *sampler = nullptr);
 
     /**
      * Create a CubeMap from six DataBuffers (one for each face).
@@ -134,6 +154,9 @@ class TextureManager
      * @param height
      *   Height of each image face.
      *
+     * @param sampler
+     *   Sampler to sue for texture, if nullptr the default sampler will be used.
+     *
      * @returns
      *   Pointer to created CubeMap.
      */
@@ -145,7 +168,8 @@ class TextureManager
         const DataBuffer &near_data,
         const DataBuffer &far_data,
         std::uint32_t width,
-        std::uint32_t height);
+        std::uint32_t height,
+        const Sampler *sampler = nullptr);
 
     /**
      * Create a CubeMap with a vertical gradient.
@@ -162,10 +186,29 @@ class TextureManager
      * @param height
      *   Height of each image face.
      *
+     * @param sampler
+     *   Sampler to sue for texture, if nullptr the default sampler will be used.
+     *
      * @returns
      *   Pointer to created CubeMap.
      */
-    CubeMap *create(const Colour &start, const Colour &end, std::uint32_t width, std::uint32_t height);
+    CubeMap *create(
+        const Colour &start,
+        const Colour &end,
+        std::uint32_t width,
+        std::uint32_t height,
+        const Sampler *sampler = nullptr);
+
+    /**
+     * Create a Sampler.
+     *
+     * @param descriptor
+     *   Description of sampler.
+     *
+     * @returns
+     *   Pointer to created Sampler.
+     */
+    Sampler *create(const SamplerDescriptor &descriptor);
 
     /**
      * Unloaded the supplied texture (if there are no other references to it).
@@ -196,6 +239,20 @@ class TextureManager
     void unload(CubeMap *cube_map);
 
     /**
+     * Unloaded the supplied Sampler (if there are no other references to it).
+     *
+     * Normally we would want samplers to stay loaded to avoid excess loads. However in some cases it may be necessary
+     * to unload a sampler (if we know we don't want to use it again).
+     *
+     * This function decrements an internal reference count and will only actually unload if that reference count
+     * reaches 0.
+     *
+     * @param sampler
+     *   Sampler to unload.
+     */
+    void unload(Sampler *sampler);
+
+    /**
      * Get a blank 1x1 white texture
      *
      * @returns
@@ -210,6 +267,22 @@ class TextureManager
      *   Blank cube map.
      */
     CubeMap *blank_cube_map();
+
+    /**
+     * Default sampler to use for textures.
+     *
+     * @returns
+     *   Default sampler.
+     */
+    Sampler *default_texture_sampler();
+
+    /**
+     * Default sampler to use for cube maps.
+     *
+     * @returns
+     *   Default sampler.
+     */
+    Sampler *default_cube_map_sampler();
 
     /**
      * Get the next available index for a new texture.
@@ -228,6 +301,14 @@ class TextureManager
     std::uint32_t next_cube_map_index();
 
     /**
+     * Get the next available index for a new sampler.
+     *
+     * @returns
+     *   Next available index.
+     */
+    std::uint32_t next_sampler_index();
+
+    /**
      * Get a copy of all Texture pointers (sorted by index).
      *
      * @return
@@ -243,6 +324,14 @@ class TextureManager
      */
     std::vector<const CubeMap *> cube_maps() const;
 
+    /**
+     * Get a copy of all Sampler pointers (sorted by index).
+     *
+     * @return
+     *   All Sampler pointers.
+     */
+    std::vector<const Sampler *> samplers() const;
+
   protected:
     /**
      * Create a Texture object with the provided data.
@@ -255,6 +344,9 @@ class TextureManager
      *
      * @param height
      *   Height of image.
+     *
+     * @param sampler
+     *   Sampler to use for this texture.
      *
      * @param usage
      *   Usage of the texture.
@@ -269,6 +361,7 @@ class TextureManager
         const DataBuffer &data,
         std::uint32_t width,
         std::uint32_t height,
+        const Sampler *sampler,
         TextureUsage usage,
         std::uint32_t index) = 0;
 
@@ -302,6 +395,9 @@ class TextureManager
      * @param height
      *   Height of each image face.
      *
+     * @param sampler
+     *   Sampler to use for this texture.
+     *
      * @param index
      *   Index into the global array of all allocated textures.
      *
@@ -317,7 +413,10 @@ class TextureManager
         const DataBuffer &far_data,
         std::uint32_t width,
         std::uint32_t height,
+        const Sampler *sampler,
         std::uint32_t index) = 0;
+
+    virtual std::unique_ptr<Sampler> do_create(const SamplerDescriptor &descriptor, std::uint32_t index) = 0;
 
     /**
      * Implementers should override this method to provide implementation specific unloading logic. Called automatically
@@ -337,6 +436,15 @@ class TextureManager
      */
     virtual void destroy(CubeMap *cube_map);
 
+    /**
+     * Implementers should override this method to provide implementation specific unloading logic. Called automatically
+     * when a Sampler is being unloaded (after its reference count is zero), default is a no-op.
+     *
+     * @param sampler
+     *  Sampler about to be unloaded.
+     */
+    virtual void destroy(Sampler *sampler);
+
   private:
     /**
      * Support struct to store a loaded Texture and a reference count.
@@ -354,17 +462,26 @@ class TextureManager
     /** Collection of loaded CubeMaps. */
     std::unordered_map<std::string, LoadedAsset<CubeMap>> loaded_cube_maps_;
 
+    /** Collection of loaded Samplers. */
+    std::unordered_map<SamplerDescriptor, LoadedAsset<Sampler>> loaded_samplers_;
+
     /** Next index to use (if free list is empty). */
     std::uint32_t texture_index_counter_;
 
-    /** Collection if returned indices (which will be recycled). */
+    /** Collection of returned indices (which will be recycled). */
     std::vector<std::uint32_t> texture_index_free_list_;
 
     /** Next index to use (if free list is empty). */
     std::uint32_t cube_map_index_counter_;
 
-    /** Collection if returned indices (which will be recycled). */
+    /** Collection of returned indices (which will be recycled). */
     std::vector<std::uint32_t> cube_map_index_free_list_;
+
+    /** Next index to use (if free list is empty). */
+    std::uint32_t sampler_index_counter_;
+
+    /** Collection of returned indices (which will be recycled). */
+    std::vector<std::uint32_t> sampler_index_free_list_;
 };
 
 }
