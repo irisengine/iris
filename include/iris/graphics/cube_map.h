@@ -8,6 +8,8 @@
 
 #include <cstdint>
 
+#include "graphics/sampler.h"
+
 namespace iris
 {
 
@@ -17,8 +19,25 @@ namespace iris
 class CubeMap
 {
   public:
-    explicit CubeMap(std::uint32_t index);
+    /**
+     * Construct a new CubeMap.
+     *
+     * @param sampler
+     *   Sampler to use for this cube map.
+     *
+     * @param index
+     *   Index into the global array of all allocated cube maps.
+     */
+    CubeMap(const Sampler *sampler, std::uint32_t index);
     virtual ~CubeMap() = default;
+
+    /**
+     * Get cube map sampler.
+     *
+     * @returns
+     *   Sampler for cube map`.
+     */
+    const Sampler *sampler() const;
 
     /**
      * Get index into global array of all allocated cube maps.
@@ -32,6 +51,9 @@ class CubeMap
     std::uint32_t index() const;
 
   private:
+    /** Sampler for cube map. */
+    const Sampler *sampler_;
+
     /** Index into the global array of all allocated cube maps. */
     std::uint32_t index_;
 };

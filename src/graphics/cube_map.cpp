@@ -8,17 +8,25 @@
 
 #include <cstdint>
 
+#include "graphics/sampler.h"
+
 namespace iris
 {
 
-CubeMap::CubeMap(std::uint32_t index)
-    : index_(index)
+CubeMap::CubeMap(const Sampler *sampler, std::uint32_t index)
+    : sampler_(sampler)
+    , index_(index)
 {
 }
 
 std::uint32_t CubeMap::index() const
 {
     return index_;
+}
+
+const Sampler *CubeMap::sampler() const
+{
+    return sampler_;
 }
 
 }
