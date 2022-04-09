@@ -10,6 +10,7 @@
 #include <string_view>
 
 #include "core/camera_type.h"
+#include "core/error_handling.h"
 #include "core/matrix4.h"
 #include "core/quaternion.h"
 #include "core/transform.h"
@@ -67,6 +68,8 @@ SingleEntity::SingleEntity(
     , normal_()
     , skeleton_(std::move(skeleton))
 {
+    ensure(mesh != nullptr, "must supply mesh");
+
     normal_ = create_normal_transform(transform_.matrix());
 }
 
