@@ -74,7 +74,7 @@ const Mesh *MeshManager::cube(const Colour &colour)
     return loaded_meshes_[id].get();
 }
 
-std::unique_ptr<Mesh> MeshManager::unique_cube(const Colour &colour)
+std::unique_ptr<Mesh> MeshManager::unique_cube(const Colour &colour) const
 {
     std::vector<VertexData> vertices{
         {{1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, colour, {0.0f, 0.0f, 0.0f}},
@@ -105,6 +105,13 @@ std::unique_ptr<Mesh> MeshManager::unique_cube(const Colour &colour)
     std::vector<std::uint32_t> indices{0,  1,  2,  0,  2,  3,  4,  5,  6,  4,  6,  7,  8,  9,  10, 8,  10, 11,
                                        12, 13, 14, 12, 14, 15, 16, 17, 18, 16, 18, 19, 20, 21, 22, 20, 22, 23};
 
+    return create_mesh(vertices, indices);
+}
+
+std::unique_ptr<Mesh> MeshManager::unique_mesh(
+    const std::vector<iris::VertexData> &vertices,
+    const std::vector<std::uint32_t> &indices) const
+{
     return create_mesh(vertices, indices);
 }
 
