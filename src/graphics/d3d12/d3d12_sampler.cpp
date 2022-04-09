@@ -109,7 +109,7 @@ D3D12_FILTER to_d3d12(const iris::SamplerDescriptor &descriptor)
         (descriptor.magnification_filter == iris::SamplerFilter::LINEAR) &&
         (descriptor.mip_filter == iris::SamplerFilter::LINEAR))
     {
-        return D3D12_FILTER_MIN_MAG_POINT_MIP_LINEAR;
+        return D3D12_FILTER_MIN_MAG_MIP_LINEAR;
     }
 
     throw iris::Exception("unknown filter combination");
