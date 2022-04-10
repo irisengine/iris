@@ -25,6 +25,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/instanced_entity.h
     ${INCLUDE_ROOT}/keyframe.h
     ${INCLUDE_ROOT}/material.h
+    ${INCLUDE_ROOT}/material_cache.h
     ${INCLUDE_ROOT}/mesh.h
     ${INCLUDE_ROOT}/mesh_loader.h
     ${INCLUDE_ROOT}/mesh_manager.h
