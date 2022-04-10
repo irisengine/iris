@@ -35,6 +35,22 @@ class BulletCapsuleCollisionShape : public BulletCollisionShape
     ~BulletCapsuleCollisionShape() override = default;
 
     /**
+     * Get width of capsule.
+     *
+     * @returns
+     *   Capsule diameter.
+     */
+    float width() const;
+
+    /**
+     * Get height of capsule.
+     *
+     * @returns
+     *   Capsule height.
+     */
+    float height() const;
+
+    /**
      * Get a handle to the bullet object.
      *
      * @returns
@@ -45,6 +61,12 @@ class BulletCapsuleCollisionShape : public BulletCollisionShape
   private:
     /** Bullet collision shape. */
     std::unique_ptr<btCapsuleShape> shape_;
+
+    /** Diameter of capsule. */
+    float width_;
+
+    /** Height of capsule. */
+    float height_;
 };
 
 }

@@ -26,11 +26,19 @@ class BulletBoxCollisionShape : public BulletCollisionShape
      * Construct a new BoxCollisionShape
      *
      * @param half_size
-     *   The extends from the center of the box which define its size.
+     *   The extents from the centre of the box which define its size.
      */
     explicit BulletBoxCollisionShape(const Vector3 &half_size);
 
     ~BulletBoxCollisionShape() override = default;
+
+    /**
+     * Get box half size.
+     *
+     * @returns
+     *   The extents from the centre of the box which define its size.
+     */
+    Vector3 half_size() const;
 
     /**
      * Get a handle to the bullet object.
@@ -43,6 +51,9 @@ class BulletBoxCollisionShape : public BulletCollisionShape
   private:
     /** Bullet collision shape. */
     std::unique_ptr<btBoxShape> shape_;
+
+    /** The extents from the centre of the box which define its size. */
+    Vector3 half_size_;
 };
 
 }
