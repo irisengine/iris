@@ -72,6 +72,16 @@ D3D12Context::D3D12Context()
 
     expect(device_.As(&info_queue_) == S_OK, "could not cast device to info queue");
 
+    // hide warnings we don't care about
+    D3D12_MESSAGE_ID hide[] = {
+        D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE,
+        D3D12_MESSAGE_ID_CREATEGRAPHICSPIPELINESTATE_RENDERTARGETVIEW_NOT_SET};
+
+    D3D12_INFO_QUEUE_FILTER filter = {0};
+    filter.DenyList.NumIDs = _countof(hide);
+    filter.DenyList.pIDList = hide;
+    info_queue_->AddStorageFilterEntries(&filter);
+
     // set break on error and warning
     info_queue_->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
     info_queue_->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, TRUE);
