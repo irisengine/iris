@@ -126,7 +126,7 @@ add_subdirectory("samples")
 if(IRIS_BUILD_UNIT_TESTS)
   enable_testing()
   include(CTest)
-  add_subdirectory("tests")
+  #add_subdirectory("tests")
 endif()
 
 include(cmake/cpack.cmake)

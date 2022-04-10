@@ -17,6 +17,7 @@
 #include <graphics/lights/point_light.h>
 #include <graphics/render_entity.h>
 #include <graphics/render_graph/render_graph.h>
+#include <graphics/single_entity.h>
 #include <graphics/window.h>
 #include <physics/character_controller.h>
 #include <physics/physics_system.h>
@@ -94,7 +95,7 @@ class PhysicsSample : public Sample
     std::map<iris::Key, iris::KeyState> key_map_;
 
     /** Collection of render entity and rigid body pairs. */
-    std::vector<std::tuple<iris::RenderEntity *, iris::RigidBody *>> boxes_;
+    std::vector<std::tuple<iris::SingleEntity *, iris::RigidBody *>> boxes_;
 
     /** Character controller. */
     iris::CharacterController *character_controller_;

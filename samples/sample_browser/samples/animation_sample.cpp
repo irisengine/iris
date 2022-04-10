@@ -22,6 +22,7 @@
 #include <graphics/cube_map.h>
 #include <graphics/lights/point_light.h>
 #include <graphics/mesh_manager.h>
+#include <graphics/post_processing_description.h>
 #include <graphics/render_graph/blur_node.h>
 #include <graphics/render_graph/composite_node.h>
 #include <graphics/render_graph/invert_node.h>
@@ -31,6 +32,7 @@
 #include <graphics/render_graph/value_node.h>
 #include <graphics/render_target.h>
 #include <graphics/scene.h>
+#include <graphics/single_entity.h>
 #include <graphics/texture_manager.h>
 #include <graphics/window.h>
 #include <physics/physics_manager.h>
@@ -119,7 +121,7 @@ AnimationSample::AnimationSample(iris::Window *window, iris::RenderTarget *targe
 
     camera_.set_position(camera_.position() + iris::Vector3{0.0f, 5.0f, 0.0f});
 
-    scene_.set_ambient_light({0.1f, 0.1f, 0.1f, 1.0f});
+    scene_.set_ambient_light({0.5f, 0.5f, 0.5f, 1.0f});
 
     auto *floor_graph = scene_.create_render_graph();
 
@@ -127,7 +129,7 @@ AnimationSample::AnimationSample(iris::Window *window, iris::RenderTarget *targe
 
     auto &mesh_manager = iris::Root::mesh_manager();
 
-    scene_.create_entity(
+    scene_.create_entity<iris::SingleEntity>(
         floor_graph,
         mesh_manager.cube({1.0f, 1.0f, 1.0f}),
         iris::Transform{iris::Vector3{0.0f, -500.0f, 0.0f}, {}, iris::Vector3{500.0f}});
@@ -138,7 +140,7 @@ AnimationSample::AnimationSample(iris::Window *window, iris::RenderTarget *targe
 
     render_graph->render_node()->set_colour_input(texture);
 
-    zombie_ = scene_.create_entity(
+    zombie_ = scene_.create_entity<iris::SingleEntity>(
         render_graph,
         mesh_manager.load_mesh("Zombie.fbx"),
         iris::Transform{iris::Vector3{0.0f, 0.0f, 0.0f}, {}, iris::Vector3{0.05f}},
@@ -149,14 +151,10 @@ AnimationSample::AnimationSample(iris::Window *window, iris::RenderTarget *targe
     sky_box_ = iris::Root::texture_manager().create(
         iris::Colour{0.275f, 0.51f, 0.796f}, iris::Colour{0.5f, 0.5f, 0.5f}, 2048u, 2048u);
 
-    debug_mesh_ = mesh_manager.unique_cube({});
-
-    auto *debug_draw = scene_.create_entity(nullptr, debug_mesh_.get(), iris::Vector3{}, iris::PrimitiveType::LINES);
-
     light_ = scene_.create_light<iris::DirectionalLight>(iris::Vector3{-1.0f, -1.0f, 0.0f}, true);
     light_transform_ = iris::Transform{light_->direction(), {}, {1.0f}};
 
-    physics_->enable_debug_draw(debug_draw);
+    physics_->enable_debug_draw(&scene_);
 
     animations_ = {
         "Zombie|ZombieWalk", "Zombie|ZombieBite", "Zombie|ZombieCrawl", "Zombie|ZombieIdle", "Zombie|ZombieRun"};
@@ -171,8 +169,6 @@ AnimationSample::AnimationSample(iris::Window *window, iris::RenderTarget *targe
               {animations_[4], animations_[0], 500ms}},
              animations_.front()}},
         zombie_->skeleton());
-
-    // zombie_->skeleton().set_animation(animations_[animation_]);
 
     // offsets and scales for bones we want to add rigid bodies to, these were
     // all handcrafted
@@ -246,7 +242,6 @@ void AnimationSample::fixed_update()
 
 void AnimationSample::variable_update()
 {
-    // zombie_->skeleton().advance();
     animation_controller_->update();
 
     // update hit boxes
@@ -274,7 +269,6 @@ void AnimationSample::handle_input(const iris::Event &event)
         if ((keyboard.key == iris::Key::SPACE) && (keyboard.state == iris::KeyState::UP))
         {
             animation_ = (animation_ + 1u) % animations_.size();
-            // zombie_->skeleton().set_animation(animations_[animation_]);
             animation_controller_->play(0u, animations_[animation_]);
         }
     }
@@ -290,7 +284,16 @@ void AnimationSample::handle_input(const iris::Event &event)
 
 std::vector<iris::RenderPass> AnimationSample::render_passes()
 {
-    return {{.scene = &scene_, .camera = &camera_, .render_target = target_, .sky_box = sky_box_}};
+    iris::PostProcessingDescription post_processing_description{
+        .ambient_occlusion = {iris::AmbientOcclusion{}},
+    };
+
+    return {
+        {.scene = &scene_,
+         .camera = &camera_,
+         .colour_target = target_,
+         .sky_box = sky_box_,
+         .post_processing_description = post_processing_description}};
 }
 
 std::string AnimationSample::title() const

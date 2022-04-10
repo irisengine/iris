@@ -10,6 +10,7 @@
 
 #include "core/data_buffer.h"
 #include "graphics/cube_map.h"
+#include "graphics/sampler.h"
 
 namespace iris
 {
@@ -59,6 +60,7 @@ class MetalCubeMap : public CubeMap
         const DataBuffer &front_data,
         std::uint32_t width,
         std::uint32_t height,
+        const Sampler *sampler,
         std::uint32_t index);
 
     ~MetalCubeMap() override = default;

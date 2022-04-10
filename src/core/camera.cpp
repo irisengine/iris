@@ -64,7 +64,7 @@ Camera::Camera(CameraType type, std::uint32_t width, std::uint32_t height, std::
     switch (type_)
     {
         case CameraType::PERSPECTIVE:
-            projection_ = Matrix4::make_perspective_projection(0.785398f, width_f, height_f, 1.0f, depth_f);
+            projection_ = Matrix4::make_perspective_projection(0.785398f, width_f, height_f, 0.1f, depth_f);
             break;
         case CameraType::ORTHOGRAPHIC:
             projection_ = Matrix4::make_orthographic_projection(width_f, height_f, depth_f);

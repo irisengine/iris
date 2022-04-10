@@ -26,7 +26,6 @@
 #include "graphics/opengl/opengl_texture.h"
 #include "graphics/opengl/opengl_texture_manager.h"
 #include "graphics/render_entity.h"
-#include "graphics/render_graph/post_processing_node.h"
 #include "graphics/render_graph/sky_box_node.h"
 #include "graphics/render_graph/texture_node.h"
 #include "graphics/render_queue_builder.h"
@@ -193,57 +192,41 @@ OpenGLRenderer::OpenGLRenderer(std::uint32_t width, std::uint32_t height)
     LOG_ENGINE_INFO("render_system", "constructed opengl renderer");
 }
 
-void OpenGLRenderer::set_render_passes(const std::vector<RenderPass> &render_passes)
+void OpenGLRenderer::set_render_passes([[maybe_unused]] const std::vector<RenderPass> &render_passes)
 {
     materials_.clear();
+    render_passes_.clear();
 
-    render_passes_ = render_passes;
+    // for (auto &render_pass : render_passes)
+    //{
+    //    auto &last_pass = render_passes_.emplace_back(render_pass);
+    //    const auto post_processing_passes = post_processing_pipeline_builder_.build(
+    //        render_pass.post_processing_description,
+    //        std::addressof(last_pass),
+    //        width_,
+    //        height_,
+    //        [this](std::uint32_t width, std::uint32_t height) { return create_render_target(width, height); });
 
-    // add a post processing pass
-
-    // find the pass which renders to the screen
-    auto final_pass = std::find_if(std::begin(render_passes_), std::end(render_passes_), [](const RenderPass &pass) {
-        return pass.render_target == nullptr;
-    });
-
-    ensure(final_pass != std::cend(render_passes_), "no final pass");
-
-    // constructed
-    if (post_processing_target_ == nullptr)
-    {
-        post_processing_target_ = create_render_target(width_, height_);
-        post_processing_camera_ = std::make_unique<Camera>(CameraType::ORTHOGRAPHIC, width_, height_);
-    }
-
-    post_processing_scene_ = std::make_unique<Scene>();
-
-    // create a full screen quad which renders the final stage with the post
-    // processing node
-    auto *rg = post_processing_scene_->create_render_graph();
-    rg->set_render_node<PostProcessingNode>(rg->create<TextureNode>(post_processing_target_->colour_texture()));
-    post_processing_scene_->create_entity<SingleEntity>(
-        rg,
-        Root::mesh_manager().sprite({}),
-        Transform({}, {}, {static_cast<float>(width_), static_cast<float>(height_), 1. - 1}));
-
-    // wire up this pass
-    final_pass->render_target = post_processing_target_;
-    render_passes_.push_back({.scene = post_processing_scene_.get(), .camera = post_processing_camera_.get()});
+    //    for (const auto &post_proccesing_pass : post_processing_passes)
+    //    {
+    //        render_passes_.emplace_back(post_proccesing_pass);
+    //    }
+    //}
 
     // build the render queue from the provided passes
 
-    RenderQueueBuilder queue_builder(
-        [this](RenderGraph *render_graph, RenderEntity *, const RenderTarget *, LightType light_type) {
-            if (materials_.count(render_graph) == 0u || materials_[render_graph].count(light_type) == 0u)
-            {
-                materials_[render_graph][light_type] = std::make_unique<OpenGLMaterial>(render_graph, light_type);
-            }
+    // RenderQueueBuilder queue_builder(
+    //    [this](RenderGraph *render_graph, RenderEntity *, const RenderTarget *, LightType light_type, bool, bool) {
+    //        if (materials_.count(render_graph) == 0u || materials_[render_graph].count(light_type) == 0u)
+    //        {
+    //            materials_[render_graph][light_type] = std::make_unique<OpenGLMaterial>(render_graph, light_type);
+    //        }
 
-            return materials_[render_graph][light_type].get();
-        },
-        [this](std::uint32_t width, std::uint32_t height) { return create_render_target(width, height); });
+    //        return materials_[render_graph][light_type].get();
+    //    },
+    //    [this](std::uint32_t width, std::uint32_t height) { return create_render_target(width, height); });
 
-    render_queue_ = queue_builder.build(render_passes_);
+    // render_queue_ = queue_builder.build(render_passes_);
 
     texture_table_ = create_texture_table_ssbo();
     cube_map_table_ = create_cube_map_table_ssbo();
@@ -293,7 +276,7 @@ RenderTarget *OpenGLRenderer::create_render_target(std::uint32_t width, std::uin
 
 void OpenGLRenderer::execute_pass_start(RenderCommand &command)
 {
-    const auto *target = static_cast<const OpenGLRenderTarget *>(command.render_pass()->render_target);
+    const auto *target = static_cast<const OpenGLRenderTarget *>(command.render_pass()->colour_target);
     const auto *camera = command.render_pass()->camera;
 
     // if we have no target then we render to the default framebuffer
@@ -348,7 +331,7 @@ void OpenGLRenderer::execute_draw(RenderCommand &command)
     const auto *light = command.light();
 
     static const OpenGLRenderTarget *previous_target = nullptr;
-    const auto *target = static_cast<const OpenGLRenderTarget *>(command.render_pass()->render_target);
+    const auto *target = static_cast<const OpenGLRenderTarget *>(command.render_pass()->colour_target);
 
     // optimisation, we only call render_setup when the target changes
     if (target != previous_target)

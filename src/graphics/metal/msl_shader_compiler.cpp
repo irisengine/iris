@@ -29,6 +29,7 @@
 #include "graphics/render_graph/texture_node.h"
 #include "graphics/render_graph/value_node.h"
 #include "graphics/render_graph/vertex_node.h"
+#include "graphics/sampler.h"
 #include "graphics/texture.h"
 #include "graphics/vertex_attributes.h"
 
@@ -36,13 +37,13 @@ namespace
 {
 
 /**
- * Helper function to create a variable name for a texture. Always returns the same name for the same texture.
+ * Helper function to create a string loading a texture from the global table.
  *
  * @param texture
- *   Texture to create name for.
+ *   Texture to create string for.
  *
  * @returns
- *   Unique variable name for the texture.
+ *   String loading the texture.
  */
 std::string texture_name(const iris::Texture *texture)
 {
@@ -50,13 +51,13 @@ std::string texture_name(const iris::Texture *texture)
 }
 
 /**
- * Helper function to create a variable name for a cube map. Always returns the same name for the same cube map.
+ * Helper function to create a string loading a cube map from the global table.
  *
  * @param cube_map
- *   Cube map to create name for.
+ *   Cube map to create string for.
  *
  * @returns
- *   Unique variable name for the cube map.
+ *   String loading the cube map.
  */
 std::string cube_map_name(const iris::CubeMap *cube_map)
 {
@@ -64,8 +65,22 @@ std::string cube_map_name(const iris::CubeMap *cube_map)
 }
 
 /**
- * Visit a node if it exists or write out a default value to a stream.
+ * Helper function to create a string loading a sampler from the global table.
  *
+ * @param sampler
+ *   Sampler to create string for.
+ *
+ * @returns
+ *   String loading the sampler.
+ */
+std::string sampler_name(const iris::Sampler *sampler)
+{
+    return "sampler_table[" + std::to_string(sampler->index()) + "].smpl";
+}
+
+/**
+ * Visit a node if it exists or write out a default value to a stream.
+ *1
  * This helper function is a little bit brittle as it assumes the visitor will
  * write to the same stream as the one supplied.
  *
@@ -215,8 +230,9 @@ void MSLShaderCompiler::visit(const RenderNode &node)
                                                    : "normalize(-in.tangent_light_pos.xyz);\n");
 
             *current_stream_ << "float shadow = 0.0;\n";
-            *current_stream_ << "shadow = calculate_shadow(n, in.frag_pos_light_space, light_dir, "
-                                "texture_table[shadow_map_index].texture, shadow_sampler);\n";
+            *current_stream_
+                << "shadow = calculate_shadow(n, in.frag_pos_light_space, light_dir, "
+                   "texture_table[shadow_map_index].texture, sampler_table[shadow_map_sampler_index].smpl);\n";
 
             *current_stream_ << R"(
                 float diff = (1.0 - shadow) * max(dot(n, light_dir), 0.0);
@@ -312,7 +328,8 @@ void MSLShaderCompiler::visit(const SkyBoxNode &node)
     build_fragment_colour(fragment_stream_, node.colour_input(), this);
 
     *current_stream_ << "float3 tex_coords = float3(in.tex.x, in.tex.y, -in.tex.z);\n"
-                     << "return " << cube_map_name(node.sky_box()) << ".sample(sky_box_sampler, tex_coords);\n";
+                     << "return " << cube_map_name(node.sky_box()) << ".sample("
+                     << sampler_name(node.sky_box()->sampler()) << ", tex_coords);\n";
 }
 
 void MSLShaderCompiler::visit(const ColourNode &node)
@@ -324,9 +341,8 @@ void MSLShaderCompiler::visit(const ColourNode &node)
 void MSLShaderCompiler::visit(const TextureNode &node)
 {
     current_functions_->emplace(R"(
-float4 sample_texture(texture2d<float> texture, float2 coord)
+float4 sample_texture(texture2d<float> texture, float2 coord, sampler s)
 {
-    constexpr sampler s(coord::normalized, address::repeat, filter::linear);
     return texture.sample(s, coord);
 }
 )");
@@ -335,12 +351,14 @@ float4 sample_texture(texture2d<float> texture, float2 coord)
 
     if (node.texture()->flip())
     {
-        *current_stream_ << ", float2(uv.x, -uv.y))";
+        *current_stream_ << ", float2(uv.x, -uv.y), ";
     }
     else
     {
-        *current_stream_ << ", uv)";
+        *current_stream_ << ", uv, ";
     }
+
+    *current_stream_ << sampler_name(node.texture()->sampler()) << ")";
 }
 
 void MSLShaderCompiler::visit(const InvertNode &node)
@@ -360,12 +378,14 @@ void MSLShaderCompiler::visit(const BlurNode &node)
 
     if (node.input_node()->texture()->flip())
     {
-        *current_stream_ << ", float2(uv.x, -uv.y))";
+        *current_stream_ << ", float2(uv.x, -uv.y)";
     }
     else
     {
-        *current_stream_ << ", uv)";
+        *current_stream_ << ", uv";
     }
+
+    *current_stream_ << ", " << sampler_name(node.input_node()->texture()->sampler()) << ")";
 }
 
 void MSLShaderCompiler::visit(const CompositeNode &node)
@@ -527,6 +547,7 @@ std::string MSLShaderCompiler::fragment_shader() const
     stream << light_data_struct << '\n';
     stream << texture_struct << '\n';
     stream << cube_map_struct << '\n';
+    stream << sampler_struct << '\n';
 
     for (const auto &function : fragment_functions_)
     {
@@ -541,8 +562,8 @@ fragment float4 fragment_main(
     device Texture *texture_table [[buffer(2)]],
     device CubeMap *cube_map_table [[buffer(3)]],
     constant int &shadow_map_index [[buffer(4)]],
-    sampler shadow_sampler [[sampler(0)]],
-    sampler sky_box_sampler [[sampler(1)]])
+    device Sampler *sampler_table [[buffer(5)]],
+    constant int &shadow_map_sampler_index [[buffer(6)]])
     {
 )";
 
@@ -551,4 +572,5 @@ fragment float4 fragment_main(
 
     return stream.str();
 }
+
 }

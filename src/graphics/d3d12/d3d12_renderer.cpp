@@ -38,7 +38,6 @@
 #include "graphics/d3d12/d3d12_texture.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/render_entity.h"
-#include "graphics/render_graph/post_processing_node.h"
 #include "graphics/render_graph/sky_box_node.h"
 #include "graphics/render_graph/texture_node.h"
 #include "graphics/render_queue_builder.h"
@@ -410,6 +409,7 @@ D3D12Renderer::D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t hei
     , cube_map_table_()
     , sampler_table_()
     , root_signature_()
+    , render_queue_builder_()
 {
     // we will use triple buffering
     const auto num_frames = 3u;
@@ -522,6 +522,39 @@ D3D12Renderer::D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t hei
 
     // close the list so we can start recording to it
     command_list_->Close();
+
+    render_queue_builder_ = std::make_unique<RenderQueueBuilder>(
+        width_,
+        height_,
+        [this](
+            RenderGraph *render_graph,
+            RenderEntity *render_entity,
+            const RenderTarget *target,
+            LightType light_type,
+            bool render_to_normal_target,
+            bool render_to_position_target) {
+            return materials_.try_emplace(
+                render_graph,
+                light_type,
+                render_to_normal_target,
+                render_to_position_target,
+                render_graph,
+                static_cast<const D3D12Mesh *>(render_entity->mesh())->input_descriptors(),
+                render_entity->primitive_type(),
+                light_type,
+                root_signature_.handle(),
+                target == nullptr,
+                render_to_normal_target,
+                render_to_position_target);
+        },
+        [this](std::uint32_t width, std::uint32_t height) { return create_render_target(width, height); },
+        [this](const RenderTarget *colour_target, const RenderTarget *depth_target) {
+            return render_targets_
+                .emplace_back(std::make_unique<D3D12RenderTarget>(
+                    static_cast<const D3D12Texture *>(colour_target->colour_texture()),
+                    static_cast<const D3D12Texture *>(depth_target->depth_texture())))
+                .get();
+        });
 }
 
 D3D12Renderer::~D3D12Renderer()
@@ -544,57 +577,8 @@ void D3D12Renderer::set_render_passes(const std::vector<RenderPass> &render_pass
     materials_.clear();
     render_passes_ = render_passes;
 
-    // add a post processing pass
-
-    // find the pass which renders to the screen
-    auto final_pass = std::find_if(std::begin(render_passes_), std::end(render_passes_), [](const RenderPass &pass) {
-        return pass.render_target == nullptr;
-    });
-
-    ensure(final_pass != std::cend(render_passes_), "no final pass");
-
-    // deferred creating of render target to ensure this class is fully constructed
-    if (post_processing_target_ == nullptr)
-    {
-        post_processing_target_ = create_render_target(width_, height_);
-        post_processing_camera_ = std::make_unique<Camera>(CameraType::ORTHOGRAPHIC, width_, height_);
-    }
-
-    post_processing_scene_ = std::make_unique<Scene>();
-
-    // create a full screen quad which renders the final stage with the post
-    // processing node
-    auto *rg = post_processing_scene_->create_render_graph();
-    rg->set_render_node<PostProcessingNode>(rg->create<TextureNode>(post_processing_target_->colour_texture()));
-    post_processing_scene_->create_entity<SingleEntity>(
-        rg,
-        Root::mesh_manager().sprite({}),
-        Transform({}, {}, {static_cast<float>(width_), static_cast<float>(height_), 1.0}));
-
-    // wire up this pass
-    final_pass->render_target = post_processing_target_;
-    render_passes_.emplace_back(post_processing_scene_.get(), post_processing_camera_.get(), nullptr);
-
     // build the render queue from the provided passes
-
-    RenderQueueBuilder queue_builder(
-        [this](
-            RenderGraph *render_graph, RenderEntity *render_entity, const RenderTarget *target, LightType light_type) {
-            if (materials_.count(render_graph) == 0u || materials_[render_graph].count(light_type) == 0u)
-            {
-                materials_[render_graph][light_type] = std::make_unique<D3D12Material>(
-                    render_graph,
-                    static_cast<const D3D12Mesh *>(render_entity->mesh())->input_descriptors(),
-                    render_entity->primitive_type(),
-                    light_type,
-                    root_signature_.handle(),
-                    target == nullptr);
-            }
-
-            return materials_[render_graph][light_type].get();
-        },
-        [this](std::uint32_t width, std::uint32_t height) { return create_render_target(width, height); });
-    render_queue_ = queue_builder.build(render_passes_);
+    render_queue_ = render_queue_builder_->build(render_passes_);
 
     instance_data_buffers_.clear();
 
@@ -633,6 +617,11 @@ RenderTarget *D3D12Renderer::create_render_target(std::uint32_t width, std::uint
     const auto scale = Root::window_manager().current_window()->screen_scale();
 
     const auto *rt_sampler = Root::texture_manager().create(SamplerDescriptor{
+        .s_address_mode = SamplerAddressMode::CLAMP_TO_EDGE,
+        .t_address_mode = SamplerAddressMode::CLAMP_TO_EDGE,
+        .uses_mips = false});
+
+    const auto *depth_sampler = Root::texture_manager().create(SamplerDescriptor{
         .s_address_mode = SamplerAddressMode::CLAMP_TO_BORDER,
         .t_address_mode = SamplerAddressMode::CLAMP_TO_BORDER,
         .border_colour = Colour{1.0f, 1.0f, 1.0f, 1.0f},
@@ -640,8 +629,8 @@ RenderTarget *D3D12Renderer::create_render_target(std::uint32_t width, std::uint
 
     auto *colour_texture = static_cast<D3D12Texture *>(Root::texture_manager().create(
         DataBuffer{}, width * scale, height * scale, TextureUsage::RENDER_TARGET, rt_sampler));
-    auto *depth_texture = static_cast<D3D12Texture *>(
-        Root::texture_manager().create(DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH, rt_sampler));
+    auto *depth_texture = static_cast<D3D12Texture *>(Root::texture_manager().create(
+        DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH, depth_sampler));
 
     // add these to uploaded so the next render pass doesn't try to upload them
     uploaded_textures_.emplace(colour_texture);
@@ -682,10 +671,13 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
         D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).heap()};
     command_list_->SetDescriptorHeaps(_countof(heaps), heaps);
 
-    D3D12_CPU_DESCRIPTOR_HANDLE rt_handle;
+    std::uint32_t rt_count = 1u;
+    D3D12_CPU_DESCRIPTOR_HANDLE rt_handles[3];
     D3D12_CPU_DESCRIPTOR_HANDLE depth_handle;
 
-    auto *target = static_cast<const D3D12RenderTarget *>(command.render_pass()->render_target);
+    auto *colour_target = static_cast<const D3D12RenderTarget *>(command.render_pass()->colour_target);
+    auto *normal_target = static_cast<const D3D12RenderTarget *>(command.render_pass()->normal_target);
+    auto *position_target = static_cast<const D3D12RenderTarget *>(command.render_pass()->position_target);
 
     const auto scale = Root::window_manager().current_window()->screen_scale();
     auto width = width_ * scale;
@@ -693,9 +685,9 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
 
     auto &frame = frames_[frame_index_];
 
-    if (target == nullptr)
+    if (colour_target == nullptr)
     {
-        rt_handle = frame.render_target.cpu_handle();
+        rt_handles[0] = frame.render_target.cpu_handle();
         depth_handle = frame.depth_buffer->depth_handle().cpu_handle();
 
         // if the current frame is the default render target i.e. not one
@@ -713,29 +705,54 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
     }
     else
     {
-        width = target->width();
-        height = target->height();
+        width = colour_target->width();
+        height = colour_target->height();
 
-        rt_handle = static_cast<const D3D12RenderTarget *>(target)->handle().cpu_handle();
-        depth_handle = static_cast<const D3D12Texture *>(target->depth_texture())->depth_handle().cpu_handle();
+        rt_handles[0] = colour_target->handle().cpu_handle();
+        depth_handle = static_cast<const D3D12Texture *>(colour_target->depth_texture())->depth_handle().cpu_handle();
 
         // if we are rendering to a custom render target we just need to make
         // its depth buffer writable
 
         const auto barrier = ::CD3DX12_RESOURCE_BARRIER::Transition(
-            static_cast<const D3D12Texture *>(target->depth_texture())->resource(),
+            static_cast<const D3D12Texture *>(colour_target->depth_texture())->resource(),
             D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
             D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
         command_list_->ResourceBarrier(1u, &barrier);
     }
 
-    // setup and clear render target
-    command_list_->OMSetRenderTargets(1, &rt_handle, FALSE, &depth_handle);
+    if (normal_target != nullptr)
+    {
+        rt_handles[1] = normal_target->handle().cpu_handle();
+        rt_count = 2u;
+    }
+
+    if (position_target != nullptr)
+    {
+        rt_handles[2] = position_target->handle().cpu_handle();
+        rt_count = 3u;
+    }
+
+    command_list_->OMSetRenderTargets(rt_count, rt_handles, FALSE, &depth_handle);
+
     if (command.render_pass()->clear_colour)
     {
         static const Colour clear_colour{0.4f, 0.6f, 0.9f, 1.0f};
-        command_list_->ClearRenderTargetView(rt_handle, reinterpret_cast<const FLOAT *>(&clear_colour), 0, nullptr);
+        command_list_->ClearRenderTargetView(rt_handles[0], reinterpret_cast<const FLOAT *>(&clear_colour), 0, nullptr);
+
+        if (normal_target != nullptr)
+        {
+            static const Colour normal_clear_colour{0.0f, 0.0f, 0.0f, 0.0f};
+            command_list_->ClearRenderTargetView(
+                rt_handles[1], reinterpret_cast<const FLOAT *>(&normal_clear_colour), 0, nullptr);
+        }
+        if (position_target != nullptr)
+        {
+            static const Colour position_clear_colour{0.0f, 0.0f, 0.0f, 0.0f};
+            command_list_->ClearRenderTargetView(
+                rt_handles[2], reinterpret_cast<const FLOAT *>(&position_clear_colour), 0, nullptr);
+        }
     }
     if (command.render_pass()->clear_depth)
     {
@@ -754,7 +771,7 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
 
 void D3D12Renderer::execute_pass_end(RenderCommand &command)
 {
-    const auto *target = static_cast<const D3D12RenderTarget *>(command.render_pass()->render_target);
+    const auto *target = static_cast<const D3D12RenderTarget *>(command.render_pass()->colour_target);
 
     if (target != nullptr)
     {
@@ -800,11 +817,18 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
 
     if (!frame.camera_data_buffers.contains(camera))
     {
-        frame.camera_data_buffers[camera] = std::make_unique<D3D12ConstantBuffer>(frame_index_, 256u);
+        frame.camera_data_buffers[camera] = std::make_unique<D3D12ConstantBuffer>(frame_index_, 512u);
+
+        auto norm_view = Matrix4::transpose(Matrix4::invert(camera->view()));
+        norm_view[3] = 0.0f;
+        norm_view[7] = 0.0f;
+        norm_view[11] = 0.0f;
 
         ConstantBufferWriter writer{*frame.camera_data_buffers[camera]};
         writer.write(directx_translate * camera->projection());
         writer.write(camera->view());
+        writer.write(Matrix4::invert(directx_translate * camera->projection()));
+        writer.write(norm_view);
         writer.write(camera->position());
     }
 

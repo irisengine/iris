@@ -58,7 +58,9 @@ class D3D12Material : public Material
         PrimitiveType primitive_type,
         LightType light_type,
         ID3D12RootSignature *root_signature,
-        bool render_to_swapchain);
+        bool render_to_swapchain,
+        bool render_to_normal_target,
+        bool render_to_position_target);
 
     ~D3D12Material() override = default;
 

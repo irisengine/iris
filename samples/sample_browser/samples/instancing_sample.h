@@ -19,7 +19,6 @@
 #include <graphics/lights/directional_light.h>
 #include <graphics/render_entity.h>
 #include <graphics/render_graph/render_graph.h>
-#include <graphics/single_entity.h>
 #include <graphics/window.h>
 #include <physics/physics_system.h>
 #include <physics/rigid_body.h>
@@ -27,13 +26,13 @@
 #include "sample.h"
 
 /**
- * Sample showcasing animation.
+ * Sample showcasing instancing.
  */
-class AnimationSample : public Sample
+class InstancingSample : public Sample
 {
   public:
     /**
-     * Create a new AnimationSample.
+     * Create a new InstancingSample.
      *
      * @param window
      *   Window to render with.
@@ -41,8 +40,8 @@ class AnimationSample : public Sample
      * @param target
      *   Target to render to.
      */
-    AnimationSample(iris::Window *window, iris::RenderTarget *target);
-    ~AnimationSample() override = default;
+    InstancingSample(iris::Window *window, iris::RenderTarget *target);
+    ~InstancingSample() override = default;
 
     /**
      * Fixed rate update function.
@@ -76,36 +75,16 @@ class AnimationSample : public Sample
     /** Pointer to window. */
     iris::Window *window_;
 
+    iris::PhysicsSystem *ps_;
+
     iris::RenderTarget *target_;
 
     iris::Scene scene_;
 
-    /** Transform for moving light. */
-    iris::Transform light_transform_;
-
-    /** Scene light */
-    iris::DirectionalLight *light_;
+    iris::PointLight *light_;
 
     /** Render camera. */
     iris::Camera camera_;
-
-    /** Physics system */
-    iris::PhysicsSystem *physics_;
-
-    /** Zombie entity. */
-    iris::SingleEntity *zombie_;
-
-    /** Current animation number. */
-    std::size_t animation_;
-
-    /** Collection of animation names. */
-    std::vector<std::string> animations_;
-
-    /** Mapping of bone name to index and rigid body. */
-    std::map<std::string, std::tuple<std::size_t, iris::RigidBody *>> hit_boxes_;
-
-    /** Mapping of bone name to offsets. */
-    std::map<std::string, std::tuple<iris::Vector3, iris::Vector3>> hit_box_data_;
 
     /** User input key map. */
     std::map<iris::Key, iris::KeyState> key_map_;
@@ -113,6 +92,4 @@ class AnimationSample : public Sample
     iris::CubeMap *sky_box_;
 
     std::unique_ptr<iris::Mesh> debug_mesh_;
-
-    std::unique_ptr<iris::AnimationController> animation_controller_;
 };

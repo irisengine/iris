@@ -16,10 +16,12 @@
 #include <core/root.h>
 #include <core/start.h>
 #include <graphics/mesh_manager.h>
+#include <graphics/post_processing_description.h>
 #include <graphics/render_graph/render_graph.h>
 #include <graphics/render_graph/texture_node.h>
 #include <graphics/render_target.h>
 #include <graphics/scene.h>
+#include <graphics/single_entity.h>
 #include <graphics/text_factory.h>
 #include <graphics/texture_manager.h>
 #include <graphics/window.h>
@@ -29,11 +31,12 @@
 #include <stb_image_write.h>
 
 #include "samples/animation_sample.h"
+#include "samples/instancing_sample.h"
 #include "samples/physics_sample.h"
 #include "samples/render_graph_sample.h"
 #include "samples/sample.h"
 
-static constexpr std::size_t sample_count = 3u;
+static constexpr std::size_t sample_count = 4u;
 
 using namespace std::chrono_literals;
 
@@ -46,6 +49,7 @@ std::unique_ptr<Sample> create_sample(iris::Window *window, iris::RenderTarget *
         case 0: sample = std::make_unique<AnimationSample>(window, screen_target); break;
         case 1: sample = std::make_unique<RenderGraphSample>(window, screen_target); break;
         case 2: sample = std::make_unique<PhysicsSample>(window, screen_target); break;
+        case 3: sample = std::make_unique<InstancingSample>(window, screen_target); break;
         default: throw iris::Exception("unknown sample index");
     }
 
@@ -55,6 +59,7 @@ std::unique_ptr<Sample> create_sample(iris::Window *window, iris::RenderTarget *
 void go(int, char **)
 {
     iris::ResourceLoader::instance().set_root_directory("assets");
+    // iris::Root::set_graphics_api("opengl");
 
     auto window = iris::Root::window_manager().create_window(800u, 800u);
     std::size_t sample_number = 0u;
@@ -67,15 +72,22 @@ void go(int, char **)
     auto scene = std::make_unique<iris::Scene>();
     auto *rg = scene->create_render_graph();
     rg->render_node()->set_colour_input(rg->create<iris::TextureNode>(target->colour_texture()));
-    scene->create_entity(
+    scene->create_entity<iris::SingleEntity>(
         rg, iris::Root::mesh_manager().sprite({1.0f, 1.0f, 1.0f}), iris::Transform{{0.0f}, {}, {800.0f, 800.0f, 1.0f}});
 
     auto sample = create_sample(window, target, sample_number % sample_count);
 
-    iris::RenderPass pass{scene.get(), &camera, nullptr};
+    iris::PostProcessingDescription post_processing_description{
+        .bloom = {iris::Bloom{6.0f}},
+        .tone_map = {iris::ToneMap{}},
+        .gamma_correct = {iris::GammaCorrect{}},
+        .anti_aliasing = {iris::AntiAliasing{}}};
+
+    iris::RenderPass pass{
+        .scene = scene.get(), .camera = &camera, .post_processing_description = post_processing_description};
 
     auto passes = sample->render_passes();
-    passes.emplace_back(pass);
+    passes.push_back(pass);
 
     window->set_render_passes(passes);
 
@@ -129,5 +141,5 @@ void go(int, char **)
 
 int main(int argc, char **argv)
 {
-    iris::start(argc, argv, go);
+    iris::start_debug(argc, argv, go);
 }

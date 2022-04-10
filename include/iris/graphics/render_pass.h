@@ -8,6 +8,7 @@
 
 #include "core/camera.h"
 #include "graphics/cube_map.h"
+#include "graphics/post_processing_description.h"
 #include "graphics/render_target.h"
 #include "graphics/scene.h"
 
@@ -32,7 +33,11 @@ struct RenderPass
     const Camera *camera = nullptr;
 
     /** Target to render to. */
-    const RenderTarget *render_target = nullptr;
+    const RenderTarget *colour_target = nullptr;
+
+    const RenderTarget *normal_target = nullptr;
+
+    const RenderTarget *position_target = nullptr;
 
     /** Flag indicating that only depth information should be rendered. */
     bool depth_only = false;
@@ -45,6 +50,8 @@ struct RenderPass
 
     /** Should the depth buffer be cleared before rendering. */
     bool clear_depth = true;
+
+    PostProcessingDescription post_processing_description = PostProcessingDescription{};
 };
 
 }

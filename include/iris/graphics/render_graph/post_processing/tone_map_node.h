@@ -9,6 +9,7 @@
 #include <cstddef>
 
 #include "graphics/render_graph/render_node.h"
+#include "graphics/render_graph/texture_node.h"
 
 namespace iris
 {
@@ -22,18 +23,18 @@ class ShaderCompiler;
  *
  * Note that this is automatically added by the engine.
  */
-class PostProcessingNode : public RenderNode
+class ToneMapNode : public RenderNode
 {
   public:
     /**
-     * Create a new PostProcessingNode.
+     * Create a new ToneMapNode.
      *
      * @param input
      *   Colour input for RenderNide.
      */
-    PostProcessingNode(Node *input);
+    ToneMapNode(TextureNode *input);
 
-    ~PostProcessingNode() override = default;
+    ~ToneMapNode() override = default;
 
     /**
      * Accept a compiler visitor.

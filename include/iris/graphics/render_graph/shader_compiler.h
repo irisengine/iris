@@ -18,7 +18,6 @@ namespace iris
 {
 
 class RenderNode;
-class PostProcessingNode;
 class SkyBoxNode;
 class ColourNode;
 class TextureNode;
@@ -33,6 +32,10 @@ class SinNode;
 template <typename>
 class ValueNode;
 class VertexNode;
+class AmbientOcclusionNode;
+class ToneMapNode;
+class GammaCorrectNode;
+class AntiAliasingNode;
 
 /**
  * Interface for a class that compiles a RenderGraph into API specific shaders.
@@ -45,7 +48,6 @@ class ShaderCompiler
 
     // visitor methods
     virtual void visit(const RenderNode &node) = 0;
-    virtual void visit(const PostProcessingNode &node) = 0;
     virtual void visit(const SkyBoxNode &node) = 0;
     virtual void visit(const ColourNode &node) = 0;
     virtual void visit(const TextureNode &node) = 0;
@@ -61,6 +63,10 @@ class ShaderCompiler
     virtual void visit(const CombineNode &node) = 0;
     virtual void visit(const SinNode &node) = 0;
     virtual void visit(const VertexNode &node) = 0;
+    virtual void visit(const AmbientOcclusionNode &node) = 0;
+    virtual void visit(const ToneMapNode &node) = 0;
+    virtual void visit(const GammaCorrectNode &node) = 0;
+    virtual void visit(const AntiAliasingNode &node) = 0;
 
     /**
      * Get the compiled vertex shader.

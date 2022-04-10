@@ -154,13 +154,7 @@ class MetalRenderer : public Renderer
     std::unordered_map<const RenderGraph *, LightMaterialMap> materials_;
 
     /** The depth buffer for the default frame. */
-    std::unique_ptr<MetalTexture> default_depth_buffer_;
-
-    /** Default sampler for shadow maps. */
-    id<MTLSamplerState> shadow_sampler_;
-
-    /** Default sampler for CubeMaps. */
-    id<MTLSamplerState> sky_box_sampler_;
+    const MetalTexture *default_depth_buffer_;
 
     /** Map of instance data buffers to render entities.  */
     std::unordered_map<const RenderEntity *, std::unique_ptr<MetalConstantBuffer>> instance_data_;
@@ -173,6 +167,8 @@ class MetalRenderer : public Renderer
 
     /** Buffer for bindless cube map table. */
     std::unique_ptr<MetalConstantBuffer> cube_map_table_;
+
+    std::unique_ptr<MetalConstantBuffer> sampler_table_;
 };
 
 }

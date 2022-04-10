@@ -30,6 +30,7 @@
 #include "graphics/metal/metal_material.h"
 #include "graphics/metal/metal_mesh.h"
 #include "graphics/metal/metal_render_target.h"
+#include "graphics/metal/metal_sampler.h"
 #include "graphics/metal/metal_texture.h"
 #include "graphics/render_entity.h"
 #include "graphics/render_graph/post_processing_node.h"
@@ -37,6 +38,7 @@
 #include "graphics/render_graph/texture_node.h"
 #include "graphics/render_queue_builder.h"
 #include "graphics/render_target.h"
+#include "graphics/sampler.h"
 #include "graphics/single_entity.h"
 #include "graphics/texture_manager.h"
 #include "graphics/window.h"
@@ -100,9 +102,9 @@ std::unique_ptr<iris::MetalConstantBuffer> create_texture_table()
 {
     const auto *device = iris::core::utility::metal_device();
 
+    const auto *blank_texture = static_cast<const iris::MetalTexture *>(iris::Root::texture_manager().blank_texture());
     const auto textures = iris::Root::texture_manager().textures();
     const auto max_index = textures.back()->index();
-    const auto *blank_texture = static_cast<const iris::MetalTexture *>(iris::Root::texture_manager().blank_texture());
     auto iter = std::cbegin(textures);
 
     // create descriptor for arguments we want to write
@@ -152,10 +154,10 @@ std::unique_ptr<iris::MetalConstantBuffer> create_cube_map_table()
 {
     const auto *device = iris::core::utility::metal_device();
 
-    const auto cube_maps = iris::Root::texture_manager().cube_maps();
-    const auto max_index = cube_maps.back()->index();
     const auto *blank_cube_map =
         static_cast<const iris::MetalCubeMap *>(iris::Root::texture_manager().blank_cube_map());
+    const auto cube_maps = iris::Root::texture_manager().cube_maps();
+    const auto max_index = cube_maps.back()->index();
     auto iter = std::cbegin(cube_maps);
 
     // create descriptor for arguments we want to write
@@ -195,6 +197,58 @@ std::unique_ptr<iris::MetalConstantBuffer> create_cube_map_table()
     return cube_map_table;
 }
 
+/**
+ * Helper function to build the sampler table - a global GPU buffer of all samplers (used for bindless rendering)
+ *
+ * @returns
+ *   Metal buffer with all loaded samplers.
+ */
+std::unique_ptr<iris::MetalConstantBuffer> create_sampler_table()
+{
+    const auto *device = iris::core::utility::metal_device();
+
+    const auto samplers = iris::Root::texture_manager().samplers();
+    const auto max_index = samplers.back()->index();
+    const auto *default_sampler =
+        static_cast<const iris::MetalSampler *>(iris::Root::texture_manager().default_texture_sampler());
+    auto iter = std::cbegin(samplers);
+
+    // create descriptor for arguments we want to write
+    auto *argument_descriptor = [MTLArgumentDescriptor argumentDescriptor];
+    [argument_descriptor setIndex:0];
+    [argument_descriptor setDataType:MTLDataTypeSampler];
+    [argument_descriptor setAccess:MTLArgumentAccessReadOnly];
+    [argument_descriptor setArrayLength:max_index + 1u];
+
+    auto *argument_descriptors = [NSArray arrayWithObjects:argument_descriptor, nil];
+
+    // create encoder to actually set arguments
+    auto sampler_table_argument_encoder = [device newArgumentEncoderWithArguments:argument_descriptors];
+
+    // create table buffer
+    auto sampler_table =
+        std::make_unique<iris::MetalConstantBuffer>([sampler_table_argument_encoder encodedLength] * (max_index + 1u));
+    [sampler_table_argument_encoder setArgumentBuffer:sampler_table->handle() offset:0];
+
+    for (auto i = 0u; i <= max_index; ++i)
+    {
+        // if a sampler exits at the current index we write it in
+        if (i == (*iter)->index())
+        {
+            const auto *metal_sampler = static_cast<const iris::MetalSampler *>(*iter);
+            [sampler_table_argument_encoder setSamplerState:metal_sampler->handle() atIndex:i];
+            ++iter;
+        }
+        else
+        {
+            // no sampler at current index, so write default sampler
+            [sampler_table_argument_encoder setSamplerState:default_sampler->handle() atIndex:i];
+        }
+    }
+
+    return sampler_table;
+}
+
 }
 
 namespace iris
@@ -216,12 +270,11 @@ MetalRenderer::MetalRenderer(std::uint32_t width, std::uint32_t height)
     , render_targets_()
     , materials_()
     , default_depth_buffer_()
-    , shadow_sampler_()
-    , sky_box_sampler_()
     , instance_data_()
     , camera_data_()
     , texture_table_()
     , cube_map_table_()
+    , sampler_table_()
 {
     const auto *device = iris::core::utility::metal_device();
 
@@ -262,28 +315,12 @@ MetalRenderer::MetalRenderer(std::uint32_t width, std::uint32_t height)
     [[descriptor_ depthAttachment] setLoadAction:MTLLoadActionClear];
     [[descriptor_ depthAttachment] setStoreAction:MTLStoreActionStore];
 
+    const auto *rt_sampler = Root::texture_manager().create(SamplerDescriptor{.uses_mips = false});
+
     // create default depth buffer
-    default_depth_buffer_ = std::make_unique<MetalTexture>(
-        DataBuffer{}, width * 2u, height * 2u, TextureUsage::DEPTH, Root::texture_manager().next_texture_index()),
-
+    default_depth_buffer_ = static_cast<const MetalTexture *>(
+        Root::texture_manager().create(DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH, rt_sampler));
     render_encoder_ = nullptr;
-
-    // create sampler for shadow maps
-    MTLSamplerDescriptor *shadow_sampler_descriptor = [MTLSamplerDescriptor new];
-    shadow_sampler_descriptor.rAddressMode = MTLSamplerAddressModeClampToBorderColor;
-    shadow_sampler_descriptor.sAddressMode = MTLSamplerAddressModeClampToBorderColor;
-    shadow_sampler_descriptor.tAddressMode = MTLSamplerAddressModeClampToBorderColor;
-    shadow_sampler_descriptor.borderColor = MTLSamplerBorderColorOpaqueWhite;
-    shadow_sampler_descriptor.minFilter = MTLSamplerMinMagFilterLinear;
-    shadow_sampler_descriptor.magFilter = MTLSamplerMinMagFilterLinear;
-    shadow_sampler_descriptor.mipFilter = MTLSamplerMipFilterNotMipmapped;
-    shadow_sampler_ = [device newSamplerStateWithDescriptor:shadow_sampler_descriptor];
-
-    // create sampler for sky box
-    MTLSamplerDescriptor *sky_box_sampler_descriptor = [MTLSamplerDescriptor new];
-    sky_box_sampler_descriptor.minFilter = MTLSamplerMinMagFilterNearest;
-    sky_box_sampler_descriptor.magFilter = MTLSamplerMinMagFilterNearest;
-    sky_box_sampler_ = [device newSamplerStateWithDescriptor:sky_box_sampler_descriptor];
 }
 
 MetalRenderer::~MetalRenderer()
@@ -304,9 +341,10 @@ void MetalRenderer::set_render_passes(const std::vector<RenderPass> &render_pass
     // add a post processing pass
 
     // find the pass which renders to the screen
-    auto final_pass = std::find_if(std::begin(render_passes_), std::end(render_passes_), [](const RenderPass &pass) {
-        return pass.render_target == nullptr;
-    });
+    auto final_pass = std::find_if(
+        std::begin(render_passes_),
+        std::end(render_passes_),
+        [](const RenderPass &pass) { return pass.render_target == nullptr; });
 
     ensure(final_pass != std::cend(render_passes_), "no final pass");
 
@@ -336,7 +374,8 @@ void MetalRenderer::set_render_passes(const std::vector<RenderPass> &render_pass
     // build the render queue from the provided passes
 
     RenderQueueBuilder queue_builder(
-        [this](RenderGraph *render_graph, RenderEntity *entity, const RenderTarget *target, LightType light_type) {
+        [this](RenderGraph *render_graph, RenderEntity *entity, const RenderTarget *target, LightType light_type)
+        {
             if (materials_.count(render_graph) == 0u || materials_[render_graph].count(light_type) == 0u)
             {
                 materials_[render_graph][light_type] = std::make_unique<MetalMaterial>(
@@ -378,17 +417,24 @@ void MetalRenderer::set_render_passes(const std::vector<RenderPass> &render_pass
 
     texture_table_ = create_texture_table();
     cube_map_table_ = create_cube_map_table();
+    sampler_table_ = create_sampler_table();
 }
 
 RenderTarget *MetalRenderer::create_render_target(std::uint32_t width, std::uint32_t height)
 {
     const auto scale = Root::window_manager().current_window()->screen_scale();
+    const auto *rt_sampler = Root::texture_manager().create(SamplerDescriptor{.uses_mips = false});
+    const auto *depth_sampler = Root::texture_manager().create(SamplerDescriptor{
+        .uses_mips = false,
+        .s_address_mode = SamplerAddressMode::CLAMP_TO_BORDER,
+        .t_address_mode = SamplerAddressMode::CLAMP_TO_BORDER,
+        .border_colour = Colour{1.0f, 1.0f, 1.0f, 1.0f}});
 
     render_targets_.emplace_back(std::make_unique<MetalRenderTarget>(
-        static_cast<MetalTexture *>(
-            Root::texture_manager().create(DataBuffer{}, width * scale, height * scale, TextureUsage::RENDER_TARGET)),
-        static_cast<MetalTexture *>(
-            Root::texture_manager().create(DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH))));
+        static_cast<MetalTexture *>(Root::texture_manager().create(
+            DataBuffer{}, width * scale, height * scale, TextureUsage::RENDER_TARGET, rt_sampler)),
+        static_cast<MetalTexture *>(Root::texture_manager().create(
+            DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH, depth_sampler))));
 
     return render_targets_.back().get();
 }
@@ -421,7 +467,7 @@ void MetalRenderer::execute_pass_start(RenderCommand &command)
     camera_data_ = std::make_unique<MetalConstantBuffer>(sizeof(Matrix4) + sizeof(Matrix4) + (sizeof(float) * 4u));
 
     ConstantBufferWriter writer{*camera_data_};
-    writer.write(camera->projection());
+    writer.write(metal_translate * camera->projection());
     writer.write(camera->view());
     writer.write(camera->position());
 
@@ -515,16 +561,13 @@ void MetalRenderer::execute_draw(RenderCommand &command)
             const auto *directional_light = static_cast<const iris::DirectionalLight *>(light);
             writer.write(metal_translate * directional_light->shadow_camera().projection());
             writer.write(directional_light->shadow_camera().view());
-
-            if (directional_light->casts_shadows())
-            {
-                // if we are rendering with a shadow casting directional light then pass the index of the shadow map
-                // (into the texture table)
-                const auto index = static_cast<int>(command.shadow_map()->depth_texture()->index());
-                [render_encoder_ setFragmentBytes:&index length:sizeof(index) atIndex:4];
-            }
         }
     }
+
+    const auto shadow_map_index =
+        static_cast<int>((command.shadow_map() == nullptr) ? 0u : command.shadow_map()->depth_texture()->index());
+    const auto shadow_map_sampler_index = static_cast<int>(
+        (command.shadow_map() == nullptr) ? 0u : command.shadow_map()->depth_texture()->sampler()->index());
 
     auto *model_buffer = entity->instance_count() == 1u ? frame.model_data[entity].get() : instance_data_[entity].get();
 
@@ -537,9 +580,9 @@ void MetalRenderer::execute_draw(RenderCommand &command)
     [render_encoder_ setFragmentBuffer:frame.light_data[light]->handle() offset:0 atIndex:1];
     [render_encoder_ setFragmentBuffer:texture_table_->handle() offset:0 atIndex:2];
     [render_encoder_ setFragmentBuffer:cube_map_table_->handle() offset:0 atIndex:3];
-
-    [render_encoder_ setFragmentSamplerState:shadow_sampler_ atIndex:0];
-    [render_encoder_ setFragmentSamplerState:sky_box_sampler_ atIndex:1];
+    [render_encoder_ setFragmentBytes:&shadow_map_index length:sizeof(shadow_map_index) atIndex:4];
+    [render_encoder_ setFragmentBuffer:sampler_table_->handle() offset:0 atIndex:5];
+    [render_encoder_ setFragmentBytes:&shadow_map_sampler_index length:sizeof(shadow_map_sampler_index) atIndex:6];
 
     const auto &vertex_buffer = mesh->vertex_buffer();
     const auto &index_buffer = mesh->index_buffer();

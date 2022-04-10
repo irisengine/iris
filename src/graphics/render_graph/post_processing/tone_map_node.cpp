@@ -4,29 +4,30 @@
 //                 https://www.boost.org/LICENSE_1_0.txt)                     //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "graphics/render_graph/post_processing_node.h"
+#include "graphics/render_graph/post_processing/tone_map_node.h"
 
 #include <cstddef>
 
 #include "graphics/render_graph/shader_compiler.h"
+#include "graphics/render_graph/texture_node.h"
 
 namespace iris
 {
 
-PostProcessingNode::PostProcessingNode(Node *input)
+ToneMapNode::ToneMapNode(TextureNode *input)
     : RenderNode()
 {
     set_colour_input(input);
 }
 
-void PostProcessingNode::accept(ShaderCompiler &compiler) const
+void ToneMapNode::accept(ShaderCompiler &compiler) const
 {
     compiler.visit(*this);
 }
 
-std::size_t PostProcessingNode::hash() const
+std::size_t ToneMapNode::hash() const
 {
-    return combine_hash(colour_input_, "post_processing_node");
+    return combine_hash(colour_input_, "tone_map_node");
 }
 
 }

@@ -20,7 +20,9 @@
 #include "core/macos/macos_ios_utility.h"
 #include "core/resource_loader.h"
 #include "core/vector3.h"
+#include "graphics/sampler.h"
 #include "graphics/texture_usage.h"
+#include "graphics/utils.h"
 #include "log/log.h"
 
 namespace
@@ -127,33 +129,22 @@ MTLTextureDescriptor *depth_texture_descriptor(std::uint32_t width, std::uint32_
     return texture_descriptor;
 }
 
-/**
- * Helper function to create a metal Texture from pixel data.
- *
- * @param data
- *   Raw data of image.
- *
- * @param width
- *   Width of image.
- *
- * @param height
- *   Height of image.
- *
- * @param usage
- *   Texture usage.
- *
- * @returns
- *   Handle to texture.
- */
-id<MTLTexture> create_texture(
-    iris::DataBuffer data,
+}
+
+namespace iris
+{
+
+MetalTexture::MetalTexture(
+    const DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
-    iris::TextureUsage usage)
+    const Sampler *sampler,
+    TextureUsage usage,
+    std::uint32_t index)
+    : Texture(data, width, height, sampler, usage, index)
+    , texture_()
 {
-    auto *data_ptr = data.data();
-
-    iris::DataBuffer padded{};
+    auto *device = iris::core::utility::metal_device();
 
     MTLTextureDescriptor *texture_descriptor = nullptr;
 
@@ -168,39 +159,32 @@ id<MTLTexture> create_texture(
         default: throw iris::Exception("unknown texture usage");
     }
 
-    auto *device = iris::core::utility::metal_device();
+    std::vector<MipLevelData> mip_levels{{.data = data, .width = width_, .height = height_}};
+
+    if (sampler->descriptor().uses_mips)
+    {
+        mip_levels = generate_mip_maps(mip_levels.front());
+    }
+
+    texture_descriptor.mipmapLevelCount = mip_levels.size();
 
     // create new texture
-    auto texture = [device newTextureWithDescriptor:texture_descriptor];
+    texture_ = [device newTextureWithDescriptor:texture_descriptor];
 
     // set data if it was supplied
     if (!data.empty())
     {
-        auto region = MTLRegionMake2D(0, 0, width, height);
-        const auto bytes_per_row = width * 4u;
+        auto index = 0u;
+        for (const auto &[mip_data, mip_width, mip_height] : mip_levels)
+        {
+            auto region = MTLRegionMake2D(0, 0, mip_width, mip_height);
+            const auto bytes_per_row = mip_width * 4u;
 
-        // set image data for texture
-        [texture replaceRegion:region mipmapLevel:0 withBytes:data_ptr bytesPerRow:bytes_per_row];
+            // set image data for texture
+            [texture_ replaceRegion:region mipmapLevel:index withBytes:mip_data.data() bytesPerRow:bytes_per_row];
+            ++index;
+        }
     }
-
-    return texture;
-}
-
-}
-
-namespace iris
-{
-
-MetalTexture::MetalTexture(
-    const DataBuffer &data,
-    std::uint32_t width,
-    std::uint32_t height,
-    TextureUsage usage,
-    std::uint32_t index)
-    : Texture(data, width, height, usage, index)
-    , texture_()
-{
-    texture_ = create_texture(data, width, height, usage);
 
     LOG_ENGINE_INFO("texture", "loaded from data");
 }

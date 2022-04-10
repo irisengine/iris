@@ -11,6 +11,7 @@
 #import <Metal/Metal.h>
 
 #include "core/data_buffer.h"
+#include "graphics/sampler.h"
 #include "graphics/texture.h"
 #include "graphics/texture_usage.h"
 
@@ -45,6 +46,7 @@ class MetalTexture : public Texture
         const DataBuffer &data,
         std::uint32_t width,
         std::uint32_t height,
+        const Sampler *sampler,
         TextureUsage usage,
         std::uint32_t index);
 

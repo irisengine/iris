@@ -18,6 +18,12 @@ namespace iris
 {
 class ShaderCompiler;
 
+enum class UVMode
+{
+    VERTEX_DATA,
+    SCREEN_SPACE
+};
+
 /**
  * Implementation of Node which provides access to a texture. The compiler will
  * sample this texture for the current fragments UV, using this as input to
@@ -32,7 +38,7 @@ class TextureNode : public Node
      * @param texture
      *   Texture to provide access to.
      */
-    TextureNode(const Texture *texture);
+    TextureNode(const Texture *texture, UVMode = UVMode::VERTEX_DATA);
 
     /**
      * Create a new TextureNode.
@@ -46,7 +52,11 @@ class TextureNode : public Node
      * @param sampler
      *   Sampler to use for this texture.
      */
-    TextureNode(const std::string &path, TextureUsage usage = TextureUsage::IMAGE, const Sampler *sampler = nullptr);
+    TextureNode(
+        const std::string &path,
+        TextureUsage usage = TextureUsage::IMAGE,
+        const Sampler *sampler = nullptr,
+        UVMode = UVMode::VERTEX_DATA);
 
     ~TextureNode() override = default;
 
@@ -66,6 +76,8 @@ class TextureNode : public Node
      */
     const Texture *texture() const;
 
+    UVMode uv_mode() const;
+
     /**
      * Compute hash of node.
      *
@@ -77,5 +89,7 @@ class TextureNode : public Node
   private:
     /** Texture. */
     const Texture *texture_;
+
+    UVMode uv_mode_;
 };
 }

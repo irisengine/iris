@@ -18,13 +18,17 @@
 #include <graphics/lights/point_light.h>
 #include <graphics/mesh_manager.h>
 #include <graphics/render_graph/blur_node.h>
+#include <graphics/render_graph/combine_node.h>
 #include <graphics/render_graph/composite_node.h>
 #include <graphics/render_graph/invert_node.h>
 #include <graphics/render_graph/render_graph.h>
 #include <graphics/render_graph/render_node.h>
 #include <graphics/render_graph/texture_node.h>
+#include <graphics/render_graph/value_node.h>
+#include <graphics/render_graph/vertex_node.h>
 #include <graphics/render_target.h>
 #include <graphics/scene.h>
+#include <graphics/single_entity.h>
 #include <graphics/texture_manager.h>
 #include <graphics/window.h>
 
@@ -118,11 +122,35 @@ RenderGraphSample::RenderGraphSample(iris::Window *window, iris::RenderTarget *t
 
     auto &mesh_manager = iris::Root::mesh_manager();
 
-    auto *sphere1 = scene1_.create_entity(
+    auto *sphere1 = scene1_.create_entity<iris::SingleEntity>(
         graph1,
         mesh_manager.load_mesh("sphere.fbx"),
         iris::Transform{
             iris::Vector3{-20.0f, 0.0f, 0.0f},
+            iris::Quaternion({1.0f, 0.0f, 0.0f}, 1.57079632679489661923f),
+            iris::Vector3{10.0f}});
+
+    auto *graph4 = scene1_.create_render_graph();
+    graph4->render_node()->set_colour_input(graph4->create<iris::CombineNode>(
+        graph4->create<iris::VertexNode>(iris::VertexDataType::NORMAL, ".r"),
+        graph4->create<iris::VertexNode>(iris::VertexDataType::NORMAL, ".g"),
+        graph4->create<iris::VertexNode>(iris::VertexDataType::NORMAL, ".b"),
+        graph4->create<iris::ValueNode<float>>(1.0f)));
+
+    auto *sphere3 = scene1_.create_entity<iris::SingleEntity>(
+        graph4,
+        mesh_manager.load_mesh("sphere.fbx"),
+        iris::Transform{iris::Vector3{60.0f, 0.0f, 0.0f}, iris::Quaternion{}, iris::Vector3{10.0f}});
+
+    auto *graph5 = scene1_.create_render_graph();
+    graph5->render_node()->set_colour_input(
+        graph5->create<iris::ValueNode<iris::Colour>>(iris::Colour{100.0f, 0.0f, 0.0f, 1.0f}));
+
+    auto *sphere4 = scene1_.create_entity<iris::SingleEntity>(
+        graph5,
+        mesh_manager.load_mesh("sphere.fbx"),
+        iris::Transform{
+            iris::Vector3{-60.0f, 0.0f, 0.0f},
             iris::Quaternion({1.0f, 0.0f, 0.0f}, 1.57079632679489661923f),
             iris::Vector3{10.0f}});
 
@@ -134,7 +162,7 @@ RenderGraphSample::RenderGraphSample(iris::Window *window, iris::RenderTarget *t
     light2_ = scene2_.create_light<iris::PointLight>(
         iris::Vector3{0.0f, 50.0f, -50.0f}, iris::Colour{100.0f, 100.0f, 100.0f});
 
-    auto *sphere2 = scene2_.create_entity(
+    auto *sphere2 = scene2_.create_entity<iris::SingleEntity>(
         graph2,
         mesh_manager.load_mesh("sphere.fbx"),
         iris::Transform{
@@ -150,7 +178,7 @@ RenderGraphSample::RenderGraphSample(iris::Window *window, iris::RenderTarget *t
         graph3->create<iris::TextureNode>(sphere2_rt_->depth_texture()),
         graph3->create<iris::TextureNode>(sphere1_rt_->depth_texture())));
 
-    scene3_.create_entity(
+    scene3_.create_entity<iris::SingleEntity>(
         graph3, mesh_manager.sprite({}), iris::Transform{iris::Vector3{}, {}, iris::Vector3{800.0f, 800.0f, 1.0f}});
 
     light_transform_ = iris::Transform{light1_->position(), {}, {1.0f}};
@@ -193,9 +221,9 @@ void RenderGraphSample::handle_input(const iris::Event &event)
 std::vector<iris::RenderPass> RenderGraphSample::render_passes()
 {
     return {
-        {.scene = &scene1_, .camera = &camera_, .render_target = sphere1_rt_, .sky_box = sky_box_},
-        {.scene = &scene2_, .camera = &camera_, .render_target = sphere2_rt_, .sky_box = sky_box_},
-        {.scene = &scene3_, .camera = &screen_camera_, .render_target = target_, .sky_box = sky_box_}};
+        {.scene = &scene1_, .camera = &camera_, .colour_target = sphere1_rt_, .sky_box = sky_box_},
+        {.scene = &scene2_, .camera = &camera_, .colour_target = sphere2_rt_, .sky_box = sky_box_},
+        {.scene = &scene3_, .camera = &screen_camera_, .colour_target = target_, .sky_box = sky_box_}};
 }
 
 std::string RenderGraphSample::title() const

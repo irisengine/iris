@@ -257,8 +257,8 @@ std::vector<std::string> Root::registered_jobs_apis_impl() const
 
 void Root::reset_impl()
 {
-    physics_api_managers_.clear();
     graphics_api_managers_.clear();
+    physics_api_managers_.clear();
     jobs_api_managers_.clear();
 }
 

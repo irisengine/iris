@@ -22,7 +22,6 @@ namespace iris
 {
 
 class RenderNode;
-class PostProcessingNode;
 class SkyBoxNode;
 class ColourNode;
 class TextureNode;
@@ -37,6 +36,10 @@ class SinNode;
 template <typename>
 class ValueNode;
 class VertexNode;
+class AmbientOcclusionNode;
+class ToneMapNode;
+class GammaCorrectNode;
+class AntiAliasingNode;
 
 /**
  * Implementation of ShaderCompiler for GLSL.
@@ -59,7 +62,6 @@ class GLSLShaderCompiler : public ShaderCompiler
 
     // visitor methods
     void visit(const RenderNode &node) override;
-    void visit(const PostProcessingNode &node) override;
     void visit(const SkyBoxNode &node) override;
     void visit(const ColourNode &node) override;
     void visit(const TextureNode &node) override;
@@ -75,6 +77,10 @@ class GLSLShaderCompiler : public ShaderCompiler
     void visit(const CombineNode &node) override;
     void visit(const SinNode &node) override;
     void visit(const VertexNode &node) override;
+    void visit(const AmbientOcclusionNode &node) override;
+    void visit(const ToneMapNode &node) override;
+    void visit(const GammaCorrectNode &node) override;
+    void visit(const AntiAliasingNode &node) override;
 
     /**
      * Get the compiled vertex shader.

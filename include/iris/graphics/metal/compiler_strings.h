@@ -97,6 +97,13 @@ struct CubeMap
 };
 )";
 
+static constexpr auto sampler_struct = R"(
+struct Sampler
+{
+    sampler smpl;
+};
+)";
+
 static constexpr auto vertex_begin = R"(
 float4x4 bone_transform = calculate_bone_transform(bone_data, vid, vertices);
 float2 uv = vertices[vid].tex.xy;
@@ -117,10 +124,8 @@ out.tangent_frag_pos = tbn * out.frag_position.xyz;
 )";
 
 static constexpr auto blur_function = R"(
-float4 blur(texture2d<float> texture, float2 tex_coords)
+float4 blur(texture2d<float> texture, float2 tex_coords, sampler s)
 {
-    constexpr sampler s(coord::normalized, address::repeat, filter::linear);
-
     const float offset = 1.0 / 500.0;  
     float2 offsets[9] = {
         float2(-offset,  offset), // top-left

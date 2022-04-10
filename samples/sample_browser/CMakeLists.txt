@@ -2,6 +2,8 @@ add_executable(sample_browser
     main.cpp
     samples/animation_sample.cpp
     samples/animation_sample.h
+    samples/instancing_sample.cpp
+    samples/instancing_sample.h
     samples/physics_sample.cpp
     samples/physics_sample.h
     samples/render_graph_sample.cpp

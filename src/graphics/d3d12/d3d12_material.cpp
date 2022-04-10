@@ -69,6 +69,8 @@ Microsoft::WRL::ComPtr<ID3DBlob> create_shader(const std::string &source, iris::
         throw iris::Exception("shader compile failed: " + error_message);
     }
 
+    LOG_ENGINE_INFO("d3d12_material", "shader created");
+
     return shader;
 }
 
@@ -83,10 +85,12 @@ D3D12Material::D3D12Material(
     PrimitiveType primitive_type,
     LightType light_type,
     ID3D12RootSignature *root_signature,
-    bool render_to_swapchain)
+    bool render_to_swapchain,
+    bool render_to_normal_target,
+    bool render_to_position_target)
     : pso_()
 {
-    HLSLShaderCompiler compiler{render_graph, light_type};
+    HLSLShaderCompiler compiler{render_graph, light_type, render_to_normal_target, render_to_position_target};
     const auto vertex_source = compiler.vertex_shader();
     const auto fragment_source = compiler.fragment_shader();
 
@@ -129,8 +133,10 @@ D3D12Material::D3D12Material(
     descriptor.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
     descriptor.SampleMask = UINT_MAX;
     descriptor.RasterizerState = rasterizer_description;
-    descriptor.NumRenderTargets = 1;
+    descriptor.NumRenderTargets = 3;
     descriptor.RTVFormats[0] = !render_to_swapchain ? DXGI_FORMAT_R16G16B16A16_FLOAT : DXGI_FORMAT_R8G8B8A8_UNORM;
+    descriptor.RTVFormats[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    descriptor.RTVFormats[2] = DXGI_FORMAT_R16G16B16A16_FLOAT;
     descriptor.SampleDesc.Count = 1;
 
     switch (primitive_type)

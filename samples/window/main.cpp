@@ -18,13 +18,13 @@
 #include <iris/events/event.h>
 #include <iris/events/keyboard_event.h>
 #include <iris/graphics/mesh_manager.h>
-#include <iris/graphics/render_entity.h>
 #include <iris/graphics/render_graph/colour_node.h>
 #include <iris/graphics/render_graph/render_graph.h>
 #include <iris/graphics/render_graph/texture_node.h>
 #include <iris/graphics/render_target.h>
 #include <iris/graphics/renderer.h>
 #include <iris/graphics/scene.h>
+#include <iris/graphics/single_entity.h>
 #include <iris/graphics/window.h>
 #include <iris/graphics/window_manager.h>
 
@@ -40,9 +40,7 @@ namespace
  * @param key_map
  *   Map of user pressed keys.
  */
-void update_camera(
-    iris::Camera &camera,
-    const std::map<iris::Key, iris::KeyState> &key_map)
+void update_camera(iris::Camera &camera, const std::map<iris::Key, iris::KeyState> &key_map)
 {
     static auto speed = 2.0f;
     iris::Vector3 velocity{};
@@ -104,21 +102,15 @@ void go(int, char **)
     auto &mesh_manager = iris::Root::mesh_manager();
 
     auto scene = std::make_unique<iris::Scene>();
-    auto *light = scene->create_light<iris::DirectionalLight>(
-        iris::Vector3{-1.0f, -1.0f, 0.0f});
-    auto *e = scene->create_entity(
-        nullptr,
-        mesh_manager.cube(iris::Colour(1.0f, 0.0f, 1.0f)),
-        iris::Transform{{0.5f, 0.0f, 0.0f}, {}, {100.0f}});
+    auto *light = scene->create_light<iris::DirectionalLight>(iris::Vector3{-1.0f, -1.0f, 0.0f});
+    auto *e = scene->create_entity<iris::SingleEntity>(
+        nullptr, mesh_manager.cube(iris::Colour(1.0f, 0.0f, 1.0f)), iris::Transform{{0.5f, 0.0f, 0.0f}, {}, {100.0f}});
 
     auto *rg = scene->create_render_graph();
-    rg->render_node()->set_colour_input(
-        rg->create<iris::TextureNode>("crate.png"));
+    rg->render_node()->set_colour_input(rg->create<iris::TextureNode>("crate.png"));
 
-    scene->create_entity(
-        rg,
-        mesh_manager.cube(iris::Colour(1.0f, 0.0f, 0.0f)),
-        iris::Transform{{100.0f, 100.0f, 0.0f}, {}, {100.0f}});
+    scene->create_entity<iris::SingleEntity>(
+        rg, mesh_manager.cube(iris::Colour(1.0f, 0.0f, 0.0f)), iris::Transform{{100.0f, 100.0f, 0.0f}, {}, {100.0f}});
     scene->set_ambient_light({0.2f, 0.2f, 0.2f, 1.0f});
 
     iris::RenderPass pass1{scene.get(), &camera, nullptr};
@@ -164,8 +156,7 @@ void go(int, char **)
         e->set_orientation({{0.0f, 1.0f, 0.0f}, rot});
 
         light_transform.set_matrix(
-            iris::Matrix4(iris::Quaternion{{0.0f, 1.0f, 0.0f}, -0.01f}) *
-            light_transform.matrix());
+            iris::Matrix4(iris::Quaternion{{0.0f, 1.0f, 0.0f}, -0.01f}) * light_transform.matrix());
         light->set_direction(light_transform.translation());
 
         window->render();
