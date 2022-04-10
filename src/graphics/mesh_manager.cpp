@@ -45,10 +45,10 @@ const Mesh *MeshManager::sprite(const Colour &colour)
     if (loaded_meshes_.count(id) == 0u)
     {
         std::vector<VertexData> vertices{
-            {{-1.0, 1.0, 0.0f}, {}, colour, {0.0f, 1.0f, 0.0f}},
-            {{1.0, 1.0, 0.0f}, {}, colour, {1.0f, 1.0f, 0.0f}},
-            {{1.0, -1.0, 0.0f}, {}, colour, {1.0f, 0.0f, 0.0f}},
-            {{-1.0, -1.0, 0.0f}, {}, colour, {0.0f, 0.0f, 0.0f}}};
+            {{-1.0, 1.0, 0.0f}, {}, colour, {0.0f, 0.0f, 0.0f}},
+            {{1.0, 1.0, 0.0f}, {}, colour, {1.0f, 0.0f, 0.0f}},
+            {{1.0, -1.0, 0.0f}, {}, colour, {1.0f, 1.0f, 0.0f}},
+            {{-1.0, -1.0, 0.0f}, {}, colour, {0.0f, 1.0f, 0.0f}}};
 
         std::vector<std::uint32_t> indices{0, 2, 1, 3, 2, 0};
 

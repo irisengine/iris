@@ -583,16 +583,8 @@ void HLSLShaderCompiler::visit(const BlurNode &node)
     current_functions_->emplace(blur_function);
 
     *current_stream_ << "blur(" << texture_name(node.input_node()->texture()) << ",";
-    if (node.input_node()->texture()->flip())
-    {
-        *current_stream_ << "float2(input.tex_coord.x, 1.0 - input.tex_coord.y), "
-                         << sampler_name(node.input_node()->texture()->sampler()) << ")";
-    }
-    else
-    {
         *current_stream_ << " input.tex_coord, " << sampler_name(node.input_node()->texture()->sampler()) << ")";
     }
-}
 
 void HLSLShaderCompiler::visit(const CompositeNode &node)
 {

@@ -96,22 +96,6 @@ class Texture
     TextureUsage usage() const;
 
     /**
-     * Should a texture be flipped vertically.
-     *
-     * @returns
-     *   Should flip.
-     */
-    bool flip() const;
-
-    /**
-     * Set whether texture should be flipped vertically.
-     *
-     * @param flip
-     *   New flip value.
-     */
-    void set_flip(bool flip);
-
-    /**
      * Get index into global array of all allocated textures.
      *
      * This is most useful for bindless texturing as the texture knows where in the mapped texture table to find itself.
@@ -133,9 +117,6 @@ class Texture
 
     /** Sampler for texture. */
     const Sampler *sampler_;
-
-    /** Should texture be flipped vertically. */
-    bool flip_;
 
     /** Texture usage. */
     TextureUsage usage_;

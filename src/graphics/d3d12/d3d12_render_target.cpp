@@ -23,9 +23,6 @@ D3D12RenderTarget::D3D12RenderTarget(const D3D12Texture *colour_texture, const D
     : RenderTarget(colour_texture, depth_texture)
     , handle_()
 {
-    colour_texture->set_flip(true);
-    depth_texture->set_flip(true);
-
     auto *device = D3D12Context::device();
 
     handle_ = D3D12DescriptorManager::cpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_RTV).allocate_static();

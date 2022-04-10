@@ -310,7 +310,7 @@ LoadedData load(const std::string &mesh_name)
     // parse file using assimp
     ::Assimp::Importer importer{};
     const auto *scene = importer.ReadFileFromMemory(
-        file_data.data(), file_data.size(), ::aiProcess_Triangulate | ::aiProcess_CalcTangentSpace);
+        file_data.data(), file_data.size(), ::aiProcess_Triangulate | ::aiProcess_CalcTangentSpace | aiProcess_FlipUVs);
 
     ensure(
         (scene != nullptr) && !(scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) && (scene->mRootNode != nullptr),

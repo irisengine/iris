@@ -347,15 +347,8 @@ void GLSLShaderCompiler::visit(const TextureNode &node)
 {
     *current_stream_ << "texture(" << texture_name(node.texture());
 
-    if (node.texture()->flip())
-    {
         *current_stream_ << ", vec2(tex_coord.s, 1.0 - tex_coord.t))";
     }
-    else
-    {
-        *current_stream_ << ", tex_coord)";
-    }
-}
 
 void GLSLShaderCompiler::visit(const InvertNode &node)
 {

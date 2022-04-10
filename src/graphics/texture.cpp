@@ -11,7 +11,6 @@
 #include "graphics/sampler.h"
 #include "graphics/texture_usage.h"
 
-
 namespace iris
 {
 
@@ -26,7 +25,6 @@ Texture::Texture(
     , width_(width)
     , height_(height)
     , sampler_(sampler)
-    , flip_(false)
     , usage_(usage)
     , index_(index)
 {
@@ -57,16 +55,6 @@ const Sampler *Texture::sampler() const
 TextureUsage Texture::usage() const
 {
     return usage_;
-}
-
-bool Texture::flip() const
-{
-    return flip_;
-}
-
-void Texture::set_flip(bool flip)
-{
-    flip_ = flip;
 }
 
 std::uint32_t Texture::index() const
