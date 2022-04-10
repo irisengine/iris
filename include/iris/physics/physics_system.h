@@ -14,11 +14,13 @@
 
 #include "core/quaternion.h"
 #include "core/vector3.h"
+#include "graphics/scene.h"
 #include "physics/character_controller.h"
 #include "physics/collision_shape.h"
 #include "physics/contact_point.h"
 #include "physics/ray_cast_result.h"
 #include "physics/rigid_body.h"
+
 
 namespace iris
 {
@@ -241,7 +243,7 @@ class PhysicsSystem
      * @param entity.
      *   The RenderEntity to store debug render data in.
      */
-    virtual void enable_debug_draw(RenderEntity *entity) = 0;
+    virtual void enable_debug_draw(Scene *scene) = 0;
 };
 
 }

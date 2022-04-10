@@ -20,6 +20,7 @@
 
 #include "core/quaternion.h"
 #include "core/vector3.h"
+#include "graphics/scene.h"
 #include "physics/bullet/bullet_collision_shape.h"
 #include "physics/bullet/debug_draw.h"
 #include "physics/character_controller.h"
@@ -227,7 +228,7 @@ class BulletPhysicsSystem : public PhysicsSystem
      * @param entity.
      *   The RenderEntity to store debug render data in.
      */
-    void enable_debug_draw(RenderEntity *entity) override;
+    void enable_debug_draw(Scene *scene) override;
 
   private:
     /** Bullet interface for detecting AABB overlapping pairs. */
@@ -258,7 +259,7 @@ class BulletPhysicsSystem : public PhysicsSystem
     std::vector<std::unique_ptr<CharacterController>> character_controllers_;
 
     /** DebugDraw object. */
-    std::unique_ptr<DebugDraw> debug_draw_;
+    DebugDraw debug_draw_;
 
     /** Collection of collision shapes. */
     std::vector<std::unique_ptr<BulletCollisionShape>> collision_shapes_;

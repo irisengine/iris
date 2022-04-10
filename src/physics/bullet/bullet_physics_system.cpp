@@ -113,7 +113,7 @@ BulletPhysicsSystem::BulletPhysicsSystem()
     , world_(nullptr)
     , bodies_()
     , character_controllers_()
-    , debug_draw_(nullptr)
+    , debug_draw_()
     , collision_shapes_()
     , next_debug_update_(std::chrono::system_clock::now())
 {
@@ -127,7 +127,6 @@ BulletPhysicsSystem::BulletPhysicsSystem()
     broadphase_->getOverlappingPairCache()->setInternalGhostPairCallback(ghost_pair_callback_.get());
 
     world_->setGravity({0.0f, -10.0f, 0.0f});
-    debug_draw_ = nullptr;
 }
 
 BulletPhysicsSystem::~BulletPhysicsSystem()
@@ -160,18 +159,7 @@ void BulletPhysicsSystem::step(std::chrono::milliseconds time_step)
     const auto ticks = static_cast<float>(time_step.count());
     world_->stepSimulation(ticks / 1000.0f, 1);
 
-    const auto now = std::chrono::system_clock::now();
-
-    if (debug_draw_ && (now >= next_debug_update_))
-    {
-        // tell bullet to draw debug world
-        world_->debugDrawWorld();
-
-        // now we pass bullet debug information to our render system
-        debug_draw_->render();
-
-        next_debug_update_ = now + 500ms;
-    }
+    debug_draw_.update();
 }
 
 RigidBody *BulletPhysicsSystem::create_rigid_body(
@@ -194,24 +182,35 @@ RigidBody *BulletPhysicsSystem::create_rigid_body(
         world_->addRigidBody(bullet_rigid);
     }
 
+    debug_draw_.register_rigid_body(body);
+
     return body;
 }
 
 const CollisionShape *BulletPhysicsSystem::create_box_collision_shape(const Vector3 &half_size)
 {
-    collision_shapes_.emplace_back(std::make_unique<BulletBoxCollisionShape>(half_size));
-    return collision_shapes_.back().get();
+    const auto &collision_shape = collision_shapes_.emplace_back(std::make_unique<BulletBoxCollisionShape>(half_size));
+    debug_draw_.register_box_collision_shape(static_cast<const BulletBoxCollisionShape *>(collision_shape.get()));
+
+    return collision_shape.get();
 }
 
 const CollisionShape *BulletPhysicsSystem::create_capsule_collision_shape(float width, float height)
 {
-    collision_shapes_.emplace_back(std::make_unique<BulletCapsuleCollisionShape>(width, height));
+    const auto &collision_shape =
+        collision_shapes_.emplace_back(std::make_unique<BulletCapsuleCollisionShape>(width, height));
+    debug_draw_.register_capsule_collision_shape(
+        static_cast<const BulletCapsuleCollisionShape *>(collision_shape.get()));
+
     return collision_shapes_.back().get();
 }
 
 const CollisionShape *BulletPhysicsSystem::create_mesh_collision_shape(const Mesh *mesh, const Vector3 &scale)
 {
-    collision_shapes_.emplace_back(std::make_unique<BulletMeshCollisionShape>(mesh, scale));
+    const auto &collision_shape =
+        collision_shapes_.emplace_back(std::make_unique<BulletMeshCollisionShape>(mesh, scale));
+    debug_draw_.register_mesh_collision_shape(static_cast<const BulletMeshCollisionShape *>(collision_shape.get()));
+
     return collision_shapes_.back().get();
 }
 
@@ -219,7 +218,11 @@ const CollisionShape *BulletPhysicsSystem::create_heightmap_collision_shape(
     const Texture *heightmap,
     const Vector3 &scale)
 {
-    collision_shapes_.emplace_back(std::make_unique<BulletHeightmapCollisionShape>(heightmap, scale));
+    const auto &collision_shape =
+        collision_shapes_.emplace_back(std::make_unique<BulletHeightmapCollisionShape>(heightmap, scale));
+    debug_draw_.register_height_map_collision_shape(
+        static_cast<const BulletHeightmapCollisionShape *>(collision_shape.get()));
+
     return collision_shapes_.back().get();
 }
 
@@ -363,16 +366,9 @@ void BulletPhysicsSystem::load(const PhysicsState *state)
     }
 }
 
-void BulletPhysicsSystem::enable_debug_draw(RenderEntity *entity)
+void BulletPhysicsSystem::enable_debug_draw(Scene *scene)
 {
-    expect(!debug_draw_, "debug draw already enabled");
-
-    // create debug drawer, only draw wireframe as that's what we support
-    debug_draw_ = std::make_unique<DebugDraw>(entity);
-    debug_draw_->setDebugMode(
-        btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawConstraints | btIDebugDraw::DBG_DrawConstraintLimits);
-
-    world_->setDebugDrawer(debug_draw_.get());
+    debug_draw_.set_scene(scene);
 }
 
 }
