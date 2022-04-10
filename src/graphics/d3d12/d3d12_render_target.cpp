@@ -19,7 +19,7 @@
 namespace iris
 {
 
-D3D12RenderTarget::D3D12RenderTarget(D3D12Texture *colour_texture, D3D12Texture *depth_texture)
+D3D12RenderTarget::D3D12RenderTarget(const D3D12Texture *colour_texture, const D3D12Texture *depth_texture)
     : RenderTarget(colour_texture, depth_texture)
     , handle_()
 {
