@@ -26,6 +26,10 @@ target_include_directories(
   iris SYSTEM
   PRIVATE ${stb_SOURCE_DIR} ${bullet_SOURCE_DIR}/src ${lua_SOURCE_DIR})
 
+target_include_directories(
+  iris SYSTEM
+  PRIVATE ${PROJECT_BINARY_DIR}/shaders)
+
 # lua does not use cmake, so we build it as a separate library
 add_library(lua STATIC ${lua_SOURCE_DIR}/onelua.c)
 target_compile_definitions(lua PRIVATE MAKE_LIB)
@@ -68,7 +72,7 @@ endif()
 message(STATUS "Building iris-${CMAKE_PROJECT_VERSION} for ${IRIS_PLATFORM})")
 
 if(IRIS_PLATFORM MATCHES "WIN32")
-  target_link_libraries(iris PUBLIC BulletDynamics BulletCollision LinearMath assimp lua)
+  target_link_libraries(iris PUBLIC BulletDynamics BulletCollision LinearMath assimp lua inja)
 
   # on windows SYSTEM includes do not prevent warnings - so we add bullet using
   # the /external flag
@@ -79,6 +83,7 @@ if(IRIS_PLATFORM MATCHES "WIN32")
 
   set_target_properties(iris PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
   set_target_properties(assimp PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
+  set_target_properties(inja PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
   set_target_properties(LinearMath PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
   set_target_properties(BulletDynamics PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
   set_target_properties(BulletCollision PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
@@ -92,6 +97,7 @@ if(IRIS_PLATFORM MATCHES "WIN32")
             BulletDynamics
             BulletCollision
             assimp
+            inja
             zlibstatic
             IrrXML
             DirectX-Headers
@@ -101,21 +107,21 @@ if(IRIS_PLATFORM MATCHES "WIN32")
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 elseif(IRIS_PLATFORM MATCHES "LINUX")
-  target_link_libraries(iris PUBLIC BulletDynamics BulletCollision LinearMath assimp GL Xfixes X11 pthread lua)
+  target_link_libraries(iris PUBLIC BulletDynamics BulletCollision LinearMath assimp inja GL Xfixes X11 pthread lua)
   target_compile_options(iris PRIVATE -Wall -Werror)
 
   install(
-    TARGETS iris assimp zlibstatic IrrXML BulletDynamics BulletCollision LinearMath lua
+    TARGETS iris assimp inja zlibstatic IrrXML BulletDynamics BulletCollision LinearMath lua
     EXPORT iris-targets
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 else()
-  target_link_libraries(iris PUBLIC BulletDynamics BulletCollision LinearMath assimp lua)
+  target_link_libraries(iris PUBLIC BulletDynamics BulletCollision LinearMath assimp inja lua)
   target_compile_options(iris PRIVATE -Wall -Werror -pedantic -glldb -fobjc-arc)
 
   install(
-    TARGETS iris assimp zlibstatic IrrXML BulletDynamics BulletCollision LinearMath lua
+    TARGETS iris assimp inja zlibstatic IrrXML BulletDynamics BulletCollision LinearMath lua
     EXPORT iris-targets
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

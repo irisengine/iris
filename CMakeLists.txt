@@ -14,6 +14,7 @@ include(GenerateExportHeader)
 # set options for library
 option(IRIS_BUILD_UNIT_TESTS "whether to build unit tests" ON)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 20)
 set(ASM_OPTIONS "-x assembler-with-cpp")
 
@@ -108,6 +109,16 @@ if(NOT googletest_POPULATED)
   add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif()
 
+FetchContent_Declare(
+  inja
+  GIT_REPOSITORY https://github.com/pantor/inja
+  GIT_TAG v3.3.0)
+FetchContent_GetProperties(inja)
+if(NOT inja_POPULATED)
+  FetchContent_Populate(inja)
+  add_subdirectory(${inja_SOURCE_DIR} ${inja_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
+
 if(IRIS_PLATFORM MATCHES "WIN32")
   FetchContent_Declare(
     directx-headers
@@ -120,6 +131,7 @@ if(IRIS_PLATFORM MATCHES "WIN32")
  endif()
 endif()
 
+add_subdirectory("shaders")
 add_subdirectory("src")
 add_subdirectory("samples")
 
