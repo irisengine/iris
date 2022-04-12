@@ -36,6 +36,7 @@ class SinNode;
 template <typename>
 class ValueNode;
 class VertexNode;
+class ColourAdjustNode;
 
 /**
  * Implementation of ShaderCompiler for GLSL.
@@ -73,6 +74,7 @@ class GLSLShaderCompiler : public ShaderCompiler
     void visit(const CombineNode &node) override;
     void visit(const SinNode &node) override;
     void visit(const VertexNode &node) override;
+    void visit(const ColourAdjustNode &node) override;
 
     /**
      * Get the compiled vertex shader.
