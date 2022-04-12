@@ -32,6 +32,7 @@ class SinNode;
 template <typename>
 class ValueNode;
 class VertexNode;
+class AmbientOcclusionNode;
 class ColourAdjustNode;
 class AntiAliasingNode;
 
@@ -61,6 +62,7 @@ class ShaderCompiler
     virtual void visit(const CombineNode &node) = 0;
     virtual void visit(const SinNode &node) = 0;
     virtual void visit(const VertexNode &node) = 0;
+    virtual void visit(const AmbientOcclusionNode &node) = 0;
     virtual void visit(const ColourAdjustNode &node) = 0;
     virtual void visit(const AntiAliasingNode &node) = 0;
 

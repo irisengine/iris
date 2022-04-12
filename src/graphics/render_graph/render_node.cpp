@@ -21,6 +21,7 @@ RenderNode::RenderNode()
     , normal_input_(nullptr)
     , position_input_(nullptr)
     , shadow_map_input_(nullptr)
+    , ambient_occlusion_input_(nullptr)
     , depth_only_(false)
 {
 }
@@ -90,6 +91,16 @@ void RenderNode::set_shadow_map_input(Node *input)
     shadow_map_input_ = input;
 }
 
+Node *RenderNode::ambient_occlusion_input() const
+{
+    return ambient_occlusion_input_;
+}
+
+void RenderNode::set_ambient_occlusion_input(Node *input)
+{
+    ambient_occlusion_input_ = input;
+}
+
 bool RenderNode::is_depth_only() const
 {
     return depth_only_;
@@ -108,6 +119,7 @@ std::size_t RenderNode::hash() const
         normal_input_,
         position_input_,
         shadow_map_input_,
+        ambient_occlusion_input_,
         depth_only_,
         "render_node");
 }

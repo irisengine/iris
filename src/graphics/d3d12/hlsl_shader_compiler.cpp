@@ -12,6 +12,7 @@
 
 #include "core/colour.h"
 #include "core/exception.h"
+#include "core/random.h"
 #include "core/root.h"
 #include "core/vector3.h"
 #include "graphics/lights/lighting_rig.h"
@@ -23,6 +24,7 @@
 #include "graphics/render_graph/composite_node.h"
 #include "graphics/render_graph/conditional_node.h"
 #include "graphics/render_graph/invert_node.h"
+#include "graphics/render_graph/post_processing/ambient_occlusion_node.h"
 #include "graphics/render_graph/post_processing/anti_aliasing_node.h"
 #include "graphics/render_graph/post_processing/colour_adjust_node.h"
 #include "graphics/render_graph/render_node.h"
@@ -430,13 +432,19 @@ PS_OUTPUT main(PSInput input)
     build_fragment_colour(*current_stream_, node.colour_input(), this);
     build_normal(*current_stream_, node.normal_input(), this);
 
+    *current_stream_ << "float ambient_occlusion = ";
+    visit_or_default(*current_stream_, node.ambient_occlusion_input(), this, "1.0f");
+
     *current_stream_ << "float4 out_colour;\n";
 
     // depending on the light type depends on how we interpret the light
     // constant data and how we calculate lighting
     switch (light_type_)
     {
-        case LightType::AMBIENT: *current_stream_ << "return light_colour * fragment_colour;"; break;
+        case LightType::AMBIENT:
+            *current_stream_ << "out_colour = light_colour * fragment_colour * float4(ambient_occlusion, "
+                                "ambient_occlusion, ambient_occlusion, 1.0);\n";
+            break;
         case LightType::DIRECTIONAL:
             *current_stream_ << "float3 light_dir = ";
             *current_stream_
@@ -710,6 +718,128 @@ void HLSLShaderCompiler::visit(const VertexNode &node)
     }
 
     *current_stream_ << node.swizzle().value_or("");
+}
+
+void HLSLShaderCompiler::visit(const AmbientOcclusionNode &node)
+{
+    current_stream_ = &vertex_stream_;
+    current_functions_ = &vertex_functions_;
+
+    // build vertex shader
+
+    *current_stream_ << R"(
+PSInput main(
+    float4 position : TEXCOORD0,
+    float4 normal : TEXCOORD1,
+    float4 colour : TEXCOORD2,
+    float4 tex_coord : TEXCOORD3,
+    float4 tangent : TEXCOORD4,
+    float4 bitangent : TEXCOORD5,
+    uint4 bone_ids : TEXCOORD6,
+    float4 bone_weights : TEXCOORD7,
+    uint instance_id : SV_InstanceID)
+{
+    PSInput result;
+
+    result.position = position;
+    result.tex_coord = tex_coord;
+
+    return result;
+})";
+
+    current_stream_ = &fragment_stream_;
+    current_functions_ = &fragment_functions_;
+
+    current_functions_->emplace(shadow_function);
+
+    // build fragment shader
+
+    *current_stream_ << R"(
+float4 main(PSInput input) : SV_TARGET
+{)";
+
+    build_fragment_colour(*current_stream_, node.colour_input(), this);
+
+    const auto *input_texture = static_cast<const TextureNode *>(node.colour_input())->texture();
+    const auto *normal_texture = node.normal_texture()->texture();
+    const auto *position_texture = node.position_texture()->texture();
+
+    // hard code some random samples
+    *current_stream_ << "float3 samples[] = {\n";
+
+    for (auto i = 0u; i < 64u; ++i)
+    {
+        Vector3 sample{random_float(-1.0f, 1.0f), random_float(-1.0f, 1.0f), random_float(0.0f, 1.0f)};
+        sample.normalise();
+        sample *= random_float(0.0f, 1.0f);
+
+        const auto scale = static_cast<float>(i) / 64.0f;
+        sample *= Vector3::lerp(Vector3(0.1f), Vector3(1.0f), scale * scale);
+
+        *current_stream_ << "float3(" << sample.x << ", " << sample.y << ", " << sample.z << "), ";
+    }
+
+    *current_stream_ << "};\n";
+
+    *current_stream_ << "float3 noise_data[] = {\n";
+
+    // hardcode some random noise
+    for (auto i = 0u; i < 16u; ++i)
+    {
+        *current_stream_ << "float3(" << std::to_string(random_float(-1.0f, 1.0f)) << ", "
+                         << std::to_string(random_float(-1.0f, 1.0f)) << ", "
+                         << "0.0f), ";
+    }
+
+    *current_stream_ << "};\n";
+    *current_stream_ << "float2 size = float2(" << input_texture->width() << ".0f, " << input_texture->height()
+                     << ".0f);\n";
+
+    *current_stream_ << "float2 uv = input.tex_coord.xy;\n";
+    *current_stream_ << "float3 frag_pos = " << texture_name(position_texture) << ".Sample("
+                     << sampler_name(position_texture->sampler()) << ", uv).xyz;\n";
+    *current_stream_ << "float3 normal = normalize(" << texture_name(normal_texture) << ".Sample("
+                     << sampler_name(normal_texture->sampler()) << ", uv).rgb);\n";
+    *current_stream_ << "int kernelSize = " << node.description().sample_count << ";\n";
+    *current_stream_ << "float radius = " << node.description().radius << ";\n";
+    *current_stream_ << "float bias = " << node.description().bias << ";\n";
+    *current_stream_ << R"(
+        // get a random noise value
+        int x = int(uv.x * size.x) % 4;
+        int y = int(uv.y * size.y) % 4;
+        int index = (y * 4) + x;
+        float3 rand = normalize(noise_data[index]);
+
+        float3 tangent = normalize(rand - normal * dot(rand, normal));
+        float3 bitangent = cross(normal, tangent);
+        float3x3 tbn = float3x3(tangent, bitangent, normal);
+
+        float occlusion = 0.0;
+
+    for(int i = 0; i < kernelSize; ++i)
+    {
+        // get sample position
+        float3 samplePos = mul(float4(samples[i], 1.0), tbn); // from tangent to view-space
+        samplePos = frag_pos + samplePos * radius; 
+
+        float4 offset = mul(samplePos , projection);
+        offset.xy /= offset.w;
+        offset.x = offset.x * 0.5f + 0.5f;
+        offset.y = -offset.y * 0.5f + 0.5f;
+
+      )";
+    *current_stream_ << "float sampleDepth = " << texture_name(position_texture) << ".Sample("
+                     << sampler_name(position_texture->sampler()) << ", offset.xy).z;\n";
+    *current_stream_ << R"(
+        // range check & accumulate
+        float rangeCheck = smoothstep(0.0, 1.0, radius / abs(frag_pos.z - sampleDepth));
+        occlusion += (sampleDepth >= samplePos.z + bias ? 1.0 : 0.0) * rangeCheck;           
+    }
+
+    occlusion = 1.0 - (occlusion / kernelSize);
+    
+        return light_colour * fragment_colour * float4(occlusion, occlusion, occlusion, 1.0f);
+    })";
 }
 
 void HLSLShaderCompiler::visit(const ColourAdjustNode &node)

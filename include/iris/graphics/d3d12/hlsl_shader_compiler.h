@@ -35,6 +35,7 @@ class SinNode;
 template <typename>
 class ValueNode;
 class VertexNode;
+class AmbientOcclusionNode;
 class ColourAdjustNode;
 class AntiAliasingNode;
 
@@ -84,6 +85,7 @@ class HLSLShaderCompiler : public ShaderCompiler
     void visit(const CombineNode &node) override;
     void visit(const SinNode &node) override;
     void visit(const VertexNode &node) override;
+    void visit(const AmbientOcclusionNode &node) override;
     void visit(const ColourAdjustNode &node) override;
     void visit(const AntiAliasingNode &node) override;
 
@@ -130,5 +132,9 @@ class HLSLShaderCompiler : public ShaderCompiler
 
     /** Type of light to render with. */
     LightType light_type_;
+
+    bool render_to_normal_target_;
+
+    bool render_to_position_target_;
 };
 }
