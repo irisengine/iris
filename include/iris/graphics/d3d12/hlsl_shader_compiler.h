@@ -36,6 +36,7 @@ template <typename>
 class ValueNode;
 class VertexNode;
 class ColourAdjustNode;
+class AntiAliasingNode;
 
 /**
  * Implementation of ShaderCompiler for HLSL.
@@ -74,6 +75,7 @@ class HLSLShaderCompiler : public ShaderCompiler
     void visit(const SinNode &node) override;
     void visit(const VertexNode &node) override;
     void visit(const ColourAdjustNode &node) override;
+    void visit(const AntiAliasingNode &node) override;
 
     /**
      * Get the compiled vertex shader.
