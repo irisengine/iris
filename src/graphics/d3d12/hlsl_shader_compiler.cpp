@@ -121,38 +121,24 @@ float4 composite(float4 colour1, float4 colour2, float4 depth1, float4 depth2, f
 static constexpr auto blur_function = R"(
 float4 blur(Texture2D tex, float2 tex_coords, SamplerState smpler)
 {
-    const float offset = 1.0 / 500.0;  
-    float2 offsets[9] = {
-        float2(-offset,  offset), // top-left
-        float2( 0.0f,    offset), // top-center
-        float2( offset,  offset), // top-right
-        float2(-offset,  0.0f),   // center-left
-        float2( 0.0f,    0.0f),   // center-center
-        float2( offset,  0.0f),   // center-right
-        float2(-offset, -offset), // bottom-left
-        float2( 0.0f,   -offset), // bottom-center
-        float2( offset, -offset)  // bottom-right    
-    };
+    float offset[5] = {0.0, 1.0, 2.0, 3.0, 4.0};
+    float weight[5] = {0.2270270270, 0.1945945946, 0.1216216216, 0.0540540541, 0.0162162162};
 
-    float k[9] = {
-        1.0 / 16.0, 2.0 / 16.0, 1.0 / 16.0,
-        2.0 / 16.0, 4.0 / 16.0, 2.0 / 16.0,
-        1.0 / 16.0, 2.0 / 16.0, 1.0 / 16.0  
-    };
+    float4 colour = tex.Sample(smpler, tex_coords) * weight[0];
 
-
-    float3 sampleTex[9];
-    for(int i = 0; i < 9; i++)
+    for (int i = 1; i < 5; ++i)
     {
-        sampleTex[i] = tex.Sample(smpler, tex_coords + offsets[i]);
+        colour += tex.Sample(smpler, tex_coords + float2(0.0f, offset[i] / 800.0f)) * weight[i];
+        colour += tex.Sample(smpler, tex_coords - float2(0.0f, offset[i] / 800.0f)) * weight[i];
     }
 
-    float3 col = float3(0.0, 0.0, 0.0);
-    for(int i = 0; i < 9; i++)
+    for (int i = 1; i < 5; ++i)
     {
-        col += sampleTex[i] * k[i];
+        colour += tex.Sample(smpler, tex_coords + float2(offset[i] / 800.0f, 0.0f)) * weight[i];
+        colour += tex.Sample(smpler, tex_coords - float2(offset[i] / 800.0f, 0.0f)) * weight[i];
     }
-    return float4(col, 1.0);
+
+    return colour;
 })";
 
 static constexpr auto shadow_function = R"(
@@ -400,7 +386,7 @@ PSInput main(
 
     if (!render_to_normal_target_ && !render_to_position_target_)
     {
-    *current_stream_ << R"(
+        *current_stream_ << R"(
 float4 main(PSInput input) : SV_TARGET
 {)";
     }
@@ -490,7 +476,7 @@ PS_OUTPUT main(PSInput input)
     if (!render_to_normal_target_ && !render_to_position_target_)
     {
         *current_stream_ << "return out_colour;\n";
-}
+    }
     else
     {
         *current_stream_ << R"(
@@ -524,31 +510,31 @@ void HLSLShaderCompiler::visit(const SkyBoxNode &node)
     // build vertex shader
 
     *current_stream_ << R"(
-PSInput main(
-    float4 position : TEXCOORD0,
-    float4 normal : TEXCOORD1,
-    float4 colour : TEXCOORD2,
-    float4 tex_coord : TEXCOORD3,
-    float4 tangent : TEXCOORD4,
-    float4 bitangent : TEXCOORD5,
-    uint4 bone_ids : TEXCOORD6,
-    float4 bone_weights : TEXCOORD7)
-{
-    PSInput result;
+    PSInput main(
+        float4 position : TEXCOORD0,
+        float4 normal : TEXCOORD1,
+        float4 colour : TEXCOORD2,
+        float4 tex_coord : TEXCOORD3,
+        float4 tangent : TEXCOORD4,
+        float4 bitangent : TEXCOORD5,
+        uint4 bone_ids : TEXCOORD6,
+        float4 bone_weights : TEXCOORD7)
+    {
+        PSInput result;
 
-    float4x4 adj_view = view;
-    adj_view[3][0] = 0.0f;
-    adj_view[3][1] = 0.0f;
-    adj_view[3][2] = 0.0f;
-    adj_view[3][3] = 1.0f;
+        float4x4 adj_view = view;
+        adj_view[3][0] = 0.0f;
+        adj_view[3][1] = 0.0f;
+        adj_view[3][2] = 0.0f;
+        adj_view[3][3] = 1.0f;
 
-    result.normal = position;
-    result.position = mul(position, adj_view);
-    result.position = mul(result.position, projection);
-    result.position = result.position.xyww;
+        result.normal = position;
+        result.position = mul(position, adj_view);
+        result.position = mul(result.position, projection);
+        result.position = result.position.xyww;
 
-    return result;
-})";
+        return result;
+    })";
 
     current_stream_ = &fragment_stream_;
     current_functions_ = &fragment_functions_;
@@ -558,8 +544,8 @@ PSInput main(
     // build fragment shader
 
     *current_stream_ << R"(
-float4 main(PSInput input) : SV_TARGET
-{)";
+    float4 main(PSInput input) : SV_TARGET
+    {)";
 
     build_fragment_colour(*current_stream_, node.colour_input(), this);
 
@@ -581,10 +567,10 @@ void HLSLShaderCompiler::visit(const TextureNode &node)
         {
             *current_stream_ << texture_name(node.texture()) << ".Sample(" << sampler_name(node.texture()->sampler())
                              << ", input.tex_coord)";
-    }
+        }
         break;
         case UVSource::SCREEN_SPACE:
-    {
+        {
             *current_stream_ << texture_name(node.texture()) << ".Sample(" << sampler_name(node.texture()->sampler())
                              << ", input.position.xy * "
                              << "float2(" << 1.0f / node.texture()->width() << "f, " << 1.0f / node.texture()->height()
@@ -609,8 +595,8 @@ void HLSLShaderCompiler::visit(const BlurNode &node)
     current_functions_->emplace(blur_function);
 
     *current_stream_ << "blur(" << texture_name(node.input_node()->texture()) << ",";
-        *current_stream_ << " input.tex_coord, " << sampler_name(node.input_node()->texture()->sampler()) << ")";
-    }
+    *current_stream_ << " input.tex_coord, " << sampler_name(node.input_node()->texture()->sampler()) << ")";
+}
 
 void HLSLShaderCompiler::visit(const CompositeNode &node)
 {
