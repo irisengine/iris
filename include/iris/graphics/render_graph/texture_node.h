@@ -16,12 +16,23 @@
 
 namespace iris
 {
+
 class ShaderCompiler;
 
 /**
- * Implementation of Node which provides access to a texture. The compiler will
- * sample this texture for the current fragments UV, using this as input to
- * another node will produce a four float value (RGBA).
+ * Enumeration of possible sources of UV data.
+ */
+enum class UVSource
+{
+    /** Source from vertex data. */
+    VERTEX_DATA,
+
+    /** Source from screen space of fragment being rendered. */
+    SCREEN_SPACE
+};
+
+/**
+ * Implementation of Node which provides access to a texture.
  */
 class TextureNode : public Node
 {
@@ -31,8 +42,11 @@ class TextureNode : public Node
      *
      * @param texture
      *   Texture to provide access to.
+     *
+     * @param uv_source
+     *   Source of UV data.
      */
-    TextureNode(const Texture *texture);
+    TextureNode(const Texture *texture, UVSource uv_source = UVSource::VERTEX_DATA);
 
     /**
      * Create a new TextureNode.
@@ -46,7 +60,11 @@ class TextureNode : public Node
      * @param sampler
      *   Sampler to use for this texture.
      */
-    TextureNode(const std::string &path, TextureUsage usage = TextureUsage::IMAGE, const Sampler *sampler = nullptr);
+    TextureNode(
+        const std::string &path,
+        TextureUsage usage = TextureUsage::IMAGE,
+        const Sampler *sampler = nullptr,
+        UVSource = UVSource::VERTEX_DATA);
 
     ~TextureNode() override = default;
 
@@ -67,6 +85,14 @@ class TextureNode : public Node
     const Texture *texture() const;
 
     /**
+     * Get source of UV data.
+     *
+     * @returns
+     *   UV data source.
+     */
+    UVSource uv_source() const;
+
+    /**
      * Compute hash of node.
      *
      * @return
@@ -77,5 +103,8 @@ class TextureNode : public Node
   private:
     /** Texture. */
     const Texture *texture_;
+
+    /** Source of UV data. */
+    UVSource uv_source_;
 };
 }

@@ -17,13 +17,15 @@
 namespace iris
 {
 
-TextureNode::TextureNode(const Texture *texture)
+TextureNode::TextureNode(const Texture *texture, UVSource uv_source)
     : texture_(texture)
+    , uv_source_(uv_source)
 {
 }
 
-TextureNode::TextureNode(const std::string &path, TextureUsage usage, const Sampler *sampler)
+TextureNode::TextureNode(const std::string &path, TextureUsage usage, const Sampler *sampler, UVSource uv_source)
     : texture_(Root::texture_manager().load(path, usage, sampler))
+    , uv_source_(uv_source)
 {
 }
 
@@ -37,9 +39,14 @@ const Texture *TextureNode::texture() const
     return texture_;
 }
 
+UVSource TextureNode::uv_source() const
+{
+    return uv_source_;
+}
+
 std::size_t TextureNode::hash() const
 {
-    return combine_hash(reinterpret_cast<std::ptrdiff_t>(texture_), "texture_node");
+    return combine_hash(reinterpret_cast<std::ptrdiff_t>(texture_), uv_source_, "texture_node");
 }
 
 }

@@ -575,15 +575,23 @@ void HLSLShaderCompiler::visit(const ColourNode &node)
 
 void HLSLShaderCompiler::visit(const TextureNode &node)
 {
-    *current_stream_ << texture_name(node.texture()) << ".Sample(" << sampler_name(node.texture()->sampler()) << ",";
-
-    if (node.texture()->flip())
+    switch (node.uv_source())
     {
-        *current_stream_ << "float2(input.tex_coord.x, 1.0 - input.tex_coord.y))";
+        case UVSource::VERTEX_DATA:
+        {
+            *current_stream_ << texture_name(node.texture()) << ".Sample(" << sampler_name(node.texture()->sampler())
+                             << ", input.tex_coord)";
     }
-    else
+        break;
+        case UVSource::SCREEN_SPACE:
     {
-        *current_stream_ << " input.tex_coord)";
+            *current_stream_ << texture_name(node.texture()) << ".Sample(" << sampler_name(node.texture()->sampler())
+                             << ", input.position.xy * "
+                             << "float2(" << 1.0f / node.texture()->width() << "f, " << 1.0f / node.texture()->height()
+                             << "f))\n";
+        }
+        break;
+        default: throw Exception("unknown uv mode");
     }
 }
 
