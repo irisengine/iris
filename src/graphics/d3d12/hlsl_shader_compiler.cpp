@@ -57,6 +57,7 @@ cbuffer CameraData : register(b2)
 {
     matrix projection;
     matrix view;
+    matrix normal_view;
     float4 camera;
 };
 
@@ -83,15 +84,17 @@ static constexpr auto ps_input = R"(
 struct PSInput
 {
     precise float4 position : SV_POSITION;
-    precise float4 vertex_position : POSITION0;
-    precise float4 frag_position : POSITION1;
-    precise float4 tangent_view_pos : POSITION2;
-    precise float4 tangent_frag_pos : POSITION3;
-    precise float4 tangent_light_pos : POSITION4;
-    precise float4 frag_pos_light_space : POSITION5;
-    precise float4 normal : NORMAL;
-    precise float4 colour : COLOR;
     precise float2 tex_coord : TEXCOORD;
+    precise float4 vertex_position : TEXCOORD1;
+    precise float4 frag_position : TEXCOORD2;
+    precise float4 view_position : COLOR1;
+    precise float4 tangent_view_pos : TEXCOORD4;
+    precise float4 tangent_frag_pos : TEXCOORD5;
+    precise float4 tangent_light_pos : TEXCOORD6;
+    precise float4 frag_pos_light_space : TEXCOORD7;
+    precise float4 normal : NORMAL;
+    precise float4 view_normal : NORMAL1;
+    precise float4 colour : COLOR;
 };)";
 
 static constexpr auto invert_function = R"(
@@ -308,7 +311,11 @@ void build_normal(std::stringstream &strm, const iris::Node *normal, iris::HLSLS
 
 namespace iris
 {
-HLSLShaderCompiler::HLSLShaderCompiler(const RenderGraph *render_graph, LightType light_type)
+HLSLShaderCompiler::HLSLShaderCompiler(
+    const RenderGraph *render_graph,
+    LightType light_type,
+    bool render_to_normal_target,
+    bool render_to_position_target)
     : vertex_stream_()
     , fragment_stream_()
     , current_stream_(nullptr)
@@ -316,6 +323,8 @@ HLSLShaderCompiler::HLSLShaderCompiler(const RenderGraph *render_graph, LightTyp
     , fragment_functions_()
     , current_functions_(nullptr)
     , light_type_(light_type)
+    , render_to_normal_target_(render_to_normal_target)
+    , render_to_position_target_(render_to_position_target)
 {
     render_graph->render_node()->accept(*this);
 }
@@ -352,8 +361,17 @@ PSInput main(
 
     PSInput result;
 
-    result.frag_position = mul(position, bone_transform);
+    result.vertex_position = position;
+    result.frag_position = mul(result.vertex_position, bone_transform);
     result.frag_position = mul(result.frag_position, model_data[instance_id].model);
+    result.view_position = mul(result.frag_position, view);
+    result.position = mul(result.view_position, projection);
+
+    result.normal = mul(normal, bone_transform);
+    result.normal = mul(result.normal, model_data[instance_id].normal_matrix);
+    result.view_normal = mul(result.normal, normal_view);
+    result.colour = colour;
+    result.tex_coord = tex_coord;
 
     result.tangent_light_pos = float4(mul(light_position.xyz, tbn), 0.0);
     result.tangent_view_pos = float4(mul(camera.xyz, tbn), 0.0);
@@ -367,13 +385,6 @@ PSInput main(
 )";
     }
     *current_stream_ << R"(
-    result.vertex_position = position;
-    result.position = mul(result.frag_position, view);
-    result.position = mul(result.position, projection);
-    result.normal = mul(normal, bone_transform);
-    result.normal = mul(result.normal, model_data[instance_id].normal_matrix);
-    result.colour = colour;
-    result.tex_coord = tex_coord;
 
     return result;
 })";
@@ -385,12 +396,41 @@ PSInput main(
 
     // build fragment shader
 
+    if (!render_to_normal_target_ && !render_to_position_target_)
+    {
     *current_stream_ << R"(
 float4 main(PSInput input) : SV_TARGET
 {)";
+    }
+    else
+    {
+        *current_stream_ << R"(
+        struct PS_OUTPUT
+        {
+            float4 colour: SV_Target0;
+            )";
+
+        if (render_to_normal_target_)
+        {
+            *current_stream_ << "float4 normal: SV_Target1;\n";
+        }
+
+        if (render_to_position_target_)
+        {
+            *current_stream_ << "float4 position: SV_Target2;\n";
+        }
+
+        *current_stream_ << R"(
+        };
+
+PS_OUTPUT main(PSInput input)
+{)";
+    }
 
     build_fragment_colour(*current_stream_, node.colour_input(), this);
     build_normal(*current_stream_, node.normal_input(), this);
+
+    *current_stream_ << "float4 out_colour;\n";
 
     // depending on the light type depends on how we interpret the light
     // constant data and how we calculate lighting
@@ -412,7 +452,7 @@ float4 main(PSInput input) : SV_TARGET
                 float diff = (1.0 - shadow) * max(dot(n, light_dir), 0.0);
                 float3 diffuse = {diff, diff, diff};
                 
-                return float4(diffuse * fragment_colour, 1.0);
+                out_colour = float4(diffuse * fragment_colour, 1.0);
                 )";
             break;
         case LightType::POINT:
@@ -433,19 +473,39 @@ float4 main(PSInput input) : SV_TARGET
                 float diff = max(dot(n, light_dir), 0.0);
                 float3 diffuse = {diff, diff, diff};
                 
-                return float4(diffuse * light_colour.xyz * fragment_colour.xyz * att, 1.0);
+                out_colour = float4(diffuse * light_colour.xyz * fragment_colour.xyz * att, 1.0);
                 )";
             break;
         default: throw Exception("unknown light type");
     }
 
-    *current_stream_ << "}";
+    if (!render_to_normal_target_ && !render_to_position_target_)
+    {
+        *current_stream_ << "return out_colour;\n";
 }
+    else
+    {
+        *current_stream_ << R"(
+            PS_OUTPUT output;
+            output.colour = out_colour;
+            )";
 
+        if (render_to_normal_target_)
+        {
+            *current_stream_ << "output.normal = float4(normalize(input.view_normal.xyz), 1.0f);\n";
+        }
 
+        if (render_to_position_target_)
+        {
+            *current_stream_ << "output.position = input.view_position;\n";
+        }
 
+        *current_stream_ << R"(
+                return output;
+            )";
+    }
 
-
+    *current_stream_ << "}";
 }
 
 void HLSLShaderCompiler::visit(const SkyBoxNode &node)

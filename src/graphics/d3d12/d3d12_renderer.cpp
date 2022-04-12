@@ -681,10 +681,19 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
         D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER).heap()};
     command_list_->SetDescriptorHeaps(_countof(heaps), heaps);
 
-    D3D12_CPU_DESCRIPTOR_HANDLE rt_handle;
+    // setup the render targets, which are:
+    // - colour
+    // - screen space normals
+    // - screen space positions
+    //
+    // note that they may not all be used
+    std::uint32_t rt_count = 1u;
+    D3D12_CPU_DESCRIPTOR_HANDLE rt_handles[3];
     D3D12_CPU_DESCRIPTOR_HANDLE depth_handle;
 
-    auto *target = static_cast<const D3D12RenderTarget *>(command.render_pass()->render_target);
+    auto *colour_target = static_cast<const D3D12RenderTarget *>(command.render_pass()->colour_target);
+    auto *normal_target = static_cast<const D3D12RenderTarget *>(command.render_pass()->normal_target);
+    auto *position_target = static_cast<const D3D12RenderTarget *>(command.render_pass()->position_target);
 
     const auto scale = Root::window_manager().current_window()->screen_scale();
     auto width = width_ * scale;
@@ -692,9 +701,9 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
 
     auto &frame = frames_[frame_index_];
 
-    if (target == nullptr)
+    if (colour_target == nullptr)
     {
-        rt_handle = frame.render_target.cpu_handle();
+        rt_handles[0] = frame.render_target.cpu_handle();
         depth_handle = frame.depth_buffer->depth_handle().cpu_handle();
 
         // if the current frame is the default render target i.e. not one
@@ -712,29 +721,62 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
     }
     else
     {
-        width = target->width();
-        height = target->height();
+        width = colour_target->width();
+        height = colour_target->height();
 
-        rt_handle = static_cast<const D3D12RenderTarget *>(target)->handle().cpu_handle();
-        depth_handle = static_cast<const D3D12Texture *>(target->depth_texture())->depth_handle().cpu_handle();
+        rt_handles[0] = colour_target->handle().cpu_handle();
+        depth_handle = static_cast<const D3D12Texture *>(colour_target->depth_texture())->depth_handle().cpu_handle();
 
         // if we are rendering to a custom render target we just need to make
         // its depth buffer writable
 
         const auto barrier = ::CD3DX12_RESOURCE_BARRIER::Transition(
-            static_cast<const D3D12Texture *>(target->depth_texture())->resource(),
+            static_cast<const D3D12Texture *>(colour_target->depth_texture())->resource(),
             D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
             D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
         command_list_->ResourceBarrier(1u, &barrier);
     }
 
-    // setup and clear render target
-    command_list_->OMSetRenderTargets(1, &rt_handle, FALSE, &depth_handle);
+    if (normal_target != nullptr)
+    {
+        rt_handles[1] = normal_target->handle().cpu_handle();
+        rt_count = 2u;
+    }
+
+    if (position_target != nullptr)
+    {
+        rt_handles[2] = position_target->handle().cpu_handle();
+        rt_count = 3u;
+    }
+
+    command_list_->OMSetRenderTargets(rt_count, rt_handles, FALSE, &depth_handle);
+
+    // clear any supplied targets
     if (command.render_pass()->clear_colour)
     {
         static const Colour clear_colour{0.4f, 0.6f, 0.9f, 1.0f};
-        command_list_->ClearRenderTargetView(rt_handle, reinterpret_cast<const FLOAT *>(&clear_colour), 0, nullptr);
+        command_list_->ClearRenderTargetView(rt_handles[0], reinterpret_cast<const FLOAT *>(&clear_colour), 0, nullptr);
+
+        // for the extra targets we clear to black
+        // this technically issues a d3d12 warning (which we supress) as clearing to a colour other that the one set
+        // when the resource was created is less efficient, however:
+        //  - for how often we will be doing it we will take the hit on performance
+        //  - it simplifies the code
+
+        if (normal_target != nullptr)
+        {
+            static const Colour normal_clear_colour{0.0f, 0.0f, 0.0f, 0.0f};
+            command_list_->ClearRenderTargetView(
+                rt_handles[1], reinterpret_cast<const FLOAT *>(&normal_clear_colour), 0, nullptr);
+        }
+
+        if (position_target != nullptr)
+        {
+            static const Colour position_clear_colour{0.0f, 0.0f, 0.0f, 0.0f};
+            command_list_->ClearRenderTargetView(
+                rt_handles[2], reinterpret_cast<const FLOAT *>(&position_clear_colour), 0, nullptr);
+        }
     }
     if (command.render_pass()->clear_depth)
     {
@@ -753,7 +795,7 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
 
 void D3D12Renderer::execute_pass_end(RenderCommand &command)
 {
-    const auto *target = static_cast<const D3D12RenderTarget *>(command.render_pass()->render_target);
+    const auto *target = static_cast<const D3D12RenderTarget *>(command.render_pass()->colour_target);
 
     if (target != nullptr)
     {
@@ -799,11 +841,18 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
 
     if (!frame.camera_data_buffers.contains(camera))
     {
-        frame.camera_data_buffers[camera] = std::make_unique<D3D12ConstantBuffer>(frame_index_, 256u);
+        frame.camera_data_buffers[camera] = std::make_unique<D3D12ConstantBuffer>(frame_index_, 512u);
+
+        // calculate view matrix for normals
+        auto normal_view = Matrix4::transpose(Matrix4::invert(camera->view()));
+        normal_view[3] = 0.0f;
+        normal_view[7] = 0.0f;
+        normal_view[11] = 0.0f;
 
         ConstantBufferWriter writer{*frame.camera_data_buffers[camera]};
         writer.write(directx_translate * camera->projection());
         writer.write(camera->view());
+        writer.write(normal_view);
         writer.write(camera->position());
     }
 

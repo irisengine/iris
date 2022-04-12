@@ -52,8 +52,18 @@ class HLSLShaderCompiler : public ShaderCompiler
      *
      * @param light_type
      *   The type of light to render with.
+     *
+     * @param render_to_normal_target
+     *   Flag indicating whether the shader should also write out screen space normals to a render texture.
+     *
+     * @param render_to_position_target
+     *   Flag indicating whether the shader should also write out screen space positions to a render texture.
      */
-    HLSLShaderCompiler(const RenderGraph *render_graph, LightType light_type);
+    HLSLShaderCompiler(
+        const RenderGraph *render_graph,
+        LightType light_type,
+        bool render_to_normal_target,
+        bool render_to_position_target);
 
     ~HLSLShaderCompiler() override = default;
 

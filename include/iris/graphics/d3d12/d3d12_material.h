@@ -49,8 +49,13 @@ class D3D12Material : public Material
      *   The root signature to use for the shaders.
      *
      * @param render_to_swapchain
-     *   True if material will be rendered to the swapchain, false otherwise
-     *   (render target).
+     *   True if material will be rendered to the swapchain, false otherwise (render target).
+     *
+     * @param render_to_normal_target
+     *   Flag indicating whether the material should also write out screen space normals to a render texture.
+     *
+     * @param render_to_position_target
+     *   Flag indicating whether the material should also write out screen space positions to a render texture.
      */
     D3D12Material(
         const RenderGraph *render_graph,
@@ -58,7 +63,9 @@ class D3D12Material : public Material
         PrimitiveType primitive_type,
         LightType light_type,
         ID3D12RootSignature *root_signature,
-        bool render_to_swapchain);
+        bool render_to_swapchain,
+        bool render_to_normal_target,
+        bool render_to_position_target);
 
     ~D3D12Material() override = default;
 

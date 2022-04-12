@@ -32,7 +32,13 @@ struct RenderPass
     const Camera *camera = nullptr;
 
     /** Target to render to. */
-    const RenderTarget *render_target = nullptr;
+    const RenderTarget *colour_target = nullptr;
+
+    /** Optional target to render screen space normals to. */
+    const RenderTarget *normal_target = nullptr;
+
+    /** Optional target to render screen space positions to. */
+    const RenderTarget *position_target = nullptr;
 
     /** Flag indicating that only depth information should be rendered. */
     bool depth_only = false;
