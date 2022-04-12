@@ -29,6 +29,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/mesh.h
     ${INCLUDE_ROOT}/mesh_loader.h
     ${INCLUDE_ROOT}/mesh_manager.h
+    ${INCLUDE_ROOT}/post_processing_description.h
     ${INCLUDE_ROOT}/primitive_type.h
     ${INCLUDE_ROOT}/render_command.h
     ${INCLUDE_ROOT}/render_command_type.h
