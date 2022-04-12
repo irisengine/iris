@@ -38,7 +38,6 @@
 #include "graphics/d3d12/d3d12_texture.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/render_entity.h"
-#include "graphics/render_graph/post_processing_node.h"
 #include "graphics/render_graph/sky_box_node.h"
 #include "graphics/render_graph/texture_node.h"
 #include "graphics/render_queue_builder.h"

@@ -21,7 +21,6 @@ namespace iris
 {
 
 class RenderNode;
-class PostProcessingNode;
 class SkyBoxNode;
 class ColourNode;
 class TextureNode;
@@ -58,7 +57,6 @@ class HLSLShaderCompiler : public ShaderCompiler
 
     // visitor methods
     void visit(const RenderNode &node) override;
-    void visit(const PostProcessingNode &node) override;
     void visit(const SkyBoxNode &node) override;
     void visit(const ColourNode &node) override;
     void visit(const TextureNode &node) override;

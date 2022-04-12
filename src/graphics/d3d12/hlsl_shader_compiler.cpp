@@ -23,7 +23,6 @@
 #include "graphics/render_graph/composite_node.h"
 #include "graphics/render_graph/conditional_node.h"
 #include "graphics/render_graph/invert_node.h"
-#include "graphics/render_graph/post_processing_node.h"
 #include "graphics/render_graph/render_node.h"
 #include "graphics/render_graph/sin_node.h"
 #include "graphics/render_graph/sky_box_node.h"
@@ -441,61 +440,10 @@ float4 main(PSInput input) : SV_TARGET
     *current_stream_ << "}";
 }
 
-void HLSLShaderCompiler::visit(const PostProcessingNode &node)
-{
-    current_stream_ = &vertex_stream_;
-    current_functions_ = &vertex_functions_;
 
-    // build vertex shader
 
-    *current_stream_ << R"(
-PSInput main(
-    float4 position : TEXCOORD0,
-    float4 normal : TEXCOORD1,
-    float4 colour : TEXCOORD2,
-    float4 tex_coord : TEXCOORD3,
-    float4 tangent : TEXCOORD4,
-    float4 bitangent : TEXCOORD5,
-    uint4 bone_ids : TEXCOORD6,
-    float4 bone_weights : TEXCOORD7,
-    uint instance_id : SV_InstanceID)
-{
-    matrix bone_transform = mul(bones[bone_ids[0]], bone_weights[0]);
-    bone_transform += mul(bones[bone_ids[1]], bone_weights[1]);
-    bone_transform += mul(bones[bone_ids[2]], bone_weights[2]);
-    bone_transform += mul(bones[bone_ids[3]], bone_weights[3]);
 
-    PSInput result;
 
-    result.frag_position = mul(position, bone_transform);
-    result.frag_position = mul(result.frag_position, model_data[instance_id].model);
-    result.position = mul(result.frag_position, view);
-    result.position = mul(result.position, projection);
-    result.colour = colour;
-    result.tex_coord = tex_coord;
-
-    return result;
-})";
-
-    current_stream_ = &fragment_stream_;
-    current_functions_ = &fragment_functions_;
-
-    current_functions_->emplace(shadow_function);
-
-    // build fragment shader
-
-    *current_stream_ << R"(
-float4 main(PSInput input) : SV_TARGET
-{)";
-
-    build_fragment_colour(*current_stream_, node.colour_input(), this);
-
-    *current_stream_ << R"(
-        float3 mapped = fragment_colour.rgb / (fragment_colour.rgb + float3(1.0, 1.0, 1.0));
-        mapped = pow(mapped, float3(1.0 / 2.2, 1.0 / 2.2, 1.0 / 2.2));
-
-        return float4(mapped.r, mapped.g, mapped.b, 1.0);
-    })";
 }
 
 void HLSLShaderCompiler::visit(const SkyBoxNode &node)

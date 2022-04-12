@@ -18,7 +18,6 @@ namespace iris
 {
 
 class RenderNode;
-class PostProcessingNode;
 class SkyBoxNode;
 class ColourNode;
 class TextureNode;
@@ -45,7 +44,6 @@ class ShaderCompiler
 
     // visitor methods
     virtual void visit(const RenderNode &node) = 0;
-    virtual void visit(const PostProcessingNode &node) = 0;
     virtual void visit(const SkyBoxNode &node) = 0;
     virtual void visit(const ColourNode &node) = 0;
     virtual void visit(const TextureNode &node) = 0;

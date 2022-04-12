@@ -24,7 +24,6 @@
 #include "graphics/render_graph/composite_node.h"
 #include "graphics/render_graph/conditional_node.h"
 #include "graphics/render_graph/invert_node.h"
-#include "graphics/render_graph/post_processing_node.h"
 #include "graphics/render_graph/render_node.h"
 #include "graphics/render_graph/sin_node.h"
 #include "graphics/render_graph/sky_box_node.h"
@@ -268,40 +267,6 @@ void GLSLShaderCompiler::visit(const RenderNode &node)
 )";
     }
     fragment_stream_ << "}";
-}
-
-void GLSLShaderCompiler::visit(const PostProcessingNode &node)
-{
-    current_stream_ = &vertex_stream_;
-    current_functions_ = &vertex_functions_;
-
-    current_functions_->emplace(bone_transform_function);
-    current_functions_->emplace(tbn_function);
-
-    // build vertex shader
-
-    vertex_stream_ << " void main()\n{\n";
-    vertex_stream_ << vertex_begin;
-    vertex_stream_ << "}";
-
-    current_stream_ = &fragment_stream_;
-    current_functions_ = &fragment_functions_;
-
-    current_functions_->emplace(shadow_function);
-
-    // build fragment shader
-
-    fragment_stream_ << "void main()\n{\n";
-
-    // build basic values
-    build_fragment_colour(*current_stream_, node.colour_input(), this);
-
-    *current_stream_ << R"(
-        vec3 mapped = fragment_colour.rgb / (fragment_colour.rgb + vec3(1.0));
-        mapped = pow(mapped, vec3(1.0 / 2.2));
-
-        outColour = vec4(mapped, 1.0);
-    })";
 }
 
 void GLSLShaderCompiler::visit(const SkyBoxNode &node)
