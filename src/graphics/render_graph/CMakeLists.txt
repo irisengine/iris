@@ -1,5 +1,7 @@
 set(INCLUDE_ROOT "${PROJECT_SOURCE_DIR}/include/iris/graphics/render_graph")
 
+add_subdirectory("post_processing")
+
 target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/arithmetic_node.h
     ${INCLUDE_ROOT}/blur_node.h
