@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cstdint>
+#include <deque>
 #include <limits>
 #include <memory>
 #include <set>
@@ -81,7 +82,7 @@ class D3D12Renderer : public Renderer
      * @param render_passes
      *   Collection of RenderPass objects to render.
      */
-    void set_render_passes(const std::vector<RenderPass> &render_passes) override;
+    void set_render_passes(const std::deque<RenderPass> &render_passes) override;
 
     /**
      * Create a RenderTarget with custom dimensions.
@@ -241,6 +242,7 @@ class D3D12Renderer : public Renderer
         TableParameter<D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, UINT_MAX, 0u, 0u, D3D12_SHADER_VISIBILITY_PIXEL>>
         root_signature_;
 
+    /** Render queue builder object. */
     std::unique_ptr<RenderQueueBuilder> render_queue_builder_;
 };
 }

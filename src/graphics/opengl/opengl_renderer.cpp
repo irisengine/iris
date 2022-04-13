@@ -7,6 +7,7 @@
 #include "graphics/opengl/opengl_renderer.h"
 
 #include <cassert>
+#include <deque>
 #include <string>
 #include <utility>
 
@@ -193,7 +194,11 @@ OpenGLRenderer::OpenGLRenderer(std::uint32_t width, std::uint32_t height)
     LOG_ENGINE_INFO("render_system", "constructed opengl renderer");
 }
 
+<<<<<<< HEAD
 void OpenGLRenderer::set_render_passes(const std::vector<RenderPass> &render_passes)
+=======
+void OpenGLRenderer::set_render_passes([[maybe_unused]] const std::deque<RenderPass> &render_passes)
+>>>>>>> 5b6b926 (Refactor RenderQueueBuilder)
 {
     materials_.clear();
 

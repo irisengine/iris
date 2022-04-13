@@ -7,9 +7,11 @@
 #pragma once
 
 #include <cstdint>
+#include <deque>
 #include <memory>
 #include <unordered_map>
 #include <vector>
+
 
 #include "graphics/opengl/opengl_buffer.h"
 #include "graphics/opengl/opengl_material.h"
@@ -45,7 +47,7 @@ class OpenGLRenderer : public Renderer
      * @param render_passes
      *   Collection of RenderPass objects to render.
      */
-    void set_render_passes(const std::vector<RenderPass> &render_passes) override;
+    void set_render_passes(const std::deque<RenderPass> &render_passes) override;
 
     /**
      * Create a RenderTarget with custom dimensions.

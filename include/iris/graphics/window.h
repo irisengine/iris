@@ -7,8 +7,8 @@
 #pragma once
 
 #include <cstdint>
+#include <deque>
 #include <optional>
-#include <vector>
 
 #include "events/event.h"
 #include "graphics/render_pass.h"
@@ -109,7 +109,7 @@ class Window
      * @param render_passes
      *   Collection of RenderPass objects to render.
      */
-    void set_render_passes(const std::vector<RenderPass> &render_passes);
+    void set_render_passes(const std::deque<RenderPass> &render_passes);
 
   protected:
     /** Window width. */

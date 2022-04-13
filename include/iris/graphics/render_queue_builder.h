@@ -32,7 +32,7 @@ namespace iris
  * It is decoupled from any graphics API by requiring callbacks for graphics specific objects.
  *
  * Note that as part of the building process it may create additional render passes. The data for these will be stored
- * internally so this object must live for as long as the queue of render commands is being executed.
+ * internally, so this object must live for as long as the queue of render commands is being executed.
  *
  * There is a lot of messy logic in building up the various passes required for lighting and post processing effects. We
  * push all that down to this class so at least its in one place and independent of any actual rendering code.
@@ -103,9 +103,9 @@ class RenderQueueBuilder
      * @param create_render_target_callback
      *   Callback for creating a render target object.
      *
-     * @param create_rhybrind_ender_target_callback
+     * @param create_hybrid_ender_target_callback
      *   Callback for creating a hybrid render target i.e. a render target which combines the colour and depth texture
-     * from two other render targets.
+     *   from two other render targets.
      */
     RenderQueueBuilder(
         std::uint32_t width,
@@ -123,33 +123,67 @@ class RenderQueueBuilder
      * @returns
      *   Collection of render commands which when executed will render the provided passes.
      */
-    std::vector<RenderCommand> build(std::vector<RenderPass> &render_passes);
+    std::vector<RenderCommand> build(std::deque<RenderPass> &render_passes);
 
   private:
     /**
      * Add a new pass to collection of passes. This creates a new scene, camera and render target as well as using a
      * callback to allow the caller to set the render graph for the scene.
+     *
+     * The output from the last pass on input is propagated to the new pass.
+     *
+     * @param render_passes
+     *   Collection to add new pass to.
+     *
+     * @param create_render_graph_callback
+     *   Callback to create the render graph for the new scene.
+     *
+     * @returns
+     *   Target for new pass.
      */
     const RenderTarget *add_pass(
-        std::vector<RenderPass> &render_passes,
-        RenderPass **prev,
+        std::deque<RenderPass> &render_passes,
         std::function<void(iris::RenderGraph *, const RenderTarget *)> create_render_graph_callback);
 
-    void add_post_processing_passes(
-        const std::vector<RenderPass> &initial_passes,
-        std::vector<RenderPass> &render_passes);
+    /**
+     * Add passes for all the post processing in the supplied passes.
+     *
+     * @param passes
+     *   Passes to added post processing passes for.
+     *
+     * @param render_passes
+     *   Collection of passes to add new passes to.
+     */
+    void add_post_processing_passes(const std::deque<RenderPass> &passes, std::deque<RenderPass> &render_passes);
 
+    /**
+     * Internal struct for storing new pass data.
+     */
     struct PassData
     {
         Scene scene;
         Camera camera;
     };
 
+    /** Width of final render target. */
     std::uint32_t width_;
+
+    /** Height of final render target. */
     std::uint32_t height_;
+
+    /** Callback for creating a material object. */
     CreateMaterialCallback create_material_callback_;
+
+    /** Callback for creating a render target object. */
     CreateRenderTargetCallback create_render_target_callback_;
+
+    /**
+     * Callback for creating a hybrid render target i.e. a render target which combines the colour and depth texture
+     * from two other render targets.
+     */
     CreateHybriRenderTargetCallback create_hybrid_render_target_callback_;
+
+    /** Data created for new passes. */
     std::deque<PassData> pass_data_;
 };
 

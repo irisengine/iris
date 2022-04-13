@@ -6,6 +6,7 @@
 
 #include "graphics/render_queue_builder.h"
 
+#include <deque>
 #include <map>
 #include <vector>
 
@@ -46,7 +47,7 @@ namespace
  *   Command object to mutate and enqueue, this is passed in so it can be
  *   "pre-loaded" with the correct state.
  *
- * @param create_material_callback_
+ * @param create_material_callback
  *   Callback for creating a Material object.
  *
  * @param render_queue
@@ -61,14 +62,14 @@ void encode_light_pass_commands(
     bool has_normal_target,
     bool has_position_target,
     iris::RenderCommand &cmd,
-    iris::RenderQueueBuilder::CreateMaterialCallback create_material_callback_,
+    iris::RenderQueueBuilder::CreateMaterialCallback create_material_callback,
     std::vector<iris::RenderCommand> &render_queue,
     const std::map<iris::DirectionalLight *, iris::RenderTarget *> &shadow_maps)
 {
     // create commands for each entity in the scene
     for (const auto &[render_graph, render_entity] : scene->entities())
     {
-        auto *material = create_material_callback_(
+        auto *material = create_material_callback(
             render_graph,
             render_entity.get(),
             cmd.render_pass()->colour_target,
@@ -136,10 +137,10 @@ RenderQueueBuilder::RenderQueueBuilder(
 {
 }
 
-std::vector<RenderCommand> RenderQueueBuilder::build(std::vector<RenderPass> &render_passes)
+std::vector<RenderCommand> RenderQueueBuilder::build(std::deque<RenderPass> &render_passes)
 {
     std::map<DirectionalLight *, RenderTarget *> shadow_maps;
-    std::vector<RenderPass> pre_process_passes{};
+    std::deque<RenderPass> pre_process_passes{};
 
     auto initial_passes = render_passes;
     render_passes.clear();
@@ -169,8 +170,15 @@ std::vector<RenderCommand> RenderQueueBuilder::build(std::vector<RenderPass> &re
             }
         }
 
+        // SSAO is a bit messy to integrate, we first need to create a pass to output all the required information such
+        // as screen space normals and positions and then add the pass to combine all this data into our occlusion
+        // texture
+        // later on we will then wire this into the normal lighting passes, due to how the render is setup it's not easy
+        // to just add the occlusion texture into the ambient light pass, so instead we do that whole calculation in the
+        // SSAO pass and use that instead of recalculating the ambient pass
         if (const auto ssao = pass.post_processing_description.ambient_occlusion; ssao)
         {
+            // add a pass to output the data we need
             RenderPass ao_data_pass = pass;
             ao_data_pass.post_processing_description = {};
             ao_data_pass.colour_target = nullptr;
@@ -184,19 +192,23 @@ std::vector<RenderCommand> RenderQueueBuilder::build(std::vector<RenderPass> &re
 
             const auto prev_camera = *prev->camera;
 
-            auto *ao_target =
-                add_pass(pre_process_passes, &prev, [prev, ssao](RenderGraph *rg, const RenderTarget *target) {
-                    rg->set_render_node<AmbientOcclusionNode>(
-                        rg->create<TextureNode>(target->colour_texture()),
-                        rg->create<TextureNode>(prev->normal_target->colour_texture()),
-                        rg->create<TextureNode>(prev->position_target->colour_texture()),
-                        *ssao);
-                });
+            // add a pass to calculate ssao (combined with the ambient light pass)
+            auto *ao_target = add_pass(pre_process_passes, [prev, ssao](RenderGraph *rg, const RenderTarget *target) {
+                rg->set_render_node<AmbientOcclusionNode>(
+                    rg->create<TextureNode>(target->colour_texture()),
+                    rg->create<TextureNode>(prev->normal_target->colour_texture()),
+                    rg->create<TextureNode>(prev->position_target->colour_texture()),
+                    *ssao);
+            });
 
+            // ensure we render with the perspective camera not the orthographic camera that will be created for the
+            // new pass
             pass_data_.back().camera = prev_camera;
 
+            prev = std::addressof(pre_process_passes.back());
             prev->colour_target = pass.colour_target;
 
+            // fudge the colour target of the pre pass and the depth target of the ssao pass into one render target
             pass.colour_target = create_hybrid_render_target_callback_(prev->colour_target, ao_target);
             pass.clear_colour = false;
             pass.clear_depth = false;
@@ -209,7 +221,6 @@ std::vector<RenderCommand> RenderQueueBuilder::build(std::vector<RenderPass> &re
     add_post_processing_passes(initial_passes, render_passes);
 
     std::vector<RenderCommand> render_queue;
-
     RenderCommand cmd{};
 
     // convert each pass into a series of commands which will render it
@@ -223,7 +234,7 @@ std::vector<RenderCommand> RenderQueueBuilder::build(std::vector<RenderPass> &re
         const auto has_normal_target = pass.normal_target != nullptr;
         const auto has_position_target = pass.position_target != nullptr;
 
-        // always encode ambient light pass
+        // encode ambient light pass unless we have used ssao (in which case this gets done by the ssao pass itself)
         if (!pass.post_processing_description.ambient_occlusion)
         {
             encode_light_pass_commands(
@@ -300,10 +311,10 @@ std::vector<RenderCommand> RenderQueueBuilder::build(std::vector<RenderPass> &re
 }
 
 const RenderTarget *RenderQueueBuilder::add_pass(
-    std::vector<RenderPass> &render_passes,
-    RenderPass **prev,
+    std::deque<RenderPass> &render_passes,
     std::function<void(RenderGraph *, const RenderTarget *)> create_render_graph_callback)
 {
+    // create new pass with
     pass_data_.push_back({.scene = {}, .camera = {CameraType::ORTHOGRAPHIC, width_, height_}});
     auto &[scene, camera] = pass_data_.back();
     const auto *target = create_render_target_callback_(width_, height_);
@@ -316,32 +327,30 @@ const RenderTarget *RenderQueueBuilder::add_pass(
         Transform({}, {}, {static_cast<float>(width_), static_cast<float>(height_), 1. - 1}));
 
     // wire up this pass
-    (*prev)->colour_target = target;
+    render_passes.back().colour_target = target;
     render_passes.push_back({.scene = &scene, .camera = &camera});
-    *prev = std::addressof(render_passes.back());
 
     return target;
 }
 
 void RenderQueueBuilder::add_post_processing_passes(
-    const std::vector<RenderPass> &initial_passes,
-    std::vector<RenderPass> &render_passes)
+    const std::deque<RenderPass> &passes,
+    std::deque<RenderPass> &render_passes)
 {
-    for (auto &render_pass : initial_passes)
+    for (auto &render_pass : passes)
     {
         auto &last_pass = render_passes.emplace_back(render_pass);
-        RenderPass *prev = std::addressof(last_pass);
-        const auto *input_target = prev->colour_target;
+        const auto *input_target = last_pass.colour_target;
 
         const auto description = render_pass.post_processing_description;
 
         if (const auto bloom = description.bloom; bloom)
         {
-            const auto *null_target = add_pass(render_passes, &prev, [](RenderGraph *rg, const RenderTarget *target) {
+            const auto *null_target = add_pass(render_passes, [](RenderGraph *rg, const RenderTarget *target) {
                 rg->render_node()->set_colour_input(rg->create<TextureNode>(target->colour_texture()));
             });
 
-            add_pass(render_passes, &prev, [&bloom](RenderGraph *rg, const RenderTarget *target) {
+            add_pass(render_passes, [&bloom](RenderGraph *rg, const RenderTarget *target) {
                 rg->render_node()->set_colour_input(rg->create<ConditionalNode>(
                     rg->create<ArithmeticNode>(
                         rg->create<TextureNode>(target->colour_texture()),
@@ -355,13 +364,13 @@ void RenderQueueBuilder::add_post_processing_passes(
 
             for (auto i = 0u; i < bloom->iterations; ++i)
             {
-                add_pass(render_passes, &prev, [](RenderGraph *rg, const RenderTarget *target) {
+                add_pass(render_passes, [](RenderGraph *rg, const RenderTarget *target) {
                     rg->render_node()->set_colour_input(
                         rg->create<BlurNode>(rg->create<TextureNode>(target->colour_texture())));
                 });
             }
 
-            add_pass(render_passes, &prev, [null_target](RenderGraph *rg, const RenderTarget *target) {
+            add_pass(render_passes, [null_target](RenderGraph *rg, const RenderTarget *target) {
                 rg->render_node()->set_colour_input(rg->create<ArithmeticNode>(
                     rg->create<TextureNode>(null_target->colour_texture()),
                     rg->create<TextureNode>(target->colour_texture()),
@@ -371,7 +380,7 @@ void RenderQueueBuilder::add_post_processing_passes(
 
         if (const auto colour_adjust = description.colour_adjust; colour_adjust)
         {
-            add_pass(render_passes, &prev, [&colour_adjust](RenderGraph *rg, const RenderTarget *target) {
+            add_pass(render_passes, [&colour_adjust](RenderGraph *rg, const RenderTarget *target) {
                 rg->set_render_node<ColourAdjustNode>(
                     rg->create<TextureNode>(target->colour_texture()), *colour_adjust);
             });
@@ -379,7 +388,7 @@ void RenderQueueBuilder::add_post_processing_passes(
 
         if (description.anti_aliasing)
         {
-            add_pass(render_passes, &prev, [](RenderGraph *rg, const RenderTarget *target) {
+            add_pass(render_passes, [](RenderGraph *rg, const RenderTarget *target) {
                 rg->set_render_node<AntiAliasingNode>(rg->create<TextureNode>(target->colour_texture()));
             });
         }

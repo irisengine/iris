@@ -10,6 +10,7 @@
 #include <array>
 #include <cassert>
 #include <cstdint>
+#include <deque>
 #include <iostream>
 #include <map>
 #include <unordered_map>
@@ -567,7 +568,7 @@ D3D12Renderer::~D3D12Renderer()
     ++frames_[frame_index_].fence_value;
 }
 
-void D3D12Renderer::set_render_passes(const std::vector<RenderPass> &render_passes)
+void D3D12Renderer::set_render_passes(const std::deque<RenderPass> &render_passes)
 {
     command_queue_->Signal(fence_.Get(), frames_[frame_index_].fence_value);
     fence_->SetEventOnCompletion(frames_[frame_index_].fence_value, fence_event_);

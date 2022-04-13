@@ -7,13 +7,14 @@
 #include "graphics/window.h"
 
 #include <cstdint>
-#include <vector>
+#include <deque>
 
 #include "graphics/render_pass.h"
 #include "graphics/render_target.h"
 
 namespace iris
 {
+
 Window::Window(std::uint32_t width, std::uint32_t height)
     : width_(width)
     , height_(height)
@@ -46,7 +47,7 @@ RenderTarget *Window::create_render_target(std::uint32_t width, std::uint32_t he
     return renderer_->create_render_target(width, height);
 }
 
-void Window::set_render_passes(const std::vector<RenderPass> &render_passes)
+void Window::set_render_passes(const std::deque<RenderPass> &render_passes)
 {
     renderer_->set_render_passes(render_passes);
 }

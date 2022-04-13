@@ -13,6 +13,7 @@
 #include "graphics/render_target.h"
 #include "graphics/scene.h"
 
+#include <deque>
 #include <vector>
 
 namespace iris
@@ -39,7 +40,7 @@ class Renderer
      * @param render_passes
      *   Collection of RenderPass objects to render.
      */
-    virtual void set_render_passes(const std::vector<RenderPass> &render_passes) = 0;
+    virtual void set_render_passes(const std::deque<RenderPass> &render_passes) = 0;
 
     /**
      * Create a RenderTarget with custom dimensions.
@@ -71,7 +72,7 @@ class Renderer
     virtual void post_render();
 
     /** The collection of RenderPass objects to be rendered. */
-    std::vector<RenderPass> render_passes_;
+    std::deque<RenderPass> render_passes_;
 
     /**
      * The queue of RenderCommand objects created from the current RenderPass
