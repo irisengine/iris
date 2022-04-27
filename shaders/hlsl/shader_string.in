@@ -1,0 +1,3 @@
+static constexpr auto ${IRIS_SHADER_NAME} = R"(
+    ${IRIS_SHADER_SOURCE}
+)";

@@ -26,6 +26,10 @@ target_include_directories(
   iris SYSTEM
   PRIVATE ${stb_SOURCE_DIR} ${bullet_SOURCE_DIR}/src ${lua_SOURCE_DIR})
 
+target_include_directories(
+  iris SYSTEM
+  PRIVATE ${PROJECT_BINARY_DIR}/shaders)
+
 # lua does not use cmake, so we build it as a separate library
 add_library(lua STATIC ${lua_SOURCE_DIR}/onelua.c)
 target_compile_definitions(lua PRIVATE MAKE_LIB)

@@ -1,0 +1,10 @@
+file(GLOB FILES ${PROJECT_SOURCE_DIR}/shaders/hlsl/*.hlsl)
+foreach(FILE ${FILES})
+    string(REGEX REPLACE "[.]hlsl$" "" IRIS_SHADER_NAME ${FILE})
+    cmake_path(GET IRIS_SHADER_NAME FILENAME IRIS_SHADER_NAME)
+    string(REGEX REPLACE "[.]hlsl$" ".h" IRIS_SHADER_FILE_NAME ${FILE})
+    cmake_path(GET IRIS_SHADER_FILE_NAME FILENAME IRIS_SHADER_FILE_NAME)
+
+    file(READ ${FILE} IRIS_SHADER_SOURCE)
+    configure_file(shader_string.in ${IRIS_SHADER_FILE_NAME})
+endforeach()

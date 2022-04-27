@@ -130,6 +130,7 @@ if(IRIS_PLATFORM MATCHES "WIN32")
  endif()
 endif()
 
+add_subdirectory("shaders")
 add_subdirectory("src")
 add_subdirectory("samples")
 
