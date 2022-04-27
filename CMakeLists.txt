@@ -108,6 +108,16 @@ if(NOT googletest_POPULATED)
   add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif()
 
+FetchContent_Declare(
+  inja
+  GIT_REPOSITORY https://github.com/pantor/inja
+  GIT_TAG v3.3.0)
+FetchContent_GetProperties(inja)
+if(NOT inja_POPULATED)
+  FetchContent_Populate(inja)
+  add_subdirectory(${inja_SOURCE_DIR} ${inja_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
+
 if(IRIS_PLATFORM MATCHES "WIN32")
   FetchContent_Declare(
     directx-headers

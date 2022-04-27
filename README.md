@@ -81,7 +81,9 @@ The following dependencies are automatically checked out as part of the build:
 | [googletest](https://github.com/google/googletest.git) | [1.11.0](https://github.com/google/googletest/releases/tag/release-1.11.0) | [![License](https://img.shields.io/badge/License-BSD%203--Clause-lightblue.svg)](https://opensource.org/licenses/BSD-3-Clause) |
 | [directx-headers](https://github.com/microsoft/DirectX-Headers.git) | [1.4.9](https://github.com/microsoft/DirectX-Headers/releases/tag/v1.4.9) | [![License: MIT](https://img.shields.io/badge/License-MIT-lightblue.svg)](https://opensource.org/licenses/MIT) |
 | [lua](https://github.com/lua/lua) | [5.4.3](https://github.com/lua/lua/releases/tag/v5.4.3) | [![License: MIT](https://img.shields.io/badge/License-MIT-lightblue.svg)](https://opensource.org/licenses/MIT) |
+| [inja](https://github.com/pantor/inja) | [3.3.0](https://github.com/pantor/inja/releases/tag/v3.3.0) | [![License: MIT](https://img.shields.io/badge/License-MIT-lightblue.svg)](https://opensource.org/licenses/MIT) |
 
+Note that these libraries may themselves have other dependencies with different licenses.
 
 ## Using iris
 Iris (and all of its dependencies) are built as static libraries. There are three ways you can include iris in your project. These all assume you are using cmake, it is theoretically possible to integrate iris into other build systems but that is beyond the scope of this document.
