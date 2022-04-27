@@ -8,6 +8,7 @@
 
 #include <set>
 #include <sstream>
+#include <stack>
 #include <string>
 #include <vector>
 
@@ -118,23 +119,19 @@ class HLSLShaderCompiler : public ShaderCompiler
     /** Stream for fragment shader. */
     std::stringstream fragment_stream_;
 
-    /** Pointer to the current shader stream. */
-    std::stringstream *current_stream_;
-
-    /** Collection of vertex functions. */
-    std::set<std::string> vertex_functions_;
-
     /** Collection of fragment functions. */
     std::set<std::string> fragment_functions_;
-
-    /** Pointer to current function collection. */
-    std::set<std::string> *current_functions_;
 
     /** Type of light to render with. */
     LightType light_type_;
 
+    /** Flag indicating whether the shader should also write out screen space normals to a render texture. */
     bool render_to_normal_target_;
 
+    /** Flag indicating whether the shader should also write out screen space positions to a render texture. */
     bool render_to_position_target_;
+
+    /** Stack of streams to be used the render graph is traversed. */
+    std::stack<std::stringstream> stream_stack_;
 };
 }
