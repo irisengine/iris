@@ -418,9 +418,6 @@ PS_OUTPUT main(PSInput input)
     build_fragment_colour(*current_stream_, node.colour_input(), this);
     build_normal(*current_stream_, node.normal_input(), this);
 
-    *current_stream_ << "float ambient_occlusion = ";
-    visit_or_default(*current_stream_, node.ambient_occlusion_input(), this, "1.0f");
-
     *current_stream_ << "float4 out_colour;\n";
 
     // depending on the light type depends on how we interpret the light
@@ -428,8 +425,16 @@ PS_OUTPUT main(PSInput input)
     switch (light_type_)
     {
         case LightType::AMBIENT:
-            *current_stream_ << "out_colour = light_colour * fragment_colour * float4(ambient_occlusion, "
-                                "ambient_occlusion, ambient_occlusion, 1.0);\n";
+            if (node.ambient_occlusion_input() != nullptr)
+            {
+                *current_stream_ << "out_colour = ";
+                node.ambient_occlusion_input()->accept(*this);
+                *current_stream_ << ";\n";
+            }
+            else
+            {
+                *current_stream_ << "out_colour = light_colour * fragment_colour;\n";
+            }
             break;
         case LightType::DIRECTIONAL:
             *current_stream_ << "float3 light_dir = ";

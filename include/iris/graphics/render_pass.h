@@ -8,6 +8,7 @@
 
 #include "core/camera.h"
 #include "graphics/cube_map.h"
+#include "graphics/post_processing_description.h"
 #include "graphics/render_target.h"
 #include "graphics/scene.h"
 
@@ -51,6 +52,8 @@ struct RenderPass
 
     /** Should the depth buffer be cleared before rendering. */
     bool clear_depth = true;
+
+    PostProcessingDescription post_processing_description = PostProcessingDescription{};
 };
 
 }

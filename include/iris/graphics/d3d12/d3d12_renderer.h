@@ -32,6 +32,8 @@
 #include "graphics/d3d12/d3d12_root_signature.h"
 #include "graphics/d3d12/d3d12_structured_buffer.h"
 #include "graphics/d3d12/d3d12_texture.h"
+#include "graphics/material_cache.h"
+#include "graphics/render_queue_builder.h"
 #include "graphics/render_target.h"
 #include "graphics/renderer.h"
 
@@ -206,13 +208,7 @@ class D3D12Renderer : public Renderer
     /** Collection of created RenderTarget objects. */
     std::vector<std::unique_ptr<RenderTarget>> render_targets_;
 
-    /** This collection stores materials per light type per render graph. */
-    std::unordered_map<
-        RenderGraph *,
-        std::unordered_map<LightType, std::unique_ptr<D3D12Material>>,
-        std::hash<RenderGraph *>,
-        RenderGraphPtrEqual>
-        materials_;
+    MaterialCache<D3D12Material, RenderGraph *, LightType, bool, bool> materials_;
 
     /** Collection of textures that have been uploaded. */
     std::set<const D3D12Texture *> uploaded_textures_;
@@ -244,5 +240,7 @@ class D3D12Renderer : public Renderer
         TableParameter<D3D12_DESCRIPTOR_RANGE_TYPE_SRV, UINT_MAX, 0u, 2u, D3D12_SHADER_VISIBILITY_PIXEL>,
         TableParameter<D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, UINT_MAX, 0u, 0u, D3D12_SHADER_VISIBILITY_PIXEL>>
         root_signature_;
+
+    std::unique_ptr<RenderQueueBuilder> render_queue_builder_;
 };
 }

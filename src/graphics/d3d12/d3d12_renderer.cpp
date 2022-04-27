@@ -409,6 +409,7 @@ D3D12Renderer::D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t hei
     , cube_map_table_()
     , sampler_table_()
     , root_signature_()
+    , render_queue_builder_()
 {
     // we will use triple buffering
     const auto num_frames = 3u;
@@ -521,6 +522,39 @@ D3D12Renderer::D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t hei
 
     // close the list so we can start recording to it
     command_list_->Close();
+
+    render_queue_builder_ = std::make_unique<RenderQueueBuilder>(
+        width_,
+        height_,
+        [this](
+            RenderGraph *render_graph,
+            RenderEntity *render_entity,
+            const RenderTarget *target,
+            LightType light_type,
+            bool render_to_normal_target,
+            bool render_to_position_target) {
+            return materials_.try_emplace(
+                render_graph,
+                light_type,
+                render_to_normal_target,
+                render_to_position_target,
+                render_graph,
+                static_cast<const D3D12Mesh *>(render_entity->mesh())->input_descriptors(),
+                render_entity->primitive_type(),
+                light_type,
+                root_signature_.handle(),
+                target == nullptr,
+                render_to_normal_target,
+                render_to_position_target);
+        },
+        [this](std::uint32_t width, std::uint32_t height) { return create_render_target(width, height); },
+        [this](const RenderTarget *colour_target, const RenderTarget *depth_target) {
+            return render_targets_
+                .emplace_back(std::make_unique<D3D12RenderTarget>(
+                    static_cast<const D3D12Texture *>(colour_target->colour_texture()),
+                    static_cast<const D3D12Texture *>(depth_target->depth_texture())))
+                .get();
+        });
 }
 
 D3D12Renderer::~D3D12Renderer()
@@ -543,57 +577,8 @@ void D3D12Renderer::set_render_passes(const std::vector<RenderPass> &render_pass
     materials_.clear();
     render_passes_ = render_passes;
 
-    // add a post processing pass
-
-    // find the pass which renders to the screen
-    auto final_pass = std::find_if(std::begin(render_passes_), std::end(render_passes_), [](const RenderPass &pass) {
-        return pass.render_target == nullptr;
-    });
-
-    ensure(final_pass != std::cend(render_passes_), "no final pass");
-
-    // deferred creating of render target to ensure this class is fully constructed
-    if (post_processing_target_ == nullptr)
-    {
-        post_processing_target_ = create_render_target(width_, height_);
-        post_processing_camera_ = std::make_unique<Camera>(CameraType::ORTHOGRAPHIC, width_, height_);
-    }
-
-    post_processing_scene_ = std::make_unique<Scene>();
-
-    // create a full screen quad which renders the final stage with the post
-    // processing node
-    auto *rg = post_processing_scene_->create_render_graph();
-    rg->set_render_node<PostProcessingNode>(rg->create<TextureNode>(post_processing_target_->colour_texture()));
-    post_processing_scene_->create_entity<SingleEntity>(
-        rg,
-        Root::mesh_manager().sprite({}),
-        Transform({}, {}, {static_cast<float>(width_), static_cast<float>(height_), 1.0}));
-
-    // wire up this pass
-    final_pass->render_target = post_processing_target_;
-    render_passes_.emplace_back(post_processing_scene_.get(), post_processing_camera_.get(), nullptr);
-
     // build the render queue from the provided passes
-
-    RenderQueueBuilder queue_builder(
-        [this](
-            RenderGraph *render_graph, RenderEntity *render_entity, const RenderTarget *target, LightType light_type) {
-            if (materials_.count(render_graph) == 0u || materials_[render_graph].count(light_type) == 0u)
-            {
-                materials_[render_graph][light_type] = std::make_unique<D3D12Material>(
-                    render_graph,
-                    static_cast<const D3D12Mesh *>(render_entity->mesh())->input_descriptors(),
-                    render_entity->primitive_type(),
-                    light_type,
-                    root_signature_.handle(),
-                    target == nullptr);
-            }
-
-            return materials_[render_graph][light_type].get();
-        },
-        [this](std::uint32_t width, std::uint32_t height) { return create_render_target(width, height); });
-    render_queue_ = queue_builder.build(render_passes_);
+    render_queue_ = render_queue_builder_->build(render_passes_);
 
     instance_data_buffers_.clear();
 
@@ -632,6 +617,11 @@ RenderTarget *D3D12Renderer::create_render_target(std::uint32_t width, std::uint
     const auto scale = Root::window_manager().current_window()->screen_scale();
 
     const auto *rt_sampler = Root::texture_manager().create(SamplerDescriptor{
+        .s_address_mode = SamplerAddressMode::CLAMP_TO_EDGE,
+        .t_address_mode = SamplerAddressMode::CLAMP_TO_EDGE,
+        .uses_mips = false});
+
+    const auto *depth_sampler = Root::texture_manager().create(SamplerDescriptor{
         .s_address_mode = SamplerAddressMode::CLAMP_TO_BORDER,
         .t_address_mode = SamplerAddressMode::CLAMP_TO_BORDER,
         .border_colour = Colour{1.0f, 1.0f, 1.0f, 1.0f},
@@ -639,8 +629,8 @@ RenderTarget *D3D12Renderer::create_render_target(std::uint32_t width, std::uint
 
     auto *colour_texture = static_cast<D3D12Texture *>(Root::texture_manager().create(
         DataBuffer{}, width * scale, height * scale, TextureUsage::RENDER_TARGET, rt_sampler));
-    auto *depth_texture = static_cast<D3D12Texture *>(
-        Root::texture_manager().create(DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH, rt_sampler));
+    auto *depth_texture = static_cast<D3D12Texture *>(Root::texture_manager().create(
+        DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH, depth_sampler));
 
     // add these to uploaded so the next render pass doesn't try to upload them
     uploaded_textures_.emplace(colour_texture);
