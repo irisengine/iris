@@ -1,0 +1,1 @@
+composite({{colour1}}, {{colour2}}, {{depth1}}, {{depth2}}, input.tex_coord)

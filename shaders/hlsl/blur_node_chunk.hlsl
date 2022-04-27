@@ -1,0 +1,1 @@
+blur(texture_table[{{texture_index}}], input.tex_coord, sampler_table[{{sampler_index}}])
