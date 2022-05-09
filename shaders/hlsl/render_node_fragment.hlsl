@@ -74,36 +74,47 @@ struct PS_OUTPUT
 PS_OUTPUT main(PSInput input)
 {% endif %}
 {
-    float4 fragment_colour = {{ fragment_colour }};
-    float3 normal = {{ normal }};
+    {% if exists("fragment_colour") %}
+        float4 fragment_colour = {{ fragment_colour }};
+    {% else %}
+        float4 fragment_colour = input.colour;
+    {% endif %}
+
+    {% if exists("normal") %}
+        float3 normal = {{ normal }}.xyz;
+        normal = normalize(normal * 2.0 - 1.0); 
+    {% else %}
+        float3 normal = normalize(input.normal.xyz);
+    {% endif %}
 
     {% if light_type == 0 %}
-        {% if ambient_input %}
+        {% if exists("ambient_input") %}
             float4 out_colour = {{ambient_input}};
         {% else %}
             float4 out_colour = light_colour * fragment_colour;
         {% endif %}
     {% endif %}
     {% if light_type == 1 %}
-        {% if has_normal %}
+        {% if exists("normal") %}
             float3 light_dir = normalize(-input.tangent_light_pos.xyz);
         {% else %}
             float3 light_dir = normalize(-light_position.xyz);
         {% endif %}
-            float shadow = 0.0;
-            shadow = calculate_shadow(
-                normal,
-                input.frag_pos_light_space,
-                light_dir,
-                texture_table[shadow_map_index.index],
-                sampler_table[shadow_map_sampler_index.index]);
 
-            float diff = (1.0 - shadow) * max(dot(normal, light_dir), 0.0);
-            float3 diffuse = {diff, diff, diff};
-            float4 out_colour = float4(diffuse * fragment_colour, 1.0);
+        float shadow = 0.0;
+        shadow = calculate_shadow(
+            normal,
+            input.frag_pos_light_space,
+            light_dir,
+            texture_table[shadow_map_index.index],
+            sampler_table[shadow_map_sampler_index.index]);
+
+        float diff = (1.0 - shadow) * max(dot(normal, light_dir), 0.0);
+        float3 diffuse = {diff, diff, diff};
+        float4 out_colour = float4(diffuse * fragment_colour, 1.0);
     {% endif %}
     {% if light_type == 2 %}
-        {% if has_normal %}
+        {% if exists("normal") %}
             float3 light_dir = normalize(input.tangent_light_pos.xyz - input.tangent_frag_pos.xyz);
         {% else %}
             float3 light_dir = normalize(light_position.xyz - input.frag_position.xyz);

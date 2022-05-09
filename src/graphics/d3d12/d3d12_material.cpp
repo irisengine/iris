@@ -22,8 +22,8 @@
 #include "core/error_handling.h"
 #include "graphics/d3d12/d3d12_context.h"
 #include "graphics/d3d12/d3d12_root_signature.h"
-#include "graphics/d3d12/hlsl_shader_compiler.h"
 #include "graphics/lights/lighting_rig.h"
+#include "graphics/render_graph/shader_compiler.h"
 #include "graphics/shader_type.h"
 #include "log/log.h"
 
@@ -90,7 +90,8 @@ D3D12Material::D3D12Material(
     bool render_to_position_target)
     : pso_()
 {
-    HLSLShaderCompiler compiler{render_graph, light_type, render_to_normal_target, render_to_position_target};
+    ShaderCompiler compiler{
+        ShaderLanguage::HLSL, render_graph, light_type, render_to_normal_target, render_to_position_target};
     const auto vertex_source = compiler.vertex_shader();
     const auto fragment_source = compiler.fragment_shader();
 

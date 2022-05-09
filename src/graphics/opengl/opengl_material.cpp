@@ -11,10 +11,11 @@
 #include <vector>
 
 #include "core/error_handling.h"
-#include "graphics/opengl/glsl_shader_compiler.h"
+#include "graphics/default_shader_languages.h"
 #include "graphics/opengl/opengl.h"
 #include "graphics/opengl/opengl_shader.h"
 #include "graphics/render_graph/render_graph.h"
+#include "graphics/render_graph/shader_compiler.h"
 #include "graphics/shader_type.h"
 #include "log/log.h"
 
@@ -86,10 +87,15 @@ GLuint create_program(const std::string &vertex_shader_source, const std::string
 namespace iris
 {
 
-OpenGLMaterial::OpenGLMaterial(const RenderGraph *render_graph, LightType light_type)
+OpenGLMaterial::OpenGLMaterial(
+    const RenderGraph *render_graph,
+    LightType light_type,
+    bool render_to_normal_target,
+    bool render_to_position_target)
     : handle_(0u)
 {
-    GLSLShaderCompiler compiler{render_graph, light_type};
+    ShaderCompiler compiler{
+        ShaderLanguage::GLSL, render_graph, light_type, render_to_normal_target, render_to_position_target};
 
     handle_ = create_program(compiler.vertex_shader(), compiler.fragment_shader());
 }

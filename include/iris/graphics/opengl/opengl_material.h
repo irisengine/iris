@@ -30,8 +30,18 @@ class OpenGLMaterial : public Material
      *
      * @param light_type
      *   Type of light for this material.
+     *
+     * @param render_to_normal_target
+     *   Flag indicating whether the material should also write out screen space normals to a render texture.
+     *
+     * @param render_to_position_target
+     *   Flag indicating whether the material should also write out screen space positions to a render texture.
      */
-    OpenGLMaterial(const RenderGraph *render_graph, LightType light_type);
+    OpenGLMaterial(
+        const RenderGraph *render_graph,
+        LightType light_type,
+        bool render_to_normal_target,
+        bool render_to_position_target);
 
     /**
      * Clean up OpenGL objects.

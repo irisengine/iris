@@ -14,10 +14,12 @@
 
 #include "graphics/material_cache.h"
 #include "graphics/opengl/opengl_buffer.h"
+#include "graphics/opengl/opengl_frame_buffer.h"
 #include "graphics/opengl/opengl_material.h"
 #include "graphics/opengl/opengl_render_target.h"
 #include "graphics/opengl/opengl_uniform.h"
 #include "graphics/render_graph/render_graph.h"
+#include "graphics/render_queue_builder.h"
 #include "graphics/renderer.h"
 
 namespace iris
@@ -107,6 +109,11 @@ class OpenGLRenderer : public Renderer
 
     /** Buffers for per pass light data. */
     std::unordered_map<const Light *, std::unique_ptr<UBO>> light_data_;
+
+    /** Render queue builder object. */
+    std::unique_ptr<RenderQueueBuilder> render_queue_builder_;
+
+    std::unordered_map<const RenderPass *, OpenGLFrameBuffer> pass_frame_buffers_;
 };
 
 }
