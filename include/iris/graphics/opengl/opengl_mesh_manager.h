@@ -23,6 +23,10 @@ namespace iris
 class OpenGLMeshManager : public MeshManager
 {
   public:
+    /**
+     * Construct a new OpenGLMeshManager.
+     */
+    OpenGLMeshManager();
     ~OpenGLMeshManager() override = default;
 
   protected:

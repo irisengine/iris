@@ -29,9 +29,11 @@
 namespace iris
 {
 
-MeshManager::MeshManager()
+MeshManager::MeshManager(bool flip_uvs_on_load)
     : loaded_meshes_()
     , loaded_skeletons_()
+    , loaded_animations_()
+    , flip_uvs_on_load_(flip_uvs_on_load)
 {
 }
 
@@ -296,7 +298,7 @@ const Mesh *MeshManager::load_mesh(const std::string &mesh_file)
 {
     if (loaded_meshes_.count(mesh_file) == 0u)
     {
-        const auto &[vertices, indices, skeleton, animations] = mesh_loader::load(mesh_file);
+        const auto &[vertices, indices, skeleton, animations] = mesh_loader::load(mesh_file, flip_uvs_on_load_);
         loaded_meshes_[mesh_file] = create_mesh(vertices, indices);
         loaded_skeletons_[mesh_file] = skeleton;
         loaded_animations_[mesh_file] = animations;

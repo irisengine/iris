@@ -18,6 +18,11 @@
 namespace iris
 {
 
+OpenGLMeshManager::OpenGLMeshManager()
+    : MeshManager(true)
+{
+}
+
 std::unique_ptr<Mesh> OpenGLMeshManager::create_mesh(
     const std::vector<iris::VertexData> &vertices,
     const std::vector<std::uint32_t> &indices) const

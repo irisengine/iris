@@ -42,9 +42,12 @@ struct LoadedData
  * @param mesh_name
  *   Name of of mesh to load, will be passed to ResourceLoader.
  *
+ * @param flip_uvs
+ *   True if uvs should be flipped, false otherwise.
+ *
  * @returns
  *   Data loaded fro file.
  */
-LoadedData load(const std::string &mesh_name);
+LoadedData load(const std::string &mesh_name, bool flip_uvs);
 
 }

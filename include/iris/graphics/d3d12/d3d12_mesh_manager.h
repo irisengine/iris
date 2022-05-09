@@ -22,6 +22,10 @@ namespace iris
 class D3D12MeshManager : public MeshManager
 {
   public:
+    /**
+     * Construct a new D3D12MeshManager.
+     */
+    D3D12MeshManager();
     ~D3D12MeshManager() override = default;
 
   protected:

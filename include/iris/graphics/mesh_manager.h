@@ -32,7 +32,13 @@ class Texture;
 class MeshManager
 {
   public:
-    MeshManager();
+    /**
+     * Construct a new MeshManager.
+     *
+     * @param flip_uvs_on_load
+     *   True if uvs should be flipped for all loaded meshes, false otherwise.
+     */
+    MeshManager(bool flip_uvs_on_load);
     virtual ~MeshManager() = default;
 
     /**
@@ -211,6 +217,9 @@ class MeshManager
 
     /** Collection of created Animation objects. */
     std::unordered_map<std::string, std::vector<Animation>> loaded_animations_;
+
+    /** Flag indicating if uvs should be flipped for loaded meshes. */
+    bool flip_uvs_on_load_;
 };
 
 }

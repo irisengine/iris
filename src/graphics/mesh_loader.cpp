@@ -298,19 +298,22 @@ std::vector<iris::VertexData> process_vertices(const ::aiMesh *mesh, const ::aiM
 
     return vertices;
 }
+
 }
 
 namespace iris::mesh_loader
 {
 
-LoadedData load(const std::string &mesh_name)
+LoadedData load(const std::string &mesh_name, bool flip_uvs)
 {
     const auto file_data = ResourceLoader::instance().load(mesh_name);
 
+    const auto import_flags = flip_uvs ? aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_FlipUVs
+                                       : aiProcess_Triangulate | aiProcess_CalcTangentSpace;
+
     // parse file using assimp
     ::Assimp::Importer importer{};
-    const auto *scene = importer.ReadFileFromMemory(
-        file_data.data(), file_data.size(), ::aiProcess_Triangulate | ::aiProcess_CalcTangentSpace | aiProcess_FlipUVs);
+    const auto *scene = importer.ReadFileFromMemory(file_data.data(), file_data.size(), import_flags);
 
     ensure(
         (scene != nullptr) && !(scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) && (scene->mRootNode != nullptr),
