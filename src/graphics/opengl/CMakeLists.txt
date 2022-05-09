@@ -2,7 +2,6 @@ set(INCLUDE_ROOT "${PROJECT_SOURCE_DIR}/include/iris/graphics/opengl")
 
 target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/compiler_strings.h
-    ${INCLUDE_ROOT}/glsl_shader_compiler.h
     ${INCLUDE_ROOT}/opengl.h
     ${INCLUDE_ROOT}/opengl_buffer.h
     ${INCLUDE_ROOT}/opengl_cube_map.h
@@ -17,7 +16,6 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/opengl_texture.h
     ${INCLUDE_ROOT}/opengl_texture_manager.h
     ${INCLUDE_ROOT}/opengl_uniform.h
-    glsl_shader_compiler.cpp
     opengl.cpp
     opengl_cube_map.cpp
     opengl_frame_buffer.cpp
