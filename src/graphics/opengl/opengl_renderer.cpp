@@ -111,7 +111,6 @@ std::unique_ptr<iris::SSBO> create_texture_table_ssbo()
     iris::ConstantBufferWriter writer{*texture_table};
     for (auto i = 0u; i <= max_index; ++i)
     {
-        LOG_DEBUG("opengl_renderer", "adding to table: {} ({} {})", (*iter)->name(), i, (*iter)->index());
         // if a texture exits at the current index we write it in
         if (i == (*iter)->index())
         {

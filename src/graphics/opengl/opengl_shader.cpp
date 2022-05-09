@@ -9,7 +9,6 @@
 #include <cstdint>
 #include <iomanip>
 #include <iostream>
-#include <ranges>
 #include <string>
 #include <string_view>
 #include <utility>

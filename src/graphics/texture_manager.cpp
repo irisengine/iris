@@ -204,7 +204,7 @@ Texture *TextureManager::load(const std::string &resource, TextureUsage usage, c
     if (!loaded_textures_.contains(resource))
     {
         const auto file_data = ResourceLoader::instance().load(resource);
-        auto [data, width, height] = parse_image(file_data, false);
+        auto [data, width, height] = parse_image(file_data, true);
 
         auto texture = do_create(
             data, width, height, sampler == nullptr ? default_texture_sampler() : sampler, usage, next_texture_index());
