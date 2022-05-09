@@ -6,6 +6,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/opengl.h
     ${INCLUDE_ROOT}/opengl_buffer.h
     ${INCLUDE_ROOT}/opengl_cube_map.h
+    ${INCLUDE_ROOT}/opengl_frame_buffer.h
     ${INCLUDE_ROOT}/opengl_material.h
     ${INCLUDE_ROOT}/opengl_mesh.h
     ${INCLUDE_ROOT}/opengl_mesh_manager.h
@@ -19,6 +20,7 @@ target_sources(iris PRIVATE
     glsl_shader_compiler.cpp
     opengl.cpp
     opengl_cube_map.cpp
+    opengl_frame_buffer.cpp
     opengl_material.cpp
     opengl_mesh.cpp
     opengl_mesh_manager.cpp
