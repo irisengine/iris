@@ -21,6 +21,8 @@
 #define GL_INFO_LOG_LENGTH 0x8B84
 #define GL_FRAMEBUFFER 0x8D40
 #define GL_COLOR_ATTACHMENT0 0x8CE0
+#define GL_COLOR_ATTACHMENT1 0x8ce1
+#define GL_COLOR_ATTACHMENT2 0x8ce2
 #define GL_DEPTH_ATTACHMENT 0x8D00
 #define GL_FRAMEBUFFER_COMPLETE 0x8CD5
 #define GL_TEXTURE0 0x84C0
@@ -125,3 +127,4 @@ EXTERN void (*glBindSampler)(GLuint, GLuint);
 EXTERN void (*glDeleteSamplers)(GLsizei, const GLuint *);
 EXTERN void (*glSamplerParameteri)(GLuint, GLenum, GLint);
 EXTERN void (*glSamplerParameterfv)(GLuint, GLenum, const GLfloat *);
+EXTERN void (*glDrawBuffers)(GLsizei, const GLenum *);

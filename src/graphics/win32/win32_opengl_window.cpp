@@ -109,6 +109,7 @@ void resolve_global_opengl_functions()
     resolve_opengl_function(glDeleteSamplers, "glDeleteSamplers");
     resolve_opengl_function(glSamplerParameteri, "glSamplerParameteri");
     resolve_opengl_function(glSamplerParameterfv, "glSamplerParameterfv");
+    resolve_opengl_function(glDrawBuffers, "glDrawBuffers");
 }
 
 /**
