@@ -20,7 +20,6 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/d3d12_structured_buffer.h
     ${INCLUDE_ROOT}/d3d12_texture.h
     ${INCLUDE_ROOT}/d3d12_texture_manager.h
-    ${INCLUDE_ROOT}/hlsl_shader_compiler.h
     d3d12_buffer.cpp
     d3d12_constant_buffer.cpp
     d3d12_constant_buffer_pool.cpp
@@ -36,5 +35,4 @@ target_sources(iris PRIVATE
     d3d12_sampler.cpp
     d3d12_structured_buffer.cpp
     d3d12_texture.cpp
-    d3d12_texture_manager.cpp
-    hlsl_shader_compiler.cpp)
+    d3d12_texture_manager.cpp)
