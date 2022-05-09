@@ -6,59 +6,14 @@
 
 #include "graphics/opengl/opengl_render_target.h"
 
-#include <cstdint>
-
-#include "core/error_handling.h"
-#include "graphics/opengl/opengl.h"
-#include "graphics/opengl/opengl_texture.h"
+#include "graphics/texture.h"
 
 namespace iris
 {
 
 OpenGLRenderTarget::OpenGLRenderTarget(const Texture *colour_texture, const Texture *depth_texture)
     : RenderTarget(colour_texture, depth_texture)
-    , handle_(0u)
 {
-    // create a frame buffer for our target
-    ::glGenFramebuffers(1, &handle_);
-    expect(check_opengl_error, "could not generate fbo");
-
-    bind(GL_FRAMEBUFFER);
-
-    const auto colour_handle = static_cast<const OpenGLTexture *>(colour_texture_)->handle();
-
-    // set colour texture
-    ::glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colour_handle, 0);
-    expect(check_opengl_error, "could not attach colour texture");
-
-    const auto depth_handle = static_cast<const OpenGLTexture *>(depth_texture_)->handle();
-
-    // set depth texture
-    ::glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_handle, 0);
-    expect(check_opengl_error, "could not attach depth texture");
-
-    // check everything worked
-    const auto status = ::glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    expect(status == GL_FRAMEBUFFER_COMPLETE, "fbo in invalid state: " + std::to_string(status));
-
-    unbind(GL_FRAMEBUFFER);
-}
-
-OpenGLRenderTarget::~OpenGLRenderTarget()
-{
-    ::glDeleteFramebuffers(1, &handle_);
-}
-
-void OpenGLRenderTarget::bind(GLenum target) const
-{
-    ::glBindFramebuffer(target, handle_);
-    expect(check_opengl_error, "could not bind framebuffer");
-}
-
-void OpenGLRenderTarget::unbind(GLenum target) const
-{
-    ::glBindFramebuffer(target, 0u);
-    expect(check_opengl_error, "could not bind framebuffer");
 }
 
 }

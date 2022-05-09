@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "graphics/opengl/opengl.h"
 #include "graphics/render_target.h"
 #include "graphics/texture.h"
 
@@ -30,30 +29,7 @@ class OpenGLRenderTarget : public RenderTarget
      */
     OpenGLRenderTarget(const Texture *colour_texture, const Texture *depth_texture);
 
-    /**
-     * Clean up OpenGL objects.
-     */
-    ~OpenGLRenderTarget() override;
-
-    /**
-     * Bind render target for use.
-     *
-     * @param target
-     *   OpenGL framebuffer target.
-     */
-    void bind(GLenum target) const;
-
-    /**
-     * Unbind the render target for use.
-     *
-     * @param target
-     *   OpenGL framebuffer target.
-     */
-    void unbind(GLenum target) const;
-
-  private:
-    /** OpenGL handle to framebuffer */
-    GLuint handle_;
+    ~OpenGLRenderTarget() override = default;
 };
 
 }
