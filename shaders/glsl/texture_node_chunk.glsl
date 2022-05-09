@@ -1,0 +1,1 @@
+texture(sampler2D(texture_table[{{texture_index}}]), vec2(tex_coord.s, 1.0 - tex_coord.t))

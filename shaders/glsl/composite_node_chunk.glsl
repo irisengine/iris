@@ -1,0 +1,1 @@
+composite({{colour1}}, {{colour2}}, {{depth1}}, {{depth2}}, vec2(tex_coord.s, 1.0 - tex_coord.t))
