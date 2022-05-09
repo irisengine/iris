@@ -29,6 +29,7 @@ target_sources(iris PRIVATE
     invert_node.cpp
     render_graph.cpp
     render_node.cpp
+    shader_compiler.cpp
     sin_node.cpp
     sky_box_node.cpp
     texture_node.cpp

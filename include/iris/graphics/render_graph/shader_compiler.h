@@ -6,13 +6,16 @@
 
 #pragma once
 
-#include <cstddef>
+#include <set>
+#include <sstream>
+#include <stack>
 #include <string>
-#include <vector>
 
 #include "core/colour.h"
 #include "core/vector3.h"
+#include "graphics/default_shader_languages.h"
 #include "graphics/lights/light_type.h"
+#include "graphics/render_graph/render_graph.h"
 
 namespace iris
 {
@@ -43,28 +46,33 @@ class AntiAliasingNode;
 class ShaderCompiler
 {
   public:
-    virtual ~ShaderCompiler() = default;
+    ShaderCompiler(
+        ShaderLanguage language,
+        const RenderGraph *render_graph,
+        LightType light_type,
+        bool render_to_normal_target,
+        bool render_to_position_target);
 
     // visitor methods
-    virtual void visit(const RenderNode &node) = 0;
-    virtual void visit(const SkyBoxNode &node) = 0;
-    virtual void visit(const ColourNode &node) = 0;
-    virtual void visit(const TextureNode &node) = 0;
-    virtual void visit(const InvertNode &node) = 0;
-    virtual void visit(const BlurNode &node) = 0;
-    virtual void visit(const CompositeNode &node) = 0;
-    virtual void visit(const ValueNode<float> &node) = 0;
-    virtual void visit(const ValueNode<Vector3> &node) = 0;
-    virtual void visit(const ValueNode<Colour> &node) = 0;
-    virtual void visit(const ArithmeticNode &node) = 0;
-    virtual void visit(const ConditionalNode &node) = 0;
-    virtual void visit(const ComponentNode &node) = 0;
-    virtual void visit(const CombineNode &node) = 0;
-    virtual void visit(const SinNode &node) = 0;
-    virtual void visit(const VertexNode &node) = 0;
-    virtual void visit(const AmbientOcclusionNode &node) = 0;
-    virtual void visit(const ColourAdjustNode &node) = 0;
-    virtual void visit(const AntiAliasingNode &node) = 0;
+    void visit(const RenderNode &node);
+    void visit(const SkyBoxNode &node);
+    void visit(const ColourNode &node);
+    void visit(const TextureNode &node);
+    void visit(const InvertNode &node);
+    void visit(const BlurNode &node);
+    void visit(const CompositeNode &node);
+    void visit(const ValueNode<float> &node);
+    void visit(const ValueNode<Vector3> &node);
+    void visit(const ValueNode<Colour> &node);
+    void visit(const ArithmeticNode &node);
+    void visit(const ConditionalNode &node);
+    void visit(const ComponentNode &node);
+    void visit(const CombineNode &node);
+    void visit(const SinNode &node);
+    void visit(const VertexNode &node);
+    void visit(const AmbientOcclusionNode &node);
+    void visit(const ColourAdjustNode &node);
+    void visit(const AntiAliasingNode &node);
 
     /**
      * Get the compiled vertex shader.
@@ -75,7 +83,7 @@ class ShaderCompiler
      * @returns
      *   Vertex shader.
      */
-    virtual std::string vertex_shader() const = 0;
+    std::string vertex_shader() const;
 
     /**
      * Get the compiled fragment shader.
@@ -86,6 +94,30 @@ class ShaderCompiler
      * @returns
      *   Fragment shader.
      */
-    virtual std::string fragment_shader() const = 0;
+    std::string fragment_shader() const;
+
+  private:
+    ShaderLanguage language_;
+
+    /** Stream for vertex shader. */
+    std::stringstream vertex_stream_;
+
+    /** Stream for fragment shader. */
+    std::stringstream fragment_stream_;
+
+    /** Collection of fragment functions. */
+    std::set<std::string> fragment_functions_;
+
+    /** Type of light to render with. */
+    LightType light_type_;
+
+    /** Flag indicating whether the shader should also write out screen space normals to a render texture. */
+    bool render_to_normal_target_;
+
+    /** Flag indicating whether the shader should also write out screen space positions to a render texture. */
+    bool render_to_position_target_;
+
+    /** Stack of streams to be used the render graph is traversed. */
+    std::stack<std::stringstream> stream_stack_;
 };
 }
