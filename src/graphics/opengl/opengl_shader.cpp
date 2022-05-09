@@ -7,8 +7,11 @@
 #include "graphics/opengl/opengl_shader.h"
 
 #include <cstdint>
+#include <iomanip>
 #include <iostream>
+#include <ranges>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -61,7 +64,17 @@ OpenGLShader::OpenGLShader(const std::string &source, ShaderType type)
 
             // convert to string and throw
             const std::string error(error_log.data(), log_length);
-            LOG_ENGINE_ERROR("opengl_shader", "{}\n{}", source, error);
+
+            auto line_number = 1u;
+
+            std::istringstream strm{source};
+            for (std::string line; std::getline(strm, line);)
+            {
+                LOG_ENGINE_ERROR("opengl_shader", "{}: {}", line_number, line);
+                ++line_number;
+            }
+
+            LOG_ENGINE_ERROR("opengl_shader", "{}", error);
 
             throw Exception("shader compilation failed: " + error);
         }
