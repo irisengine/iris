@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cstdint>
+#include <deque>
 #include <vector>
 
 #include "graphics/render_command.h"
@@ -33,7 +34,7 @@ class FakeRenderer : public iris::Renderer
 
     // overridden methods which just log when they are called
 
-    void set_render_passes(const std::vector<iris::RenderPass> &) override
+    void set_render_passes(const std::deque<iris::RenderPass> &) override
     {
     }
 

@@ -4,6 +4,7 @@
 //                 https://www.boost.org/LICENSE_1_0.txt)                     //
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <deque>
 #include <memory>
 #include <vector>
 
@@ -15,6 +16,7 @@
 #include "graphics/single_entity.h"
 
 #include "fakes/fake_material.h"
+#include "fakes/fake_mesh.h"
 #include "fakes/fake_render_target.h"
 
 #include <gtest/gtest.h>
@@ -28,9 +30,15 @@ class RenderQueueBuilderFixture : public ::testing::Test
         , render_targets_()
     {
         builder_ = std::make_unique<iris::RenderQueueBuilder>(
-            [this](auto *, auto *, const auto *, auto) {
+            800u,
+            800u,
+            [this](auto *, auto *, const auto *, auto, auto, auto) {
                 materials_.emplace_back(std::make_unique<FakeMaterial>());
                 return materials_.back().get();
+            },
+            [this](auto, auto) {
+                render_targets_.emplace_back(std::make_unique<FakeRenderTarget>());
+                return render_targets_.back().get();
             },
             [this](auto, auto) {
                 render_targets_.emplace_back(std::make_unique<FakeRenderTarget>());
@@ -43,10 +51,12 @@ class RenderQueueBuilderFixture : public ::testing::Test
     std::vector<std::unique_ptr<FakeMaterial>> materials_;
     std::vector<std::unique_ptr<FakeRenderTarget>> render_targets_;
     std::vector<iris::Scene> scenes_;
-    std::vector<iris::RenderPass> passes_;
+    std::deque<iris::RenderPass> passes_;
 
-    std::vector<iris::RenderPass> create_complex_scene()
+    std::deque<iris::RenderPass> create_complex_scene()
     {
+        FakeMesh mesh{};
+
         render_targets_.emplace_back(std::make_unique<FakeRenderTarget>());
 
         scenes_.emplace_back(iris::Scene{});
@@ -55,10 +65,10 @@ class RenderQueueBuilderFixture : public ::testing::Test
         auto &scene2 = scenes_[1];
 
         scene1.create_light<iris::DirectionalLight>(iris::Vector3{}, true);
-        scene1.create_entity<iris::SingleEntity>(nullptr, nullptr, iris::Transform{});
-        scene2.create_entity<iris::SingleEntity>(nullptr, nullptr, iris::Transform{});
+        scene1.create_entity<iris::SingleEntity>(nullptr, &mesh, iris::Transform{});
+        scene2.create_entity<iris::SingleEntity>(nullptr, &mesh, iris::Transform{});
 
-        passes_.push_back({.scene = std::addressof(scenes_[0]), .render_target = render_targets_.back().get()});
+        passes_.push_back({.scene = std::addressof(scenes_[0]), .colour_target = render_targets_.back().get()});
         passes_.push_back({.scene = std::addressof(scenes_[1])});
 
         return passes_;
@@ -67,7 +77,7 @@ class RenderQueueBuilderFixture : public ::testing::Test
 
 TEST_F(RenderQueueBuilderFixture, empty_passes)
 {
-    std::vector<iris::RenderPass> passes{};
+    std::deque<iris::RenderPass> passes{};
     std::vector<iris::RenderCommand> expected(1u);
     expected[0u].set_type(iris::RenderCommandType::PRESENT);
 

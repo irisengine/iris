@@ -177,27 +177,8 @@ class RenderCommand
      */
     void set_shadow_map(const RenderTarget *shadow_map);
 
-    /**
-     * Equality operator.
-     *
-     * @param other
-     *   RenderCommand to compare with this.
-     *
-     * @returns
-     *   True if objects are equal, otherwise false.
-     */
-    bool operator==(const RenderCommand &other) const;
-
-    /**
-     * Inequality operator.
-     *
-     * @param other
-     *   RenderCommand to compare with this.
-     *
-     * @returns
-     *   True if objects are not equal, otherwise false.
-     */
-    bool operator!=(const RenderCommand &other) const;
+    bool operator==(const RenderCommand &) const = default;
+    bool operator!=(const RenderCommand &) const = default;
 
   private:
     /** Command type. */

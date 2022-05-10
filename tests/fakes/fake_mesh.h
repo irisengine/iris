@@ -7,22 +7,26 @@
 #pragma once
 
 #include <cstdint>
-#include <memory>
+#include <vector>
 
-#include "fakes/fake_texture.h"
-#include "graphics/render_target.h"
-#include "graphics/texture.h"
+#include "graphics/mesh.h"
+#include "graphics/vertex_data.h"
 
-
-#include "fakes/fake_texture.h"
-
-class FakeRenderTarget : public iris::RenderTarget
+class FakeMesh : public iris::Mesh
 {
   public:
-    FakeRenderTarget()
-        : iris::RenderTarget(new FakeTexture{}, new FakeTexture{})
+    FakeMesh()
+        : Mesh({}, {})
     {
     }
 
-    ~FakeRenderTarget() override = default;
+    ~FakeMesh() override = default;
+
+    void update_vertex_data(const std::vector<iris::VertexData> &data) override
+    {
+    }
+
+    void update_index_data(const std::vector<std::uint32_t> &data) override
+    {
+    }
 };

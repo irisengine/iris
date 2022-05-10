@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 
 #include "core/vector3.h"
+#include "graphics/mesh_loader.h"
 #include "graphics/render_command.h"
 #include "graphics/render_command_type.h"
 #include "graphics/render_pass.h"
@@ -14,6 +15,7 @@
 
 #include "fakes/fake_light.h"
 #include "fakes/fake_material.h"
+#include "fakes/fake_mesh.h"
 #include "fakes/fake_render_target.h"
 
 TEST(render_command_tests, default_ctor)
@@ -30,10 +32,11 @@ TEST(render_command_tests, default_ctor)
 
 TEST(render_command_tests, ctor)
 {
+    FakeMesh mesh{};
     const auto type = iris::RenderCommandType::DRAW;
     const iris::RenderPass render_pass{nullptr, nullptr, nullptr};
     const FakeMaterial material{};
-    const iris::SingleEntity render_entity{nullptr, iris::Vector3{}};
+    const iris::SingleEntity render_entity{&mesh, iris::Vector3{}};
     const FakeRenderTarget shadow_map{};
     const FakeLight light{};
 
@@ -79,8 +82,9 @@ TEST(render_command_tests, get_set_material)
 
 TEST(render_command_tests, get_set_render_entity)
 {
+    FakeMesh mesh{};
     iris::RenderCommand cmd{};
-    const iris::SingleEntity new_value{nullptr, iris::Vector3{}};
+    const iris::SingleEntity new_value{&mesh, iris::Vector3{}};
 
     cmd.set_render_entity(&new_value);
 
@@ -105,36 +109,4 @@ TEST(render_command_tests, get_set_light)
     cmd.set_light(&new_value);
 
     ASSERT_EQ(cmd.light(), &new_value);
-}
-
-TEST(render_command_tests, equality)
-{
-    const auto type = iris::RenderCommandType::DRAW;
-    const iris::RenderPass render_pass{nullptr, nullptr, nullptr};
-    const FakeMaterial material{};
-    const iris::SingleEntity render_entity{nullptr, iris::Vector3{}};
-    const FakeRenderTarget shadow_map{};
-    const FakeLight light{};
-
-    const iris::RenderCommand cmd1{type, &render_pass, &material, &render_entity, &shadow_map, &light};
-
-    const iris::RenderCommand cmd2{type, &render_pass, &material, &render_entity, &shadow_map, &light};
-
-    ASSERT_EQ(cmd1, cmd2);
-}
-
-TEST(render_command_tests, inequality)
-{
-    const auto type = iris::RenderCommandType::DRAW;
-    const iris::RenderPass render_pass{nullptr, nullptr, nullptr};
-    const FakeMaterial material{};
-    const iris::SingleEntity render_entity{nullptr, iris::Vector3{}};
-    const FakeRenderTarget shadow_map{};
-    const FakeLight light{};
-
-    const iris::RenderCommand cmd1{type, &render_pass, &material, &render_entity, &shadow_map, &light};
-
-    const iris::RenderCommand cmd2{type, &render_pass, nullptr, &render_entity, &shadow_map, &light};
-
-    ASSERT_NE(cmd1, cmd2);
 }

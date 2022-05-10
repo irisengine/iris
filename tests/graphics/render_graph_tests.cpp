@@ -57,7 +57,7 @@ TEST(render_graph_tests, texture_node_single_texture_hash_the_same)
     ASSERT_EQ(std::hash<iris::RenderGraph *>{}(&rg1), std::hash<iris::RenderGraph *>{}(&rg2));
 }
 
-TEST(render_graph_tests, texture_node_multiple_texture_hash_the_same)
+TEST(render_graph_tests, texture_node_multiple_texture_hash_different)
 {
     FakeTexture texture1{};
     FakeTexture texture2{};
@@ -68,7 +68,7 @@ TEST(render_graph_tests, texture_node_multiple_texture_hash_the_same)
     iris::RenderGraph rg2{};
     rg2.render_node()->set_colour_input(rg2.create<iris::TextureNode>(&texture2));
 
-    ASSERT_EQ(std::hash<iris::RenderGraph *>{}(&rg1), std::hash<iris::RenderGraph *>{}(&rg2));
+    ASSERT_NE(std::hash<iris::RenderGraph *>{}(&rg1), std::hash<iris::RenderGraph *>{}(&rg2));
 }
 
 TEST(render_graph_tests, complex_graph_hash_the_same)
