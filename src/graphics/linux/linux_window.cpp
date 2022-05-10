@@ -31,6 +31,9 @@
 
 bool iris::ScopedErrorHandler::error = false;
 
+// x-macro argument to resolve functions
+#define RESOLVE_FUNCTION(_, NAME, ...) resolve_opengl_function(NAME, #NAME);
+
 namespace
 {
 
@@ -57,43 +60,7 @@ void resolve_opengl_function(T &function, const std::string &name)
  */
 void resolve_global_opengl_functions()
 {
-    resolve_opengl_function(glDeleteBuffers, "glDeleteBuffers");
-    resolve_opengl_function(glUseProgram, "glUseProgram");
-    resolve_opengl_function(glBindBuffer, "glBindBuffer");
-    resolve_opengl_function(glGenVertexArrays, "glGenVertexArrays");
-    resolve_opengl_function(glDeleteVertexArrays, "glDeleteVertexArrays");
-    resolve_opengl_function(glBindVertexArray, "glBindVertexArray");
-    resolve_opengl_function(glEnableVertexAttribArray, "glEnableVertexAttribArray");
-    resolve_opengl_function(glVertexAttribPointer, "glVertexAttribPointer");
-    resolve_opengl_function(glVertexAttribIPointer, "glVertexAttribIPointer");
-    resolve_opengl_function(glCreateProgram, "glCreateProgram");
-    resolve_opengl_function(glAttachShader, "glAttachShader");
-    resolve_opengl_function(glGenBuffers, "glGenBuffers");
-    resolve_opengl_function(glBufferData, "glBufferData");
-    resolve_opengl_function(glBufferSubData, "glBufferSubData");
-    resolve_opengl_function(glLinkProgram, "glLinkProgram");
-    resolve_opengl_function(glGetProgramiv, "glGetProgramiv");
-    resolve_opengl_function(glGetProgramInfoLog, "glGetProgramInfoLog");
-    resolve_opengl_function(glDeleteProgram, "glDeleteProgram");
-    resolve_opengl_function(glGenFramebuffers, "glGenFramebuffers");
-    resolve_opengl_function(glBindFramebuffer, "glBindFramebuffer");
-    resolve_opengl_function(glFramebufferTexture2D, "glFramebufferTexture2D");
-    resolve_opengl_function(glCheckFramebufferStatus, "glCheckFramebufferStatus");
-    resolve_opengl_function(glDeleteFramebuffers, "glDeleteFramebuffers");
-    resolve_opengl_function(glGetUniformLocation, "glGetUniformLocation");
-    resolve_opengl_function(glUniformMatrix4fv, "glUniformMatrix4fv");
-    resolve_opengl_function(glUniform3f, "glUniform3f");
-    resolve_opengl_function(glUniform1fv, "glUniform1fv");
-    resolve_opengl_function(glUniform4fv, "glUniform4fv");
-    resolve_opengl_function(glUniform1i, "glUniform1i");
-    resolve_opengl_function(glBlitFramebuffer, "glBlitFramebuffer");
-    resolve_opengl_function(glCreateShader, "glCreateShader");
-    resolve_opengl_function(glShaderSource, "glShaderSource");
-    resolve_opengl_function(glCompileShader, "glCompileShader");
-    resolve_opengl_function(glGetShaderiv, "glGetShaderiv");
-    resolve_opengl_function(glGetShaderInfoLog, "glGetShaderInfoLog");
-    resolve_opengl_function(glDeleteShader, "glDeleteShader");
-    resolve_opengl_function(glGenerateMipmap, "glGenerateMipmap");
+    FOR_OPENGL_FUNCTIONS(RESOLVE_FUNCTION);
 }
 
 /**
