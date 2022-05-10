@@ -9,7 +9,7 @@
 #include <memory>
 #include <vector>
 
-#include <BulletCollision/CollisionShapes/btHeightFieldTerrainShape.h>
+#include <BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h>
 
 #include "core/vector3.h"
 #include "physics/bullet/bullet_collision_shape.h"

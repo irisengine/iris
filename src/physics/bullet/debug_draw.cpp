@@ -10,7 +10,7 @@
 #include <vector>
 
 #include <BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h>
-#include <BulletCollision/CollisionShapes/btHeightFieldTerrainShape.h>
+#include <BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h>
 #include <BulletCollision/CollisionShapes/btTriangleCallback.h>
 #include <btBulletDynamicsCommon.h>
 

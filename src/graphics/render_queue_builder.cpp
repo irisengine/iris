@@ -11,7 +11,6 @@
 #include <vector>
 
 #include "core/root.h"
-#include "graphics/d3d12/d3d12_render_target.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/render_graph/arithmetic_node.h"
 #include "graphics/render_graph/blur_node.h"
