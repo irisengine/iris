@@ -48,8 +48,9 @@ Transform Animation::transform(std::string_view bone) const
     const auto &keyframes = frames_.find(bone)->second;
 
     // find the first keyframe *after* current time
-    auto second_keyframe = std::find_if(
-        std::cbegin(keyframes) + 1u, std::cend(keyframes), [this](const KeyFrame &kf) { return kf.time >= time_; });
+    auto second_keyframe = std::find_if(std::cbegin(keyframes) + 1u, std::cend(keyframes), [this](const KeyFrame &kf) {
+        return kf.time >= time_;
+    });
 
     // if we are past the end of the animation then use the last keyframe
     if (second_keyframe == std::cend(keyframes))

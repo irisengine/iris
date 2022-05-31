@@ -29,10 +29,9 @@ namespace
 
 iris::AnimationState *get_state(std::string_view name, const std::vector<std::unique_ptr<iris::AnimationState>> &states)
 {
-    auto state = std::find_if(
-        std::begin(states),
-        std::end(states),
-        [name](const auto &element) { return element->animation()->name() == name; });
+    auto state = std::find_if(std::begin(states), std::end(states), [name](const auto &element) {
+        return element->animation()->name() == name;
+    });
 
     iris::expect(state != std::end(states), "missing state");
 
@@ -44,21 +43,16 @@ iris::AnimationState *get_state(std::string_view name, const std::vector<std::un
 namespace iris
 {
 
-struct AnimationController::implementation
-{
-    Skeleton *skeleton;
-    std::vector<std::vector<std::unique_ptr<AnimationState>>> states;
-    std::vector<Animation> animations;
-    std::vector<AnimationLayer> layers;
-    std::vector<AnimationState *> current_state;
-    std::unique_ptr<CachedBoneQuery> query;
-};
-
 AnimationController::AnimationController(
     const std::vector<Animation> &animations,
     const std::vector<AnimationLayer> &layers,
-    Skeleton &skeleton)
-    : impl_(std::make_unique<implementation>())
+    Skeleton *skeleton)
+    : skeleton_(skeleton)
+    , animations_(animations)
+    , layers_(layers)
+    , states_(layers_.size())
+    , current_state_(layers_.size())
+    , query_()
 {
     ensure(!layers.empty(), "must have at least one layer");
     ensure(layers.front().bone_mask.empty(), "base layer cannot have a mask");
@@ -70,40 +64,34 @@ AnimationController::AnimationController(
         bone_masks.emplace_back(std::cbegin(layers[i].bone_mask), std::cend(layers[i].bone_mask));
     }
 
-    impl_->skeleton = std::addressof(skeleton);
-    impl_->animations = animations;
-    impl_->layers = layers;
-    impl_->query = std::make_unique<CachedBoneQuery>(impl_->skeleton, bone_masks);
+    query_ = std::make_unique<CachedBoneQuery>(skeleton_, bone_masks);
 
-    impl_->states.resize(impl_->layers.size());
-    impl_->current_state.resize(impl_->layers.size());
-
-    for (auto i = 0u; i < impl_->layers.size(); ++i)
+    for (auto i = 0u; i < layers_.size(); ++i)
     {
-        const auto &layer = impl_->layers[i];
-        impl_->current_state[i] = nullptr;
+        const auto &layer = layers_[i];
+        current_state_[i] = nullptr;
 
-        for (auto &animation : impl_->animations)
+        for (auto &animation : animations_)
         {
-            impl_->states[i].emplace_back(
-                std::make_unique<AnimationState>(std::addressof(animation), impl_->skeleton, impl_->query.get(), i));
+            states_[i].emplace_back(
+                std::make_unique<AnimationState>(std::addressof(animation), skeleton_, query_.get(), i));
 
             if (animation.name() == layer.start_animation)
             {
-                impl_->current_state[i] = impl_->states[i].back().get();
+                current_state_[i] = states_[i].back().get();
             }
         }
 
         for (const auto &[from, to, duration] : layer.transitions)
         {
-            auto *from_state = get_state(from, impl_->states[i]);
-            auto *to_state = get_state(to, impl_->states[i]);
+            auto *from_state = get_state(from, states_[i]);
+            auto *to_state = get_state(to, states_[i]);
 
             from_state->transitions()[to_state->animation()->name()] = {to_state, duration};
         }
 
-        ensure(impl_->current_state[i] != nullptr, "no valid start start");
-        impl_->current_state[i]->enter();
+        ensure(current_state_[i] != nullptr, "no valid start start");
+        current_state_[i]->enter();
     }
 }
 
@@ -111,21 +99,21 @@ AnimationController::~AnimationController() = default;
 
 void AnimationController::update()
 {
-    for (auto i = 0u; i < impl_->layers.size(); ++i)
+    for (auto i = 0u; i < layers_.size(); ++i)
     {
-        auto *next_state = impl_->current_state[i]->update();
+        auto *next_state = current_state_[i]->update();
         if (next_state != nullptr)
         {
-            impl_->current_state[i]->exit();
-            impl_->current_state[i] = next_state;
-            impl_->current_state[i]->enter();
+            current_state_[i]->exit();
+            current_state_[i] = next_state;
+            current_state_[i]->enter();
         }
     }
 }
 
 void AnimationController::play(std::size_t layer, std::string_view animation)
 {
-    impl_->current_state[layer]->transition(animation);
+    current_state_[layer]->transition(animation);
 }
 
 }

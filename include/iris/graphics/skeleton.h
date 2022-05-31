@@ -83,9 +83,6 @@ class Skeleton
      *
      * @param bones
      *   Collection of bones, these will be reordered.
-     *
-     * @parma animations
-     *   Collection of animations for supplied bones
      */
     Skeleton(std::vector<Bone> bones);
 
@@ -113,6 +110,17 @@ class Skeleton
      *   Query object to get bone transforms (e.g. from an animation), can be nullptr.
      */
     void update(BoneQuery *query);
+
+    /**
+     * Check if a bone exists.
+     *
+     * @param name
+     *   Name of bone to check.
+     *
+     * @returns
+     *   True if bone exists, otherwise false.
+     */
+    bool has_bone(std::string_view name) const;
 
     /**
      * Get the index of the given bone name.

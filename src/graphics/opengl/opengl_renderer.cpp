@@ -389,6 +389,8 @@ void OpenGLRenderer::execute_draw(RenderCommand &command)
 
     if (!bone_data_.contains(render_entity))
     {
+        static std::vector<Matrix4> default_bones(100u);
+
         // first time seeing this entity this pass, so create a new UBO
         bone_data_[render_entity] = std::make_unique<UBO>(sizeof(Matrix4) * 100u, 1u);
 
@@ -399,9 +401,17 @@ void OpenGLRenderer::execute_draw(RenderCommand &command)
             // a single entity, so write in bone data
 
             const auto *single_entity = static_cast<const SingleEntity *>(render_entity);
-            const auto &bones = single_entity->skeleton().transforms();
-            writer.write(bones);
-            writer.advance((100u - bones.size()) * sizeof(iris::Matrix4));
+
+            if (single_entity->skeleton() != nullptr)
+            {
+                const auto &bones = single_entity->skeleton()->transforms();
+                writer.write(bones);
+                writer.advance((100u - bones.size()) * sizeof(iris::Matrix4));
+            }
+            else
+            {
+                writer.write(default_bones);
+            }
 
             // also cache the entities transform data
             model_data_[render_entity] = std::make_unique<SSBO>(128u, 5u);
@@ -412,7 +422,6 @@ void OpenGLRenderer::execute_draw(RenderCommand &command)
         else
         {
             // we don't support animation of instanced entities - so just send default bone transforms
-            static std::vector<Matrix4> default_bones(100u);
             writer.write(default_bones);
         }
     }

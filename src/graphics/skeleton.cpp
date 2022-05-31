@@ -94,7 +94,7 @@ namespace iris
 {
 
 Skeleton::Skeleton()
-    : Skeleton({{"root", {}, std::vector<Weight>{{0u, 1.0f}}, {}, {}}})
+    : Skeleton({{"root", {}, {}, {}}})
 {
 }
 
@@ -162,6 +162,14 @@ const std::vector<Matrix4> &Skeleton::transforms() const
 void Skeleton::update(BoneQuery *query)
 {
     update_transforms(transforms_, bones_, parents_, query);
+}
+
+bool Skeleton::has_bone(std::string_view name) const
+{
+    const auto bone =
+        std::find_if(std::cbegin(bones_), std::cend(bones_), [&name](const Bone &bone) { return bone.name() == name; });
+
+    return bone != std::cend(bones_);
 }
 
 std::size_t Skeleton::bone_index(std::string_view name) const

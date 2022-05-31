@@ -25,8 +25,8 @@ class Animation;
 class Skeleton;
 
 /**
- * Implementation fo BoneQuery that caches the transform of each bone. This allows us to blend from whatever the current
- * state is towards a new state. This is required form implementing transitions and layers.
+ * Implementation of BoneQuery that caches the transform of each bone. This allows us to blend from whatever the current
+ * state is towards a new state. This is required for implementing transitions and layers.
  */
 class CachedBoneQuery : public BoneQuery
 {

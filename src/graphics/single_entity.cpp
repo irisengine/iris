@@ -54,19 +54,19 @@ SingleEntity::SingleEntity(const Mesh *mesh, const Vector3 &position, PrimitiveT
 }
 
 SingleEntity::SingleEntity(const Mesh *mesh, const Transform &transform, PrimitiveType primitive_type)
-    : SingleEntity(mesh, transform, Skeleton{}, primitive_type)
+    : SingleEntity(mesh, transform, nullptr, primitive_type)
 {
 }
 
 SingleEntity::SingleEntity(
     const Mesh *mesh,
     const Transform &transform,
-    Skeleton skeleton,
+    Skeleton *skeleton,
     PrimitiveType primitive_type)
     : RenderEntity(mesh, primitive_type)
     , transform_(transform)
     , normal_()
-    , skeleton_(std::move(skeleton))
+    , skeleton_(skeleton)
 {
     ensure(mesh != nullptr, "must supply mesh");
 
@@ -132,12 +132,12 @@ void SingleEntity::set_mesh(const Mesh *mesh)
     mesh_ = mesh;
 }
 
-Skeleton &SingleEntity::skeleton()
+Skeleton *SingleEntity::skeleton()
 {
     return skeleton_;
 }
 
-const Skeleton &SingleEntity::skeleton() const
+const Skeleton *SingleEntity::skeleton() const
 {
     return skeleton_;
 }

@@ -13,6 +13,9 @@
 
 #include "graphics/animation/animation.h"
 #include "graphics/animation/animation_layer.h"
+#include "graphics/animation/animation_state.h"
+#include "graphics/animation/animation_transition.h"
+#include "graphics/animation/cached_bone_query.h"
 
 namespace iris
 {
@@ -46,9 +49,12 @@ class AnimationController
     AnimationController(
         const std::vector<Animation> &animations,
         const std::vector<AnimationLayer> &layers,
-        Skeleton &skeleton);
+        Skeleton *skeleton);
 
     ~AnimationController();
+
+    AnimationController(AnimationController &&) noexcept = default;
+    AnimationController &operator=(AnimationController &&) noexcept = default;
 
     /**
      * Updates the animations on all layers, should be called once per frame.
@@ -68,9 +74,23 @@ class AnimationController
     void play(std::size_t layer, std::string_view animation);
 
   private:
-    /** Pointer to implementation. */
-    struct implementation;
-    std::unique_ptr<implementation> impl_;
+    /** Skeleton to animate. */
+    Skeleton *skeleton_;
+
+    /** Collection of possible animations. */
+    std::vector<Animation> animations_;
+
+    /** User defined animation layers. */
+    std::vector<AnimationLayer> layers_;
+
+    /** Collection of states for internal state machine. */
+    std::vector<std::vector<std::unique_ptr<AnimationState>>> states_;
+
+    /** Pointer to current state. */
+    std::vector<AnimationState *> current_state_;
+
+    /** Object for querying bone data. */
+    std::unique_ptr<CachedBoneQuery> query_;
 };
 
 }

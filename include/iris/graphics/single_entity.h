@@ -78,7 +78,7 @@ class SingleEntity : public RenderEntity
     SingleEntity(
         const Mesh *mesh,
         const Transform &transform,
-        Skeleton skeleton,
+        Skeleton *skeleton,
         PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
 
     ~SingleEntity() override = default;
@@ -177,20 +177,20 @@ class SingleEntity : public RenderEntity
     void set_mesh(const Mesh *mesh);
 
     /**
-     * Get reference to skeleton.
+     * Get pointer to skeleton.
      *
      * @returns
-     *   Reference to skeleton.
+     *   Pointer to skeleton.
      */
-    Skeleton &skeleton();
+    Skeleton *skeleton();
 
     /**
-     * Get const reference to skeleton.
+     * Get const pointer to skeleton.
      *
      * @returns
-     *   Reference to skeleton.
+     *   Pointer to skeleton.
      */
-    const Skeleton &skeleton() const;
+    const Skeleton *skeleton() const;
 
   private:
     /** World space transform. */
@@ -200,7 +200,7 @@ class SingleEntity : public RenderEntity
     Matrix4 normal_;
 
     /** Skeleton. */
-    Skeleton skeleton_;
+    Skeleton *skeleton_;
 };
 
 }

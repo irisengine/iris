@@ -46,21 +46,13 @@ class Bone
      * @param parent
      *   Unique name of the parent bone.
      *
-     * @param weights
-     *   Collection of Weight objects that define the bone. May be empty.
-     *
      * @param offset
      *   Matrix which transforms vertices from local space to bone space.
      *
      * @param transform
      *   Initial matrix which transforms bone for an animation.
      */
-    Bone(
-        const std::string &name,
-        const std::string &parent,
-        const std::vector<Weight> &weights,
-        const Matrix4 &offset,
-        const Matrix4 &transform);
+    Bone(const std::string &name, const std::string &parent, const Matrix4 &offset, const Matrix4 &transform);
 
     /**
      * Get name of bone.
@@ -76,14 +68,6 @@ class Bone
      *   Parent bone name.
      */
     std::string parent() const;
-
-    /**
-     * Get reference to collection of weights.
-     *
-     * @returns
-     *   Reference to weights.
-     */
-    const std::vector<Weight> &weights() const;
 
     /**
      * Get reference to offset matrix.
@@ -131,9 +115,6 @@ class Bone
 
     /** Parent bone name. */
     std::string parent_;
-
-    /** Collection of weights. */
-    std::vector<Weight> weights_;
 
     /** Offset matrix. */
     Matrix4 offset_;

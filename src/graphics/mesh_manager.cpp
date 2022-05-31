@@ -31,7 +31,6 @@ namespace iris
 
 MeshManager::MeshManager(bool flip_uvs_on_load)
     : loaded_meshes_()
-    , loaded_skeletons_()
     , loaded_animations_()
     , flip_uvs_on_load_(flip_uvs_on_load)
 {
@@ -54,10 +53,10 @@ const Mesh *MeshManager::sprite(const Colour &colour)
 
         std::vector<std::uint32_t> indices{0, 2, 1, 3, 2, 0};
 
-        loaded_meshes_[id] = create_mesh(vertices, indices);
+        loaded_meshes_[id].push_back({.mesh = create_mesh(vertices, indices)});
     }
 
-    return loaded_meshes_[id].get();
+    return loaded_meshes_[id].front().mesh.get();
 }
 
 const Mesh *MeshManager::cube(const Colour &colour)
@@ -70,10 +69,10 @@ const Mesh *MeshManager::cube(const Colour &colour)
 
     if (loaded_meshes_.count(id) == 0u)
     {
-        loaded_meshes_[id] = unique_cube(colour);
+        loaded_meshes_[id].push_back({.mesh = unique_cube(colour)});
     }
 
-    return loaded_meshes_[id].get();
+    return loaded_meshes_[id].front().mesh.get();
 }
 
 std::unique_ptr<Mesh> MeshManager::unique_cube(const Colour &colour) const
@@ -165,10 +164,10 @@ const Mesh *MeshManager::plane(const Colour &colour, std::uint32_t divisions)
             }
         }
 
-        loaded_meshes_[id] = create_mesh(vertices, indices);
+        loaded_meshes_[id].push_back({.mesh = create_mesh(vertices, indices)});
     }
 
-    return loaded_meshes_[id].get();
+    return loaded_meshes_[id].front().mesh.get();
 }
 
 const Mesh *MeshManager::heightmap(const Colour &colour, const Texture *height_image)
@@ -260,10 +259,10 @@ const Mesh *MeshManager::heightmap(const Colour &colour, const Texture *height_i
             }
         }
 
-        loaded_meshes_[id] = create_mesh(vertices, indices);
+        loaded_meshes_[id].push_back({.mesh = create_mesh(vertices, indices)});
     }
 
-    return loaded_meshes_[id].get();
+    return loaded_meshes_[id].front().mesh.get();
 }
 
 const Mesh *MeshManager::quad(
@@ -288,35 +287,74 @@ const Mesh *MeshManager::quad(
 
         std::vector<std::uint32_t> indices{0, 2, 1, 3, 2, 0};
 
-        loaded_meshes_[id] = create_mesh(vertices, indices);
+        loaded_meshes_[id].push_back({.mesh = create_mesh(vertices, indices)});
     }
 
-    return loaded_meshes_[id].get();
+    return loaded_meshes_[id].front().mesh.get();
 }
 
-const Mesh *MeshManager::load_mesh(const std::string &mesh_file)
+MeshManager::Meshes MeshManager::load_mesh(const std::string &mesh_file)
 {
-    if (loaded_meshes_.count(mesh_file) == 0u)
+    if (!loaded_meshes_.contains(mesh_file))
     {
-        const auto &[vertices, indices, skeleton, animations] = mesh_loader::load(mesh_file, flip_uvs_on_load_);
-        loaded_meshes_[mesh_file] = create_mesh(vertices, indices);
-        loaded_skeletons_[mesh_file] = skeleton;
-        loaded_animations_[mesh_file] = animations;
+        expect(!loaded_animations_.contains(mesh_file), "unexpected animations");
+        expect(!loaded_skeletons_.contains(mesh_file), "unexpected skeleton");
+
+        mesh_loader::load(
+            mesh_file,
+            flip_uvs_on_load_,
+            [this, &mesh_file](auto vertices, auto indices, auto weights, const auto &texture_name) {
+                if (loaded_skeletons_.contains(mesh_file))
+                {
+                    const auto &skeleton = loaded_skeletons_[mesh_file];
+
+                    std::vector<std::uint32_t> bone_indices(vertices.size());
+
+                    // stamp bone data into loaded vertices
+                    for (const auto &[id, weight, bone_name] : weights)
+                    {
+                        if (weight == 0.0f)
+                        {
+                            continue;
+                        }
+
+                        // only support four bones per vertex
+                        if (bone_indices[id] >= 4)
+                        {
+                            LOG_ENGINE_WARN("mf", "too many weights {} {}", id, weight);
+                            continue;
+                        }
+
+                        const auto bone_index = skeleton.bone_index(bone_name);
+
+                        // update vertex data with bone data
+                        vertices[id].bone_ids[bone_indices[id]] = static_cast<std::uint32_t>(bone_index);
+                        vertices[id].bone_weights[bone_indices[id]] = weight;
+
+                        ++bone_indices[id];
+                    }
+                }
+
+                loaded_meshes_[mesh_file].push_back(
+                    {.mesh = create_mesh(vertices, indices), .texture_name = texture_name});
+            },
+            [this, &mesh_file](auto animations, auto skeleton) {
+                loaded_animations_[mesh_file] = std::move(animations);
+                loaded_skeletons_[mesh_file] = std::move(skeleton);
+            });
     }
 
-    return loaded_meshes_[mesh_file].get();
-}
+    Meshes meshes{};
 
-Skeleton MeshManager::load_skeleton(const std::string &mesh_file)
-{
-    load_mesh(mesh_file);
-    return loaded_skeletons_[mesh_file];
-}
+    for (const auto &[mesh, texture_name] : loaded_meshes_[mesh_file])
+    {
+        meshes.mesh_data.push_back({.mesh = mesh.get(), .texture_name = texture_name});
+    };
 
-std::vector<Animation> MeshManager::load_animations(const std::string &mesh_file)
-{
-    load_mesh(mesh_file);
-    return loaded_animations_[mesh_file];
+    meshes.animations = loaded_animations_[mesh_file];
+    meshes.skeleton = std::addressof(skeleton_copies_.emplace_back(loaded_skeletons_[mesh_file]));
+
+    return meshes;
 }
 
 }

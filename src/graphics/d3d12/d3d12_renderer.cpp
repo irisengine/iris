@@ -78,13 +78,23 @@ void write_entity_data_constant_buffer(
     iris::D3D12StructuredBuffer &model_buffer,
     const iris::RenderEntity *entity)
 {
+    static std::vector<iris::Matrix4> default_bones(100u);
+
     iris::ConstantBufferWriter writer(bone_buffer);
 
     if (entity->instance_count() == 1u)
     {
         const auto *single_entity = static_cast<const iris::SingleEntity *>(entity);
-        const auto &bones = single_entity->skeleton().transforms();
-        writer.write(bones);
+
+        if (single_entity->skeleton() != nullptr)
+        {
+            const auto &bones = single_entity->skeleton()->transforms();
+            writer.write(bones);
+        }
+        else
+        {
+            writer.write(default_bones);
+        }
 
         iris::ConstantBufferWriter writer2(model_buffer);
         writer2.write(single_entity->transform());
@@ -92,7 +102,6 @@ void write_entity_data_constant_buffer(
     }
     else
     {
-        static std::vector<iris::Matrix4> default_bones(100u);
         writer.write(default_bones);
     }
 }

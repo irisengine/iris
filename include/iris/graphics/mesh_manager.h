@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <deque>
+#include <functional>
 #include <memory>
 #include <string>
 #include <tuple>
@@ -25,13 +27,39 @@ namespace iris
 class Texture;
 
 /**
- * Abstract class for creating and managing Mesh objects. This class handles
- * caching and lifetime management of all created objects. Implementers just
- * need to provide a graphics API specific method for creating Mesh objects.
+ * Abstract class for creating and managing Mesh objects. This class handles caching and lifetime management of all
+ * created objects. Implementers just need to provide a graphics API specific method for creating Mesh objects.
  */
 class MeshManager
 {
   public:
+    /**
+     * Struct encapsulating all the data returned when loading a mesh file.
+     */
+    struct Meshes
+    {
+        /**
+         * Data for a single mesh.
+         */
+        struct MeshData
+        {
+            /** Pointer to mesh name. */
+            Mesh *mesh;
+
+            /** Name of diffuse colour texture (if found in mesh file). */
+            std::string texture_name;
+        };
+
+        /** Collection of loaded meshes. */
+        std::vector<MeshData> mesh_data;
+
+        /** Collection of animations. */
+        std::vector<Animation> animations;
+
+        /** Skeleton for all meshes. */
+        Skeleton *skeleton;
+    };
+
     /**
      * Construct a new MeshManager.
      *
@@ -161,7 +189,7 @@ class MeshManager
      * @returns
      *   Mesh loaded from file.
      */
-    const Mesh *load_mesh(const std::string &mesh_file);
+    Meshes load_mesh(const std::string &mesh_file);
 
     /**
      * Load a skeleton from a file.
@@ -175,7 +203,7 @@ class MeshManager
      * @returns
      *   Skeleton loaded from file.
      */
-    Skeleton load_skeleton(const std::string &mesh_file);
+    // Skeleton* load_skeleton(const std::string &mesh_file);
 
     /**
      * Load animations from a file.
@@ -189,7 +217,7 @@ class MeshManager
      * @returns
      *   Animations loaded from file.
      */
-    std::vector<Animation> load_animations(const std::string &mesh_file);
+    // std::vector<Animation> load_animations(const std::string &mesh_file);
 
   protected:
     /**
@@ -199,7 +227,7 @@ class MeshManager
      *   Collection of vertices for the Mesh.
      *
      * @param indices
-     *   Collection of indices fro the Mesh.
+     *   Collection of indices for the Mesh.
      *
      * @returns
      *   Loaded Mesh.
@@ -209,14 +237,26 @@ class MeshManager
         const std::vector<std::uint32_t> &indices) const = 0;
 
   private:
-    /** Cache of created Mesh objects. */
-    std::unordered_map<std::string, std::unique_ptr<Mesh>> loaded_meshes_;
+    /**
+     * Internal struct for caching loaded mesh data.
+     */
+    struct LoadedMesh
+    {
+        std::unique_ptr<Mesh> mesh;
+        std::string texture_name;
+    };
 
-    /** Collection of created Skeleton objects. */
-    std::unordered_map<std::string, Skeleton> loaded_skeletons_;
+    /** Cache of created Mesh objects. */
+    std::unordered_map<std::string, std::vector<LoadedMesh>> loaded_meshes_;
 
     /** Collection of created Animation objects. */
     std::unordered_map<std::string, std::vector<Animation>> loaded_animations_;
+
+    /** Collection of loaded skeletons - these are the "master" copies. */
+    std::unordered_map<std::string, Skeleton> loaded_skeletons_;
+
+    /** Collection of skeletons returned to callers. */
+    std::deque<Skeleton> skeleton_copies_;
 
     /** Flag indicating if uvs should be flipped for loaded meshes. */
     bool flip_uvs_on_load_;
