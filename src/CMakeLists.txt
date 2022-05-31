@@ -24,7 +24,7 @@ target_include_directories(
 
 target_include_directories(
   iris SYSTEM
-  PRIVATE ${stb_SOURCE_DIR} ${bullet_SOURCE_DIR}/src ${lua_SOURCE_DIR})
+  PRIVATE ${stb_SOURCE_DIR} ${bullet_SOURCE_DIR}/src ${lua_SOURCE_DIR} ${inha_SOURCE_DIR})
 
 target_include_directories(
   iris SYSTEM
@@ -44,42 +44,31 @@ elseif(IRIS_PLATFORM MATCHES "IOS")
   target_link_libraries(iris PUBLIC "-framework AppKit -framework CoreFoundation -framework UIKit -framework Foundation -framework Metal -framework MetalKit -framework MetalPerformanceShaders -framework QuartzCore")
 endif()
 
+# default link options (maybe extended by platform below)
+set(IRIS_LINKED_LIBS IrrXML zlibstatic BulletDynamics BulletCollision LinearMath assimp lua)
+
 # handle platform specific setup including setting default graphics apis
 if(IRIS_PLATFORM MATCHES "MACOS")
   target_compile_definitions(iris PUBLIC IRIS_PLATFORM_MACOS)
   target_compile_definitions(iris PUBLIC IRIS_ARCH_X86_64)
+  target_compile_options(iris PRIVATE -Wall -Werror -pedantic -glldb -fobjc-arc)
 elseif(IRIS_PLATFORM MATCHES "IOS")
   target_compile_definitions(iris PUBLIC IRIS_PLATFORM_IOS)
   target_compile_definitions(iris PUBLIC IRIS_ARCH_ARM64)
+  target_compile_options(iris PRIVATE -Wall -Werror -pedantic -glldb -fobjc-arc)
   set(IRIS_ARCH "ARM64")
 elseif(IRIS_PLATFORM MATCHES "WIN32")
   target_compile_definitions(iris PUBLIC IRIS_PLATFORM_WIN32)
   target_compile_definitions(iris PUBLIC IRIS_ARCH_X86_64)
   target_compile_definitions(iris PUBLIC NOMINMAX)
-elseif(IRIS_PLATFORM MATCHES "LINUX")
-  target_compile_definitions(iris PUBLIC IRIS_PLATFORM_LINUX)
-  target_compile_definitions(iris PUBLIC IRIS_ARCH_X86_64)
-else()
-  message(FATAL_ERROR "Unsupported platform")
-endif()
-
-
-if(IRIS_PLATFORM MATCHES "LINUX" OR IRIS_PLATFORM MATCHES "WINDOWS")
-  find_package(OpenGL REQUIRED)
-  target_include_directories(iris SYSTEM PRIVATE ${OPENGL_INCLUDE_DIR})
-endif()
-
-message(STATUS "Building iris-${CMAKE_PROJECT_VERSION} for ${IRIS_PLATFORM})")
-
-if(IRIS_PLATFORM MATCHES "WIN32")
-  target_link_libraries(iris PUBLIC BulletDynamics BulletCollision LinearMath assimp lua inja)
 
   # on windows SYSTEM includes do not prevent warnings - so we add bullet using
   # the /external flag
   target_compile_options(iris PRIVATE /W4 /WX /experimental:external
                                       /external:W0 /external:I ${bullet_SOURCE_DIR})
   target_link_options(iris PUBLIC /subsystem:windows /ENTRY:mainCRTStartup)
-  target_link_libraries(iris PRIVATE DirectX-Headers)
+
+  list(APPEND IRIS_LINKED_LIBS DirectX-Headers)
 
   set_target_properties(iris PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
   set_target_properties(assimp PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
@@ -90,48 +79,37 @@ if(IRIS_PLATFORM MATCHES "WIN32")
   set_target_properties(IrrXML PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
   set_target_properties(zlibstatic PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
   set_target_properties(lua PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
-
-  install(
-    TARGETS iris
-            LinearMath
-            BulletDynamics
-            BulletCollision
-            assimp
-            inja
-            zlibstatic
-            IrrXML
-            DirectX-Headers
-            lua
-    EXPORT iris-targets
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 elseif(IRIS_PLATFORM MATCHES "LINUX")
-  target_link_libraries(iris PUBLIC BulletDynamics BulletCollision LinearMath assimp inja GL Xfixes X11 pthread lua)
+  target_compile_definitions(iris PUBLIC IRIS_PLATFORM_LINUX)
+  target_compile_definitions(iris PUBLIC IRIS_ARCH_X86_64)
   target_compile_options(iris PRIVATE -Wall -Werror)
-
-  install(
-    TARGETS iris assimp inja zlibstatic IrrXML BulletDynamics BulletCollision LinearMath lua
-    EXPORT iris-targets
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 else()
-  target_link_libraries(iris PUBLIC BulletDynamics BulletCollision LinearMath assimp inja lua)
-  target_compile_options(iris PRIVATE -Wall -Werror -pedantic -glldb -fobjc-arc)
-
-  install(
-    TARGETS iris assimp inja zlibstatic IrrXML BulletDynamics BulletCollision LinearMath lua
-    EXPORT iris-targets
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+  message(FATAL_ERROR "Unsupported platform")
 endif()
+
+
+# find opengl on supported platforms
+if(IRIS_PLATFORM MATCHES "LINUX" OR IRIS_PLATFORM MATCHES "WINDOWS")
+  find_package(OpenGL REQUIRED)
+  target_include_directories(iris SYSTEM PRIVATE ${OPENGL_INCLUDE_DIR})
+endif()
+
+message(STATUS "Building iris-${CMAKE_PROJECT_VERSION} for ${IRIS_PLATFORM})")
+
+target_link_libraries(iris PUBLIC ${IRIS_LINKED_LIBS})
 
 # various install commands to ensure all files get put in the right place
 
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/iris
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(
+  TARGETS iris ${IRIS_LINKED_LIBS}
+  EXPORT iris-targets
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+install(
+  DIRECTORY ${PROJECT_SOURCE_DIR}/include/iris
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 configure_package_config_file(
   ${PROJECT_SOURCE_DIR}/cmake/iris-config.cmake.in
@@ -149,13 +127,16 @@ install(
   NAMESPACE iris::
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/iris)
 
-install(FILES ${PROJECT_BINARY_DIR}/cmake/iris-config.cmake
+install(
+  FILES ${PROJECT_BINARY_DIR}/cmake/iris-config.cmake
         ${CMAKE_CURRENT_BINARY_DIR}/iris-version.cmake
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/iris)
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/iris)
 
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/iris_export.h
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/iris)
+install(
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/iris_export.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/iris)
 
-export(EXPORT iris-targets
+export(
+  EXPORT iris-targets
   FILE ${PROJECT_BINARY_DIR}/cmake/iris-targets.cmake
   NAMESPACE iris::)

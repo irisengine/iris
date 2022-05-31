@@ -4,6 +4,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/opengl.h
     ${INCLUDE_ROOT}/opengl_buffer.h
     ${INCLUDE_ROOT}/opengl_cube_map.h
+    ${INCLUDE_ROOT}/opengl_defines.h
     ${INCLUDE_ROOT}/opengl_frame_buffer.h
     ${INCLUDE_ROOT}/opengl_material.h
     ${INCLUDE_ROOT}/opengl_mesh.h
@@ -28,7 +29,3 @@ target_sources(iris PRIVATE
     opengl_texture.cpp
     opengl_texture_manager.cpp
     opengl_uniform.cpp)
-
-if(IRIS_PLATFORM MATCHES "WIN32")
-  target_sources(iris PRIVATE ${INCLUDE_ROOT}/opengl_windows.h)
-endif()
