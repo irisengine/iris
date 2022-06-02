@@ -44,9 +44,6 @@ class OpenGLTexture : public Texture
      *
      * @param index
      *   Index into the global array of all allocated textures.
-     *
-     * @param id
-     *    OpenGL texture unit.
      */
     OpenGLTexture(
         const DataBuffer &data,
@@ -54,8 +51,7 @@ class OpenGLTexture : public Texture
         std::uint32_t height,
         const Sampler *sampler,
         TextureUsage usage,
-        std::uint32_t index,
-        GLuint id);
+        std::uint32_t index);
 
     /**
      * Clean up OpenGL objects.
@@ -71,14 +67,6 @@ class OpenGLTexture : public Texture
     GLuint handle() const;
 
     /**
-     * Get OpenGL texture unit.
-     *
-     * @returns
-     *   OpenGL texture unit.
-     */
-    GLuint id() const;
-
-    /**
      * Get the OpenGL bindless handle for this texture.
      *
      * @returns
@@ -89,9 +77,6 @@ class OpenGLTexture : public Texture
   private:
     /** OpenGL texture handle. */
     GLuint handle_;
-
-    /** OpenGL texture unit. */
-    GLuint id_;
 
     /** OpengGL bindless handle. */
     GLuint64 bindless_handle_;

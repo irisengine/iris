@@ -171,9 +171,6 @@ void specify_depth_texture(std::uint32_t width, std::uint32_t height)
  * @param usage
  *   Texture usage.
  *
- * @param id
- *    OpenGL texture unit.
- *
  * @returns
  *   Handle to texture.
  */
@@ -182,24 +179,15 @@ GLuint create_texture(
     std::uint32_t width,
     std::uint32_t height,
     const iris::Sampler *sampler,
-    iris::TextureUsage usage,
-    GLuint id)
+    iris::TextureUsage usage)
 {
     auto texture = 0u;
-
-    const auto *opengl_sampler = static_cast<const iris::OpenGLSampler *>(sampler);
 
     ::glGenTextures(1, &texture);
     iris::ensure(iris::check_opengl_error, "could not generate texture");
 
-    ::glActiveTexture(id);
-    iris::ensure(iris::check_opengl_error, "could not activate texture");
-
     ::glBindTexture(GL_TEXTURE_2D, texture);
     iris::ensure(iris::check_opengl_error, "could not bind texture");
-
-    ::glBindSampler(id - GL_TEXTURE0, opengl_sampler->handle());
-    iris::ensure(iris::check_opengl_error, "could not bind sampler");
 
     // specify the image data based on the usage type
     switch (usage)
@@ -225,11 +213,9 @@ OpenGLTexture::OpenGLTexture(
     std::uint32_t height,
     const Sampler *sampler,
     TextureUsage usage,
-    std::uint32_t index,
-    GLuint id)
+    std::uint32_t index)
     : Texture(data, width, height, sampler, usage, index)
-    , handle_(create_texture(data, width, height, sampler, usage, id))
-    , id_(id)
+    , handle_(create_texture(data, width, height, sampler, usage))
     , bindless_handle_(0u)
 {
     const auto *opengl_sampler = static_cast<const iris::OpenGLSampler *>(sampler);
@@ -253,11 +239,6 @@ OpenGLTexture::~OpenGLTexture()
 GLuint OpenGLTexture::handle() const
 {
     return handle_;
-}
-
-GLuint OpenGLTexture::id() const
-{
-    return id_;
 }
 
 GLuint64 OpenGLTexture::bindless_handle() const

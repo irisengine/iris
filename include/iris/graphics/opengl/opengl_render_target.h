@@ -28,8 +28,6 @@ class OpenGLRenderTarget : public RenderTarget
      *   Texture to render depth data to.
      */
     OpenGLRenderTarget(const Texture *colour_texture, const Texture *depth_texture);
-
-    ~OpenGLRenderTarget() override = default;
 };
 
 }

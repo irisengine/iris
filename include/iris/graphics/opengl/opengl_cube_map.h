@@ -54,9 +54,6 @@ class OpenGLCubeMap : public CubeMap
      *
      * @param index
      *   Index into the global array of all allocated textures.
-     *
-     * @param id
-     *    OpenGL texture unit.
      */
     OpenGLCubeMap(
         const DataBuffer &right_data,
@@ -68,8 +65,7 @@ class OpenGLCubeMap : public CubeMap
         std::uint32_t width,
         std::uint32_t height,
         const Sampler *sampler,
-        std::uint32_t index,
-        GLuint id);
+        std::uint32_t index);
 
     /**
      * Clean up OpenGL objects.
@@ -85,14 +81,6 @@ class OpenGLCubeMap : public CubeMap
     GLuint handle() const;
 
     /**
-     * Get OpenGL texture unit.
-     *
-     * @returns
-     *   OpenGL texture unit.
-     */
-    GLuint id() const;
-
-    /**
      * Get the OpenGL bindless handle for this cube map.
      *
      * @returns
@@ -103,9 +91,6 @@ class OpenGLCubeMap : public CubeMap
   private:
     /** OpenGL texture handle. */
     GLuint handle_;
-
-    /** OpenGL texture unit. */
-    GLuint id_;
 
     /** OpengGL bindless handle. */
     GLuint64 bindless_handle_;

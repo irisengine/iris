@@ -33,22 +33,6 @@ class OpenGLTextureManager : public TextureManager
 
     ~OpenGLTextureManager() override = default;
 
-    /**
-     * Get the next texture unit id from a pool of available ids.
-     *
-     * @returns
-     *   Next available texture id.
-     */
-    GLuint next_id();
-
-    /**
-     * Return an id to the pool.
-     *
-     * @param id
-     *   Id to return to pool.
-     */
-    void return_id(GLuint id);
-
   protected:
     /**
      * Create a Texture object with the provided data.
@@ -134,26 +118,6 @@ class OpenGLTextureManager : public TextureManager
         std::uint32_t index) override;
 
     std::unique_ptr<Sampler> do_create(const SamplerDescriptor &descriptor, std::uint32_t index) override;
-
-    /**
-     * Unload a texture.
-     *
-     * @param texture
-     *   Texture about to be unloaded.
-     */
-    void destroy(Texture *texture) override;
-
-    /**
-     * Unload a CubeMap.
-     *
-     * @param cube_map
-     *   CubeMap about to be unloaded.
-     */
-    void destroy(CubeMap *cube_map) override;
-
-  private:
-    /** Stack of available ids. */
-    std::stack<GLuint> id_pool_;
 };
 
 }

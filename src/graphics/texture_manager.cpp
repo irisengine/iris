@@ -368,7 +368,7 @@ Sampler *TextureManager::create(const SamplerDescriptor &descriptor)
     return loaded_samplers_[descriptor].asset.get();
 }
 
-void TextureManager::unload(Texture *texture)
+void TextureManager::unload(const Texture *texture)
 {
     // don't unload the static blank texture!
     if (texture != blank_texture())
@@ -385,6 +385,8 @@ void TextureManager::unload(Texture *texture)
         --loaded->second.ref_count;
         if (loaded->second.ref_count == 0u)
         {
+            unload(texture->sampler());
+
             // allow for implementation specific unloading logic
             destroy(texture);
 
@@ -394,7 +396,7 @@ void TextureManager::unload(Texture *texture)
     }
 }
 
-void TextureManager::unload(CubeMap *cube_map)
+void TextureManager::unload(const CubeMap *cube_map)
 {
     // don't unload the static blank cube map!
     if (cube_map != blank_cube_map())
@@ -411,6 +413,8 @@ void TextureManager::unload(CubeMap *cube_map)
         --loaded->second.ref_count;
         if (loaded->second.ref_count == 0u)
         {
+            unload(cube_map->sampler());
+
             // allow for implementation specific unloading logic
             destroy(cube_map);
 
@@ -420,7 +424,7 @@ void TextureManager::unload(CubeMap *cube_map)
     }
 }
 
-void TextureManager::unload(Sampler *sampler)
+void TextureManager::unload(const Sampler *sampler)
 {
     // don't unload the default sampler!
     if ((sampler != default_texture_sampler()) && (sampler != default_cube_map_sampler()))
@@ -588,17 +592,17 @@ std::vector<const CubeMap *> TextureManager::cube_maps() const
     return cube_maps;
 }
 
-void TextureManager::destroy(Texture *)
+void TextureManager::destroy(const Texture *)
 {
     // by default do nothing
 }
 
-void TextureManager::destroy(CubeMap *)
+void TextureManager::destroy(const CubeMap *)
 {
     // by default do nothing
 }
 
-void TextureManager::destroy(Sampler *)
+void TextureManager::destroy(const Sampler *)
 {
     // by default do nothing
 }

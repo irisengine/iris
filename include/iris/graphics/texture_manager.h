@@ -222,7 +222,7 @@ class TextureManager
      * @param texture
      *   Texture to unload.
      */
-    void unload(Texture *texture);
+    void unload(const Texture *texture);
 
     /**
      * Unloaded the supplied CubeMap (if there are no other references to it).
@@ -236,7 +236,7 @@ class TextureManager
      * @param cube_map
      *   CubeMap to unload.
      */
-    void unload(CubeMap *cube_map);
+    void unload(const CubeMap *cube_map);
 
     /**
      * Unloaded the supplied Sampler (if there are no other references to it).
@@ -250,7 +250,7 @@ class TextureManager
      * @param sampler
      *   Sampler to unload.
      */
-    void unload(Sampler *sampler);
+    void unload(const Sampler *sampler);
 
     /**
      * Get a blank 1x1 white texture
@@ -425,7 +425,7 @@ class TextureManager
      * @param texture
      *   Texture about to be unloaded.
      */
-    virtual void destroy(Texture *texture);
+    virtual void destroy(const Texture *texture);
 
     /**
      * Implementers should override this method to provide implementation specific unloading logic. Called automatically
@@ -434,7 +434,7 @@ class TextureManager
      * @param cube_map
      *  CubeMap about to be unloaded.
      */
-    virtual void destroy(CubeMap *cube_map);
+    virtual void destroy(const CubeMap *cube_map);
 
     /**
      * Implementers should override this method to provide implementation specific unloading logic. Called automatically
@@ -443,7 +443,7 @@ class TextureManager
      * @param sampler
      *  Sampler about to be unloaded.
      */
-    virtual void destroy(Sampler *sampler);
+    virtual void destroy(const Sampler *sampler);
 
   private:
     /**

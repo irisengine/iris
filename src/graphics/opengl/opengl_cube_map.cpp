@@ -27,25 +27,17 @@ OpenGLCubeMap::OpenGLCubeMap(
     std::uint32_t width,
     std::uint32_t height,
     const Sampler *sampler,
-    std::uint32_t index,
-    GLuint id)
+    std::uint32_t index)
     : CubeMap(sampler, index)
     , handle_(0u)
-    , id_(id)
 {
     const auto *opengl_sampler = static_cast<const iris::OpenGLSampler *>(sampler);
 
     ::glGenTextures(1u, &handle_);
     expect(check_opengl_error, "could not generate texture");
 
-    ::glActiveTexture(id_);
-    expect(check_opengl_error, "could not activate texture");
-
     ::glBindTexture(GL_TEXTURE_CUBE_MAP, handle_);
     expect(check_opengl_error, "could not bind texture");
-
-    ::glBindSampler(id - GL_TEXTURE0, opengl_sampler->handle());
-    iris::ensure(iris::check_opengl_error, "could not bind sampler");
 
     const std::byte *data_ptrs[] = {
         right_data.data(), left_data.data(), top_data.data(), bottom_data.data(), back_data.data(), front_data.data()};
@@ -73,7 +65,7 @@ OpenGLCubeMap::OpenGLCubeMap(
     ::glMakeTextureHandleResidentARB(bindless_handle_);
     expect(check_opengl_error, "could not make bindless handle resident");
 
-    LOG_ENGINE_INFO("opengl_texture", "loaded from data");
+    LOG_ENGINE_INFO("opengl_cube_map", "loaded from data");
 }
 
 OpenGLCubeMap::~OpenGLCubeMap()
@@ -85,11 +77,6 @@ OpenGLCubeMap::~OpenGLCubeMap()
 GLuint OpenGLCubeMap::handle() const
 {
     return handle_;
-}
-
-GLuint OpenGLCubeMap::id() const
-{
-    return id_;
 }
 
 GLuint64 OpenGLCubeMap::bindless_handle() const
