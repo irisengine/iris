@@ -14,6 +14,7 @@
 
 #include "glsl/glsl.h"
 #include "hlsl/hlsl.h"
+#include "msl/msl.h"
 
 #include "core/colour.h"
 #include "core/error_handling.h"
@@ -59,15 +60,23 @@ namespace
  * @param glsl
  *   GLSL compiler string.
  *
+ * @param metal
+ *   Metal compiler string.
+ *
  * @returns
  *   Language specific string.
  */
-std::string language_string(iris::ShaderLanguage language, auto &&hlsl_str, auto &&glsl_str)
+std::string language_string(
+    iris::ShaderLanguage language,
+    const std::string &hlsl_str,
+    const std::string &glsl_str,
+    const std::string &metal_str)
 {
     switch (language)
     {
-        case iris::ShaderLanguage::HLSL: return {hlsl_str}; break;
-        case iris::ShaderLanguage::GLSL: return {glsl_str}; break;
+        case iris::ShaderLanguage::HLSL: return hlsl_str; break;
+        case iris::ShaderLanguage::GLSL: return glsl_str; break;
+        case iris::ShaderLanguage::MSL: return metal_str; break;
         default: throw iris::Exception("unsupported shader language");
     }
 }
@@ -100,11 +109,13 @@ void ShaderCompiler::visit(const RenderNode &node)
 
     const ::inja::json vertex_args{{"is_directional_light", light_type_ == LightType::DIRECTIONAL}};
     vertex_stream_ << ::inja::render(
-        language_string(language_, hlsl::render_node_vertex, glsl::render_node_vertex), vertex_args);
+        language_string(language_, hlsl::render_node_vertex, glsl::render_node_vertex, msl::render_node_vertex),
+        vertex_args);
 
     // build fragment shader
 
-    fragment_functions_.emplace(language_string(language_, hlsl::shadow_function, glsl::shadow_function));
+    fragment_functions_.emplace(
+        language_string(language_, hlsl::shadow_function, glsl::shadow_function, msl::shadow_function));
 
     ::inja::json fragment_args{
         {"render_normal", render_to_normal_target_},
@@ -113,7 +124,7 @@ void ShaderCompiler::visit(const RenderNode &node)
 
     if (node.colour_input() != nullptr)
     {
-        stream_stack_.push({});
+        stream_stack_.push(std::stringstream{});
         node.colour_input()->accept(*this);
         fragment_args["fragment_colour"] = stream_stack_.top().str();
         stream_stack_.pop();
@@ -121,7 +132,7 @@ void ShaderCompiler::visit(const RenderNode &node)
 
     if (node.normal_input() != nullptr)
     {
-        stream_stack_.push({});
+        stream_stack_.push(std::stringstream{});
         node.normal_input()->accept(*this);
         fragment_args["normal"] = stream_stack_.top().str();
         stream_stack_.pop();
@@ -129,14 +140,15 @@ void ShaderCompiler::visit(const RenderNode &node)
 
     if (node.ambient_occlusion_input() != nullptr)
     {
-        stream_stack_.push({});
+        stream_stack_.push(std::stringstream{});
         node.ambient_occlusion_input()->accept(*this);
         fragment_args["ambient_input"] = stream_stack_.top().str();
         stream_stack_.pop();
     }
 
     fragment_stream_ << ::inja::render(
-        language_string(language_, hlsl::render_node_fragment, glsl::render_node_fragment), fragment_args);
+        language_string(language_, hlsl::render_node_fragment, glsl::render_node_fragment, msl::render_node_fragment),
+        fragment_args);
 }
 
 void ShaderCompiler::visit(const SkyBoxNode &node)
@@ -145,17 +157,21 @@ void ShaderCompiler::visit(const SkyBoxNode &node)
 
     const ::inja::json vertex_args;
     vertex_stream_ << ::inja::render(
-        language_string(language_, hlsl::sky_box_node_vertex, glsl::sky_box_node_vertex), vertex_args);
+        language_string(language_, hlsl::sky_box_node_vertex, glsl::sky_box_node_vertex, msl::sky_box_node_vertex),
+        vertex_args);
 
     // build fragment shader
 
-    fragment_functions_.emplace(language_string(language_, hlsl::shadow_function, glsl::shadow_function));
+    fragment_functions_.emplace(
+        language_string(language_, hlsl::shadow_function, glsl::shadow_function, msl::shadow_function));
 
     const ::inja::json fragment_args{
         {"cube_map_index", node.sky_box()->index()}, {"sampler_index", node.sky_box()->sampler()->index()}};
 
     fragment_stream_ << ::inja::render(
-        language_string(language_, hlsl::sky_box_node_fragment, glsl::sky_box_node_fragment), fragment_args);
+        language_string(
+            language_, hlsl::sky_box_node_fragment, glsl::sky_box_node_fragment, msl::sky_box_node_fragment),
+        fragment_args);
 }
 
 void ShaderCompiler::visit(const ColourNode &node)
@@ -165,7 +181,7 @@ void ShaderCompiler::visit(const ColourNode &node)
     const ::inja::json args{{"r", colour.r}, {"g", colour.g}, {"b", colour.b}, {"a", colour.a}};
 
     stream_stack_.top() << ::inja::render(
-        language_string(language_, hlsl::colour_node_chunk, glsl::colour_node_chunk), args);
+        language_string(language_, hlsl::colour_node_chunk, glsl::colour_node_chunk, msl::colour_node_chunk), args);
 }
 
 void ShaderCompiler::visit(const TextureNode &node)
@@ -178,45 +194,48 @@ void ShaderCompiler::visit(const TextureNode &node)
         {"reciprocal_height", 1.0f / node.texture()->height()}};
 
     stream_stack_.top() << ::inja::render(
-        language_string(language_, hlsl::texture_node_chunk, glsl::texture_node_chunk), args);
+        language_string(language_, hlsl::texture_node_chunk, glsl::texture_node_chunk, msl::texture_node_chunk), args);
 }
 
 void ShaderCompiler::visit(const InvertNode &node)
 {
-    fragment_functions_.emplace(language_string(language_, hlsl::invert_function, glsl::invert_function));
+    fragment_functions_.emplace(
+        language_string(language_, hlsl::invert_function, glsl::invert_function, msl::invert_function));
 
-    stream_stack_.push({});
+    stream_stack_.push(std::stringstream{});
     node.input_node()->accept(*this);
 
     const ::inja::json args{{"input", stream_stack_.top().str()}};
 
     stream_stack_.pop();
     stream_stack_.top() << ::inja::render(
-        language_string(language_, hlsl::invert_node_chunk, glsl::invert_node_chunk), args);
+        language_string(language_, hlsl::invert_node_chunk, glsl::invert_node_chunk, msl::invert_node_chunk), args);
 }
 
 void ShaderCompiler::visit(const BlurNode &node)
 {
-    fragment_functions_.emplace(language_string(language_, hlsl::blur_function, glsl::blur_function));
+    fragment_functions_.emplace(
+        language_string(language_, hlsl::blur_function, glsl::blur_function, msl::blur_function));
 
     const ::inja::json args{
         {"texture_index", node.input_node()->texture()->index()},
         {"sampler_index", node.input_node()->texture()->sampler()->index()}};
 
     stream_stack_.top() << ::inja::render(
-        language_string(language_, hlsl::blur_node_chunk, glsl::blur_node_chunk), args);
+        language_string(language_, hlsl::blur_node_chunk, glsl::blur_node_chunk, msl::blur_node_chunk), args);
 }
 
 void ShaderCompiler::visit(const CompositeNode &node)
 {
-    fragment_functions_.emplace(language_string(language_, hlsl::composite_function, glsl::composite_function));
+    fragment_functions_.emplace(
+        language_string(language_, hlsl::composite_function, glsl::composite_function, msl::composite_function));
 
     std::array<Node *, 4u> nodes{{node.colour1(), node.colour2(), node.depth1(), node.depth2()}};
     std::array<std::string, 4u> node_strs{};
 
     for (auto i = 0u; i < nodes.size(); ++i)
     {
-        stream_stack_.push({});
+        stream_stack_.push(std::stringstream{});
         nodes[i]->accept(*this);
         node_strs[i] = stream_stack_.top().str();
         stream_stack_.pop();
@@ -226,14 +245,17 @@ void ShaderCompiler::visit(const CompositeNode &node)
         {"colour1", node_strs[0]}, {"colour2", node_strs[1]}, {"depth1", node_strs[2]}, {"depth2", node_strs[3]}};
 
     stream_stack_.top() << ::inja::render(
-        language_string(language_, hlsl::composite_node_chunk, glsl::composite_node_chunk), args);
+        language_string(language_, hlsl::composite_node_chunk, glsl::composite_node_chunk, msl::composite_node_chunk),
+        args);
 }
 
 void ShaderCompiler::visit(const ValueNode<float> &node)
 {
     const ::inja::json args{{"value", node.value()}};
     stream_stack_.top() << ::inja::render(
-        language_string(language_, hlsl::value_node_float_chunk, glsl::value_node_float_chunk), args);
+        language_string(
+            language_, hlsl::value_node_float_chunk, glsl::value_node_float_chunk, msl::value_node_float_chunk),
+        args);
 }
 
 void ShaderCompiler::visit(const ValueNode<Vector3> &node)
@@ -242,7 +264,9 @@ void ShaderCompiler::visit(const ValueNode<Vector3> &node)
 
     const ::inja::json args{{"x", value.x}, {"y", value.y}, {"z", value.z}};
     stream_stack_.top() << ::inja::render(
-        language_string(language_, hlsl::value_node_vector3_chunk, glsl::value_node_vector3_chunk), args);
+        language_string(
+            language_, hlsl::value_node_vector3_chunk, glsl::value_node_vector3_chunk, msl::value_node_vector3_chunk),
+        args);
 }
 
 void ShaderCompiler::visit(const ValueNode<Colour> &node)
@@ -251,7 +275,9 @@ void ShaderCompiler::visit(const ValueNode<Colour> &node)
 
     const ::inja::json args{{"r", value.r}, {"g", value.g}, {"b", value.b}, {"a", value.a}};
     stream_stack_.top() << ::inja::render(
-        language_string(language_, hlsl::value_node_colour_chunk, glsl::value_node_colour_chunk), args);
+        language_string(
+            language_, hlsl::value_node_colour_chunk, glsl::value_node_colour_chunk, msl::value_node_colour_chunk),
+        args);
 }
 
 void ShaderCompiler::visit(const ArithmeticNode &node)
@@ -261,7 +287,7 @@ void ShaderCompiler::visit(const ArithmeticNode &node)
 
     for (auto i = 0u; i < nodes.size(); ++i)
     {
-        stream_stack_.push({});
+        stream_stack_.push(std::stringstream{});
         nodes[i]->accept(*this);
         node_strs[i] = stream_stack_.top().str();
         stream_stack_.pop();
@@ -273,7 +299,9 @@ void ShaderCompiler::visit(const ArithmeticNode &node)
         {"value2", node_strs[1]}};
 
     stream_stack_.top() << ::inja::render(
-        language_string(language_, hlsl::arithmetic_node_chunk, glsl::arithmetic_node_chunk), args);
+        language_string(
+            language_, hlsl::arithmetic_node_chunk, glsl::arithmetic_node_chunk, msl::arithmetic_node_chunk),
+        args);
 }
 
 void ShaderCompiler::visit(const ConditionalNode &node)
@@ -284,7 +312,7 @@ void ShaderCompiler::visit(const ConditionalNode &node)
 
     for (auto i = 0u; i < nodes.size(); ++i)
     {
-        stream_stack_.push({});
+        stream_stack_.push(std::stringstream{});
         nodes[i]->accept(*this);
         node_strs[i] = stream_stack_.top().str();
         stream_stack_.pop();
@@ -298,12 +326,14 @@ void ShaderCompiler::visit(const ConditionalNode &node)
         {"operator", ">"}};
 
     stream_stack_.top() << ::inja::render(
-        language_string(language_, hlsl::conditional_node_chunk, glsl::conditional_node_chunk), args);
+        language_string(
+            language_, hlsl::conditional_node_chunk, glsl::conditional_node_chunk, msl::conditional_node_chunk),
+        args);
 }
 
 void ShaderCompiler::visit(const ComponentNode &node)
 {
-    stream_stack_.push({});
+    stream_stack_.push(std::stringstream{});
     node.input_node()->accept(*this);
     const auto value = stream_stack_.top().str();
     stream_stack_.pop();
@@ -311,7 +341,8 @@ void ShaderCompiler::visit(const ComponentNode &node)
     const ::inja::json args{{"value", value, {"component", node.component()}}};
 
     stream_stack_.top() << ::inja::render(
-        language_string(language_, hlsl::component_node_chunk, glsl::component_node_chunk), args);
+        language_string(language_, hlsl::component_node_chunk, glsl::component_node_chunk, msl::component_node_chunk),
+        args);
 }
 
 void ShaderCompiler::visit(const CombineNode &node)
@@ -321,7 +352,7 @@ void ShaderCompiler::visit(const CombineNode &node)
 
     for (auto i = 0u; i < nodes.size(); ++i)
     {
-        stream_stack_.push({});
+        stream_stack_.push(std::stringstream{});
         nodes[i]->accept(*this);
         node_strs[i] = stream_stack_.top().str();
         stream_stack_.pop();
@@ -330,19 +361,20 @@ void ShaderCompiler::visit(const CombineNode &node)
     const ::inja::json args{{"x", node_strs[0]}, {"y", node_strs[1]}, {"z", node_strs[2]}, {"w", node_strs[3]}};
 
     stream_stack_.top() << ::inja::render(
-        language_string(language_, hlsl::combine_node_chunk, glsl::combine_node_chunk), args);
+        language_string(language_, hlsl::combine_node_chunk, glsl::combine_node_chunk, msl::combine_node_chunk), args);
 }
 
 void ShaderCompiler::visit(const SinNode &node)
 {
-    stream_stack_.push({});
+    stream_stack_.push(std::stringstream{});
     node.accept(*this);
     const auto value = stream_stack_.top().str();
     stream_stack_.pop();
 
     const ::inja::json args{{"value", value}};
 
-    stream_stack_.top() << ::inja::render(language_string(language_, hlsl::sin_node_chunk, glsl::sin_node_chunk), args);
+    stream_stack_.top() << ::inja::render(
+        language_string(language_, hlsl::sin_node_chunk, glsl::sin_node_chunk, msl::sin_node_chunk), args);
 }
 
 void ShaderCompiler::visit(const VertexNode &node)
@@ -351,7 +383,7 @@ void ShaderCompiler::visit(const VertexNode &node)
         {"type", static_cast<std::uint32_t>(node.vertex_data_type())}, {"swizzle", node.swizzle().value_or("")}};
 
     stream_stack_.top() << ::inja::render(
-        language_string(language_, hlsl::vertex_node_chunk, glsl::vertex_node_chunk), args);
+        language_string(language_, hlsl::vertex_node_chunk, glsl::vertex_node_chunk, msl::vertex_node_chunk), args);
 }
 
 void ShaderCompiler::visit(const AmbientOcclusionNode &node)
@@ -360,14 +392,18 @@ void ShaderCompiler::visit(const AmbientOcclusionNode &node)
 
     ::inja::json vertex_args;
     vertex_stream_ << ::inja::render(
-        language_string(language_, hlsl::ambient_occlusion_node_vertex, glsl::ambient_occlusion_node_vertex),
+        language_string(
+            language_,
+            hlsl::ambient_occlusion_node_vertex,
+            glsl::ambient_occlusion_node_vertex,
+            msl::ambient_occlusion_node_vertex),
         vertex_args);
 
     // build fragment shader
 
     const auto *input_texture = static_cast<const TextureNode *>(node.colour_input())->texture();
 
-    stream_stack_.push({});
+    stream_stack_.push(std::stringstream{});
     std::string fragment_colour;
     if (node.colour_input() == nullptr)
     {
@@ -392,7 +428,11 @@ void ShaderCompiler::visit(const AmbientOcclusionNode &node)
         {"bias", node.description().bias}};
 
     fragment_stream_ << ::inja::render(
-        language_string(language_, hlsl::ambient_occlusion_node_fragment, glsl::ambient_occlusion_node_fragment),
+        language_string(
+            language_,
+            hlsl::ambient_occlusion_node_fragment,
+            glsl::ambient_occlusion_node_fragment,
+            msl::ambient_occlusion_node_fragment),
         fragment_args);
 }
 
@@ -402,11 +442,16 @@ void ShaderCompiler::visit(const ColourAdjustNode &node)
 
     ::inja::json vertex_args;
     vertex_stream_ << ::inja::render(
-        language_string(language_, hlsl::colour_adjust_node_vertex, glsl::colour_adjust_node_vertex), vertex_args);
+        language_string(
+            language_,
+            hlsl::colour_adjust_node_vertex,
+            glsl::colour_adjust_node_vertex,
+            msl::colour_adjust_node_vertex),
+        vertex_args);
 
     // build fragment shader
 
-    stream_stack_.push({});
+    stream_stack_.push(std::stringstream{});
     std::string fragment_colour;
     if (node.colour_input() == nullptr)
     {
@@ -420,7 +465,11 @@ void ShaderCompiler::visit(const ColourAdjustNode &node)
 
     const ::inja::json fragment_args{{"fragment_colour", fragment_colour}, {"gamma", 1.0f / node.description().gamma}};
     fragment_stream_ << ::inja::render(
-        language_string(language_, hlsl::colour_adjust_node_fragment, glsl::colour_adjust_node_fragment),
+        language_string(
+            language_,
+            hlsl::colour_adjust_node_fragment,
+            glsl::colour_adjust_node_fragment,
+            msl::colour_adjust_node_fragment),
         fragment_args);
 }
 
@@ -430,15 +479,21 @@ void ShaderCompiler::visit(const AntiAliasingNode &node)
 
     ::inja::json vertex_args;
     vertex_stream_ << ::inja::render(
-        language_string(language_, hlsl::anti_aliasing_node_vertex, glsl::anti_aliasing_node_vertex), vertex_args);
+        language_string(
+            language_,
+            hlsl::anti_aliasing_node_vertex,
+            glsl::anti_aliasing_node_vertex,
+            msl::anti_aliasing_node_vertex),
+        vertex_args);
 
     // build fragment shader
 
     const auto *input_texture = static_cast<const TextureNode *>(node.colour_input())->texture();
 
-    fragment_functions_.emplace(language_string(language_, hlsl::rgb_to_luma_function, glsl::rgb_to_luma_function));
+    fragment_functions_.emplace(
+        language_string(language_, hlsl::rgb_to_luma_function, glsl::rgb_to_luma_function, msl::rgb_to_luma_function));
 
-    stream_stack_.push({});
+    stream_stack_.push(std::stringstream{});
     std::string fragment_colour;
     if (node.colour_input() == nullptr)
     {
@@ -458,7 +513,11 @@ void ShaderCompiler::visit(const AntiAliasingNode &node)
         {"inverse_height", 1.0f / static_cast<float>(input_texture->height())}};
 
     fragment_stream_ << ::inja::render(
-        language_string(language_, hlsl::anti_aliasing_node_fragment, glsl::anti_aliasing_node_fragment),
+        language_string(
+            language_,
+            hlsl::anti_aliasing_node_fragment,
+            glsl::anti_aliasing_node_fragment,
+            msl::anti_aliasing_node_fragment),
         fragment_args);
 }
 

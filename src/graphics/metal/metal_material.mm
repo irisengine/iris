@@ -17,8 +17,8 @@
 #include "core/macos/macos_ios_utility.h"
 #include "graphics/lights/lighting_rig.h"
 #include "graphics/mesh.h"
-#include "graphics/metal/msl_shader_compiler.h"
 #include "graphics/render_graph/render_graph.h"
+#include "graphics/render_graph/shader_compiler.h"
 #include "log/log.h"
 
 namespace
@@ -49,10 +49,18 @@ id<MTLFunction> load_function(const std::string &source, const std::string &func
 
     if (library == nullptr)
     {
+        auto line_number = 1u;
+
+        std::istringstream strm{source};
+        for (std::string line; std::getline(strm, line);)
+        {
+            LOG_ENGINE_ERROR("metal_material", "{}: {}", line_number, line);
+            ++line_number;
+        }
         // an error occurred so parse error and throw
         const std::string error_message{[[error localizedDescription] UTF8String]};
 
-        LOG_ENGINE_ERROR("metal_material", "{}\n{}", source, error_message);
+        LOG_ENGINE_ERROR("metal_material", "{}", error_message);
 
         throw iris::Exception("failed to load shader: " + error_message);
     }
@@ -65,10 +73,16 @@ id<MTLFunction> load_function(const std::string &source, const std::string &func
 namespace iris
 {
 
-MetalMaterial::MetalMaterial(const RenderGraph *render_graph, MTLVertexDescriptor *descriptors, LightType light_type)
+MetalMaterial::MetalMaterial(
+    const RenderGraph *render_graph,
+    MTLVertexDescriptor *descriptors,
+    LightType light_type,
+    bool render_to_normal_target,
+    bool render_to_position_target)
     : pipeline_state_()
 {
-    MSLShaderCompiler compiler{render_graph, light_type};
+    ShaderCompiler compiler{
+        ShaderLanguage::MSL, render_graph, light_type, render_to_normal_target, render_to_position_target};
 
     const auto vertex_program = load_function(compiler.vertex_shader(), "vertex_main");
     const auto fragment_program = load_function(compiler.fragment_shader(), "fragment_main");
@@ -82,6 +96,16 @@ MetalMaterial::MetalMaterial(const RenderGraph *render_graph, MTLVertexDescripto
     pipeline_state_descriptor.colorAttachments[0].pixelFormat = MTLPixelFormatRGBA16Float;
     [pipeline_state_descriptor setDepthAttachmentPixelFormat:MTLPixelFormatDepth32Float];
     [pipeline_state_descriptor setVertexDescriptor:descriptors];
+
+    if (render_to_normal_target)
+    {
+        pipeline_state_descriptor.colorAttachments[1].pixelFormat = MTLPixelFormatRGBA16Float;
+    }
+
+    if (render_to_position_target)
+    {
+        pipeline_state_descriptor.colorAttachments[2].pixelFormat = MTLPixelFormatRGBA16Float;
+    }
 
     // set blend mode based on light
     // ambient is always rendered first (no blending)

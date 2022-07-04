@@ -1,0 +1,69 @@
+#include <metal_relational>
+#include <metal_stdlib>
+#include <simd/simd.h>
+using namespace metal;
+
+struct VertexOut
+{
+    float4 position [[position]];
+    float4 vertex_position;
+    float4 frag_position;
+    float3 tangent_view_pos;
+    float3 tangent_frag_pos;
+    float3 tangent_light_pos;
+    float4 frag_pos_light_space;
+    float4 normal;
+    float4 colour;
+    float4 tex;
+};
+
+struct BoneData
+{
+    float4x4 bones[100];
+};
+
+struct CameraData
+{
+    float4x4 projection;
+    float4x4 view;
+    float4 camera;
+};
+
+struct LightData
+{
+    float4 colour;
+    float4 position;
+    float4 attenuation;
+    float4x4 proj;
+    float4x4 view;
+};
+
+struct Texture
+{
+    texture2d<float> texture;
+};
+
+struct CubeMap
+{
+    texturecube<float> cube_map;
+};
+
+struct Sampler
+{
+    sampler smplr;
+};
+
+fragment float4 fragment_main(
+    VertexOut in [[stage_in]],
+    constant CameraData *camera_data [[buffer(0)]],
+    constant LightData *light_data [[buffer(1)]],
+    device Texture *texture_table [[buffer(2)]],
+    device CubeMap *cube_map_table [[buffer(3)]],
+    device Sampler* sampler_table [[buffer(4)]],
+    constant int &shadow_map_index [[buffer(5)]],
+    constant int &shadow_map_sampler_index [[buffer(6)]])
+{
+    return cube_map_table[{{cube_map_index}}].cube_map.sample(
+        sampler_table[{{sampler_index}}].smplr, 
+        float3(in.tex.x, in.tex.y, -in.tex.z));
+}

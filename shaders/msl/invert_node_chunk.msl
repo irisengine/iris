@@ -1,0 +1,1 @@
+invert({{input}})

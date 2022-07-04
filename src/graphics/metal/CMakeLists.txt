@@ -1,7 +1,6 @@
 set(INCLUDE_ROOT "${PROJECT_SOURCE_DIR}/include/iris/graphics/metal")
 
 target_sources(iris PRIVATE
-    ${INCLUDE_ROOT}/compiler_strings.h
     ${INCLUDE_ROOT}/metal_buffer.h
     ${INCLUDE_ROOT}/metal_constant_buffer.h
     ${INCLUDE_ROOT}/metal_cube_map.h
@@ -15,7 +14,6 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/metal_sampler.h
     ${INCLUDE_ROOT}/metal_texture.h
     ${INCLUDE_ROOT}/metal_texture_manager.h
-    ${INCLUDE_ROOT}/msl_shader_compiler.h
     metal_buffer.mm
     metal_constant_buffer.mm
     metal_cube_map.mm

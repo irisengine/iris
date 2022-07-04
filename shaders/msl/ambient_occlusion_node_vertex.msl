@@ -1,0 +1,73 @@
+#include <metal_relational>
+#include <metal_stdlib>
+#include <simd/simd.h>
+using namespace metal;
+
+struct VertexIn
+{
+    float4 position;
+    float4 normal;
+    float4 color;
+    float4 tex;
+    float4 tangent;
+    float4 bitangent;
+    int4 bone_ids;
+    float4 bone_weights;
+};
+
+struct VertexOut
+{
+    float4 position [[position]];
+    float4 vertex_position;
+    float4 frag_position;
+    float3 tangent_view_pos;
+    float3 tangent_frag_pos;
+    float3 tangent_light_pos;
+    float4 frag_pos_light_space;
+    float4 normal;
+    float4 color;
+    float4 tex;
+};
+
+struct BoneData
+{
+    float4x4 bones[100];
+};
+
+struct CameraData
+{
+    float4x4 projection;
+    float4x4 view;
+    float4 camera;
+};
+
+struct LightData
+{
+    float4 colour;
+    float4 position;
+    float4 attenuation;
+    float4x4 proj;
+    float4x4 view;
+};
+
+struct ModelData
+{
+    float4x4 model;
+    float4x4 normal_matrix;
+};
+
+vertex VertexOut vertex_main(
+    device VertexIn *vertices [[buffer(0)]],
+    constant BoneData *bone_data [[buffer(1)]],
+    constant CameraData *camera_data [[buffer(2)]],
+    constant LightData *light_data [[buffer(3)]],
+    constant ModelData *model_data [[buffer(4)]],
+    uint vid [[vertex_id]],
+    uint instance_id [[instance_id]])
+{
+    VertexOut out;
+    out.position = vertices[vid].position;
+    out.tex = vertices[vid].tex;
+
+    return out;
+}

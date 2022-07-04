@@ -15,7 +15,8 @@ namespace iris
 enum class ShaderLanguage
 {
     HLSL,
-    GLSL
+    GLSL,
+    MSL
 };
 
 }

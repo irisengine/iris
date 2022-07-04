@@ -1,0 +1,154 @@
+#include <metal_relational>
+#include <metal_stdlib>
+#include <simd/simd.h>
+using namespace metal;
+
+struct VertexOut
+{
+    float4 position [[position]];
+    float4 vertex_position;
+    float4 frag_position;
+    float4 view_position;
+    float3 tangent_view_pos;
+    float3 tangent_frag_pos;
+    float3 tangent_light_pos;
+    float4 frag_pos_light_space;
+    float4 normal;
+    float4 view_normal;
+    float4 colour;
+    float4 tex;
+};
+
+struct BoneData
+{
+    float4x4 bones[100];
+};
+
+struct CameraData
+{
+    float4x4 projection;
+    float4x4 view;
+    float4x4 normal_view;
+    float4 camera;
+};
+
+struct LightData
+{
+    float4 colour;
+    float4 position;
+    float4 attenuation;
+    float4x4 proj;
+    float4x4 view;
+};
+
+struct Texture
+{
+    texture2d<float> texture;
+};
+
+struct CubeMap
+{
+    texturecube<float> cube_map;
+};
+
+struct Sampler
+{
+    sampler smplr;
+};
+
+struct FragmentOutput
+{
+    float4 colour [[color(0)]];
+
+    {% if render_normal %}
+        float4 normal [[color(1)]];
+    {% endif %}
+
+    {% if render_position %}
+        float4 position [[color(2)]];
+    {% endif %}
+};
+
+fragment FragmentOutput fragment_main(
+    VertexOut in [[stage_in]],
+    constant CameraData *camera_data [[buffer(0)]],
+    constant LightData *light_data [[buffer(1)]],
+    device Texture *texture_table [[buffer(2)]],
+    device CubeMap *cube_map_table [[buffer(3)]],
+    device Sampler* sampler_table [[buffer(4)]],
+    constant int &shadow_map_index [[buffer(5)]],
+    constant int &shadow_map_sampler_index [[buffer(6)]])
+{
+    {% if exists("fragment_colour") %}
+        float4 fragment_colour = {{ fragment_colour }};
+    {% else %}
+        float4 fragment_colour = in.colour;
+    {% endif %}
+
+    {% if exists("normal") %}
+        float3 normal = {{ normal }}.xyz;
+        normal = normalize(normal * 2.0 - 1.0); 
+    {% else %}
+        float3 normal = normalize(in.normal.xyz);
+    {% endif %}
+
+    {% if light_type == 0 %}
+        {% if exists("ambient_input") %}
+            float4 out_colour = {{ambient_input}};
+        {% else %}
+            float4 out_colour = light_data->colour * fragment_colour;
+        {% endif %}
+    {% endif %}
+    {% if light_type == 1 %}
+        {% if exists("normal") %}
+            float3 light_dir = normalize(-in.tangent_light_pos.xyz);
+        {% else %}
+            float3 light_dir = normalize(-light_data->position.xyz);
+        {% endif %}
+
+        float shadow = 0.0;
+        shadow = calculate_shadow(
+            normal,
+            in.frag_pos_light_space,
+            light_dir,
+            texture_table[shadow_map_index].texture,
+            sampler_table[shadow_map_sampler_index].smplr);
+
+        float diff = (1.0 - shadow) * max(dot(normal, light_dir), 0.0);
+        float3 diffuse = {diff, diff, diff};
+        float4 out_colour = float4(diffuse * fragment_colour.xyz, 1.0);
+    {% endif %}
+    {% if light_type == 2 %}
+        {% if exists("normal") %}
+            float3 light_dir = normalize(in.tangent_light_pos.xyz - in.tangent_frag_pos.xyz);
+        {% else %}
+            float3 light_dir = normalize(light_data->position.xyz - in.frag_position.xyz);
+        {% endif %}
+    
+        float distance  = length(light_data->position.xyz - in.frag_position.xyz);
+        float constant_term = light_data->attenuation.x;
+        float linear_term = light_data->attenuation.y;
+        float quadratic = light_data->attenuation.z;
+        float attenuation = 1.0 / (constant_term + linear_term * distance + quadratic * (distance * distance));    
+        float3 att = {attenuation, attenuation, attenuation};
+    
+        float diff = max(dot(normal, light_dir), 0.0);
+        float3 diffuse = {diff, diff, diff};
+        
+        float4 out_colour = float4(diffuse * light_data->colour.xyz * fragment_colour.xyz * att, 1.0);
+    {% endif %}
+
+
+    FragmentOutput out;
+    out.colour = out_colour;
+
+    {% if render_normal %}
+        out.normal = float4(normalize(in.view_normal.xyz), 1.0f);
+    {% endif %}
+
+    {% if render_position %}
+        out.position = in.view_position;
+    {% endif %}
+
+    return out;
+}

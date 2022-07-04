@@ -1,0 +1,5 @@
+{% if vertex_data %}
+    texture_table[{{texture_index}}].texture.sample(sampler_table[{{sampler_index}}].smplr, in.tex.xy)
+{% else %}
+    texture_table[{{texture_index}}].texture.sample(sampler_table[{{sampler_index}}].smplr, in.position.xy * float2({{reciprocal_width}}, {{reciprocal_height}}))
+{% endif %}
