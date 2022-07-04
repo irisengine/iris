@@ -10,7 +10,9 @@
 
 #include "core/root.h"
 #include "graphics/macos/macos_window_manager.h"
+#include "graphics/metal/metal_material_manager.h"
 #include "graphics/metal/metal_mesh_manager.h"
+#include "graphics/metal/metal_render_target_manager.h"
 #include "graphics/metal/metal_texture_manager.h"
 #include "iris_version.h"
 #include "jobs/fiber/fiber_job_system_manager.h"
@@ -28,7 +30,9 @@ void register_apis()
         "metal",
         std::make_unique<iris::MacosWindowManager>(),
         std::make_unique<iris::MetalMeshManager>(),
-        std::make_unique<iris::MetalTextureManager>());
+        std::make_unique<iris::MetalTextureManager>(),
+        std::make_unique<iris::MetalMaterialManager>(),
+        std::make_unique<iris::MetalRenderTargetManager>());
     iris::Root::set_graphics_api("metal");
 
     iris::Root::register_physics_api("bullet", std::make_unique<iris::BulletPhysicsManager>());

@@ -10,7 +10,9 @@
 
 #include "core/root.h"
 #include "graphics/linux/linux_window_manager.h"
+#include "graphics/opengl/opengl_material_manager.h"
 #include "graphics/opengl/opengl_mesh_manager.h"
+#include "graphics/opengl/opengl_render_target_manager.h"
 #include "graphics/opengl/opengl_texture_manager.h"
 #include "iris_version.h"
 #include "jobs/fiber/fiber_job_system_manager.h"
@@ -28,7 +30,9 @@ void register_apis()
         "opengl",
         std::make_unique<iris::LinuxWindowManager>(),
         std::make_unique<iris::OpenGLMeshManager>(),
-        std::make_unique<iris::OpenGLTextureManager>());
+        std::make_unique<iris::OpenGLTextureManager>(),
+        std::make_unique<iris::OpenGLMaterialManager>(),
+        std::make_unique<iris::OpenGLRenderTargetManager>());
 
     iris::Root::set_graphics_api("opengl");
 

@@ -9,9 +9,13 @@
 #include <memory>
 
 #include "core/root.h"
+#include "graphics/d3d12/d3d12_material_manager.h"
 #include "graphics/d3d12/d3d12_mesh_manager.h"
+#include "graphics/d3d12/d3d12_render_target_manager.h"
 #include "graphics/d3d12/d3d12_texture_manager.h"
+#include "graphics/opengl/opengl_material_manager.h"
 #include "graphics/opengl/opengl_mesh_manager.h"
+#include "graphics/opengl/opengl_render_target_manager.h"
 #include "graphics/opengl/opengl_texture_manager.h"
 #include "graphics/win32/win32_window_manager.h"
 #include "iris_version.h"
@@ -30,24 +34,25 @@ void register_apis()
         "d3d12",
         std::make_unique<iris::Win32WindowManager>(),
         std::make_unique<iris::D3D12MeshManager>(),
-        std::make_unique<iris::D3D12TextureManager>());
+        std::make_unique<iris::D3D12TextureManager>(),
+        std::make_unique<iris::D3D12MaterialManager>(),
+        std::make_unique<iris::D3D12RenderTargetManager>());
 
     iris::Root::register_graphics_api(
         "opengl",
         std::make_unique<iris::Win32WindowManager>(),
         std::make_unique<iris::OpenGLMeshManager>(),
-        std::make_unique<iris::OpenGLTextureManager>());
+        std::make_unique<iris::OpenGLTextureManager>(),
+        std::make_unique<iris::OpenGLMaterialManager>(),
+        std::make_unique<iris::OpenGLRenderTargetManager>());
 
     iris::Root::set_graphics_api("d3d12");
 
     iris::Root::register_physics_api("bullet", std::make_unique<iris::BulletPhysicsManager>());
-
     iris::Root::set_physics_api("bullet");
 
     iris::Root::register_jobs_api("thread", std::make_unique<iris::ThreadJobSystemManager>());
-
     iris::Root::register_jobs_api("fiber", std::make_unique<iris::FiberJobSystemManager>());
-
     iris::Root::set_jobs_api("fiber");
 }
 

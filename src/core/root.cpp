@@ -12,7 +12,9 @@
 #include <vector>
 
 #include "core/error_handling.h"
+#include "graphics/material_manager.h"
 #include "graphics/mesh_manager.h"
+#include "graphics/render_target_manager.h"
 #include "graphics/texture_manager.h"
 #include "graphics/window_manager.h"
 #include "jobs/job_system_manager.h"
@@ -52,6 +54,16 @@ TextureManager &Root::texture_manager()
     return instance().texture_manager_impl();
 }
 
+MaterialManager &Root::material_manager()
+{
+    return instance().material_manager_impl();
+}
+
+RenderTargetManager &Root::render_target_manager()
+{
+    return instance().render_target_manager_impl();
+}
+
 PhysicsManager &Root::physics_manager()
 {
     return instance().physics_manager_impl();
@@ -66,10 +78,17 @@ void Root::register_graphics_api(
     const std::string &api,
     std::unique_ptr<WindowManager> window_manager,
     std::unique_ptr<MeshManager> mesh_manager,
-    std::unique_ptr<TextureManager> texture_manager)
+    std::unique_ptr<TextureManager> texture_manager,
+    std::unique_ptr<MaterialManager> material_manager,
+    std::unique_ptr<RenderTargetManager> render_target_manager)
 {
     return instance().register_graphics_api_impl(
-        api, std::move(window_manager), std::move(mesh_manager), std::move(texture_manager));
+        api,
+        std::move(window_manager),
+        std::move(mesh_manager),
+        std::move(texture_manager),
+        std::move(material_manager),
+        std::move(render_target_manager));
 }
 
 std::string Root::graphics_api()
@@ -147,6 +166,16 @@ TextureManager &Root::texture_manager_impl() const
     return *graphics_api_managers_.at(graphics_api_).texture_manager;
 }
 
+MaterialManager &Root::material_manager_impl() const
+{
+    return *graphics_api_managers_.at(graphics_api_).material_manager;
+}
+
+RenderTargetManager &Root::render_target_manager_impl() const
+{
+    return *graphics_api_managers_.at(graphics_api_).render_target_manager;
+}
+
 PhysicsManager &Root::physics_manager_impl() const
 {
     return *physics_api_managers_.at(physics_api_);
@@ -161,12 +190,16 @@ void Root::register_graphics_api_impl(
     const std::string &api,
     std::unique_ptr<WindowManager> window_manager,
     std::unique_ptr<MeshManager> mesh_manager,
-    std::unique_ptr<TextureManager> texture_manager)
+    std::unique_ptr<TextureManager> texture_manager,
+    std::unique_ptr<MaterialManager> material_manager,
+    std::unique_ptr<RenderTargetManager> render_target_manager)
 {
-    GraphicsApiManagers managers{};
-    managers.window_manager = std::move(window_manager);
-    managers.mesh_manager = std::move(mesh_manager);
-    managers.texture_manager = std::move(texture_manager);
+    GraphicsApiManagers managers{
+        .mesh_manager = std::move(mesh_manager),
+        .texture_manager = std::move(texture_manager),
+        .material_manager = std::move(material_manager),
+        .render_target_manager = std::move(render_target_manager),
+        .window_manager = std::move(window_manager)};
 
     graphics_api_managers_[api] = std::move(managers);
 }
