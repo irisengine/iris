@@ -39,6 +39,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/render_pass.h
     ${INCLUDE_ROOT}/render_queue_builder.h
     ${INCLUDE_ROOT}/render_target.h
+    ${INCLUDE_ROOT}/render_target_manager.h
     ${INCLUDE_ROOT}/renderer.h
     ${INCLUDE_ROOT}/sampler.h
     ${INCLUDE_ROOT}/scene.h

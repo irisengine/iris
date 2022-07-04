@@ -10,6 +10,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/metal_mesh.h
     ${INCLUDE_ROOT}/metal_mesh_manager.h
     ${INCLUDE_ROOT}/metal_render_target.h
+    ${INCLUDE_ROOT}/metal_render_target_manager.h
     ${INCLUDE_ROOT}/metal_renderer.h
     ${INCLUDE_ROOT}/metal_texture.h
     ${INCLUDE_ROOT}/metal_texture_manager.h
@@ -22,6 +23,7 @@ target_sources(iris PRIVATE
     metal_mesh.mm
     metal_mesh_manager.mm
     metal_render_target.mm
+    metal_render_target_manager.mm
     metal_renderer.mm
     metal_texture.mm
     metal_texture_manager.mm

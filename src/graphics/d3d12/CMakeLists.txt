@@ -15,6 +15,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/d3d12_mesh.h
     ${INCLUDE_ROOT}/d3d12_mesh_manager.h
     ${INCLUDE_ROOT}/d3d12_render_target.h
+    ${INCLUDE_ROOT}/d3d12_render_target_manager.h
     ${INCLUDE_ROOT}/d3d12_renderer.h
     ${INCLUDE_ROOT}/d3d12_root_signature.h
     ${INCLUDE_ROOT}/d3d12_sampler.h
@@ -33,6 +34,7 @@ target_sources(iris PRIVATE
     d3d12_mesh.cpp
     d3d12_mesh_manager.cpp
     d3d12_render_target.cpp
+    d3d12_render_target_manager.cpp
     d3d12_renderer.cpp
     d3d12_sampler.cpp
     d3d12_structured_buffer.cpp
