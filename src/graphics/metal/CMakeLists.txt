@@ -6,6 +6,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/metal_constant_buffer.h
     ${INCLUDE_ROOT}/metal_cube_map.h
     ${INCLUDE_ROOT}/metal_material.h
+    ${INCLUDE_ROOT}/metal_material_manager.h
     ${INCLUDE_ROOT}/metal_mesh.h
     ${INCLUDE_ROOT}/metal_mesh_manager.h
     ${INCLUDE_ROOT}/metal_render_target.h
@@ -17,6 +18,7 @@ target_sources(iris PRIVATE
     metal_constant_buffer.mm
     metal_cube_map.mm
     metal_material.mm
+    metal_material_manager.mm
     metal_mesh.mm
     metal_mesh_manager.mm
     metal_render_target.mm

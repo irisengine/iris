@@ -11,6 +11,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/d3d12_descriptor_manager.h
     ${INCLUDE_ROOT}/d3d12_gpu_descriptor_handle_allocator.h
     ${INCLUDE_ROOT}/d3d12_material.h
+    ${INCLUDE_ROOT}/d3d12_material_manager.h
     ${INCLUDE_ROOT}/d3d12_mesh.h
     ${INCLUDE_ROOT}/d3d12_mesh_manager.h
     ${INCLUDE_ROOT}/d3d12_render_target.h
@@ -28,6 +29,7 @@ target_sources(iris PRIVATE
     d3d12_descriptor_handle.cpp
     d3d12_descriptor_manager.cpp
     d3d12_material.cpp
+    d3d12_material_manager.cpp
     d3d12_mesh.cpp
     d3d12_mesh_manager.cpp
     d3d12_render_target.cpp
