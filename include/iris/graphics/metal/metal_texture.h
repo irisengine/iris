@@ -35,6 +35,9 @@ class MetalTexture : public Texture
      * @param height
      *   Height of data.
      *
+     * @param sampler
+     *   Sampler to use for this texture.
+     *
      * @param usage
      *   Texture usage.
      *
@@ -45,6 +48,7 @@ class MetalTexture : public Texture
         const DataBuffer &data,
         std::uint32_t width,
         std::uint32_t height,
+        const Sampler *sampler,
         TextureUsage usage,
         std::uint32_t index);
 

@@ -12,6 +12,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/metal_render_target.h
     ${INCLUDE_ROOT}/metal_render_target_manager.h
     ${INCLUDE_ROOT}/metal_renderer.h
+    ${INCLUDE_ROOT}/metal_sampler.h
     ${INCLUDE_ROOT}/metal_texture.h
     ${INCLUDE_ROOT}/metal_texture_manager.h
     ${INCLUDE_ROOT}/msl_shader_compiler.h
@@ -25,6 +26,6 @@ target_sources(iris PRIVATE
     metal_render_target.mm
     metal_render_target_manager.mm
     metal_renderer.mm
+    metal_sampler.mm
     metal_texture.mm
-    metal_texture_manager.mm
-    msl_shader_compiler.cpp)
+    metal_texture_manager.mm)

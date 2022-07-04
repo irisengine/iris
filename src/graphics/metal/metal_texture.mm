@@ -20,6 +20,7 @@
 #include "core/macos/macos_ios_utility.h"
 #include "core/resource_loader.h"
 #include "core/vector3.h"
+#include "graphics/sampler.h"
 #include "graphics/texture_usage.h"
 #include "log/log.h"
 
@@ -195,9 +196,10 @@ MetalTexture::MetalTexture(
     const DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
+    const Sampler *sampler,
     TextureUsage usage,
     std::uint32_t index)
-    : Texture(data, width, height, usage, index)
+    : Texture(data, width, height, sampler, usage, index)
     , texture_()
 {
     texture_ = create_texture(data, width, height, usage);

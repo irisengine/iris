@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "graphics/metal/metal_texture.h"
 #include "graphics/render_target.h"
+#include "graphics/texture.h"
 
 namespace iris
 {
@@ -27,7 +27,7 @@ class MetalRenderTarget : public RenderTarget
      * @param depth_texture
      *   Texture to render depth data to.
      */
-    MetalRenderTarget(MetalTexture *colour_texture, MetalTexture *depth_texture);
+    MetalRenderTarget(const Texture *colour_texture, const Texture *depth_texture);
 
     ~MetalRenderTarget() override = default;
 };

@@ -18,6 +18,11 @@
 namespace iris
 {
 
+MetalMeshManager::MetalMeshManager()
+    : MeshManager(false)
+{
+}
+
 std::unique_ptr<Mesh> MetalMeshManager::create_mesh(
     const std::vector<iris::VertexData> &vertices,
     const std::vector<std::uint32_t> &indices) const

@@ -12,6 +12,8 @@
 
 #include "core/exception.h"
 
+@protocol MTLBuffer;
+
 namespace iris
 {
 

@@ -13,11 +13,9 @@
 namespace iris
 {
 
-MetalRenderTarget::MetalRenderTarget(MetalTexture *colour_texture, MetalTexture *depth_texture)
+MetalRenderTarget::MetalRenderTarget(const Texture *colour_texture, const Texture *depth_texture)
     : RenderTarget(colour_texture, depth_texture)
 {
-    colour_texture->set_flip(true);
-    depth_texture->set_flip(true);
 }
 
 }
