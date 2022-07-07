@@ -310,6 +310,15 @@ Win32Window::Win32Window(std::uint32_t width, std::uint32_t height)
     while (::ShowCursor(FALSE) >= 0)
     {
     }
+
+    auto clip_rect = rect;
+    clip_rect.left += (screen_width / 2) - ((width_ * scale) / 2),
+        clip_rect.bottom += (screen_height / 2) - ((height_ * scale) / 2),
+        clip_rect.right += (screen_width / 2) - ((width_ * scale) / 2),
+        clip_rect.top += (screen_height / 2) - ((height_ * scale) / 2);
+
+    // confine cursor to window
+    ensure(::ClipCursor(&clip_rect) == TRUE, "could not confine cursor");
 }
 
 std::uint32_t Win32Window::screen_scale() const

@@ -216,12 +216,11 @@ MacosWindow::MacosWindow(std::uint32_t width, std::uint32_t height)
 
     const auto api = Root::graphics_api();
 
-    // create a graphics api specific Renderer and app delegate
+    // create a metal renderer and app delegate
     app_delegate = [[MetalAppDelegate alloc] initWithRect:NSMakeRect(0.0f, 0.0f, width_, height_)];
-    renderer_ = std::make_unique<MetalRenderer>(width_, height_);
-
-    // check that we created the delegate
     ensure(app_delegate != nil, "failed to create AppDelegate");
+
+    renderer_ = std::make_unique<MetalRenderer>(width_, height_);
 
     // set the delegate
     [app setDelegate:app_delegate];
