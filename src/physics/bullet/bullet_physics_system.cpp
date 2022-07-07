@@ -234,6 +234,7 @@ CharacterController *BulletPhysicsSystem::add(std::unique_ptr<CharacterControlle
 
 void BulletPhysicsSystem::remove(RigidBody *body)
 {
+    debug_draw_.deregister_rigid_body(body);
     remove_body_from_world(body, world_.get());
 
     bodies_.erase(

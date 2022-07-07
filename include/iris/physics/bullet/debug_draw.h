@@ -103,6 +103,14 @@ class DebugDraw
      */
     void register_rigid_body(const RigidBody *rigid_body);
 
+    /**
+     * Deregister a new RigidBody for debug drawing.
+     *
+     * @param rigid_body
+     *   The rigid body to deregister.
+     */
+    void deregister_rigid_body(const RigidBody *rigid_body);
+
   private:
     /**
      * Implementation of btIDebugDraw which allows us to get debug geometry. This works because the base implementation

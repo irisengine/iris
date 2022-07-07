@@ -176,4 +176,13 @@ void DebugDraw::register_rigid_body(const RigidBody *rigid_body)
     }
 }
 
+void DebugDraw::deregister_rigid_body(const RigidBody *rigid_body)
+{
+    if (scene_ != nullptr)
+    {
+        scene_->remove(bodies_[rigid_body]);
+        bodies_.erase(rigid_body);
+    }
+}
+
 }
