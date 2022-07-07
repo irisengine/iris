@@ -36,9 +36,6 @@ class D3D12Material : public Material
      * @param render_graph
      *   RenderGraph describing material.
      *
-     * @param mesh
-     *   Mesh material will be applied to.
-     *
      * @param input_descriptors
      *   D3D12 vertex descriptor describing how to organise vertex data.
      *
