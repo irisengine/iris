@@ -24,7 +24,7 @@ target_include_directories(
 
 target_include_directories(
   iris SYSTEM
-  PRIVATE ${stb_SOURCE_DIR} ${bullet_SOURCE_DIR}/src ${lua_SOURCE_DIR} ${inha_SOURCE_DIR})
+  PRIVATE ${stb_SOURCE_DIR} ${bullet_SOURCE_DIR}/src ${lua_SOURCE_DIR} ${inja_SOURCE_DIR}/include ${inja_SOURCE_DIR}/third_party/include)
 
 target_include_directories(
   iris SYSTEM

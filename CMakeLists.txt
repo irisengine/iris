@@ -14,7 +14,7 @@ include(GenerateExportHeader)
 # set options for library
 option(IRIS_BUILD_UNIT_TESTS "whether to build unit tests" ON)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(ASM_OPTIONS "-x assembler-with-cpp")
 
 # if a platform wasn't supplied then default to current platform
@@ -65,12 +65,12 @@ set(COVERALLS OFF CACHE BOOL "" FORCE)
 # fetch third party libraries
 # note that in most cases we manually populate and add, this alloes us to use
 # EXCLUDE_FROM_ALL to prevent them from being included in the install step
-
 FetchContent_Declare(
   assimp
   GIT_REPOSITORY https://github.com/assimp/assimp
   GIT_TAG v5.0.1)
 FetchContent_GetProperties(assimp)
+
 if(NOT assimp_POPULATED)
   FetchContent_Populate(assimp)
   add_subdirectory(${assimp_SOURCE_DIR} ${assimp_BINARY_DIR} EXCLUDE_FROM_ALL)
@@ -81,6 +81,7 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/bulletphysics/bullet3
   GIT_TAG 3.17)
 FetchContent_GetProperties(bullet)
+
 if(NOT bullet_POPULATED)
   FetchContent_Populate(bullet)
   add_subdirectory(${bullet_SOURCE_DIR} ${bullet_BINARY_DIR} EXCLUDE_FROM_ALL)
@@ -106,6 +107,7 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/google/googletest.git
   GIT_TAG release-1.11.0)
 FetchContent_GetProperties(googletest)
+
 if(NOT googletest_POPULATED)
   FetchContent_Populate(googletest)
   add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
@@ -116,6 +118,7 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/pantor/inja
   GIT_TAG v3.3.0)
 FetchContent_GetProperties(inja)
+
 if(NOT inja_POPULATED)
   FetchContent_Populate(inja)
   add_subdirectory(${inja_SOURCE_DIR} ${inja_BINARY_DIR} EXCLUDE_FROM_ALL)
@@ -126,11 +129,12 @@ if(IRIS_PLATFORM MATCHES "WIN32")
     directx-headers
     GIT_REPOSITORY https://github.com/microsoft/DirectX-Headers.git
     GIT_TAG v1.4.9)
- FetchContent_GetProperties(directx-headers)
- if(NOT directx-headers_POPULATED)
-   FetchContent_Populate(directx-headers)
-   add_subdirectory(${directx-headers_SOURCE_DIR} ${directx-headers_BINARY_DIR} EXCLUDE_FROM_ALL)
- endif()
+  FetchContent_GetProperties(directx-headers)
+
+  if(NOT directx-headers_POPULATED)
+    FetchContent_Populate(directx-headers)
+    add_subdirectory(${directx-headers_SOURCE_DIR} ${directx-headers_BINARY_DIR} EXCLUDE_FROM_ALL)
+  endif()
 endif()
 
 add_subdirectory("shaders")
@@ -140,7 +144,8 @@ add_subdirectory("samples")
 if(IRIS_BUILD_UNIT_TESTS)
   enable_testing()
   include(CTest)
-  add_subdirectory("tests")
+
+  # add_subdirectory("tests")
 endif()
 
 include(cmake/cpack.cmake)
