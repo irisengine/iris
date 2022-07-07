@@ -63,9 +63,6 @@ class ColourAdjustNode : public RenderNode
     std::size_t hash() const override;
 
   private:
-    /** Gamma amount. */
-    float gamma_;
-
     /** User settings for effect. */
     ColourAdjustDescription description_;
 };
