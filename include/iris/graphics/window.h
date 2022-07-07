@@ -8,10 +8,12 @@
 
 #include <cstdint>
 #include <deque>
+#include <memory>
 #include <optional>
 
 #include "events/event.h"
 #include "graphics/render_pass.h"
+#include "graphics/render_pipeline.h"
 #include "graphics/render_target.h"
 #include "graphics/renderer.h"
 
@@ -82,34 +84,12 @@ class Window
     std::uint32_t height() const;
 
     /**
-     * Create a RenderTarget the same size as the Window.
+     * Set the render pipeline to execute with render().
      *
-     * @returns
-     *   RenderTarget.
+     * @param render_pipeline
+     *   Pipeline to execute.
      */
-    RenderTarget *create_render_target();
-
-    /**
-     * Create a RenderTarget with custom dimensions.
-     *
-     * @param width
-     *   Width of render target.
-     *
-     * @param height
-     *   Height of render target.
-     *
-     * @returns
-     *   RenderTarget.
-     */
-    RenderTarget *create_render_target(std::uint32_t width, std::uint32_t height);
-
-    /**
-     * Set the render passes. These will be executed when render() is called.
-     *
-     * @param render_passes
-     *   Collection of RenderPass objects to render.
-     */
-    void set_render_passes(const std::deque<RenderPass> &render_passes);
+    void set_render_pipeline(std::unique_ptr<RenderPipeline> render_pipeline);
 
   protected:
     /** Window width. */

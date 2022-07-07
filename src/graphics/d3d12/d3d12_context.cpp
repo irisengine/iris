@@ -13,6 +13,7 @@
 #include "directx/d3dx12.h"
 
 #include "core/error_handling.h"
+#include "graphics/d3d12/d3d12_root_signature.h"
 
 namespace iris
 {
@@ -21,6 +22,7 @@ D3D12Context::D3D12Context()
     : dxgi_factory_(nullptr)
     , device_(nullptr)
     , info_queue_(nullptr)
+    , root_signature_()
 {
     // create and enable a debug layer
     Microsoft::WRL::ComPtr<ID3D12Debug> debug_interface = nullptr;
@@ -86,6 +88,18 @@ D3D12Context::D3D12Context()
     info_queue_->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
     info_queue_->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, TRUE);
     info_queue_->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, TRUE);
+
+    root_signature_ = std::make_unique<D3D12RootSignature<
+        ConstantBufferViewParameter<0u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
+        ConstantBufferViewParameter<1u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
+        ConstantBufferViewParameter<2u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
+        ConstantParameter<3u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
+        ConstantParameter<4u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
+        ShaderResourceViewParameter<0u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
+        TableParameter<D3D12_DESCRIPTOR_RANGE_TYPE_SRV, UINT_MAX, 0u, 1u, D3D12_SHADER_VISIBILITY_PIXEL>,
+        TableParameter<D3D12_DESCRIPTOR_RANGE_TYPE_SRV, UINT_MAX, 0u, 2u, D3D12_SHADER_VISIBILITY_PIXEL>,
+        TableParameter<D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, UINT_MAX, 0u, 0u, D3D12_SHADER_VISIBILITY_PIXEL>>>(
+        device_.Get());
 }
 
 D3D12Context &D3D12Context::instance()

@@ -8,8 +8,10 @@
 
 #include <cstdint>
 #include <deque>
+#include <memory>
 
 #include "graphics/render_pass.h"
+#include "graphics/render_pipeline.h"
 #include "graphics/render_target.h"
 
 namespace iris
@@ -37,19 +39,10 @@ std::uint32_t Window::height() const
     return height_;
 }
 
-RenderTarget *Window::create_render_target()
+void Window::set_render_pipeline(std::unique_ptr<RenderPipeline> render_pipeline)
 {
-    return create_render_target(width_, height_);
-}
-
-RenderTarget *Window::create_render_target(std::uint32_t width, std::uint32_t height)
-{
-    return renderer_->create_render_target(width, height);
-}
-
-void Window::set_render_passes(const std::deque<RenderPass> &render_passes)
-{
-    renderer_->set_render_passes(render_passes);
+    render_pipeline->clear_dirty_bit();
+    renderer_->set_render_pipeline(std::move(render_pipeline));
 }
 
 }

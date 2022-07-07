@@ -32,11 +32,6 @@ class RenderGraph
     using is_node = std::enable_if_t<std::is_base_of_v<Node, T> && !std::is_same_v<RenderNode, T>>;
 
     /**
-     * Create a new RenderGraph.
-     */
-    RenderGraph();
-
-    /**
      * Get the RenderNode i.e. the root of the graph.
      *
      * @returns
@@ -89,6 +84,14 @@ class RenderGraph
     Node *add(std::unique_ptr<Node> node);
 
   private:
+    // friend to allow only the RenderPipeline to create
+    friend class RenderPipeline;
+
+    /**
+     * Create a new RenderGraph.
+     */
+    RenderGraph();
+
     /** Collection of nodes in graph. */
     std::vector<std::unique_ptr<Node>> nodes_;
 };

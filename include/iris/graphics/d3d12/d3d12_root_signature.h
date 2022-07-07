@@ -14,7 +14,6 @@
 
 #include "core/error_handling.h"
 #include "graphics/d3d12/d3d12_constant_buffer.h"
-#include "graphics/d3d12/d3d12_context.h"
 #include "graphics/d3d12/d3d12_descriptor_handle.h"
 #include "graphics/d3d12/d3d12_structured_buffer.h"
 #include "log/log.h"
@@ -128,7 +127,7 @@ class D3D12RootSignature
     /**
      * Construct a new D3D12RootSignature.
      */
-    D3D12RootSignature()
+    D3D12RootSignature(ID3D12Device2 *device)
         : root_signature_(nullptr)
     {
         static_assert((Parameters::size + ...) <= 64, "exceeded maximum root signature size");
@@ -156,12 +155,10 @@ class D3D12RootSignature
         {
             const std::string error_message(static_cast<char *>(error->GetBufferPointer()), error->GetBufferSize());
 
-            LOG_ENGINE_ERROR("d3d12_context", "{}", error_message);
+            LOG_ENGINE_ERROR("d3d12_root_signature", "{}", error_message);
 
             throw iris::Exception("root signature serialization failed: " + error_message);
         }
-
-        auto *device = D3D12Context::device();
 
         expect(
             device->CreateRootSignature(

@@ -132,7 +132,6 @@ Texture *create(const std::string &font_name, const std::uint32_t size, const st
 
     // create a Texture from the rendered pixel data
     auto *texture = Root::texture_manager().create(pixel_data, width, height, TextureUsage::IMAGE);
-    texture->set_flip(true);
 
     return texture;
 }

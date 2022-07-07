@@ -6,22 +6,29 @@
 
 #include "graphics/renderer.h"
 
+#include <cassert>
+
 #include "core/exception.h"
+#include "core/root.h"
+#include "graphics/material_manager.h"
 
 namespace iris
 {
 
 Renderer::Renderer()
-    : render_passes_()
-    , render_queue_()
-    , post_processing_scene_()
-    , post_processing_target_(nullptr)
-    , post_processing_camera_()
+    : render_queue_()
+    , render_pipeline_()
 {
 }
 
 void Renderer::render()
 {
+    if (render_pipeline_->is_dirty())
+    {
+        render_queue_ = render_pipeline_->rebuild();
+        render_pipeline_->clear_dirty_bit();
+    }
+
     pre_render();
 
     // call each command with the appropriate handler
@@ -38,6 +45,17 @@ void Renderer::render()
     }
 
     post_render();
+}
+
+void Renderer::set_render_pipeline(std::unique_ptr<RenderPipeline> render_pipeline)
+{
+    Root::material_manager().clear();
+
+    render_pipeline_ = std::move(render_pipeline);
+    do_set_render_pipeline([this]() {
+        render_queue_ = render_pipeline_->build();
+        render_pipeline_->clear_dirty_bit();
+    });
 }
 
 void Renderer::pre_render()

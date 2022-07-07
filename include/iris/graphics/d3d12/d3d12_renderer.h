@@ -29,12 +29,11 @@
 #include "graphics/d3d12/d3d12_constant_buffer_pool.h"
 #include "graphics/d3d12/d3d12_cube_map.h"
 #include "graphics/d3d12/d3d12_descriptor_handle.h"
-#include "graphics/d3d12/d3d12_material.h"
 #include "graphics/d3d12/d3d12_root_signature.h"
 #include "graphics/d3d12/d3d12_structured_buffer.h"
 #include "graphics/d3d12/d3d12_texture.h"
 #include "graphics/material_cache.h"
-#include "graphics/render_queue_builder.h"
+#include "graphics/render_pipeline.h"
 #include "graphics/render_target.h"
 #include "graphics/renderer.h"
 
@@ -76,29 +75,15 @@ class D3D12Renderer : public Renderer
      */
     ~D3D12Renderer() override;
 
-    /**
-     * Set the render passes. These will be executed when render() is called.
-     *
-     * @param render_passes
-     *   Collection of RenderPass objects to render.
-     */
-    void set_render_passes(const std::deque<RenderPass> &render_passes) override;
-
-    /**
-     * Create a RenderTarget with custom dimensions.
-     *
-     * @param width
-     *   Width of render target.
-     *
-     * @param height
-     *   Height of render target.
-     *
-     * @returns
-     *   RenderTarget.
-     */
-    RenderTarget *create_render_target(std::uint32_t width, std::uint32_t height) override;
-
   protected:
+    /**
+     * Render specific method to set the render pipeline.
+     *
+     * @param build_queue
+     *   Function to build queue.
+     */
+    void do_set_render_pipeline(std::function<void()> build_queue) override;
+
     // handlers for the supported RenderCommandTypes
 
     void pre_render() override;
@@ -108,18 +93,6 @@ class D3D12Renderer : public Renderer
     void execute_present(RenderCommand &command) override;
 
   private:
-    /**
-     * Custom equality functor for our unordered maps of render graphs. This is because we want no collisions, any graph
-     * hashing the same should be considered equal.
-     */
-    struct RenderGraphPtrEqual
-    {
-        bool operator()(const RenderGraph *a, const RenderGraph *b) const
-        {
-            return std::hash<RenderGraph *>{}(a) == std::hash<RenderGraph *>{}(b);
-        }
-    };
-
     /**
      * Internal struct encapsulating data needed for a frame.
      */
@@ -206,11 +179,6 @@ class D3D12Renderer : public Renderer
     /** Scissor rect for window. */
     CD3DX12_RECT scissor_rect_;
 
-    /** Collection of created RenderTarget objects. */
-    std::vector<std::unique_ptr<RenderTarget>> render_targets_;
-
-    MaterialCache<D3D12Material, RenderGraph *, LightType, bool, bool> materials_;
-
     /** Collection of textures that have been uploaded. */
     std::set<const D3D12Texture *> uploaded_textures_;
 
@@ -228,21 +196,5 @@ class D3D12Renderer : public Renderer
 
     /** Descriptor handle to a global sampler table (for bindless). */
     D3D12DescriptorHandle sampler_table_;
-
-    /** Root signature for materials. */
-    D3D12RootSignature<
-        ConstantBufferViewParameter<0u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
-        ConstantBufferViewParameter<1u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
-        ConstantBufferViewParameter<2u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
-        ConstantParameter<3u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
-        ConstantParameter<4u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
-        ShaderResourceViewParameter<0u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
-        TableParameter<D3D12_DESCRIPTOR_RANGE_TYPE_SRV, UINT_MAX, 0u, 1u, D3D12_SHADER_VISIBILITY_PIXEL>,
-        TableParameter<D3D12_DESCRIPTOR_RANGE_TYPE_SRV, UINT_MAX, 0u, 2u, D3D12_SHADER_VISIBILITY_PIXEL>,
-        TableParameter<D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, UINT_MAX, 0u, 0u, D3D12_SHADER_VISIBILITY_PIXEL>>
-        root_signature_;
-
-    /** Render queue builder object. */
-    std::unique_ptr<RenderQueueBuilder> render_queue_builder_;
 };
 }

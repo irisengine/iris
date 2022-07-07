@@ -26,39 +26,6 @@ class Scene
 {
   public:
     /**
-     * Create a new Scene.
-     */
-    Scene();
-
-    /**
-     * Create a RenderGraph for use in this scene. Uses perfect forwarding to
-     * pass along all arguments.
-     *
-     * @param args
-     *   Arguments for RenderGraph.
-     *
-     * @returns
-     *   Pointer to the newly created RenderGraph.
-     */
-    template <class... Args>
-    RenderGraph *create_render_graph(Args &&...args)
-    {
-        auto graph = std::make_unique<RenderGraph>(std::forward<Args>(args)...);
-        return add(std::move(graph));
-    }
-
-    /**
-     * Add a RenderGraph for use in this scene.
-     *
-     * @param graph
-     *   RenderGraph to add.
-     *
-     * @returns
-     *   Pointer to newly added RenderGraph.
-     */
-    RenderGraph *add(std::unique_ptr<RenderGraph> graph);
-
-    /**
      * Create a RenderEntity and add it to the scene. Uses perfect forwarding to
      * pass along all arguments.
      *
@@ -180,6 +147,20 @@ class Scene
     const LightingRig *lighting_rig() const;
 
   private:
+    // friend to allow only the RenderPipeline to create
+    friend class RenderPipeline;
+
+    /**
+     * Create new Scene.
+     *
+     * @param default_render_graph
+     *   Render graph to use when a user does to supply one.
+     *
+     * @param dirty_pipeline
+     *   Flag to set when the scene is modified.
+     */
+    Scene(RenderGraph *default_render_graph, bool *dirty_pipeline);
+
     /** Collection of <RenderGraph, RenderEntity> tuples. */
     std::vector<std::tuple<RenderGraph *, std::unique_ptr<RenderEntity>>> entities_;
 
@@ -188,6 +169,12 @@ class Scene
 
     /** Lighting rig for scene. */
     LightingRig lighting_rig_;
+
+    /** Handle to the default render graph. */
+    RenderGraph *default_render_graph_;
+
+    /** Flag to indicate user has changed the scene. */
+    bool *dirty_pipeline_;
 };
 
 }

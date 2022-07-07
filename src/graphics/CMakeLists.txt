@@ -37,7 +37,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/render_command_type.h
     ${INCLUDE_ROOT}/render_entity.h
     ${INCLUDE_ROOT}/render_pass.h
-    ${INCLUDE_ROOT}/render_queue_builder.h
+    ${INCLUDE_ROOT}/render_pipeline.h
     ${INCLUDE_ROOT}/render_target.h
     ${INCLUDE_ROOT}/render_target_manager.h
     ${INCLUDE_ROOT}/renderer.h
@@ -63,7 +63,7 @@ target_sources(iris PRIVATE
     mesh_manager.cpp
     render_command.cpp
     render_entity.cpp
-    render_queue_builder.cpp
+    render_pipeline.cpp
     render_target.cpp
     renderer.cpp
     sampler.cpp

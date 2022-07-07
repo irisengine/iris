@@ -13,6 +13,7 @@
 #include <deque>
 #include <iostream>
 #include <map>
+#include <ranges>
 #include <unordered_map>
 #include <vector>
 
@@ -33,6 +34,7 @@
 #include "graphics/d3d12/d3d12_context.h"
 #include "graphics/d3d12/d3d12_cube_map.h"
 #include "graphics/d3d12/d3d12_descriptor_manager.h"
+#include "graphics/d3d12/d3d12_material.h"
 #include "graphics/d3d12/d3d12_mesh.h"
 #include "graphics/d3d12/d3d12_render_target.h"
 #include "graphics/d3d12/d3d12_sampler.h"
@@ -183,7 +185,11 @@ void upload_textures(
     ID3D12GraphicsCommandList *command_list)
 {
     // encode commands to copy all textures to their target heaps
-    for (auto *texture : iris::Root::texture_manager().textures())
+    for (auto *texture : iris::Root::texture_manager().textures() | std::views::filter([](const auto *element) {
+                             return !(
+                                 (element->usage() == iris::TextureUsage::RENDER_TARGET) ||
+                                 (element->usage() == iris::TextureUsage::DEPTH));
+                         }))
     {
         const auto *d3d12_tex = static_cast<const iris::D3D12Texture *>(texture);
 
@@ -410,16 +416,12 @@ D3D12Renderer::D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t hei
     , swap_chain_(nullptr)
     , viewport_()
     , scissor_rect_()
-    , render_targets_()
-    , materials_()
     , uploaded_textures_()
     , uploaded_cube_maps_()
     , instance_data_buffers_()
     , texture_table_()
     , cube_map_table_()
     , sampler_table_()
-    , root_signature_()
-    , render_queue_builder_()
 {
     // we will use triple buffering
     const auto num_frames = 3u;
@@ -532,39 +534,6 @@ D3D12Renderer::D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t hei
 
     // close the list so we can start recording to it
     command_list_->Close();
-
-    render_queue_builder_ = std::make_unique<RenderQueueBuilder>(
-        width_,
-        height_,
-        [this](
-            RenderGraph *render_graph,
-            RenderEntity *render_entity,
-            const RenderTarget *target,
-            LightType light_type,
-            bool render_to_normal_target,
-            bool render_to_position_target) {
-            return materials_.try_emplace(
-                render_graph,
-                light_type,
-                render_to_normal_target,
-                render_to_position_target,
-                render_graph,
-                static_cast<const D3D12Mesh *>(render_entity->mesh())->input_descriptors(),
-                render_entity->primitive_type(),
-                light_type,
-                root_signature_.handle(),
-                target == nullptr,
-                render_to_normal_target,
-                render_to_position_target);
-        },
-        [this](std::uint32_t width, std::uint32_t height) { return create_render_target(width, height); },
-        [this](const RenderTarget *colour_target, const RenderTarget *depth_target) {
-            return render_targets_
-                .emplace_back(std::make_unique<D3D12RenderTarget>(
-                    static_cast<const D3D12Texture *>(colour_target->colour_texture()),
-                    static_cast<const D3D12Texture *>(depth_target->depth_texture())))
-                .get();
-        });
 }
 
 D3D12Renderer::~D3D12Renderer()
@@ -577,18 +546,14 @@ D3D12Renderer::~D3D12Renderer()
     ++frames_[frame_index_].fence_value;
 }
 
-void D3D12Renderer::set_render_passes(const std::deque<RenderPass> &render_passes)
+void D3D12Renderer::do_set_render_pipeline(std::function<void()> build_queue)
 {
     command_queue_->Signal(fence_.Get(), frames_[frame_index_].fence_value);
     fence_->SetEventOnCompletion(frames_[frame_index_].fence_value, fence_event_);
     ::WaitForSingleObject(fence_event_, INFINITE);
     ++frames_[frame_index_].fence_value;
 
-    materials_.clear();
-    render_passes_ = render_passes;
-
-    // build the render queue from the provided passes
-    render_queue_ = render_queue_builder_->build(render_passes_);
+    build_queue();
 
     instance_data_buffers_.clear();
 
@@ -620,37 +585,6 @@ void D3D12Renderer::set_render_passes(const std::deque<RenderPass> &render_passe
     texture_table_ = create_texture_table();
     cube_map_table_ = create_cube_map_table();
     sampler_table_ = create_sampler_table();
-}
-
-RenderTarget *D3D12Renderer::create_render_target(std::uint32_t width, std::uint32_t height)
-{
-    const auto scale = Root::window_manager().current_window()->screen_scale();
-
-    const auto *rt_sampler = Root::texture_manager().create(SamplerDescriptor{
-        .s_address_mode = SamplerAddressMode::CLAMP_TO_EDGE,
-        .t_address_mode = SamplerAddressMode::CLAMP_TO_EDGE,
-        .uses_mips = false});
-
-    const auto *depth_sampler = Root::texture_manager().create(SamplerDescriptor{
-        .s_address_mode = SamplerAddressMode::CLAMP_TO_BORDER,
-        .t_address_mode = SamplerAddressMode::CLAMP_TO_BORDER,
-        .border_colour = Colour{1.0f, 1.0f, 1.0f, 1.0f},
-        .uses_mips = false});
-
-    auto *colour_texture = static_cast<D3D12Texture *>(Root::texture_manager().create(
-        DataBuffer{}, width * scale, height * scale, TextureUsage::RENDER_TARGET, rt_sampler));
-    auto *depth_texture = static_cast<D3D12Texture *>(Root::texture_manager().create(
-        DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH, depth_sampler));
-
-    // add these to uploaded so the next render pass doesn't try to upload them
-    uploaded_textures_.emplace(colour_texture);
-    uploaded_textures_.emplace(depth_texture);
-
-    render_targets_.emplace_back(std::make_unique<D3D12RenderTarget>(colour_texture, depth_texture));
-
-    auto *rt = render_targets_.back().get();
-
-    return rt;
 }
 
 void D3D12Renderer::pre_render()
@@ -783,7 +717,7 @@ void D3D12Renderer::execute_pass_start(RenderCommand &command)
         command_list_->ClearDepthStencilView(depth_handle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0u, 0u, nullptr);
     }
 
-    command_list_->SetGraphicsRootSignature(root_signature_.handle());
+    command_list_->SetGraphicsRootSignature(D3D12Context::root_signature().handle());
 
     // update viewport incase it's changed for current render target
     viewport_ = CD3DX12_VIEWPORT{0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height)};
@@ -867,7 +801,7 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
         (command.shadow_map() == nullptr) ? 0u : command.shadow_map()->depth_texture()->sampler()->index();
 
     // encode all out root signature arguments
-    root_signature_.encode_arguments(
+    D3D12Context::root_signature().encode_arguments(
         command_list_.Get(),
         vertex_buffer,
         light_buffer,

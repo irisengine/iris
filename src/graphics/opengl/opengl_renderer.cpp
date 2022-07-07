@@ -18,6 +18,7 @@
 #include "graphics/constant_buffer_writer.h"
 #include "graphics/instanced_entity.h"
 #include "graphics/lights/lighting_rig.h"
+#include "graphics/material_manager.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/opengl/opengl.h"
 #include "graphics/opengl/opengl_cube_map.h"
@@ -171,13 +172,10 @@ namespace iris
 
 OpenGLRenderer::OpenGLRenderer(std::uint32_t width, std::uint32_t height)
     : Renderer()
-    , render_targets_()
-    , materials_()
     , width_(width)
     , height_(height)
     , bone_data_()
     , light_data_()
-    , render_queue_builder_()
 {
     ::glClearColor(0.39f, 0.58f, 0.93f, 1.0f);
     expect(check_opengl_error, "could not set clear colour");
@@ -188,46 +186,15 @@ OpenGLRenderer::OpenGLRenderer(std::uint32_t width, std::uint32_t height)
     ::glDepthFunc(GL_LEQUAL);
     expect(check_opengl_error, "could not set depth test function");
 
-    render_queue_builder_ = std::make_unique<RenderQueueBuilder>(
-        width_,
-        height_,
-        [this](
-            RenderGraph *render_graph,
-            RenderEntity *,
-            const RenderTarget *,
-            LightType light_type,
-            bool render_to_normal_target,
-            bool render_to_position_target) {
-            return materials_.try_emplace(
-                render_graph,
-                light_type,
-                render_to_normal_target,
-                render_to_position_target,
-                render_graph,
-                light_type,
-                render_to_normal_target,
-                render_to_position_target);
-        },
-        [this](std::uint32_t width, std::uint32_t height) { return create_render_target(width, height); },
-        [this](const RenderTarget *colour_target, const RenderTarget *depth_target) {
-            return render_targets_
-                .emplace_back(std::make_unique<OpenGLRenderTarget>(
-                    static_cast<const OpenGLTexture *>(colour_target->colour_texture()),
-                    static_cast<const OpenGLTexture *>(depth_target->depth_texture())))
-                .get();
-        });
-
     LOG_ENGINE_INFO("render_system", "constructed opengl renderer");
 }
 
-void OpenGLRenderer::set_render_passes(const std::deque<RenderPass> &render_passes)
+void OpenGLRenderer::do_set_render_pipeline(std::function<void()> build_queue)
 {
-    materials_.clear();
     instance_data_.clear();
     pass_frame_buffers_.clear();
 
-    render_passes_ = render_passes;
-    render_queue_ = render_queue_builder_->build(render_passes_);
+    build_queue();
 
     // loop through all draw commands, for each drawn entity create a uniform object so they can be easily set during
     // render
@@ -250,35 +217,16 @@ void OpenGLRenderer::set_render_passes(const std::deque<RenderPass> &render_pass
         }
     }
 
-    for (const auto &pass : render_passes_)
+    for (const auto *pass : render_pipeline_->render_passes())
     {
-        pass_frame_buffers_[std::addressof(pass)] = OpenGLFrameBuffer{
-            static_cast<const OpenGLRenderTarget *>(pass.colour_target),
-            static_cast<const OpenGLRenderTarget *>(pass.normal_target),
-            static_cast<const OpenGLRenderTarget *>(pass.position_target)};
+        pass_frame_buffers_[pass] = OpenGLFrameBuffer{
+            static_cast<const OpenGLRenderTarget *>(pass->colour_target),
+            static_cast<const OpenGLRenderTarget *>(pass->normal_target),
+            static_cast<const OpenGLRenderTarget *>(pass->position_target)};
     }
 
     texture_table_ = create_texture_table_ssbo();
     cube_map_table_ = create_cube_map_table_ssbo();
-}
-
-RenderTarget *OpenGLRenderer::create_render_target(std::uint32_t width, std::uint32_t height)
-{
-    const auto scale = Root::window_manager().current_window()->screen_scale();
-    const auto *sampler = Root::texture_manager().create(SamplerDescriptor{.uses_mips = false});
-    const auto *depth_sampler = Root::texture_manager().create(SamplerDescriptor{
-        .s_address_mode = SamplerAddressMode::CLAMP_TO_BORDER,
-        .t_address_mode = SamplerAddressMode::CLAMP_TO_BORDER,
-        .border_colour = Colour{1.0f, 1.0f, 1.0f, 1.0f},
-        .uses_mips = false});
-
-    return render_targets_
-        .emplace_back(std::make_unique<OpenGLRenderTarget>(
-            Root::texture_manager().create(
-                DataBuffer{}, width * scale, height * scale, TextureUsage::RENDER_TARGET, sampler),
-            Root::texture_manager().create(
-                DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH, depth_sampler)))
-        .get();
 }
 
 void OpenGLRenderer::execute_pass_start(RenderCommand &command)
@@ -460,7 +408,7 @@ void OpenGLRenderer::execute_draw(RenderCommand &command)
     if (light->type() == LightType::DIRECTIONAL)
     {
         const auto *directional_light = static_cast<const DirectionalLight *>(light);
-        if (directional_light->casts_shadows())
+        if ((directional_light->casts_shadows() && (command.render_entity()->receive_shadow())))
         {
             // if we are rendering with a shadow casting directional light then pass the index of the shadow map (into
             // the texture table) as a uniform

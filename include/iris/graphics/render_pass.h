@@ -26,6 +26,11 @@ namespace iris
  */
 struct RenderPass
 {
+    RenderPass(RenderPass &) = delete;
+    RenderPass &operator=(RenderPass &) = delete;
+    RenderPass(RenderPass &&) = default;
+    RenderPass &operator=(RenderPass &&) = default;
+
     /** Scene to render */
     Scene *scene = nullptr;
 
@@ -54,6 +59,11 @@ struct RenderPass
     bool clear_depth = true;
 
     PostProcessingDescription post_processing_description = PostProcessingDescription{};
+
+  private:
+    // friend to allow only the RenderPipeline to create
+    friend class RenderPipeline;
+    RenderPass() = default;
 };
 
 }

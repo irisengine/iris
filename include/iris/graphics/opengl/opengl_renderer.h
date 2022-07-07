@@ -18,8 +18,7 @@
 #include "graphics/opengl/opengl_material.h"
 #include "graphics/opengl/opengl_render_target.h"
 #include "graphics/opengl/opengl_uniform.h"
-#include "graphics/render_graph/render_graph.h"
-#include "graphics/render_queue_builder.h"
+#include "graphics/render_pipeline.h"
 #include "graphics/renderer.h"
 
 namespace iris
@@ -43,29 +42,15 @@ class OpenGLRenderer : public Renderer
     OpenGLRenderer(std::uint32_t width, std::uint32_t height);
     ~OpenGLRenderer() override = default;
 
-    /**
-     * Set the render passes. These will be executed when render() is called.
-     *
-     * @param render_passes
-     *   Collection of RenderPass objects to render.
-     */
-    void set_render_passes(const std::deque<RenderPass> &render_passes) override;
-
-    /**
-     * Create a RenderTarget with custom dimensions.
-     *
-     * @param width
-     *   Width of render target.
-     *
-     * @param height
-     *   Height of render target.
-     *
-     * @returns
-     *   RenderTarget.
-     */
-    RenderTarget *create_render_target(std::uint32_t width, std::uint32_t height) override;
-
   protected:
+    /**
+     * Render specific method to set the render pipeline.
+     *
+     * @param build_queue
+     *   Function to build queue.
+     */
+    void do_set_render_pipeline(std::function<void()> build_queue) override;
+
     // handlers for the supported RenderCommandTypes
 
     void execute_pass_start(RenderCommand &command) override;
@@ -77,11 +62,6 @@ class OpenGLRenderer : public Renderer
   private:
     // helper aliases to try and simplify the verbose types
     using LightMaterialMap = std::unordered_map<LightType, std::unique_ptr<OpenGLMaterial>>;
-
-    /** Collection of created RenderTarget objects. */
-    std::vector<std::unique_ptr<OpenGLRenderTarget>> render_targets_;
-
-    MaterialCache<OpenGLMaterial, RenderGraph *, LightType, bool, bool> materials_;
 
     /** Width of window being rendered to. */
     std::uint32_t width_;
@@ -110,9 +90,7 @@ class OpenGLRenderer : public Renderer
     /** Buffers for per pass light data. */
     std::unordered_map<const Light *, std::unique_ptr<UBO>> light_data_;
 
-    /** Render queue builder object. */
-    std::unique_ptr<RenderQueueBuilder> render_queue_builder_;
-
+    /** Collection of frame buffers per render pass. */
     std::unordered_map<const RenderPass *, OpenGLFrameBuffer> pass_frame_buffers_;
 };
 

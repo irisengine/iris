@@ -16,26 +16,23 @@
 
 namespace iris
 {
-Scene::Scene()
+Scene::Scene(RenderGraph *default_render_graph, bool *dirty_pipeline)
     : entities_()
     , render_graphs_()
     , lighting_rig_()
+    , default_render_graph_(default_render_graph)
+    , dirty_pipeline_(dirty_pipeline)
 {
     lighting_rig_.ambient_light = std::make_unique<AmbientLight>(Colour{1.0f, 1.0f, 1.0f});
 }
 
-RenderGraph *Scene::add(std::unique_ptr<RenderGraph> graph)
-{
-    render_graphs_.emplace_back(std::move(graph));
-    return render_graphs_.back().get();
-}
-
 RenderEntity *Scene::add(RenderGraph *render_graph, std::unique_ptr<RenderEntity> entity)
 {
+    *dirty_pipeline_ = true;
+
     if (render_graph == nullptr)
     {
-        static RenderGraph default_graph{};
-        render_graph = &default_graph;
+        render_graph = default_render_graph_;
         entity->set_receive_shadow(false);
     }
 
@@ -46,6 +43,8 @@ RenderEntity *Scene::add(RenderGraph *render_graph, std::unique_ptr<RenderEntity
 
 void Scene::remove(RenderEntity *entity)
 {
+    *dirty_pipeline_ = true;
+
     entities_.erase(
         std::remove_if(
             std::begin(entities_),
@@ -56,12 +55,16 @@ void Scene::remove(RenderEntity *entity)
 
 PointLight *Scene::add(std::unique_ptr<PointLight> light)
 {
+    *dirty_pipeline_ = true;
+
     lighting_rig_.point_lights.emplace_back(std::move(light));
     return lighting_rig_.point_lights.back().get();
 }
 
 DirectionalLight *Scene::add(std::unique_ptr<DirectionalLight> light)
 {
+    *dirty_pipeline_ = true;
+
     lighting_rig_.directional_lights.emplace_back(std::move(light));
     return lighting_rig_.directional_lights.back().get();
 }
@@ -73,6 +76,8 @@ Colour Scene::ambient_light() const
 
 void Scene::set_ambient_light(const Colour &colour)
 {
+    *dirty_pipeline_ = true;
+
     lighting_rig_.ambient_light->set_colour(colour);
 }
 

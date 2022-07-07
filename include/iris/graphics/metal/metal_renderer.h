@@ -20,8 +20,10 @@
 #include "graphics/metal/metal_constant_buffer.h"
 #include "graphics/metal/metal_material.h"
 #include "graphics/metal/metal_render_target.h"
+#include "graphics/metal/metal_texture.h"
 #include "graphics/render_command.h"
 #include "graphics/render_graph/render_graph.h"
+#include "graphics/render_pipeline.h"
 #include "graphics/renderer.h"
 #include "graphics/window_manager.h"
 
@@ -57,29 +59,15 @@ class MetalRenderer : public Renderer
      */
     ~MetalRenderer() override;
 
-    /**
-     * Set the render passes. These will be executed when render() is called.
-     *
-     * @param render_passes
-     *   Collection of RenderPass objects to render.
-     */
-    void set_render_passes(const std::vector<RenderPass> &render_passes) override;
-
-    /**
-     * Create a RenderTarget with custom dimensions.
-     *
-     * @param width
-     *   Width of render target.
-     *
-     * @param height
-     *   Height of render target.
-     *
-     * @returns
-     *   RenderTarget.
-     */
-    RenderTarget *create_render_target(std::uint32_t width, std::uint32_t height) override;
-
   protected:
+    /**
+     * Render specific method to set the render pipeline.
+     *
+     * @param build_queue
+     *   Function to build queue.
+     */
+    void do_set_render_pipeline(std::function<void()> build_queue) override;
+
     // handlers for the supported RenderCommandTypes
 
     void pre_render() override;
@@ -90,9 +78,6 @@ class MetalRenderer : public Renderer
     void post_render() override;
 
   private:
-    // helper aliases to try and simplify the verbose types
-    using LightMaterialMap = std::unordered_map<LightType, std::unique_ptr<MetalMaterial>>;
-
     /**
      * Internal struct encapsulating data needed for a frame.
      */
@@ -112,19 +97,17 @@ class MetalRenderer : public Renderer
 
         /** Map of light data buffers to lights. */
         std::unordered_map<const Light *, std::unique_ptr<MetalConstantBuffer>> light_data;
+
+        std::unordered_map<const Camera *, std::unique_ptr<MetalConstantBuffer>> camera_data;
     };
-
-    /** Width of window to render to. */
-    std::uint32_t width_;
-
-    /** Height of window to render to. */
-    std::uint32_t height_;
 
     /** Current command queue. */
     id<MTLCommandQueue> command_queue_;
 
     /** Default descriptor for all render passes. */
-    MTLRenderPassDescriptor *descriptor_;
+    MTLRenderPassDescriptor *single_pass_descriptor_;
+
+    MTLRenderPassDescriptor *multi_pass_descriptor_;
 
     /** Current metal drawable. */
     id<CAMetalDrawable> drawable_;
@@ -147,32 +130,20 @@ class MetalRenderer : public Renderer
     /** Map of targets to render encoders. */
     std::unordered_map<const RenderTarget *, id<MTLRenderCommandEncoder>> render_encoders_;
 
-    /** Collection of created RenderTarget objects. */
-    std::vector<std::unique_ptr<MetalRenderTarget>> render_targets_;
-
-    /** This collection stores materials per light type per render graph. */
-    std::unordered_map<const RenderGraph *, LightMaterialMap> materials_;
-
     /** The depth buffer for the default frame. */
     std::unique_ptr<MetalTexture> default_depth_buffer_;
 
-    /** Default sampler for shadow maps. */
-    id<MTLSamplerState> shadow_sampler_;
-
-    /** Default sampler for CubeMaps. */
-    id<MTLSamplerState> sky_box_sampler_;
-
     /** Map of instance data buffers to render entities.  */
     std::unordered_map<const RenderEntity *, std::unique_ptr<MetalConstantBuffer>> instance_data_;
-
-    /** Buffer for camera data. */
-    std::unique_ptr<MetalConstantBuffer> camera_data_;
 
     /** Buffer for bindless texture table. */
     std::unique_ptr<MetalConstantBuffer> texture_table_;
 
     /** Buffer for bindless cube map table. */
     std::unique_ptr<MetalConstantBuffer> cube_map_table_;
+
+    /** Buffer for bindless sampler table. */
+    std::unique_ptr<MetalConstantBuffer> sampler_table_;
 };
 
 }
