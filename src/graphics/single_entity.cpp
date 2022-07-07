@@ -122,6 +122,11 @@ void SingleEntity::set_transform(const Matrix4 &transform)
     normal_ = create_normal_transform(transform_.matrix());
 }
 
+void SingleEntity::set_transform(const Transform &transform)
+{
+    set_transform(transform.matrix());
+}
+
 Matrix4 SingleEntity::normal_transform() const
 {
     return normal_;

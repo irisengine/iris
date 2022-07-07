@@ -161,6 +161,14 @@ class SingleEntity : public RenderEntity
     void set_transform(const Matrix4 &transform);
 
     /**
+     * Set transformation.
+     *
+     * @param transform
+     *   New transform.
+     */
+    void set_transform(const Transform &transform);
+
+    /**
      * Get the transformation matrix for the normals of the SingleEntity.
      *
      * @returns
