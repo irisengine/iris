@@ -229,7 +229,7 @@ Win32Window::Win32Window(std::uint32_t width, std::uint32_t height)
     , wc_()
 {
     // ensure process is aware of high dpi monitors
-    ensure(::SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE) == S_OK, "could not set process dpi awareness");
+    ensure(::SetProcessDpiAwareness(PROCESS_SYSTEM_DPI_AWARE) == S_OK, "could not set process dpi awareness");
 
     const auto instance = ::GetModuleHandleA(NULL);
 
@@ -323,9 +323,7 @@ Win32Window::Win32Window(std::uint32_t width, std::uint32_t height)
 
 std::uint32_t Win32Window::screen_scale() const
 {
-    const auto dpi = ::GetDpiForWindow(window_);
-
-    return static_cast<std::uint32_t>(std::ceil(static_cast<float>(dpi) / 96.0f));
+    return static_cast<std::uint32_t>(std::ceil(static_cast<float>(dpi()) / 96.0f));
 }
 
 std::optional<Event> Win32Window::pump_event()
@@ -353,6 +351,11 @@ std::optional<Event> Win32Window::pump_event()
 HDC Win32Window::device_context() const
 {
     return dc_;
+}
+
+std::uint32_t Win32Window::dpi() const
+{
+    return ::GetDpiForWindow(window_);
 }
 
 }
