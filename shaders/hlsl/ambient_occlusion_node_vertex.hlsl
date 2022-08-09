@@ -29,6 +29,7 @@ PSInput main(
 
     result.position = position;
     result.tex_coord = tex_coord;
+    result.normal = normal;
 
     return result;
 }

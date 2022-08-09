@@ -112,6 +112,12 @@ float4 main(PSInput input) : SV_TARGET
         offset.x = offset.x * 0.5f + 0.5f;
         offset.y = -offset.y * 0.5f + 0.5f;
 
+        const float3 sample_normal = normalize(texture_table[{{normal_texture_index}}].Sample(sampler_table[{{normal_sampler_index}}], offset.xy).rgb);
+        if (dot(normal, sample_normal) > 0.99f)
+        {
+            continue;
+        }
+
         const float sample_depth =
             texture_table[{{position_texture_index}}].Sample(sampler_table[{{position_sampler_index}}], offset.xy).z;
 
