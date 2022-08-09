@@ -21,6 +21,7 @@
 #include "core/data_buffer.h"
 #include "core/error_handling.h"
 #include "core/root.h"
+#include "graphics/sampler.h"
 #include "graphics/texture.h"
 #include "graphics/texture_manager.h"
 #include "log/log.h"
@@ -32,29 +33,25 @@ Texture *create(const std::string &font_name, const std::uint32_t size, const st
 {
     // create a CoreFoundation string object from supplied Font name
     const auto font_name_cf = AutoRelease<CFStringRef, nullptr>{
-        ::CFStringCreateWithCString(kCFAllocatorDefault, font_name.c_str(), kCFStringEncodingASCII), ::CFRelease};
-
+        ::CFStringCreateWithCString(kCFAllocatorDefault, font_name.c_str(), kCFStringEncodingUTF8), ::CFRelease};
     expect(font_name_cf, "failed to create CF string");
 
     // create Font object
     AutoRelease<CTFontRef, nullptr> font = {
-        ::CTFontCreateWithName(font_name_cf.get(), static_cast<CGFloat>(size), nullptr), ::CFRelease};
-
+        ::CTFontCreateWithName(font_name_cf, static_cast<CGFloat>(size), nullptr), ::CFRelease};
     ensure(font, "failed to create font");
 
     // create a device dependant colour space
     AutoRelease<CGColorSpaceRef, nullptr> colour_space = {::CGColorSpaceCreateDeviceRGB(), ::CGColorSpaceRelease};
-
     expect(colour_space, "failed to create colour space");
 
     // create a CoreFoundation colour object from supplied colour
     const CGFloat components[] = {colour.r, colour.g, colour.b, colour.a};
-    AutoRelease<CGColorRef, nullptr> font_colour = {::CGColorCreate(colour_space.get(), components), ::CGColorRelease};
-
+    AutoRelease<CGColorRef, nullptr> font_colour = {::CGColorCreate(colour_space, components), ::CGColorRelease};
     expect(font_colour, "failed to create colour");
 
     std::array<CFStringRef, 2> keys = {{kCTFontAttributeName, kCTForegroundColorAttributeName}};
-    std::array<CFTypeRef, 2> values = {{font.get(), font_colour.get()}};
+    std::array<CFTypeRef, 2> values = {{font, font_colour}};
 
     // create string attributes dictionary, containing Font name and colour
     AutoRelease<CFDictionaryRef, nullptr> attributes = {
@@ -66,46 +63,41 @@ Texture *create(const std::string &font_name, const std::uint32_t size, const st
             &kCFTypeDictionaryKeyCallBacks,
             &kCFTypeDictionaryValueCallBacks),
         ::CFRelease};
-
     expect(attributes, "failed to create attributes");
 
     LOG_DEBUG("font", "creating sprites for string: {}", text);
 
     // create CoreFoundation string object from supplied text
     const auto text_cf = AutoRelease<CFStringRef, nullptr>{
-        ::CFStringCreateWithCString(kCFAllocatorDefault, text.c_str(), kCFStringEncodingASCII), ::CFRelease};
+        ::CFStringCreateWithCString(kCFAllocatorDefault, text.c_str(), kCFStringEncodingUTF8), ::CFRelease};
 
     // create a CoreFoundation attributed string object
     const auto attr_string = AutoRelease<CFAttributedStringRef, nullptr>{
-        ::CFAttributedStringCreate(kCFAllocatorDefault, text_cf.get(), attributes.get()), ::CFRelease};
+        ::CFAttributedStringCreate(kCFAllocatorDefault, text_cf, attributes), ::CFRelease};
 
-    const auto frame_setter = AutoRelease<CTFramesetterRef, nullptr>{
-        ::CTFramesetterCreateWithAttributedString(attr_string.get()), ::CFRelease};
+    const auto frame_setter =
+        AutoRelease<CTFramesetterRef, nullptr>{::CTFramesetterCreateWithAttributedString(attr_string), ::CFRelease};
 
     // calculate minimal size required to render text
     CFRange range;
     const auto rect = ::CTFramesetterSuggestFrameSizeWithConstraints(
-        frame_setter.get(), CFRangeMake(0, 0), nullptr, CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX), &range);
+        frame_setter, CFRangeMake(0, 0), nullptr, CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX), &range);
 
     // create a path object to render text
     const auto path = AutoRelease<CGPathRef, nullptr>{
         ::CGPathCreateWithRect(CGRectMake(0, 0, std::ceil(rect.width), std::ceil(rect.height)), nullptr), nullptr};
-
     expect(path, "failed to create path");
 
     // create a frame to render text
-    const auto frame = AutoRelease<CTFrameRef, nullptr>{
-        ::CTFramesetterCreateFrame(frame_setter.get(), range, path.get(), nullptr), ::CFRelease};
-
+    const auto frame =
+        AutoRelease<CTFrameRef, nullptr>{::CTFramesetterCreateFrame(frame_setter, range, path, nullptr), ::CFRelease};
     expect(frame, "failed to create frame");
 
-    const auto scale = 2u;
-
-    const auto width = static_cast<std::uint32_t>(rect.width) * scale;
-    const auto height = static_cast<std::uint32_t>(rect.height) * scale;
+    const auto width = static_cast<std::uint32_t>(rect.width);
+    const auto height = static_cast<std::uint32_t>(rect.height);
 
     // allocate enough space to store RGBA tuples for each pixel
-    DataBuffer pixel_data(width * height * 4);
+    DataBuffer pixel_data(width * height * 4u);
 
     const auto bits_per_pixel = 8u;
     const auto bytes_per_row = width * 4u;
@@ -123,15 +115,36 @@ Texture *create(const std::string &font_name, const std::uint32_t size, const st
             nullptr,
             nullptr),
         nullptr};
-
     expect(context, "failed to create context");
 
     // render text, pixel data will be stored in our pixel data buffer
-    ::CTFrameDraw(frame.get(), context.get());
-    ::CGContextFlush(context.get());
+    ::CTFrameDraw(frame, context);
+    ::CGContextFlush(context);
 
-    // create a Texture from the rendered pixel data
-    auto *texture = Root::texture_manager().create(pixel_data, width, height, TextureUsage::IMAGE);
+    // we have rendered the font with premultiplied alpha - which will change the rgb values based on the alpha
+    // component and can leave dark artifacts around the letters (especially with a light font on a light background)
+    // to fix this we remove the premultiplied alpha component from the rgb
+    for (auto i = 0u; i < pixel_data.size(); i += 4u)
+    {
+        if (pixel_data[i + 3u] != std::byte{0x00})
+        {
+            const auto alpha = static_cast<float>(pixel_data[i + 3u]) / 255.0f;
+            pixel_data[i + 0u] =
+                static_cast<std::byte>(((static_cast<float>(pixel_data[i + 0u]) / 255.0f) / alpha) * 255.0f);
+            pixel_data[i + 1u] =
+                static_cast<std::byte>(((static_cast<float>(pixel_data[i + 1u]) / 255.0f) / alpha) * 255.0f);
+            pixel_data[i + 2u] =
+                static_cast<std::byte>(((static_cast<float>(pixel_data[i + 2u]) / 255.0f) / alpha) * 255.0f);
+        }
+    }
+
+    // using linear filters can also lead to dark borders - so set an appropriate sampler
+    auto *sampler = Root::texture_manager().create(SamplerDescriptor{
+        .minification_filter = SamplerFilter::NEAREST,
+        .magnification_filter = SamplerFilter::NEAREST,
+        .uses_mips = false,
+        .mip_filter = SamplerFilter::NEAREST});
+    auto *texture = Root::texture_manager().create(pixel_data, width, height, TextureUsage::IMAGE, sampler);
 
     return texture;
 }
