@@ -28,7 +28,10 @@ enum class UVSource
     VERTEX_DATA,
 
     /** Source from screen space of fragment being rendered. */
-    SCREEN_SPACE
+    SCREEN_SPACE,
+
+    /** Source from a node. */
+    NODE
 };
 
 /**
@@ -45,8 +48,11 @@ class TextureNode : public Node
      *
      * @param uv_source
      *   Source of UV data.
+     *
+     * @param uv_input
+     *   Optional node to calculate uv, only valid if uv_source is NODE.
      */
-    TextureNode(const Texture *texture, UVSource uv_source = UVSource::VERTEX_DATA);
+    TextureNode(const Texture *texture, UVSource uv_source = UVSource::VERTEX_DATA, const Node *uv_input = nullptr);
 
     /**
      * Create a new TextureNode.
@@ -59,12 +65,19 @@ class TextureNode : public Node
      *
      * @param sampler
      *   Sampler to use for this texture.
+     *
+     * @param uv_source
+     *   Source of UV data.
+     *
+     * @param uv_input
+     *   Optional node to calculate uv, only valid if uv_source is NODE.
      */
     TextureNode(
         const std::string &path,
         TextureUsage usage = TextureUsage::IMAGE,
         const Sampler *sampler = nullptr,
-        UVSource = UVSource::VERTEX_DATA);
+        UVSource uv_source = UVSource::VERTEX_DATA,
+        const Node *uv_input = nullptr);
 
     ~TextureNode() override = default;
 
@@ -93,6 +106,14 @@ class TextureNode : public Node
     UVSource uv_source() const;
 
     /**
+     * Get node for uv input.
+     *
+     * @returns
+     *   Node if source is NODE, otherwise nullptr.
+     */
+    const Node *uv_input() const;
+
+    /**
      * Compute hash of node.
      *
      * @return
@@ -106,5 +127,8 @@ class TextureNode : public Node
 
     /** Source of UV data. */
     UVSource uv_source_;
+
+    /** Optional node for uv. */
+    const Node *uv_input_;
 };
 }

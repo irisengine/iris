@@ -186,12 +186,22 @@ void ShaderCompiler::visit(const ColourNode &node)
 
 void ShaderCompiler::visit(const TextureNode &node)
 {
+    std::string tex_coord;
+    if (node.uv_input() != nullptr)
+    {
+        stream_stack_.push(std::stringstream{});
+        node.uv_input()->accept(*this);
+        tex_coord = stream_stack_.top().str();
+        stream_stack_.pop();
+    }
+
     const ::inja::json args{
-        {"vertex_data", node.uv_source() == UVSource::VERTEX_DATA},
+        {"uv_source", static_cast<std::uint32_t>(node.uv_source())},
         {"texture_index", node.texture()->index()},
         {"sampler_index", node.texture()->sampler()->index()},
         {"reciprocal_width", 1.0f / node.texture()->width()},
-        {"reciprocal_height", 1.0f / node.texture()->height()}};
+        {"reciprocal_height", 1.0f / node.texture()->height()},
+        {"tex_coord", tex_coord}};
 
     stream_stack_.top() << ::inja::render(
         language_string(language_, hlsl::texture_node_chunk, glsl::texture_node_chunk, msl::texture_node_chunk), args);

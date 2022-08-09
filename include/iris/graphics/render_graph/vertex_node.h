@@ -20,12 +20,13 @@ namespace iris
 class ShaderCompiler;
 
 /**
- * Enumeration of types of vertex data that can be used/
+ * Enumeration of types of vertex data that can be used.
  */
 enum class VertexDataType : std::uint8_t
 {
     POSITION,
-    NORMAL
+    NORMAL,
+    UV
 };
 
 /**
