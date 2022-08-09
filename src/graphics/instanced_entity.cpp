@@ -66,4 +66,9 @@ const std::vector<Matrix4> &InstancedEntity::data() const
     return data_;
 }
 
+bool InstancedEntity::has_transparency() const
+{
+    return false;
+}
+
 }

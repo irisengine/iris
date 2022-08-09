@@ -41,13 +41,17 @@ class MetalMaterial : public Material
      *
      * @param render_to_position_target
      *   Flag indicating whether the material should also write out screen space positions to a render texture.
+     *
+     * @param has_transparency
+     *   Hint to the renderer that the material will contain transparency.
      */
     MetalMaterial(
         const RenderGraph *render_graph,
         MTLVertexDescriptor *descriptors,
         LightType light_type,
         bool render_to_normal_target,
-        bool render_to_position_target);
+        bool render_to_position_target,
+        bool has_transparency);
 
     ~MetalMaterial() override = default;
 

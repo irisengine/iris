@@ -78,7 +78,8 @@ MetalMaterial::MetalMaterial(
     MTLVertexDescriptor *descriptors,
     LightType light_type,
     bool render_to_normal_target,
-    bool render_to_position_target)
+    bool render_to_position_target,
+    bool has_transparency)
     : pipeline_state_()
 {
     ShaderCompiler compiler{
@@ -107,21 +108,24 @@ MetalMaterial::MetalMaterial(
         pipeline_state_descriptor.colorAttachments[2].pixelFormat = MTLPixelFormatRGBA16Float;
     }
 
-    // set blend mode based on light
-    // ambient is always rendered first (no blending)
-    // directional and point are always rendered after (blending)
-    switch (light_type)
+    [[[pipeline_state_descriptor colorAttachments] objectAtIndexedSubscript:0] setBlendingEnabled:false];
+
+    if (light_type == LightType::AMBIENT)
     {
-        case LightType::AMBIENT:
-            [[[pipeline_state_descriptor colorAttachments] objectAtIndexedSubscript:0] setBlendingEnabled:false];
-            break;
-        case LightType::DIRECTIONAL:
-        case LightType::POINT:
+        if (has_transparency)
+        {
             [[[pipeline_state_descriptor colorAttachments] objectAtIndexedSubscript:0] setBlendingEnabled:true];
             pipeline_state_descriptor.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
             pipeline_state_descriptor.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
-            pipeline_state_descriptor.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOne;
-            break;
+            pipeline_state_descriptor.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+        }
+    }
+    else
+    {
+        [[[pipeline_state_descriptor colorAttachments] objectAtIndexedSubscript:0] setBlendingEnabled:true];
+        pipeline_state_descriptor.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
+        pipeline_state_descriptor.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+        pipeline_state_descriptor.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOne;
     }
 
     NSError *error = nullptr;

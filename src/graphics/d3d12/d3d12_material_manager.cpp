@@ -22,7 +22,8 @@ Material *D3D12MaterialManager::create(
     LightType light_type,
     bool render_to_colour_target,
     bool render_to_normal_target,
-    bool render_to_position_target)
+    bool render_to_position_target,
+    bool has_transparency)
 {
     return materials_.try_emplace(
         render_graph,
@@ -36,7 +37,8 @@ Material *D3D12MaterialManager::create(
         D3D12Context::root_signature().handle(),
         !render_to_colour_target,
         render_to_normal_target,
-        render_to_position_target);
+        render_to_position_target,
+        has_transparency);
 }
 
 void D3D12MaterialManager::clear()

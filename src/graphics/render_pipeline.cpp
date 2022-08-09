@@ -80,7 +80,8 @@ void encode_light_pass_commands(
             light_type,
             cmd.render_pass()->colour_target != nullptr,
             has_normal_target && (light_type == iris::LightType::AMBIENT),
-            has_position_target && (light_type == iris::LightType::AMBIENT));
+            has_position_target && (light_type == iris::LightType::AMBIENT),
+            render_entity->has_transparency());
         cmd.set_material(material);
 
         cmd.set_render_entity(render_entity.get());
@@ -348,6 +349,7 @@ std::vector<RenderCommand> RenderPipeline::rebuild()
                     sky_box_entities_[pass],
                     LightType::AMBIENT,
                     cmd.render_pass()->colour_target != nullptr,
+                    false,
                     false,
                     false);
                 cmd.set_material(material);

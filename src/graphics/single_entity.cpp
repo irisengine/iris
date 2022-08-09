@@ -48,13 +48,21 @@ iris::Matrix4 create_normal_transform(const iris::Matrix4 &model)
 namespace iris
 {
 
-SingleEntity::SingleEntity(const Mesh *mesh, const Vector3 &position, PrimitiveType primitive_type)
-    : SingleEntity(mesh, {position, {}, {1.0f}}, primitive_type)
+SingleEntity::SingleEntity(
+    const Mesh *mesh,
+    const Vector3 &position,
+    bool has_transparency,
+    PrimitiveType primitive_type)
+    : SingleEntity(mesh, {position, {}, {1.0f}}, has_transparency, primitive_type)
 {
 }
 
-SingleEntity::SingleEntity(const Mesh *mesh, const Transform &transform, PrimitiveType primitive_type)
-    : SingleEntity(mesh, transform, nullptr, primitive_type)
+SingleEntity::SingleEntity(
+    const Mesh *mesh,
+    const Transform &transform,
+    bool has_transparency,
+    PrimitiveType primitive_type)
+    : SingleEntity(mesh, transform, nullptr, has_transparency, primitive_type)
 {
 }
 
@@ -62,11 +70,13 @@ SingleEntity::SingleEntity(
     const Mesh *mesh,
     const Transform &transform,
     Skeleton *skeleton,
+    bool has_transparency,
     PrimitiveType primitive_type)
     : RenderEntity(mesh, primitive_type)
     , transform_(transform)
     , normal_()
     , skeleton_(skeleton)
+    , has_transparency_(has_transparency)
 {
     ensure(mesh != nullptr, "must supply mesh");
 
@@ -145,6 +155,11 @@ Skeleton *SingleEntity::skeleton()
 const Skeleton *SingleEntity::skeleton() const
 {
     return skeleton_;
+}
+
+bool SingleEntity::has_transparency() const
+{
+    return has_transparency_;
 }
 
 }

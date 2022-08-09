@@ -41,12 +41,12 @@ class RenderEntity
     RenderEntity &operator=(RenderEntity &&) = default;
 
     /**
-     * Get number of instances of mesh to render.
+     * Get if entity will be rendered with transparency.
      *
      * @returns
-     *   Number of instances.
+     *   True if entity will have transparency, otherwise false.
      */
-    virtual std::size_t instance_count() const = 0;
+    virtual bool has_transparency() const = 0;
 
     /**
      * Get all Mesh for this entity.

@@ -47,6 +47,9 @@ class OpenGLMaterialManager : public MaterialManager
      * @param render_to_position_target.
      *   Whether to render screen positions.
      *
+     * @param has_transparency
+     *   Hint to the renderer that the material will contain transparency.
+     *
      * @returns
      *   Pointer to created Material.
      */
@@ -56,7 +59,8 @@ class OpenGLMaterialManager : public MaterialManager
         LightType light_type,
         bool render_to_colour_target,
         bool render_to_normal_target,
-        bool render_to_position_target);
+        bool render_to_position_target,
+        bool has_transparency);
 
     /**
      * Clear all cached materials. This will invalidate any returned pointers.

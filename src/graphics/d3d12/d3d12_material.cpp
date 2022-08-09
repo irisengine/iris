@@ -64,7 +64,16 @@ Microsoft::WRL::ComPtr<ID3DBlob> create_shader(const std::string &source, iris::
     {
         const std::string error_message(static_cast<char *>(error->GetBufferPointer()), error->GetBufferSize());
 
-        LOG_ENGINE_ERROR("d3d12_material", "{}\n{}", source, error_message);
+        auto line_number = 1u;
+
+        std::istringstream strm{source};
+        for (std::string line; std::getline(strm, line);)
+        {
+            LOG_ENGINE_ERROR("d3d12_material", "{}: {}", line_number, line);
+            ++line_number;
+        }
+
+        LOG_ENGINE_ERROR("d3d12_material", "{}", error_message);
 
         throw iris::Exception("shader compile failed: " + error_message);
     }
@@ -87,7 +96,8 @@ D3D12Material::D3D12Material(
     ID3D12RootSignature *root_signature,
     bool render_to_swapchain,
     bool render_to_normal_target,
-    bool render_to_position_target)
+    bool render_to_position_target,
+    bool has_transparency)
     : pso_()
 {
     ShaderCompiler compiler{
@@ -103,13 +113,24 @@ D3D12Material::D3D12Material(
     // setup various descriptors for pipeline state
 
     auto blend_state = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+    blend_state.RenderTarget[0].BlendEnable = FALSE;
 
-    // set blend mode based on light
-    // ambient is always rendered first (no blending)
-    // directional and point are always rendered after (blending)
-    blend_state.RenderTarget[0].BlendEnable = TRUE;
-    blend_state.RenderTarget[0].DestBlend = (light_type == LightType::AMBIENT) ? D3D12_BLEND_ZERO : D3D12_BLEND_ONE;
-    blend_state.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
+    if (light_type == LightType::AMBIENT)
+    {
+        if (has_transparency)
+        {
+            blend_state.RenderTarget[0].BlendEnable = TRUE;
+            blend_state.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+            blend_state.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+            blend_state.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+        }
+    }
+    else
+    {
+        blend_state.RenderTarget[0].BlendEnable = TRUE;
+        blend_state.RenderTarget[0].DestBlend = D3D12_BLEND_ONE;
+        blend_state.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+    }
 
     auto depth_state = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
     depth_state.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;

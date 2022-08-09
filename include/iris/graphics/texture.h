@@ -105,6 +105,14 @@ class Texture
      */
     std::uint32_t index() const;
 
+    /**
+     * Whether the texture contains any transparent pixels.
+     *
+     * @returns
+     *   True if texture has transparency, otherwise false.
+     */
+    bool has_transparency() const;
+
   protected:
     /** Raw image data. */
     DataBuffer data_;
@@ -123,6 +131,9 @@ class Texture
 
     /** Index into the global array of all allocated textures. */
     std::uint32_t index_;
+
+    /** Whether texture has transparency. */
+    bool has_transparency_;
 };
 
 }

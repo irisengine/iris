@@ -53,6 +53,9 @@ class D3D12Material : public Material
      *
      * @param render_to_position_target
      *   Flag indicating whether the material should also write out screen space positions to a render texture.
+     *
+     * @param has_transparency
+     *   Hint to the renderer that the material will contain transparency.
      */
     D3D12Material(
         const RenderGraph *render_graph,
@@ -62,7 +65,8 @@ class D3D12Material : public Material
         ID3D12RootSignature *root_signature,
         bool render_to_swapchain,
         bool render_to_normal_target,
-        bool render_to_position_target);
+        bool render_to_position_target,
+        bool has_transparency);
 
     ~D3D12Material() override = default;
 

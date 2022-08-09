@@ -27,7 +27,16 @@ Texture::Texture(
     , sampler_(sampler)
     , usage_(usage)
     , index_(index)
+    , has_transparency_(false)
 {
+    for (auto i = 3u; i < data_.size(); i += 4u)
+    {
+        if (data_[i] != std::byte{0xFF})
+        {
+            has_transparency_ = true;
+            break;
+        }
+    }
 }
 
 Texture::~Texture() = default;
@@ -60,6 +69,11 @@ TextureUsage Texture::usage() const
 std::uint32_t Texture::index() const
 {
     return index_;
+}
+
+bool Texture::has_transparency() const
+{
+    return has_transparency_;
 }
 
 }

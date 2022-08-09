@@ -20,7 +20,8 @@ Material *MetalMaterialManager::create(
     LightType light_type,
     bool,
     bool render_to_normal_target,
-    bool render_to_position_target)
+    bool render_to_position_target,
+    bool has_transparency)
 {
     return materials_.try_emplace(
         render_graph,
@@ -31,7 +32,8 @@ Material *MetalMaterialManager::create(
         static_cast<const MetalMesh *>(render_entity->mesh())->descriptors(),
         light_type,
         render_to_normal_target,
-        render_to_position_target);
+        render_to_position_target,
+        has_transparency);
 }
 
 void MetalMaterialManager::clear()

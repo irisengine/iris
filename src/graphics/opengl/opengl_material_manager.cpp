@@ -20,7 +20,8 @@ Material *OpenGLMaterialManager::create(
     LightType light_type,
     bool,
     bool render_to_normal_target,
-    bool render_to_position_target)
+    bool render_to_position_target,
+    bool)
 {
     return materials_.try_emplace(
         render_graph,

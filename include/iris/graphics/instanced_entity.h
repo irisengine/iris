@@ -40,6 +40,14 @@ class InstancedEntity : public RenderEntity
     ~InstancedEntity() override = default;
 
     /**
+     * Get if entity will be rendered with transparency.
+     *
+     * @returns
+     *   True if entity will have transparency, otherwise false.
+     */
+    bool has_transparency() const override;
+
+    /**
      * Get number of instances of mesh to render.
      *
      * @returns

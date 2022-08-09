@@ -41,10 +41,17 @@ class SingleEntity : public RenderEntity
      * @param position
      *   Centre of mesh in world space.
      *
+     * @param has_transparency
+     *   Whether entity will have transparency when rendered.
+     *
      * @param primitive_type
      *   Primitive type of underlying mesh.
      */
-    SingleEntity(const Mesh *mesh, const Vector3 &position, PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
+    SingleEntity(
+        const Mesh *mesh,
+        const Vector3 &position,
+        bool has_transparency = false,
+        PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
 
     /**
      * Construct a SingleEntity.
@@ -55,10 +62,17 @@ class SingleEntity : public RenderEntity
      * @param transform
      *   Transform of entity in world space.
      *
+     * @param has_transparency
+     *   Whether entity will have transparency when rendered.
+     *
      * @param primitive_type
      *   Primitive type of underlying mesh.
      */
-    SingleEntity(const Mesh *mesh, const Transform &transform, PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
+    SingleEntity(
+        const Mesh *mesh,
+        const Transform &transform,
+        bool has_transparency = false,
+        PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
 
     /**
      * Construct a SingleEntity.
@@ -72,6 +86,9 @@ class SingleEntity : public RenderEntity
      * @param skeleton
      *   Skeleton.
      *
+     * @param has_transparency
+     *   Whether entity will have transparency when rendered.
+     *
      * @param primitive_type
      *   Primitive type of underlying mesh.
      */
@@ -79,6 +96,7 @@ class SingleEntity : public RenderEntity
         const Mesh *mesh,
         const Transform &transform,
         Skeleton *skeleton,
+        bool has_transparency = false,
         PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
 
     ~SingleEntity() override = default;
@@ -200,6 +218,14 @@ class SingleEntity : public RenderEntity
      */
     const Skeleton *skeleton() const;
 
+    /**
+     * Get if entity will be rendered with transparency.
+     *
+     * @returns
+     *   True if entity will have transparency, otherwise false.
+     */
+    bool has_transparency() const override;
+
   private:
     /** World space transform. */
     Transform transform_;
@@ -209,6 +235,9 @@ class SingleEntity : public RenderEntity
 
     /** Skeleton. */
     Skeleton *skeleton_;
+
+    /** Flag indicating entity will have transparency. */
+    bool has_transparency_;
 };
 
 }
