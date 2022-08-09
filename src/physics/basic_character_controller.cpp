@@ -26,7 +26,8 @@ BasicCharacterController::BasicCharacterController(
     float width,
     float height,
     float float_height)
-    : movement_direction_()
+    : CharacterController()
+    , movement_direction_()
     , speed_(speed)
     , float_height_(float_height)
     , body_(nullptr)
@@ -103,7 +104,7 @@ void BasicCharacterController::update(PhysicsSystem *ps, std::chrono::millisecon
     // always update rigid body location position for future tests
     reposition(target_position, orientation());
 
-    static constexpr auto penetration_tolerace = 0.05f;
+    static constexpr auto penetration_tolerance = 0.05f;
     static constexpr auto max_iterations = 5u;
 
     auto collisions_resolved = true;
@@ -124,7 +125,7 @@ void BasicCharacterController::update(PhysicsSystem *ps, std::chrono::millisecon
         // as contacts() provides us contact points sorted by penetration and we only want negative penetrations this
         // will also find us the largest penetration
         const auto valid_contact = std::find_if(std::cbegin(contacts), std::cend(contacts), [](const ContactPoint &cp) {
-            return (cp.contact->type() != RigidBodyType::GHOST) && (cp.penetration > penetration_tolerace);
+            return (cp.contact->type() != RigidBodyType::GHOST) && (cp.penetration > penetration_tolerance);
         });
 
         // if we found a valid contact then resolve

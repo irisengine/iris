@@ -117,6 +117,7 @@ void DebugDraw::set_scene(Scene *scene)
             nullptr,
             meshes_[body->collision_shape()].get(),
             Transform{body->position(), body->orientation(), {1.0f, 1.0f, 1.0f}},
+            false,
             PrimitiveType::LINES);
     }
 }
@@ -172,6 +173,7 @@ void DebugDraw::register_rigid_body(const RigidBody *rigid_body)
             nullptr,
             meshes_[rigid_body->collision_shape()].get(),
             Transform{rigid_body->position(), rigid_body->orientation(), {1.0f, 1.0f, 1.0f}},
+            false,
             PrimitiveType::LINES);
     }
 }
