@@ -18,6 +18,9 @@
 namespace iris
 {
 
+template <class T>
+concept IsNode = std::is_base_of_v<Node, T> && !std::is_same_v<RenderNode, T>;
+
 /**
  * This class encapsulates a render graph - a series of connected nodes that
  * can be compiled into API specific shaders.
@@ -27,10 +30,6 @@ namespace iris
 class RenderGraph
 {
   public:
-    // helper trait
-    template <class T>
-    using is_node = std::enable_if_t<std::is_base_of_v<Node, T> && !std::is_same_v<RenderNode, T>>;
-
     /**
      * Get the RenderNode i.e. the root of the graph.
      *
@@ -49,7 +48,7 @@ class RenderGraph
      * @returns
      *   A pointer to the newly created Node.
      */
-    template <class T, class... Args, typename = is_node<T>>
+    template <IsNode T, class... Args>
     T *create(Args &&...args)
     {
         auto node = std::make_unique<T>(std::forward<Args>(args)...);
@@ -65,7 +64,7 @@ class RenderGraph
      * @returns
      *   A pointer to the newly created Node.
      */
-    template <class T, class... Args, typename = is_node<T>>
+    template <IsNode T, class... Args>
     RenderNode *set_render_node(Args &&...args)
     {
         nodes_[0] = std::make_unique<T>(std::forward<Args>(args)...);
