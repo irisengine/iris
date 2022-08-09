@@ -19,6 +19,7 @@
 #include "graphics/mesh.h"
 #include "graphics/primitive_type.h"
 #include "graphics/render_entity.h"
+#include "graphics/render_entity_type.h"
 #include "graphics/render_graph/render_node.h"
 #include "graphics/skeleton.h"
 #include "graphics/texture.h"
@@ -107,12 +108,12 @@ class SingleEntity : public RenderEntity
     SingleEntity &operator=(SingleEntity &&) = default;
 
     /**
-     * Get number of instances of mesh to render.
+     * Get entity type.
      *
      * @returns
-     *   Always returns one.
+     *   Entity type.
      */
-    std::size_t instance_count() const override;
+    RenderEntityType type() const override;
 
     /**
      * Get position.

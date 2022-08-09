@@ -40,10 +40,10 @@
 #include "graphics/d3d12/d3d12_sampler.h"
 #include "graphics/d3d12/d3d12_texture.h"
 #include "graphics/mesh_manager.h"
+#include "graphics/render_command_type.h"
 #include "graphics/render_entity.h"
 #include "graphics/render_graph/sky_box_node.h"
 #include "graphics/render_graph/texture_node.h"
-#include "graphics/render_queue_builder.h"
 #include "graphics/single_entity.h"
 #include "graphics/texture.h"
 #include "graphics/texture_manager.h"
@@ -84,7 +84,7 @@ void write_entity_data_constant_buffer(
 
     iris::ConstantBufferWriter writer(bone_buffer);
 
-    if (entity->instance_count() == 1u)
+    if (entity->type() == iris::RenderEntityType::SINGLE)
     {
         const auto *single_entity = static_cast<const iris::SingleEntity *>(entity);
 
@@ -569,7 +569,7 @@ void D3D12Renderer::do_set_render_pipeline(std::function<void()> build_queue)
         {
             const auto *render_entity = command.render_entity();
 
-            if (render_entity->instance_count() > 1u)
+            if (render_entity->type() == RenderEntityType::INSTANCED)
             {
                 const auto *instanced_entity = static_cast<const InstancedEntity *>(render_entity);
                 instance_data_buffers_[render_entity] =
@@ -792,8 +792,8 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
 
     auto *vertex_buffer = frame.bone_data_buffers[entity].get();
     auto *light_buffer = frame.light_data_buffers[light].get();
-    auto *model_buffer =
-        entity->instance_count() == 1u ? frame.model_data_buffers[entity].get() : instance_data_buffers_[entity].get();
+    auto *model_buffer = (entity->type() != RenderEntityType::INSTANCED) ? frame.model_data_buffers[entity].get()
+                                                                         : instance_data_buffers_[entity].get();
     auto *camera_buffer = frame.camera_data_buffers[camera].get();
     const auto shadow_map_index =
         (command.shadow_map() == nullptr) ? 0u : command.shadow_map()->depth_texture()->index();
@@ -825,9 +825,13 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
         case PrimitiveType::LINES: command_list_->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST); break;
     }
 
+    const auto instance_count = (entity->type() == RenderEntityType::INSTANCED)
+                                    ? static_cast<const InstancedEntity *>(entity)->instance_count()
+                                    : 1u;
+
     command_list_->IASetVertexBuffers(0u, 1u, &vertex_view);
     command_list_->IASetIndexBuffer(&index_view);
-    command_list_->DrawIndexedInstanced(num_indices, static_cast<UINT>(entity->instance_count()), 0u, 0u, 0u);
+    command_list_->DrawIndexedInstanced(num_indices, static_cast<UINT>(instance_count), 0u, 0u, 0u);
 }
 
 void D3D12Renderer::execute_present(RenderCommand &)

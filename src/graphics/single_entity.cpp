@@ -16,6 +16,7 @@
 #include "core/transform.h"
 #include "core/vector3.h"
 #include "graphics/render_entity.h"
+#include "graphics/render_entity_type.h"
 #include "graphics/skeleton.h"
 
 namespace
@@ -83,9 +84,9 @@ SingleEntity::SingleEntity(
     normal_ = create_normal_transform(transform_.matrix());
 }
 
-std::size_t SingleEntity::instance_count() const
+RenderEntityType SingleEntity::type() const
 {
-    return 1u;
+    return RenderEntityType::SINGLE;
 }
 
 Vector3 SingleEntity::position() const

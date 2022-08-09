@@ -9,11 +9,11 @@
 #include <cstddef>
 #include <vector>
 
-
 #include "core/matrix4.h"
 #include "core/transform.h"
 #include "graphics/mesh.h"
 #include "graphics/render_entity.h"
+#include "graphics/render_entity_type.h"
 
 namespace iris
 {
@@ -40,6 +40,14 @@ class InstancedEntity : public RenderEntity
     ~InstancedEntity() override = default;
 
     /**
+     * Get entity type.
+     *
+     * @returns
+     *   Entity type.
+     */
+    RenderEntityType type() const override;
+
+    /**
      * Get if entity will be rendered with transparency.
      *
      * @returns
@@ -53,7 +61,7 @@ class InstancedEntity : public RenderEntity
      * @returns
      *   Number of instances.
      */
-    std::size_t instance_count() const override;
+    std::size_t instance_count() const;
 
     /**
      * Get collection of Matrix4 objects for all instances. For each instance the transform and normal transform is

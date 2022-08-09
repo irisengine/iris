@@ -12,6 +12,7 @@
 
 #include "graphics/mesh.h"
 #include "graphics/primitive_type.h"
+#include "graphics/render_entity_type.h"
 
 namespace iris
 {
@@ -47,6 +48,14 @@ class RenderEntity
      *   True if entity will have transparency, otherwise false.
      */
     virtual bool has_transparency() const = 0;
+
+    /**
+     * Get entity type.
+     *
+     * @returns
+     *   Entity type.
+     */
+    virtual RenderEntityType type() const = 0;
 
     /**
      * Get all Mesh for this entity.

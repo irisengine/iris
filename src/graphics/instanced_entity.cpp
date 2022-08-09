@@ -12,6 +12,7 @@
 #include "core/matrix4.h"
 #include "core/transform.h"
 #include "graphics/mesh.h"
+#include "graphics/render_entity_type.h"
 
 namespace
 {
@@ -56,9 +57,9 @@ InstancedEntity::InstancedEntity(const Mesh *mesh, const std::vector<Transform> 
     }
 }
 
-std::size_t InstancedEntity::instance_count() const
+RenderEntityType InstancedEntity::type() const
 {
-    return instance_count_;
+    return RenderEntityType::INSTANCED;
 }
 
 const std::vector<Matrix4> &InstancedEntity::data() const
@@ -69,6 +70,11 @@ const std::vector<Matrix4> &InstancedEntity::data() const
 bool InstancedEntity::has_transparency() const
 {
     return false;
+}
+
+std::size_t InstancedEntity::instance_count() const
+{
+    return instance_count_;
 }
 
 }

@@ -33,6 +33,7 @@
 #include "graphics/metal/metal_sampler.h"
 #include "graphics/metal/metal_texture.h"
 #include "graphics/render_entity.h"
+#include "graphics/render_entity_type.h"
 #include "graphics/render_pipeline.h"
 #include "graphics/render_target.h"
 #include "graphics/single_entity.h"
@@ -378,7 +379,7 @@ void MetalRenderer::do_set_render_pipeline(std::function<void()> build_queue)
         {
             const auto *render_entity = command.render_entity();
 
-            if (render_entity->instance_count() > 1u)
+            if (render_entity->type() == RenderEntityType::INSTANCED)
             {
                 const auto *instanced_entity = static_cast<const InstancedEntity *>(render_entity);
                 instance_data_[render_entity] =
@@ -489,7 +490,7 @@ void MetalRenderer::execute_draw(RenderCommand &command)
 
         ConstantBufferWriter writer{*frame.bone_data[entity]};
 
-        if (entity->instance_count() == 1u)
+        if (entity->type() == RenderEntityType::SINGLE)
         {
             const auto *single_entity = static_cast<const SingleEntity *>(entity);
 
@@ -550,7 +551,8 @@ void MetalRenderer::execute_draw(RenderCommand &command)
         writer.write(camera->position());
     }
 
-    auto *model_buffer = entity->instance_count() == 1u ? frame.model_data[entity].get() : instance_data_[entity].get();
+    auto *model_buffer =
+        entity->type() == RenderEntityType::SINGLE ? frame.model_data[entity].get() : instance_data_[entity].get();
     const std::uint32_t shadow_map_index =
         (command.shadow_map() == nullptr) ? 0u : command.shadow_map()->depth_texture()->index();
     const std::uint32_t shadow_map_sampler_index =
@@ -580,13 +582,17 @@ void MetalRenderer::execute_draw(RenderCommand &command)
     const auto type =
         entity->primitive_type() == iris::PrimitiveType::TRIANGLES ? MTLPrimitiveTypeTriangle : MTLPrimitiveTypeLine;
 
+    const auto instance_count = entity->type() == RenderEntityType::INSTANCED
+                                    ? static_cast<const InstancedEntity *>(entity)->instance_count()
+                                    : 1u;
+
     // draw command
     [render_encoder_ drawIndexedPrimitives:type
                                 indexCount:index_buffer.element_count()
                                  indexType:MTLIndexTypeUInt32
                                indexBuffer:index_buffer.handle()
                          indexBufferOffset:0
-                             instanceCount:entity->instance_count()];
+                             instanceCount:instance_count];
 }
 
 void MetalRenderer::execute_pass_end(RenderCommand &)

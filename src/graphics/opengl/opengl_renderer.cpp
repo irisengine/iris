@@ -28,9 +28,9 @@
 #include "graphics/opengl/opengl_texture.h"
 #include "graphics/opengl/opengl_texture_manager.h"
 #include "graphics/render_entity.h"
+#include "graphics/render_entity_type.h"
 #include "graphics/render_graph/sky_box_node.h"
 #include "graphics/render_graph/texture_node.h"
-#include "graphics/render_queue_builder.h"
 #include "graphics/sampler.h"
 #include "graphics/single_entity.h"
 #include "graphics/texture_manager.h"
@@ -80,10 +80,12 @@ void draw_meshes(const iris::RenderEntity *entity)
     mesh->bind();
 
     const auto type = entity->primitive_type() == iris::PrimitiveType::TRIANGLES ? GL_TRIANGLES : GL_LINES;
+    const auto instance_count = (entity->type() == iris::RenderEntityType::INSTANCED)
+                                    ? static_cast<const iris::InstancedEntity *>(entity)->instance_count()
+                                    : 1u;
 
     // draw!
-    ::glDrawElementsInstanced(
-        type, mesh->element_count(), GL_UNSIGNED_INT, 0, static_cast<GLsizei>(entity->instance_count()));
+    ::glDrawElementsInstanced(type, mesh->element_count(), GL_UNSIGNED_INT, 0, static_cast<GLsizei>(instance_count));
     iris::expect(iris::check_opengl_error, "could not draw triangles");
 
     mesh->unbind();
@@ -204,7 +206,7 @@ void OpenGLRenderer::do_set_render_pipeline(std::function<void()> build_queue)
         {
             const auto *render_entity = command.render_entity();
 
-            if (render_entity->instance_count() > 1u)
+            if (render_entity->type() == RenderEntityType::INSTANCED)
             {
                 const auto *instanced_entity = static_cast<const InstancedEntity *>(render_entity);
                 instance_data_[render_entity] =
@@ -344,7 +346,7 @@ void OpenGLRenderer::execute_draw(RenderCommand &command)
 
         ConstantBufferWriter writer{*bone_data_[render_entity]};
 
-        if (render_entity->instance_count() == 1u)
+        if (render_entity->type() == RenderEntityType::SINGLE)
         {
             // a single entity, so write in bone data
 
@@ -433,7 +435,7 @@ void OpenGLRenderer::execute_draw(RenderCommand &command)
     expect(check_opengl_error, "could not bind cube map data ssbo");
 
     // bind model data, depending on if we're rendering a single or instanced entity
-    if (render_entity->instance_count() == 1u)
+    if (render_entity->type() != RenderEntityType::INSTANCED)
     {
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, model_data_[render_entity]->handle());
         expect(check_opengl_error, "could not bind model data ssbo");
