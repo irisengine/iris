@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "core/error_handling.h"
 #include "core/root.h"
 #include "graphics/d3d12/d3d12_material_manager.h"
 #include "graphics/d3d12/d3d12_mesh_manager.h"
@@ -24,6 +25,8 @@
 #include "log/log.h"
 #include "log/logger.h"
 #include "physics/bullet/bullet_physics_manager.h"
+
+#include <objbase.h>
 
 namespace
 {
@@ -65,6 +68,8 @@ void start(int argc, char **argv, std::function<void(int, char **)> entry)
 {
     LOG_ENGINE_INFO("start", "engine start {}", IRIS_VERSION_STR);
 
+    ensure(::CoInitializeEx(nullptr, COINIT_MULTITHREADED) == S_OK, "CoInitialize failed");
+
     register_apis();
 
     entry(argc, argv);
@@ -76,6 +81,8 @@ void start_debug(int argc, char **argv, std::function<void(int, char **)> entry)
 {
     // enable engine logging
     Logger::instance().set_log_engine(true);
+
+    ensure(::CoInitializeEx(nullptr, COINIT_MULTITHREADED) == S_OK, "CoInitialize failed");
 
     LOG_ENGINE_INFO("start", "engine start (with debugging) {}", IRIS_VERSION_STR);
 
