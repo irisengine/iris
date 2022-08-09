@@ -111,7 +111,7 @@ PS_OUTPUT main(PSInput input)
 
         float diff = (1.0 - shadow) * max(dot(normal, light_dir), 0.0);
         float3 diffuse = {diff, diff, diff};
-        float4 out_colour = float4(diffuse * fragment_colour, 1.0);
+        float4 out_colour = float4(diffuse, 1.0) * fragment_colour;
     {% endif %}
     {% if light_type == 2 %}
         {% if exists("normal") %}
@@ -130,7 +130,7 @@ PS_OUTPUT main(PSInput input)
         float diff = max(dot(normal, light_dir), 0.0);
         float3 diffuse = {diff, diff, diff};
         
-        float4 out_colour = float4(diffuse * light_colour.xyz * fragment_colour.xyz * att, 1.0);
+        float4 out_colour = float4(diffuse * light_colour.xyz * att, 1.0) * fragment_colour;
     {% endif %}
 
     {% if not render_normal and not render_position %}
