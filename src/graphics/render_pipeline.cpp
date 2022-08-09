@@ -6,6 +6,7 @@
 
 #include "graphics/render_pipeline.h"
 
+#include <cstddef>
 #include <memory>
 #include <vector>
 
@@ -493,6 +494,12 @@ void RenderPipeline::add_post_processing_passes()
     }
 
     render_passes_ = render_passes;
+}
+
+Scene *RenderPipeline::scene(std::size_t index) const
+{
+    ensure(index < scenes_.size(), "index out of bounds");
+    return scenes_[index].get();
 }
 
 }

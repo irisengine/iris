@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <deque>
 #include <memory>
@@ -121,6 +122,14 @@ class RenderPipeline
      * Note this should only be called internally by the engine, calling it manually may produce unexpected results.
      */
     void clear_dirty_bit();
+
+    /**
+     * Get scene buy index.
+     *
+     * @param index.
+     *   Index of scene, scenes are created at index 0 and increase monotonically.
+     */
+    Scene *scene(std::size_t index) const;
 
   private:
     RenderPass *create_engine_render_pass(Scene *scene);
