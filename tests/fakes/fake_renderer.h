@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include <deque>
+#include <functional>
 #include <vector>
 
 #include "graphics/render_command.h"
@@ -33,15 +34,6 @@ class FakeRenderer : public iris::Renderer
     ~FakeRenderer() override = default;
 
     // overridden methods which just log when they are called
-
-    void set_render_passes(const std::deque<iris::RenderPass> &) override
-    {
-    }
-
-    iris::RenderTarget *create_render_target(std::uint32_t, std::uint32_t) override
-    {
-        return nullptr;
-    }
 
     void pre_render() override
     {
@@ -69,6 +61,12 @@ class FakeRenderer : public iris::Renderer
 
     void post_render() override
     {
+    }
+
+  protected:
+    void do_set_render_pipeline(std::function<void()> build_queue)
+    {
+        build_queue();
     }
 
   private:

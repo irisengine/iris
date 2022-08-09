@@ -11,6 +11,8 @@
 #include "graphics/render_command.h"
 #include "graphics/render_command_type.h"
 #include "graphics/render_pass.h"
+#include "graphics/render_pipeline.h"
+#include "graphics/scene.h"
 #include "graphics/single_entity.h"
 
 #include "fakes/fake_light.h"
@@ -32,18 +34,20 @@ TEST(render_command_tests, default_ctor)
 
 TEST(render_command_tests, ctor)
 {
+    iris::RenderPipeline pipeline{600u, 600u};
     FakeMesh mesh{};
     const auto type = iris::RenderCommandType::DRAW;
-    const iris::RenderPass render_pass{nullptr, nullptr, nullptr};
     const FakeMaterial material{};
     const iris::SingleEntity render_entity{&mesh, iris::Vector3{}};
     const FakeRenderTarget shadow_map{};
     const FakeLight light{};
+    auto *scene = pipeline.create_scene();
+    const auto *render_pass = pipeline.create_render_pass(scene);
 
-    const iris::RenderCommand cmd{type, &render_pass, &material, &render_entity, &shadow_map, &light};
+    const iris::RenderCommand cmd{type, render_pass, &material, &render_entity, &shadow_map, &light};
 
     ASSERT_EQ(cmd.type(), type);
-    ASSERT_EQ(cmd.render_pass(), &render_pass);
+    ASSERT_EQ(cmd.render_pass(), render_pass);
     ASSERT_EQ(cmd.material(), &material);
     ASSERT_EQ(cmd.render_entity(), &render_entity);
     ASSERT_EQ(cmd.shadow_map(), &shadow_map);
@@ -62,12 +66,14 @@ TEST(render_command_tests, get_set_type)
 
 TEST(render_command_tests, get_set_render_pass)
 {
+    iris::RenderPipeline pipeline{600u, 600u};
+    auto *scene = pipeline.create_scene();
+    const auto *render_pass = pipeline.create_render_pass(scene);
     iris::RenderCommand cmd{};
-    const iris::RenderPass new_value{nullptr, nullptr, nullptr};
 
-    cmd.set_render_pass(&new_value);
+    cmd.set_render_pass(render_pass);
 
-    ASSERT_EQ(cmd.render_pass(), &new_value);
+    ASSERT_EQ(cmd.render_pass(), render_pass);
 }
 
 TEST(render_command_tests, get_set_material)
