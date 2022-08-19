@@ -20,7 +20,7 @@ set_target_properties(iris PROPERTIES
 target_include_directories(
   iris
   PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/iris>
-         $<INSTALL_INTERFACE:include/iris>)
+  $<INSTALL_INTERFACE:include/iris>)
 
 target_include_directories(
   iris SYSTEM
@@ -46,6 +46,7 @@ endif()
 
 # default link options (maybe extended by platform below)
 set(IRIS_LINKED_LIBS IrrXML zlibstatic BulletDynamics BulletCollision LinearMath assimp lua)
+set(IRIS_LINKED_LIBS_PRIVATE)
 
 # handle platform specific setup including setting default graphics apis
 if(IRIS_PLATFORM MATCHES "MACOS")
@@ -65,7 +66,7 @@ elseif(IRIS_PLATFORM MATCHES "WIN32")
   # on windows SYSTEM includes do not prevent warnings - so we add bullet using
   # the /external flag
   target_compile_options(iris PRIVATE /W4 /WX /experimental:external
-                                      /external:W0 /external:I ${bullet_SOURCE_DIR})
+    /external:W0 /external:I ${bullet_SOURCE_DIR})
   target_link_options(iris PUBLIC /subsystem:windows /ENTRY:mainCRTStartup)
 
   list(APPEND IRIS_LINKED_LIBS DirectX-Headers)
@@ -83,10 +84,11 @@ elseif(IRIS_PLATFORM MATCHES "LINUX")
   target_compile_definitions(iris PUBLIC IRIS_PLATFORM_LINUX)
   target_compile_definitions(iris PUBLIC IRIS_ARCH_X86_64)
   target_compile_options(iris PRIVATE -Wall -Werror)
+
+  list(APPEND IRIS_LINKED_LIBS_PRIVATE pthread GL Xfixes X11)
 else()
   message(FATAL_ERROR "Unsupported platform")
 endif()
-
 
 # find opengl on supported platforms
 if(IRIS_PLATFORM MATCHES "LINUX" OR IRIS_PLATFORM MATCHES "WINDOWS")
@@ -97,9 +99,9 @@ endif()
 message(STATUS "Building iris-${CMAKE_PROJECT_VERSION} for ${IRIS_PLATFORM})")
 
 target_link_libraries(iris PUBLIC ${IRIS_LINKED_LIBS})
+target_link_libraries(iris PRIVATE ${IRIS_LINKED_LIBS_PRIVATE})
 
 # various install commands to ensure all files get put in the right place
-
 install(
   TARGETS iris ${IRIS_LINKED_LIBS}
   EXPORT iris-targets
@@ -129,7 +131,7 @@ install(
 
 install(
   FILES ${PROJECT_BINARY_DIR}/cmake/iris-config.cmake
-        ${CMAKE_CURRENT_BINARY_DIR}/iris-version.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/iris-version.cmake
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/iris)
 
 install(
