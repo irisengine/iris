@@ -18,57 +18,86 @@ extern "C"
 #include "lualib.h"
 }
 
+#include "core/auto_release.h"
 #include "core/error_handling.h"
+#include "core/resource_loader.h"
 #include "core/vector3.h"
 #include "scripting/lua/interop/quaternion.h"
 #include "scripting/lua/interop/register_class.h"
 #include "scripting/lua/interop/vector3.h"
+
+namespace
+{
+
+/**
+ * Helper function to create a lua state from a script string.
+ *
+ * @param source
+ *   Lua script source.
+ *
+ * @return
+ *   Lua state object.
+ */
+iris::AutoRelease<lua_State *, nullptr> create_lua_state(const std::string &source)
+{
+    auto *state = ::luaL_newstate();
+    iris::ensure(state != nullptr, "could not create lua state");
+
+    // register standard library and engine custom classes
+    ::luaL_openlibs(state);
+    iris::interop::lua::register_class(state, iris::interop::lua::vector3_class_interop);
+    iris::interop::lua::register_class(state, iris::interop::lua::quaternion_class_interop);
+
+    // try and load the script
+    if (::luaL_loadstring(state, source.c_str()) == LUA_OK)
+    {
+        if (::lua_pcall(state, 0, 0, 0) == LUA_OK)
+        {
+            ::lua_pop(state, ::lua_gettop(state));
+        }
+    }
+    else
+    {
+        // if the script failed to load then get the error string from the lua stack and throw it
+        const auto error_msg = ::lua_tostring(state, -1);
+
+        std::stringstream strm{};
+        strm << "Execution of function failed: " << error_msg;
+
+        throw iris::Exception(strm.str());
+    }
+
+    return {state, ::lua_close};
+}
+
+}
 
 namespace iris
 {
 
 struct LuaScript::implementation
 {
-    lua_State *state = nullptr;
+    AutoRelease<lua_State *, nullptr> state;
 };
 
 LuaScript::LuaScript(const std::string &source)
     : Script()
     , impl_(std::make_unique<implementation>())
 {
-    impl_->state = ::luaL_newstate();
-    ensure(impl_->state != nullptr, "could not create lua state");
-
-    // register standard library and engine custom classes
-    ::luaL_openlibs(impl_->state);
-    interop::lua::register_class(impl_->state, interop::lua::vector3_class_interop);
-    interop::lua::register_class(impl_->state, interop::lua::quaternion_class_interop);
-
-    // try and load the script
-    if (::luaL_loadstring(impl_->state, source.c_str()) == LUA_OK)
-    {
-        if (::lua_pcall(impl_->state, 0, 0, 0) == LUA_OK)
-        {
-            ::lua_pop(impl_->state, ::lua_gettop(impl_->state));
-        }
-    }
-    else
-    {
-        // if the script failed to load then get the error string from the lua stack and throw it
-        std::string error_msg;
-        get_result(error_msg);
-
-        std::stringstream strm{};
-        strm << "Execution of function failed: " << error_msg;
-
-        throw Exception(strm.str());
-    }
+    impl_->state = create_lua_state(source);
 }
 
-LuaScript::~LuaScript()
+LuaScript::LuaScript(const std::string &file, LoadFile)
+    : Script()
+    , impl_(std::make_unique<implementation>())
 {
-    ::lua_close(impl_->state);
+    const auto script_data = ResourceLoader::instance().load(file);
+    const std::string source(reinterpret_cast<const char *>(script_data.data()), script_data.size());
+
+    impl_->state = create_lua_state(source);
 }
+
+LuaScript::~LuaScript() = default;
 
 void LuaScript::set_argument(bool argument)
 {

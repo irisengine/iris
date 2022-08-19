@@ -16,7 +16,6 @@ namespace iris
  */
 enum class RenderCommandType : std::uint8_t
 {
-    UPLOAD_TEXTURE,
     PASS_START,
     DRAW,
     PASS_END,

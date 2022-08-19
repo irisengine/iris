@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <memory>
 #include <string>
 
@@ -58,6 +59,14 @@ class ComponentNode : public Node
      *   Component string.
      */
     std::string component() const;
+
+    /**
+     * Compute hash of node.
+     *
+     * @return
+     *   Hash of node.
+     */
+    std::size_t hash() const override;
 
   private:
     /** Input node. */

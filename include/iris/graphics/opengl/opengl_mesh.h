@@ -81,14 +81,25 @@ class OpenGLMesh : public Mesh
     void unbind() const;
 
   private:
+    /**
+     * Helper method to setup the VAO.
+     */
+    void setup_vao();
+
+    /** Attributes of the vertices. */
+    VertexAttributes attributes_;
+
     /** Buffer for vertex data. */
-    OpenGLBuffer vertex_buffer_;
+    VBO vertex_buffer_;
 
     /** Buffer for index data. */
-    OpenGLBuffer index_buffer_;
+    EBO index_buffer_;
 
     /** OpenGL handle to a vertex array object for this mesh. */
     GLuint vao_;
+
+    /** Number of elements to render. */
+    GLsizei element_count_;
 };
 
 }

@@ -6,9 +6,9 @@
 
 #pragma once
 
+#include <deque>
 #include <map>
 #include <string>
-#include <vector>
 
 #include <core/camera.h>
 #include <core/transform.h>
@@ -16,6 +16,7 @@
 #include <graphics/cube_map.h>
 #include <graphics/lights/point_light.h>
 #include <graphics/render_graph/render_graph.h>
+#include <graphics/render_pipeline.h>
 #include <graphics/render_target.h>
 #include <graphics/window.h>
 
@@ -33,10 +34,10 @@ class RenderGraphSample : public Sample
      * @param window
      *   Window to render with.
      *
-     * @param target
-     *   Target to render to.
+     * @param render_pipeline
+     *   RenderPipeline to use for sample.
      */
-    RenderGraphSample(iris::Window *window, iris::RenderTarget *target);
+    RenderGraphSample(iris::Window *window, iris::RenderPipeline &render_pipeline);
     ~RenderGraphSample() override = default;
 
     /**
@@ -57,8 +58,6 @@ class RenderGraphSample : public Sample
      */
     void handle_input(const iris::Event &event) override;
 
-    std::vector<iris::RenderPass> render_passes() override;
-
     /**
      * Title of sample.
      *
@@ -67,16 +66,15 @@ class RenderGraphSample : public Sample
      */
     std::string title() const override;
 
+    /**
+     * Get the target the sample will render to.
+     *
+     * @returns
+     *   Sample render target.
+     */
+    const iris::RenderTarget *target() const override;
+
   private:
-    /** Pointer to window. */
-    iris::Window *window_;
-
-    iris::RenderTarget *target_;
-
-    iris::Scene scene1_;
-    iris::Scene scene2_;
-    iris::Scene scene3_;
-
     /** Transform for moving light. */
     iris::Transform light_transform_;
 
@@ -85,12 +83,6 @@ class RenderGraphSample : public Sample
 
     /** Scene light */
     iris::PointLight *light2_;
-
-    /** Render target. */
-    iris::RenderTarget *sphere1_rt_;
-
-    /** Render target. */
-    iris::RenderTarget *sphere2_rt_;
 
     /** Render camera. */
     iris::Camera camera_;
@@ -101,5 +93,9 @@ class RenderGraphSample : public Sample
     /** User input key map. */
     std::map<iris::Key, iris::KeyState> key_map_;
 
+    /** Sky box for scene. */
     iris::CubeMap *sky_box_;
+
+    /** Render target for scene. */
+    const iris::RenderTarget *render_target_;
 };

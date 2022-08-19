@@ -17,6 +17,11 @@
 namespace iris
 {
 
+D3D12MeshManager::D3D12MeshManager()
+    : MeshManager(false)
+{
+}
+
 std::unique_ptr<Mesh> D3D12MeshManager::create_mesh(
     const std::vector<iris::VertexData> &vertices,
     const std::vector<std::uint32_t> &indices) const

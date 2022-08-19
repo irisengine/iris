@@ -7,6 +7,8 @@
 #pragma once
 
 #include <cstdint>
+#include <deque>
+#include <functional>
 #include <vector>
 
 #include "graphics/render_command.h"
@@ -33,23 +35,8 @@ class FakeRenderer : public iris::Renderer
 
     // overridden methods which just log when they are called
 
-    void set_render_passes(const std::vector<iris::RenderPass> &) override
-    {
-    }
-
-    iris::RenderTarget *create_render_target(std::uint32_t, std::uint32_t)
-        override
-    {
-        return nullptr;
-    }
-
     void pre_render() override
     {
-    }
-
-    void execute_upload_texture(iris::RenderCommand &) override
-    {
-        call_log_.emplace_back(iris::RenderCommandType::UPLOAD_TEXTURE);
     }
 
     void execute_pass_start(iris::RenderCommand &) override
@@ -74,6 +61,12 @@ class FakeRenderer : public iris::Renderer
 
     void post_render() override
     {
+    }
+
+  protected:
+    void do_set_render_pipeline(std::function<void()> build_queue)
+    {
+        build_queue();
     }
 
   private:

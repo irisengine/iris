@@ -11,6 +11,7 @@
 #include "graphics/opengl/opengl.h"
 
 #include "core/data_buffer.h"
+#include "graphics/sampler.h"
 #include "graphics/texture.h"
 #include "graphics/texture_usage.h"
 
@@ -35,13 +36,22 @@ class OpenGLTexture : public Texture
      * @param height
      *   Height of data.
      *
+     * @param sampler
+     *   Sampler to use for this texture.
+     *
      * @param usage
      *   Texture usage.
      *
-     * @param id
-     *    OpenGL texture unit.
+     * @param index
+     *   Index into the global array of all allocated textures.
      */
-    OpenGLTexture(const DataBuffer &data, std::uint32_t width, std::uint32_t height, TextureUsage usage, GLuint id);
+    OpenGLTexture(
+        const DataBuffer &data,
+        std::uint32_t width,
+        std::uint32_t height,
+        const Sampler *sampler,
+        TextureUsage usage,
+        std::uint32_t index);
 
     /**
      * Clean up OpenGL objects.
@@ -57,19 +67,19 @@ class OpenGLTexture : public Texture
     GLuint handle() const;
 
     /**
-     * Get OpenGL texture unit.
+     * Get the OpenGL bindless handle for this texture.
      *
      * @returns
-     *   OpenGL texture unit.
+     *   Bindless handle.
      */
-    GLuint id() const;
+    GLuint64 bindless_handle() const;
 
   private:
     /** OpenGL texture handle. */
     GLuint handle_;
 
-    /** OpenGL texture unit. */
-    GLuint id_;
+    /** OpengGL bindless handle. */
+    GLuint64 bindless_handle_;
 };
 
 }

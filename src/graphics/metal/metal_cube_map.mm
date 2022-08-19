@@ -14,6 +14,7 @@
 #include "core/error_handling.h"
 #include "core/macos/macos_ios_utility.h"
 #include "graphics/cube_map.h"
+#include "graphics/sampler.h"
 
 namespace iris
 {
@@ -26,8 +27,11 @@ MetalCubeMap::MetalCubeMap(
     const DataBuffer &back_data,
     const DataBuffer &front_data,
     std::uint32_t width,
-    std::uint32_t height)
-    : texture_(nullptr)
+    std::uint32_t height,
+    const Sampler *sampler,
+    std::uint32_t index)
+    : CubeMap(sampler, index)
+    , texture_(nullptr)
 {
     ensure(width == height, "cube map image must be square");
 

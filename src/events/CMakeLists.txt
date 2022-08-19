@@ -6,5 +6,6 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/keyboard_event.h
     ${INCLUDE_ROOT}/mouse_event.h
     ${INCLUDE_ROOT}/quit_event.h
+    ${INCLUDE_ROOT}/scroll_wheel_event.h
     ${INCLUDE_ROOT}/touch_event.h
     event.cpp)

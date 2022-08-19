@@ -7,14 +7,17 @@
 #include "graphics/opengl/opengl_shader.h"
 
 #include <cstdint>
+#include <iomanip>
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
 #include "core/error_handling.h"
 #include "graphics/opengl/opengl.h"
 #include "graphics/shader_type.h"
+#include "log/log.h"
 
 namespace iris
 {
@@ -58,10 +61,20 @@ OpenGLShader::OpenGLShader(const std::string &source, ShaderType type)
             ::glGetShaderInfoLog(shader_, static_cast<std::int32_t>(error_log.size()), &log_length, error_log.data());
             expect(check_opengl_error, "failed to get error log");
 
-            std::cout << source << std::endl;
-
             // convert to string and throw
             const std::string error(error_log.data(), log_length);
+
+            auto line_number = 1u;
+
+            std::istringstream strm{source};
+            for (std::string line; std::getline(strm, line);)
+            {
+                LOG_ENGINE_ERROR("opengl_shader", "{}: {}", line_number, line);
+                ++line_number;
+            }
+
+            LOG_ENGINE_ERROR("opengl_shader", "{}", error);
+
             throw Exception("shader compilation failed: " + error);
         }
     }

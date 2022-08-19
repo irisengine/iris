@@ -17,9 +17,9 @@
 namespace iris
 {
 
-RenderTarget::RenderTarget(std::unique_ptr<Texture> colour_texture, std::unique_ptr<Texture> depth_texture)
-    : colour_texture_(std::move(colour_texture))
-    , depth_texture_(std::move(depth_texture))
+RenderTarget::RenderTarget(const Texture *colour_texture, const Texture *depth_texture)
+    : colour_texture_(colour_texture)
+    , depth_texture_(depth_texture)
 {
     expect(
         (colour_texture_->width() == depth_texture_->width()) &&
@@ -29,14 +29,14 @@ RenderTarget::RenderTarget(std::unique_ptr<Texture> colour_texture, std::unique_
 
 RenderTarget::~RenderTarget() = default;
 
-Texture *RenderTarget::colour_texture() const
+const Texture *RenderTarget::colour_texture() const
 {
-    return colour_texture_.get();
+    return colour_texture_;
 }
 
-Texture *RenderTarget::depth_texture() const
+const Texture *RenderTarget::depth_texture() const
 {
-    return depth_texture_.get();
+    return depth_texture_;
 }
 
 std::uint32_t RenderTarget::width() const

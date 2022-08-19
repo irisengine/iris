@@ -9,6 +9,7 @@
 #include <cstdint>
 
 #include "core/data_buffer.h"
+#include "graphics/sampler.h"
 #include "graphics/texture_usage.h"
 
 namespace iris
@@ -32,10 +33,22 @@ class Texture
      * @param height
      *   Height of image.
      *
-     * @param pixel_format
-     *   Pixel format.
+     * @param sampler
+     *   Sampler to use for this texture.
+     *
+     * @param usage
+     *   Texture usage.
+     *
+     * @param index
+     *   Index into the global array of all allocated textures.
      */
-    Texture(const DataBuffer &data, std::uint32_t width, std::uint32_t height, TextureUsage usage);
+    Texture(
+        const DataBuffer &data,
+        std::uint32_t width,
+        std::uint32_t height,
+        const Sampler *sampler,
+        TextureUsage usage,
+        std::uint32_t index);
 
     virtual ~Texture() = 0;
 
@@ -67,6 +80,14 @@ class Texture
     std::uint32_t height() const;
 
     /**
+     * Get texture sampler.
+     *
+     * @returns
+     *   Sampler for texture.
+     */
+    const Sampler *sampler() const;
+
+    /**
      * Get the texture usage.
      *
      * @returns
@@ -75,20 +96,22 @@ class Texture
     TextureUsage usage() const;
 
     /**
-     * Should a texture be flipped vertically.
+     * Get index into global array of all allocated textures.
+     *
+     * This is most useful for bindless texturing as the texture knows where in the mapped texture table to find itself.
      *
      * @returns
-     *   Should flip.
+     *   Index of texture.
      */
-    bool flip() const;
+    std::uint32_t index() const;
 
     /**
-     * Set whether texture should be flipped vertically.
+     * Whether the texture contains any transparent pixels.
      *
-     * @param flip
-     *   New flip value.
+     * @returns
+     *   True if texture has transparency, otherwise false.
      */
-    void set_flip(bool flip);
+    bool has_transparency() const;
 
   protected:
     /** Raw image data. */
@@ -100,11 +123,17 @@ class Texture
     /** Image height. */
     std::uint32_t height_;
 
-    /** Should texture be flipped vertically. */
-    bool flip_;
+    /** Sampler for texture. */
+    const Sampler *sampler_;
 
     /** Texture usage. */
     TextureUsage usage_;
+
+    /** Index into the global array of all allocated textures. */
+    std::uint32_t index_;
+
+    /** Whether texture has transparency. */
+    bool has_transparency_;
 };
 
 }

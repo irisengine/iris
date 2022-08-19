@@ -6,6 +6,8 @@
 
 #include "graphics/render_graph/combine_node.h"
 
+#include <cstddef>
+
 #include "graphics/render_graph/shader_compiler.h"
 
 namespace iris
@@ -42,6 +44,11 @@ Node *CombineNode::value3() const
 Node *CombineNode::value4() const
 {
     return value4_;
+}
+
+std::size_t CombineNode::hash() const
+{
+    return combine_hash(value1_, value2_, value3_, value4_, "combine_node");
 }
 
 }

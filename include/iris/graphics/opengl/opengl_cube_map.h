@@ -11,6 +11,7 @@
 #include "core/data_buffer.h"
 #include "graphics/cube_map.h"
 #include "graphics/opengl/opengl.h"
+#include "graphics/sampler.h"
 
 namespace iris
 {
@@ -48,8 +49,11 @@ class OpenGLCubeMap : public CubeMap
      * @param height
      *   Height of each image face.
      *
-     * @param id
-     *    OpenGL texture unit.
+     * @param sampler
+     *   Sampler to use for this cube map.
+     *
+     * @param index
+     *   Index into the global array of all allocated textures.
      */
     OpenGLCubeMap(
         const DataBuffer &right_data,
@@ -60,7 +64,8 @@ class OpenGLCubeMap : public CubeMap
         const DataBuffer &front_data,
         std::uint32_t width,
         std::uint32_t height,
-        GLuint id);
+        const Sampler *sampler,
+        std::uint32_t index);
 
     /**
      * Clean up OpenGL objects.
@@ -76,19 +81,19 @@ class OpenGLCubeMap : public CubeMap
     GLuint handle() const;
 
     /**
-     * Get OpenGL texture unit.
+     * Get the OpenGL bindless handle for this cube map.
      *
      * @returns
-     *   OpenGL texture unit.
+     *   Bindless handle.
      */
-    GLuint id() const;
+    GLuint64 bindless_handle() const;
 
   private:
-    GLuint handle_;
     /** OpenGL texture handle. */
+    GLuint handle_;
 
-    /** OpenGL texture unit. */
-    GLuint id_;
+    /** OpengGL bindless handle. */
+    GLuint64 bindless_handle_;
 };
 
 }

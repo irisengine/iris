@@ -13,6 +13,7 @@
 #include "core/data_buffer.h"
 #include "graphics/cube_map.h"
 #include "graphics/opengl/opengl.h"
+#include "graphics/sampler.h"
 #include "graphics/texture_manager.h"
 #include "graphics/texture_usage.h"
 
@@ -32,22 +33,6 @@ class OpenGLTextureManager : public TextureManager
 
     ~OpenGLTextureManager() override = default;
 
-    /**
-     * Get the next texture unit id from a pool of available ids.
-     *
-     * @returns
-     *   Next available texture id.
-     */
-    GLuint next_id();
-
-    /**
-     * Return an id to the pool.
-     *
-     * @param id
-     *   Id to return to pool.
-     */
-    void return_id(GLuint id);
-
   protected:
     /**
      * Create a Texture object with the provided data.
@@ -61,8 +46,14 @@ class OpenGLTextureManager : public TextureManager
      * @param height
      *   Height of image.
      *
+     * @param sampler
+     *   Sampler to use for this texture.
+     *
      * @param usage
      *   Usage of the texture.
+     *
+     * @param index
+     *   Index into the global array of all allocated textures.
      *
      * @returns
      *   Created texture.
@@ -71,7 +62,9 @@ class OpenGLTextureManager : public TextureManager
         const DataBuffer &data,
         std::uint32_t width,
         std::uint32_t height,
-        TextureUsage usage) override;
+        const Sampler *sampler,
+        TextureUsage usage,
+        std::uint32_t index) override;
 
     /**
      * Create a CubeMap from six DataBuffers (one for each face).
@@ -103,6 +96,12 @@ class OpenGLTextureManager : public TextureManager
      * @param height
      *   Height of each image face.
      *
+     * @param sampler
+     *   Sampler to use for this texture.
+     *
+     * @param index
+     *   Index into the global array of all allocated textures.
+     *
      * @returns
      *   Created CubeMap.
      */
@@ -114,27 +113,11 @@ class OpenGLTextureManager : public TextureManager
         const DataBuffer &near_data,
         const DataBuffer &far_data,
         std::uint32_t width,
-        std::uint32_t height) override;
+        std::uint32_t height,
+        const Sampler *sampler,
+        std::uint32_t index) override;
 
-    /**
-     * Unload a texture.
-     *
-     * @param texture
-     *   Texture about to be unloaded.
-     */
-    void destroy(Texture *texture) override;
-
-    /**
-     * Unload a CubeMap.
-     *
-     * @param cube_map
-     *   CubeMap about to be unloaded.
-     */
-    void destroy(CubeMap *cube_map) override;
-
-  private:
-    /** Stack of available ids. */
-    std::stack<GLuint> id_pool_;
+    std::unique_ptr<Sampler> do_create(const SamplerDescriptor &descriptor, std::uint32_t index) override;
 };
 
 }

@@ -16,14 +16,4 @@ class FakeMaterial : public iris::Material
 {
   public:
     ~FakeMaterial() override = default;
-
-    std::vector<iris::Texture *> textures() const override
-    {
-        return {};
-    }
-
-    const iris::CubeMap *cube_map() const override
-    {
-        return nullptr;
-    }
 };

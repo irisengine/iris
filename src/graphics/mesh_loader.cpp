@@ -7,6 +7,7 @@
 #include "graphics/mesh_loader.h"
 
 #include <cstdint>
+#include <functional>
 #include <stack>
 #include <string>
 #include <vector>
@@ -22,7 +23,7 @@
 #include "core/resource_loader.h"
 #include "core/transform.h"
 #include "core/vector3.h"
-#include "graphics/animation.h"
+#include "graphics/animation/animation.h"
 #include "graphics/bone.h"
 #include "graphics/skeleton.h"
 #include "graphics/vertex_data.h"
@@ -89,7 +90,7 @@ std::vector<iris::Animation> process_animations(const ::aiScene *scene)
         const std::chrono::milliseconds tick_time{static_cast<std::uint32_t>((1.0f / ticks_per_second) * 1000u)};
         const auto duration = tick_time * static_cast<std::uint32_t>(animation->mDuration);
 
-        std::map<std::string, std::vector<iris::KeyFrame>> nodes;
+        std::map<std::string, std::vector<iris::KeyFrame>, std::less<>> nodes;
 
         // each channel is a collection of keys
         for (auto j = 0u; j < animation->mNumChannels; ++j)
@@ -131,7 +132,7 @@ std::vector<iris::Animation> process_animations(const ::aiScene *scene)
 }
 
 /**
- * Get the bones from an assimp mesh.
+ * Get the bones from an assimp scene.
  *
  * Assimp has two separate concepts for animation data:
  *   bone - offset matrix and collection of vertices it effects
@@ -142,21 +143,18 @@ std::vector<iris::Animation> process_animations(const ::aiScene *scene)
  * engine Bone. Our Bone may or may not effect vertices and maintains the same
  * hierarchy as the assimp nodes.
  *
- * @param mesh
- *   Mesh to get bones from.
- *
- * @param root
- *   Root of hierarchy for bones.
+ * @param scene
+ *   Scene to get bones from.
  *
  * @returns
  *   Bones.
  */
-std::vector<iris::Bone> process_bones(const ::aiMesh *mesh, const ::aiNode *root)
+std::vector<iris::Bone> process_bones(const aiScene *scene)
 {
     std::vector<iris::Bone> bones{};
 
     std::stack<std::tuple<const ::aiNode *, std::string>> nodes;
-    nodes.emplace(root, std::string{});
+    nodes.emplace(scene->mRootNode, std::string{});
 
     // walk the node hierarchy
     do
@@ -168,32 +166,28 @@ std::vector<iris::Bone> process_bones(const ::aiMesh *mesh, const ::aiNode *root
 
         // create a bone which represents the nodes transformation but effects
         // no vertices
-        iris::Bone bone{name, parent_name, {}, {}, convert_matrix(node->mTransformation)};
+        iris::Bone bone{name, parent_name, {}, convert_matrix(node->mTransformation)};
 
-        // see if this node represents an assimp bone
-        for (auto i = 0u; i < mesh->mNumBones; ++i)
+        for (auto i = 0u; i < scene->mNumMeshes; ++i)
         {
-            const ::aiBone *ai_bone = mesh->mBones[i];
+            const auto *mesh = scene->mMeshes[i];
 
-            if (std::string(ai_bone->mName.C_Str()) == name)
+            // see if this node represents an assimp bone
+            for (auto j = 0u; j < mesh->mNumBones; ++j)
             {
-                std::vector<iris::Weight> weights;
-                for (auto j = 0u; j < ai_bone->mNumWeights; ++j)
+                const ::aiBone *ai_bone = mesh->mBones[j];
+
+                if (std::string(ai_bone->mName.C_Str()) == name)
                 {
-                    const auto &weight = ai_bone->mWeights[j];
-                    weights.emplace_back(weight.mVertexId, weight.mWeight);
+                    // replace bone with one that stores the weights as well the correct matrices
+                    bone = {
+                        name,
+                        parent_name,
+                        convert_matrix(ai_bone->mOffsetMatrix),
+                        convert_matrix(node->mTransformation)};
+
+                    break;
                 }
-
-                // replace bone with one that stores the weights as well the
-                // correct matrices
-                bone = {
-                    name,
-                    parent_name,
-                    weights,
-                    convert_matrix(ai_bone->mOffsetMatrix),
-                    convert_matrix(node->mTransformation)};
-
-                break;
             }
         }
 
@@ -208,10 +202,38 @@ std::vector<iris::Bone> process_bones(const ::aiMesh *mesh, const ::aiNode *root
     // always return at least one default bone
     if (bones.empty())
     {
-        bones.emplace_back("root", "", std::vector<iris::Weight>{{0u, 1.0f}}, iris::Matrix4{}, iris::Matrix4{});
+        bones.emplace_back("root", "", iris::Matrix4{}, iris::Matrix4{});
     }
 
     return bones;
+}
+
+/**
+ * Get the weights for a given assimp mesh.
+ *
+ * @param mesh
+ *   Mesh to get weights for.
+ *
+ * @returns
+ *   Collection of bone weights.
+ */
+std::vector<iris::Weight> process_weights(const aiMesh *mesh)
+{
+    std::vector<iris::Weight> weights{};
+
+    for (auto j = 0u; j < mesh->mNumBones; ++j)
+    {
+        const ::aiBone *ai_bone = mesh->mBones[j];
+
+        for (auto k = 0u; k < ai_bone->mNumWeights; ++k)
+        {
+            const auto &weight = ai_bone->mWeights[k];
+            weights.push_back(
+                {.vertex = weight.mVertexId, .weight = weight.mWeight, .bone_name = ai_bone->mName.C_Str()});
+        }
+    }
+
+    return weights;
 }
 
 /**
@@ -302,89 +324,63 @@ std::vector<iris::VertexData> process_vertices(const ::aiMesh *mesh, const ::aiM
 namespace iris::mesh_loader
 {
 
-LoadedData load(const std::string &mesh_name)
+void load(
+    const std::string &mesh_name,
+    bool flip_uvs,
+    MeshDataCallback mesh_data_callback,
+    AnimationCallback animation_callback)
 {
     const auto file_data = ResourceLoader::instance().load(mesh_name);
 
+    const auto import_flags = flip_uvs ? aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_FlipUVs
+                                       : aiProcess_Triangulate | aiProcess_CalcTangentSpace;
+
     // parse file using assimp
     ::Assimp::Importer importer{};
-    const auto *scene = importer.ReadFileFromMemory(
-        file_data.data(), file_data.size(), ::aiProcess_Triangulate | ::aiProcess_CalcTangentSpace);
+    const auto *scene = importer.ReadFileFromMemory(file_data.data(), file_data.size(), import_flags);
 
     ensure(
         (scene != nullptr) && !(scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) && (scene->mRootNode != nullptr),
         std::string{"could not load mesh: "} + importer.GetErrorString());
 
+    if (scene->mAnimations != 0u)
+    {
+        animation_callback(process_animations(scene), {process_bones(scene)});
+    }
+
     const auto *root = scene->mRootNode;
-    aiMesh *mesh = nullptr;
 
     std::stack<const aiNode *> to_process;
     to_process.emplace(root);
 
-    // walk the assimp scene looking for the first mesh
-    // we do *not* support multiple meshes
+    // walk the assimp scene
     do
     {
         const auto *node = to_process.top();
         to_process.pop();
 
-        // check if we have a node with a single mesh
-        if (node->mNumMeshes == 1u)
+        for (auto i = 0u; i < node->mNumMeshes; ++i)
         {
-            mesh = scene->mMeshes[node->mMeshes[0u]];
-            break;
+            const auto *mesh = scene->mMeshes[node->mMeshes[i]];
+            const auto *material = scene->mMaterials[mesh->mMaterialIndex];
+
+            std::string texture_name;
+            aiString assimp_str{};
+            if (material->GetTexture(aiTextureType_DIFFUSE, 0u, &assimp_str) == aiReturn_SUCCESS)
+            {
+                texture_name = assimp_str.C_Str();
+            }
+
+            mesh_data_callback(
+                process_vertices(mesh, material), process_indices(mesh), process_weights(mesh), texture_name);
         }
 
-        // add child nodes, to keep looking for a node with a single mesh
+        // add child nodes so we visit all meshes
         for (auto i = 0u; i < node->mNumChildren; ++i)
         {
             to_process.emplace(node->mChildren[i]);
         }
     } while (!to_process.empty());
-
-    // check if we found a node with a single mesh
-    ensure(mesh != nullptr, "only support single mesh in file");
-
-    const auto *material = scene->mMaterials[mesh->mMaterialIndex];
-
-    LoadedData loaded_data{};
-
-    loaded_data.vertices = process_vertices(mesh, material);
-    loaded_data.indices = process_indices(mesh);
-    loaded_data.skeleton = {process_bones(mesh, root), process_animations(scene)};
-
-    // stamp in bone data into vertices
-    // each vertex supports four bones, so keep a track of the next
-    // index for each vertex
-    std::vector<std::uint32_t> bone_indices(loaded_data.vertices.size());
-
-    for (const auto &bone : loaded_data.skeleton.bones())
-    {
-        for (const auto &[id, weight] : bone.weights())
-        {
-            if (weight == 0.0f)
-            {
-                continue;
-            }
-
-            // only support four bones per vertex
-            if (bone_indices[id] >= 4)
-            {
-                LOG_ENGINE_WARN("mf", "too many weights {} {}", id, weight);
-                continue;
-            }
-
-            const auto bone_index = loaded_data.skeleton.bone_index(bone.name());
-
-            // update vertex data with bone data
-            loaded_data.vertices[id].bone_ids[bone_indices[id]] = static_cast<std::uint32_t>(bone_index);
-            loaded_data.vertices[id].bone_weights[bone_indices[id]] = weight;
-
-            ++bone_indices[id];
-        }
-    }
-
-    return loaded_data;
 }
 
 }

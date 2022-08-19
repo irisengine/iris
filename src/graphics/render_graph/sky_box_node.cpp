@@ -6,6 +6,8 @@
 
 #include "graphics/render_graph/sky_box_node.h"
 
+#include <cstddef>
+
 #include "graphics/cube_map.h"
 #include "graphics/render_graph/shader_compiler.h"
 
@@ -26,6 +28,11 @@ void SkyBoxNode::accept(ShaderCompiler &compiler) const
 const CubeMap *SkyBoxNode::sky_box() const
 {
     return sky_box_;
+}
+
+std::size_t SkyBoxNode::hash() const
+{
+    return combine_hash(reinterpret_cast<std::ptrdiff_t>(sky_box_), "sky_box_node");
 }
 
 }

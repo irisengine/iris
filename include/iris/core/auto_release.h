@@ -7,6 +7,9 @@
 #pragma once
 
 #include <functional>
+#include <type_traits>
+
+#include "concepts/is_pointer.h"
 
 namespace iris
 {
@@ -59,7 +62,7 @@ class AutoRelease
      * @param other
      *   Object to move construct from.
      */
-    AutoRelease(AutoRelease<T, Invalid> &&other)
+    AutoRelease(AutoRelease<T, Invalid> &&other) noexcept
         : AutoRelease(Invalid, {})
     {
         swap(other);
@@ -88,7 +91,7 @@ class AutoRelease
      * @param other
      *   Object to swap with.
      */
-    void swap(AutoRelease<T, Invalid> &other)
+    void swap(AutoRelease<T, Invalid> &other) noexcept
     {
         std::swap(resource_, other.resource_);
         std::swap(deleter_, other.deleter_);
@@ -100,7 +103,7 @@ class AutoRelease
      * @returns
      *   Managed resource.
      */
-    T get() const
+    T get() const noexcept
     {
         return resource_;
     }
@@ -113,9 +116,20 @@ class AutoRelease
      * @returns
      *   Address of managed resource.
      */
-    T *operator&()
+    T *operator&() noexcept
     {
         return std::addressof(resource_);
+    }
+
+    /**
+     * Overload arrow operator (for pointer objects only).
+     *
+     * @returns
+     *   Copy of resource (will be a pointer).
+     */
+    T operator->() const noexcept requires IsPointer<T>
+    {
+        return resource_;
     }
 
     /**
@@ -124,7 +138,7 @@ class AutoRelease
      * @returns
      *   True if this object managed a resource, false otherwise.
      */
-    explicit operator bool() const
+    explicit operator bool() const noexcept
     {
         return resource_ != Invalid;
     }
@@ -135,7 +149,7 @@ class AutoRelease
      * @returns
      *   Managed resource.
      */
-    operator T() const
+    operator T() const noexcept
     {
         return resource_;
     }

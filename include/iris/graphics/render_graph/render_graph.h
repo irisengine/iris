@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <cstddef>
+#include <functional>
 #include <memory>
 #include <type_traits>
 #include <vector>
@@ -16,24 +18,18 @@
 namespace iris
 {
 
+template <class T>
+concept IsNode = std::is_base_of_v<Node, T> && !std::is_same_v<RenderNode, T>;
+
 /**
  * This class encapsulates a render graph - a series of connected nodes that
  * can be compiled into API specific shaders.
  *
- * This class automatically creates and managed a RenderNode.
+ * This class automatically creates and manages a RenderNode.
  */
 class RenderGraph
 {
   public:
-    // helper trait
-    template <class T>
-    using is_node = std::enable_if_t<std::is_base_of_v<Node, T> && !std::is_same_v<RenderNode, T>>;
-
-    /**
-     * Create a new RenderGraph.
-     */
-    RenderGraph();
-
     /**
      * Get the RenderNode i.e. the root of the graph.
      *
@@ -52,7 +48,7 @@ class RenderGraph
      * @returns
      *   A pointer to the newly created Node.
      */
-    template <class T, class... Args, typename = is_node<T>>
+    template <IsNode T, class... Args>
     T *create(Args &&...args)
     {
         auto node = std::make_unique<T>(std::forward<Args>(args)...);
@@ -68,7 +64,7 @@ class RenderGraph
      * @returns
      *   A pointer to the newly created Node.
      */
-    template <class T, class... Args, typename = is_node<T>>
+    template <IsNode T, class... Args>
     RenderNode *set_render_node(Args &&...args)
     {
         nodes_[0] = std::make_unique<T>(std::forward<Args>(args)...);
@@ -87,7 +83,31 @@ class RenderGraph
     Node *add(std::unique_ptr<Node> node);
 
   private:
+    // friend to allow only the RenderPipeline to create
+    friend class RenderPipeline;
+
+    /**
+     * Create a new RenderGraph.
+     */
+    RenderGraph();
+
     /** Collection of nodes in graph. */
     std::vector<std::unique_ptr<Node>> nodes_;
 };
+
+}
+
+// specialise std::hash for RenderGraph pointer
+namespace std
+{
+
+template <>
+struct hash<iris::RenderGraph *>
+{
+    size_t operator()(const iris::RenderGraph *rg) const
+    {
+        return std::hash<iris::Node *>{}(rg->render_node());
+    }
+};
+
 }

@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 #include "graphics/render_graph/node.h"
@@ -104,6 +105,14 @@ class ConditionalNode : public Node
      *   Conditional operator.
      */
     ConditionalOperator conditional_operator() const;
+
+    /**
+     * Compute hash of node.
+     *
+     * @return
+     *   Hash of node.
+     */
+    std::size_t hash() const override;
 
   private:
     /** First input value. */

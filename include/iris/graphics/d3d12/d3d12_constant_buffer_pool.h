@@ -15,16 +15,18 @@ namespace iris
 {
 
 /**
- * This class encapsulates a pool of D3D12ConstantBuffer objects as a fixed size
- * circular buffer.
+ * This class encapsulates a pool of D3D12ConstantBuffer objects as a fixed size buffer.
  */
 class D3D12ConstantBufferPool
 {
   public:
     /**
      * Construct a new D3D12ConstantBufferPool.
+     *
+     * @param frame
+     *   The frame number the pool is for.
      */
-    D3D12ConstantBufferPool();
+    D3D12ConstantBufferPool(std::uint32_t frame);
 
     /**
      * Get the next D3D12ConstantBuffer in the circular buffer.
@@ -33,6 +35,11 @@ class D3D12ConstantBufferPool
      *   Next D3D12ConstantBuffer.
      */
     D3D12ConstantBuffer &next();
+
+    /**
+     * Reset the pool to the beginning, this will cause next() to recycle buffers.
+     */
+    void reset();
 
   private:
     /** Pool of D3D12ConstantBuffer objects. */

@@ -8,15 +8,19 @@
 
 #include <cstddef>
 #include <string>
+#include <string_view>
+#include <unordered_map>
 #include <vector>
 
 #include "core/matrix4.h"
 #include "core/transform.h"
-#include "graphics/animation.h"
+#include "core/utils.h"
 #include "graphics/bone.h"
 
 namespace iris
 {
+
+class BoneQuery;
 
 /**
  * A skeleton provides an interface for animating bones.
@@ -79,11 +83,8 @@ class Skeleton
      *
      * @param bones
      *   Collection of bones, these will be reordered.
-     *
-     * @parma animations
-     *   Collection of animations for supplied bones
      */
-    Skeleton(std::vector<Bone> bones, const std::vector<Animation> &animations);
+    Skeleton(std::vector<Bone> bones);
 
     /**
      * Get reference to collection of bones.
@@ -103,25 +104,23 @@ class Skeleton
     const std::vector<Matrix4> &transforms() const;
 
     /**
-     * Set the animation. Will reset animation time.
+     * Update the bone transforms
+     *
+     * @param query
+     *   Query object to get bone transforms (e.g. from an animation), can be nullptr.
+     */
+    void update(BoneQuery *query);
+
+    /**
+     * Check if a bone exists.
      *
      * @param name
-     *   Name of animation.
-     */
-    void set_animation(const std::string &name);
-
-    /**
-     * Get reference to current animation.
+     *   Name of bone to check.
      *
      * @returns
-     *   Animation reference.
+     *   True if bone exists, otherwise false.
      */
-    Animation &animation();
-
-    /**
-     * Advance animation time. See Animation::advance().
-     */
-    void advance();
+    bool has_bone(std::string_view name) const;
 
     /**
      * Get the index of the given bone name.
@@ -132,7 +131,7 @@ class Skeleton
      * @returns
      *   Index of bone.
      */
-    std::size_t bone_index(const std::string &name) const;
+    std::size_t bone_index(std::string_view name) const;
 
     /**
      * Get reference to bone at index.
@@ -144,6 +143,17 @@ class Skeleton
      *   Reference to bone.
      */
     Bone &bone(std::size_t index);
+
+    /**
+     * Get transform for bone at index.
+     *
+     * @param index
+     *   Index of bone to get.
+     *
+     * @returns
+     *   Transform for bone.
+     */
+    Matrix4 transform(std::size_t index) const;
 
     /**
      * Get const reference to bone at index.
@@ -165,12 +175,6 @@ class Skeleton
 
     /** Collection of transform matrices for bones. */
     std::vector<Matrix4> transforms_;
-
-    /** Collection of animations. */
-    std::vector<Animation> animations_;
-
-    /** Current animation. */
-    std::string current_animation_;
 };
 
 }

@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <memory>
 
 #include "graphics/render_graph/node.h"
@@ -46,6 +47,14 @@ class BlurNode : public Node
      *   Input texture.
      */
     TextureNode *input_node() const;
+
+    /**
+     * Compute hash of node.
+     *
+     * @return
+     *   Hash of node.
+     */
+    std::size_t hash() const override;
 
   private:
     /** Input texture. */

@@ -23,6 +23,7 @@ namespace iris
 class MetalMeshManager : public MeshManager
 {
   public:
+    MetalMeshManager();
     ~MetalMeshManager() override = default;
 
   protected:

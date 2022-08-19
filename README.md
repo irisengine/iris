@@ -47,10 +47,14 @@ Iris is a cross-platform game engine written in modern C++
 * Cross platform: Windows, Linux, macOS and iOS
 * Multiple rendering backends: D3D12, Metal, OpenGL 
 * 3D rendering and physics
-* HDR
+* Post processing effects:
+    - FXAA
+    - SSAO
+    - Bloom
+    - HDR
 * Graph based shader compiler
 * Skeleton animation
-* Job based paralelism (fiber and thread implementations)
+* Job based parallelism (fiber and thread implementations)
 * Networking
 * Lua scripting
 
@@ -63,12 +67,10 @@ The following compilers have been tested
 
 | Platform | Version | Compiler |
 | -------- | ------- | -------- |
-| macOS | 12.0.1 | clang |
-| macOS | 12.0.0 | Apple clang |
-| iOS | 12.0.0 | Apple clang |
-| linux | 12.0.0 | clang |
-| linux | 11.1.0 | g++ |
-| windows | 19.29.30133.0 | msvc |
+| macOS | 14.0.5 | clang |
+| linux | 14.0.5 | clang |
+| linux | 12.1.0 | g++ |
+| windows | 19.32.31332 | msvc |
 
 ## Included third-party libraries
 The following dependencies are automatically checked out as part of the build:
@@ -81,7 +83,9 @@ The following dependencies are automatically checked out as part of the build:
 | [googletest](https://github.com/google/googletest.git) | [1.11.0](https://github.com/google/googletest/releases/tag/release-1.11.0) | [![License](https://img.shields.io/badge/License-BSD%203--Clause-lightblue.svg)](https://opensource.org/licenses/BSD-3-Clause) |
 | [directx-headers](https://github.com/microsoft/DirectX-Headers.git) | [1.4.9](https://github.com/microsoft/DirectX-Headers/releases/tag/v1.4.9) | [![License: MIT](https://img.shields.io/badge/License-MIT-lightblue.svg)](https://opensource.org/licenses/MIT) |
 | [lua](https://github.com/lua/lua) | [5.4.3](https://github.com/lua/lua/releases/tag/v5.4.3) | [![License: MIT](https://img.shields.io/badge/License-MIT-lightblue.svg)](https://opensource.org/licenses/MIT) |
+| [inja](https://github.com/pantor/inja) | [3.3.0](https://github.com/pantor/inja/releases/tag/v3.3.0) | [![License: MIT](https://img.shields.io/badge/License-MIT-lightblue.svg)](https://opensource.org/licenses/MIT) |
 
+Note that these libraries may themselves have other dependencies with different licenses.
 
 ## Using iris
 Iris (and all of its dependencies) are built as static libraries. There are three ways you can include iris in your project. These all assume you are using cmake, it is theoretically possible to integrate iris into other build systems but that is beyond the scope of this document.
@@ -156,30 +160,11 @@ Opening the root [`CMakeLists.txt`](/CMakeLists.txt) file in either tool should 
 
 Tests can be run with a googletest adaptor e.g. [visual studio](https://docs.microsoft.com/en-us/visualstudio/test/how-to-use-google-test-for-cpp?view=vs-2019) or [vscode](https://marketplace.visualstudio.com/items?itemName=DavidSchuldenfrei.gtest-adapter)
 
-### Xcode
-You will need to generate the Xcode project files.
-
-For macOS:
-```bash
-mkdir build
-cd build
-cmake -GXcode ..
-```
-
-For iOS:
-```bash
-mkdir build
-cd build
-cmake .. -G Xcode -DCMAKE_TOOLCHAIN_FILE=../toolchains/ios.toolchain.cmake -DDEPLOYMENT_TARGET=14.3
-```
-
 ## Examples
 
 The samples directory contains some basic usages.
 * [sample_browser](/samples/sample_browser) - single executable with multiple graphics samples (tab to cycle through them)
 * [jobs](/samples/jobs) - a quick and dirty path tracer to showcase and test the jobs system
-* [networking](/samples/networking) - a client and server applications showcasing networking, client side prediction and lag compensation
-
 
 Some additional snippets are included below.
 
@@ -217,41 +202,6 @@ int main(int argc, char **argv)
 {
     iris::start(argc, argv, go);
 }
-```
-
-*All further snippets will assume be in `go()` and will omit headers for brevity*
-
-**Render a red cube**
-```c++
-    auto *window = iris::Root::window_manager().create_window(800, 800);
-    auto running = true;
-
-    iris::Scene scene;
-    scene.create_entity(
-        nullptr,
-        iris::Root::mesh_manager().cube({1.0f, 0.0f, 0.0f}),
-        iris::Transform{{0.0f, 0.0f, 0.0f}, {}, {10.0f, 10.0f, 10.0f}});
-
-    iris::Camera camera{iris::CameraType::PERSPECTIVE, 800, 800};
-
-    window->set_render_passes({{&scene, &camera, nullptr}});
-
-    do
-    {
-        auto event = window->pump_event();
-        while (event)
-        {
-            if (event->is_key(iris::Key::ESCAPE))
-            {
-                running = false;
-                break;
-            }
-
-            event = window->pump_event();
-        }
-
-        window->render();
-    } while (running);
 ```
 
 ## Design
@@ -305,7 +255,7 @@ while (event)
 ### [`graphics`](/include/iris/graphics)
 All rendering logic is encapsulated in graphics. API agnostic interfaces are defined and implementations can be selected at runtime.
 
-A rough breakdown of the graphics design is below. The public interface is what users should use. The arrow is (mostly) used to denote ownership.
+A simplified breakdown of the graphics design is below. The public interface is what users should use. The arrow is (mostly) used to denote ownership.
 
 ```text
 
@@ -317,10 +267,6 @@ A rough breakdown of the graphics design is below. The public interface is what 
                                             |    +----------------+    +------------------+
                                             .--->| ShaderCompiler |--->| GraphicsMaterial |
                                             |    +----------------+    +------------------+
-                                            |
-                                            |    +--------------------+
-                                            .--->| RenderQueueBuilder |
-                                            |    +--------------------+
                                             |
                                             |
                    +----------+    +------------------+
@@ -337,9 +283,20 @@ public interface         |              |
 | WindowManager |--->| Window |--->| Renderer |---->| render() |
 +---------------+    +--------+    +----------+     +----------+
                          |
-                         |   +---------------------+    +-------+                    
-                         '-->| set_current_scene() |<---| Scene |                    
-                             +---------------------+    +-------+                    
+                         |   +-----------------------+      +------------+       +---------------+
+                         '-->| set_render_pipeline() |<-----| RenderPass |<------| Render Target |
+                             +-----------------------+   |  +------------+    |  +---------------+
+                                                         |                    |  +-------------------------+
+                                                         |                    '--| Post Processing Effects |
+                                                         |                       +-------------------------+
+                                                         |  +--------------+
+                                                         |--| Render Graph |
+                                                         |  +--------------+
+                                                         |
+                                                         |  +-------+
+                                                          '-| Scene |
+                                                            +-------+
+                                                            |
                                                             |    +--------------+
                                                             '--->| RenderEntity | 
                                                             |    +--------------+
@@ -349,9 +306,6 @@ public interface         |              |
                                                             |           |    +----------+
                                                             |           '--->| Skeleton |
                                                             |                +----------+
-                                                            |    +-------------+
-                                                            '--->| RenderGraph |
-                                                            |    +-------------+
                                                             |    +-------+
                                                             '--->| Light |
                                                                  +-------+
@@ -364,6 +318,7 @@ The render graph allows a user to define the effect of shaders in a shader langu
 A [`RenderGraph`](/include/iris/graphics/render_graph/render_graph.h) owns a [`RenderNode`](/include/iris/graphics/render_graph/render_node.h) which is the root of the graph. To configure the output of the shader the inputs of the [`RenderNode`](/include/iris/graphics/render_graph/render_node.h) should be set. An example:
 
 **Basic bloom**
+Note that bloom is a provided as a built in post-processing effect - this is just used to illustrate the flexibility of the render graph.
 ```text
             Render
 Main scene ~~~~~~~~ -----.
@@ -410,66 +365,6 @@ Main scene ~~~~~~~~ -----.
  +-----+    |   +---------------------+
  | ADD |----'
  +-----+
-```
-
-Which in code would look something like:
-```c++
-iris::Scene main_scene;
-auto *main_rt = window->create_render_target();
-main_scene.create_entity(
-    nullptr,
-    iris::Root::mesh_manager().cube({100.0f, 0.0f, 0.0f}),
-    iris::Transform{{0.0f, 0.0f, -10.0f}, {}, {10.0f, 10.0f, 10.0f}});
-
-iris::Scene bright_pass_scene;
-auto *bright_pass_rt = window->create_render_target();
-auto *bright_pass_rg = bright_pass_scene.create_render_graph();
-bright_pass_rg->render_node()->set_colour_input(bright_pass_rg->create<iris::ConditionalNode>(
-    bright_pass_rg->create<iris::ArithmeticNode>(
-        bright_pass_rg->create<iris::TextureNode>(main_rt->colour_texture()),
-        bright_pass_rg->create<iris::ValueNode<iris::Colour>>(iris::Colour{0.2126f, 0.7152f, 0.0722f, 0.0f}),
-        iris::ArithmeticOperator::DOT),
-    bright_pass_rg->create<iris::ValueNode<float>>(1.0f),
-    bright_pass_rg->create<iris::TextureNode>(main_rt->colour_texture()),
-    bright_pass_rg->create<iris::ValueNode<iris::Colour>>(iris::Colour{0.0f, 0.0f, 0.0f, 1.0f}),
-    iris::ConditionalOperator::GREATER));
-
-bright_pass_scene.create_entity(
-    bright_pass_rg,
-    iris::Root::mesh_manager().sprite({1.0f, 1.0f, 1.0f}),
-    iris::Transform{{0.0f, 0.0f, 0.0f}, {}, {800.0f, 800.0f, 1.0f}});
-
-iris::Scene blur_pass_scene;
-auto *blur_pass_rt = window->create_render_target();
-auto *blur_pass_rg = blur_pass_scene.create_render_graph();
-blur_pass_rg->render_node()->set_colour_input(blur_pass_rg->create<iris::BlurNode>(
-    blur_pass_rg->create<iris::TextureNode>(bright_pass_rt->colour_texture())));
-
-blur_pass_scene.create_entity(
-    blur_pass_rg,
-    iris::Root::mesh_manager().sprite({1.0f, 1.0f, 1.0f}),
-    iris::Transform{{0.0f, 0.0f, 0.0f}, {}, {800.0f, 800.0f, 1.0f}});
-
-iris::Scene final_scene;
-auto *final_rg = final_scene.create_render_graph();
-final_rg->render_node()->set_colour_input(final_rg->create<iris::ArithmeticNode>(
-    final_rg->create<iris::TextureNode>(blur_pass_rt->colour_texture()),
-    final_rg->create<iris::TextureNode>(main_rt->colour_texture()),
-    iris::ArithmeticOperator::ADD));
-
-final_scene.create_entity(
-    final_rg,
-    iris::Root::mesh_manager().sprite({1.0f, 1.0f, 1.0f}),
-    iris::Transform{{0.0f, 0.0f, 0.0f}, {}, {800.0f, 800.0f, 1.0f}});
-
-iris::Camera persective_camera{iris::CameraType::PERSPECTIVE, 800, 800};
-iris::Camera orth_camera{iris::CameraType::ORTHOGRAPHIC, 800, 800};
-
-window->set_render_passes(
-    {{&main_scene, &persective_camera, main_rt},
-     {&bright_pass_scene, &orth_camera, bright_pass_rt},
-     {&blur_pass_scene, &orth_camera, blur_pass_rt},
-     {&final_scene, &orth_camera, nullptr}});
 ```
 
 ### [`jobs`](/include/iris/jobs)

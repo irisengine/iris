@@ -8,6 +8,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <ostream>
 
 #include "core/utils.h"
@@ -318,5 +319,19 @@ inline std::ostream &operator<<(std::ostream &out, const Colour &c)
 
     return out;
 }
+
+}
+
+// specialise std::hash for colour
+namespace std
+{
+template <>
+struct hash<iris::Colour>
+{
+    size_t operator()(const iris::Colour &colour) const
+    {
+        return iris::combine_hash(colour.r, colour.g, colour.b, colour.a);
+    }
+};
 
 }

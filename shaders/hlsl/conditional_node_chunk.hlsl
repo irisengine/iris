@@ -1,0 +1,1 @@
+({{input1}} {{operator}} {{input2}} ? {{output1}} : {{output2}})

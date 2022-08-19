@@ -13,7 +13,7 @@ class FakeTexture : public iris::Texture
 {
   public:
     FakeTexture()
-        : iris::Texture({}, 1u, 1u, iris::TextureUsage::IMAGE)
+        : iris::Texture({}, 1u, 1u, nullptr, iris::TextureUsage::IMAGE, 0u)
     {
     }
 

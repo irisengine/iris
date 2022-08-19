@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <limits>
 #include <ostream>
 
@@ -420,5 +421,20 @@ inline std::ostream &operator<<(std::ostream &out, const Vector3 &v)
 
     return out;
 }
+
+}
+
+// specialise std::hash for colour
+namespace std
+{
+
+template <>
+struct hash<iris::Vector3>
+{
+    size_t operator()(const iris::Vector3 &vec) const
+    {
+        return iris::combine_hash(vec.x, vec.y, vec.z);
+    }
+};
 
 }

@@ -32,7 +32,14 @@ enum class RigidBodyType : std::uint32_t
      * A rigid body that can be moved and detects collision, although it does
      * not perform collision resolution.
      */
-    GHOST
+    GHOST,
+
+    /**
+     * A specialisation of GHOST for character controllers. This behaves exactly the same as GHOST but allows custom
+     * character controller logic to differentiate between ghosts and characters, so they can apply collision resolution
+     * (if needed).
+     */
+    CHARACTER_CONTROLLER
 };
 
 }

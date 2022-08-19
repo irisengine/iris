@@ -17,6 +17,8 @@
 #include <graphics/lights/point_light.h>
 #include <graphics/render_entity.h>
 #include <graphics/render_graph/render_graph.h>
+#include <graphics/render_pipeline.h>
+#include <graphics/single_entity.h>
 #include <graphics/window.h>
 #include <physics/character_controller.h>
 #include <physics/physics_system.h>
@@ -39,8 +41,7 @@ class PhysicsSample : public Sample
      * @param target
      *   Target to render to.
      */
-    PhysicsSample(iris::Window *window, iris::RenderTarget *target);
-    ~PhysicsSample() override = default;
+    PhysicsSample(iris::Window *window, iris::RenderPipeline &render_pipeline);
 
     /**
      * Fixed rate update function.
@@ -60,8 +61,6 @@ class PhysicsSample : public Sample
      */
     void handle_input(const iris::Event &event) override;
 
-    std::vector<iris::RenderPass> render_passes() override;
-
     /**
      * Title of sample.
      *
@@ -70,13 +69,17 @@ class PhysicsSample : public Sample
      */
     std::string title() const override;
 
+    /**
+     * Get the target the sample will render to.
+     *
+     * @returns
+     *   Sample render target.
+     */
+    const iris::RenderTarget *target() const override;
+
   private:
-    /** Pointer to window. */
-    iris::Window *window_;
-
-    iris::RenderTarget *target_;
-
-    iris::Scene scene_;
+    /** Render target for sample. */
+    const iris::RenderTarget *render_target_;
 
     /** Physics system */
     iris::PhysicsSystem *physics_;
@@ -94,10 +97,8 @@ class PhysicsSample : public Sample
     std::map<iris::Key, iris::KeyState> key_map_;
 
     /** Collection of render entity and rigid body pairs. */
-    std::vector<std::tuple<iris::RenderEntity *, iris::RigidBody *>> boxes_;
+    std::vector<std::tuple<iris::SingleEntity *, iris::RigidBody *>> boxes_;
 
     /** Character controller. */
     iris::CharacterController *character_controller_;
-
-    iris::CubeMap *sky_box_;
 };

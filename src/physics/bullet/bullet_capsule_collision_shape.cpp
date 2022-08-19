@@ -15,7 +15,19 @@ namespace iris
 
 BulletCapsuleCollisionShape::BulletCapsuleCollisionShape(float width, float height)
     : shape_(std::make_unique<btCapsuleShape>(width, height))
+    , width_(width)
+    , height_(height)
 {
+}
+
+float BulletCapsuleCollisionShape::width() const
+{
+    return width_;
+}
+
+float BulletCapsuleCollisionShape::height() const
+{
+    return height_;
 }
 
 btCollisionShape *BulletCapsuleCollisionShape::handle() const

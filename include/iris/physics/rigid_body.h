@@ -126,7 +126,7 @@ class RigidBody
      * @returns
      *   Collision shape.
      */
-    virtual CollisionShape *collision_shape() const = 0;
+    virtual const CollisionShape *collision_shape() const = 0;
 
     /**
      * Set collision shape.
@@ -134,7 +134,7 @@ class RigidBody
      * @param collision_shape
      *   New collision shape.
      */
-    virtual void set_collision_shape(CollisionShape *collision_shape) = 0;
+    virtual void set_collision_shape(const CollisionShape *collision_shape) = 0;
 
     /**
      * Apply an impulse (at the centre of mass).

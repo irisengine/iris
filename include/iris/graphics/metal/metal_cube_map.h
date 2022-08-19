@@ -10,6 +10,7 @@
 
 #include "core/data_buffer.h"
 #include "graphics/cube_map.h"
+#include "graphics/sampler.h"
 
 namespace iris
 {
@@ -46,6 +47,12 @@ class MetalCubeMap : public CubeMap
      *
      * @param height
      *   Height of each image face.
+     *
+     * @param sampler
+     *   Sampler to use for cube map.
+     *
+     * @param index
+     *   Index into the global array of all allocated textures.
      */
     MetalCubeMap(
         const DataBuffer &right_data,
@@ -55,7 +62,9 @@ class MetalCubeMap : public CubeMap
         const DataBuffer &back_data,
         const DataBuffer &front_data,
         std::uint32_t width,
-        std::uint32_t height);
+        std::uint32_t height,
+        const Sampler *sampler,
+        std::uint32_t index);
 
     ~MetalCubeMap() override = default;
 

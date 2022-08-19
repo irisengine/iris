@@ -10,11 +10,13 @@
 #include <cstddef>
 #include <queue>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "core/error_handling.h"
 #include "core/matrix4.h"
-#include "graphics/animation.h"
+#include "graphics/animation/animation.h"
+#include "graphics/animation/bone_query.h"
 #include "graphics/bone.h"
 #include "graphics/weight.h"
 
@@ -35,14 +37,14 @@ namespace
  * @param parents
  *   Index of parents of bones.
  *
- * @param animation
- *   Pointer to animation object, if not null will apply animation transforms.
+ * @param query
+ *   Optional object to query bone transforms (for example from an animation).
  */
 void update_transforms(
     std::vector<iris::Matrix4> &transforms,
     const std::vector<iris::Bone> &bones,
     const std::vector<std::size_t> &parents,
-    const iris::Animation *animation)
+    iris::BoneQuery *query)
 {
     // get inverse transform of root node
     const auto inverse = iris::Matrix4::invert(bones.front().transform());
@@ -67,13 +69,13 @@ void update_transforms(
             cache[i] = bone.transform();
             transforms[i] = inverse * cache[i] * bone.offset();
         }
-        else if (animation != nullptr)
+        else if (query != nullptr)
         {
             // check if our bone exists in the supplied animation
-            if (animation->bone_exists(bone.name()))
+            if (const auto transform = query->transform(bone.name()); transform)
             {
                 // apply parent transform with animation transform
-                cache[i] = cache[parents[i]] * animation->transform(bone.name()).matrix();
+                cache[i] = cache[parents[i]] * transform->matrix();
                 transforms[i] = inverse * cache[i] * bone.offset();
             }
         }
@@ -92,16 +94,14 @@ namespace iris
 {
 
 Skeleton::Skeleton()
-    : Skeleton({{"root", {}, std::vector<Weight>{{0u, 1.0f}}, {}, {}}}, {})
+    : Skeleton({{"root", {}, {}, {}}})
 {
 }
 
-Skeleton::Skeleton(std::vector<Bone> bones, const std::vector<Animation> &animations)
+Skeleton::Skeleton(std::vector<Bone> bones)
     : bones_()
     , parents_()
     , transforms_(100)
-    , animations_(animations)
-    , current_animation_()
 {
     // a root bone is one without a parent, only support one
     ensure(
@@ -147,8 +147,6 @@ Skeleton::Skeleton(std::vector<Bone> bones, const std::vector<Animation> &animat
         }
 
     } while (!queue.empty());
-
-    update_transforms(transforms_, bones_, parents_, nullptr);
 }
 
 const std::vector<Bone> &Skeleton::bones() const
@@ -161,46 +159,20 @@ const std::vector<Matrix4> &Skeleton::transforms() const
     return transforms_;
 }
 
-void Skeleton::set_animation(const std::string &name)
+void Skeleton::update(BoneQuery *query)
 {
-    current_animation_ = name;
-    auto animation = std::find_if(
-        std::begin(animations_),
-        std::end(animations_),
-        [this](const Animation &element) { return element.name() == current_animation_; });
-
-    expect(animation != std::cend(animations_), "unknown animation");
-
-    animation->reset();
-
-    update_transforms(transforms_, bones_, parents_, std::addressof(*animation));
+    update_transforms(transforms_, bones_, parents_, query);
 }
 
-Animation &Skeleton::animation()
+bool Skeleton::has_bone(std::string_view name) const
 {
-    auto animation = std::find_if(
-        std::begin(animations_),
-        std::end(animations_),
-        [this](const Animation &element) { return element.name() == current_animation_; });
+    const auto bone =
+        std::find_if(std::cbegin(bones_), std::cend(bones_), [&name](const Bone &bone) { return bone.name() == name; });
 
-    return *animation;
+    return bone != std::cend(bones_);
 }
 
-void Skeleton::advance()
-{
-    auto animation = std::find_if(
-        std::begin(animations_),
-        std::end(animations_),
-        [this](const Animation &element) { return element.name() == current_animation_; });
-
-    expect(animation != std::end(animations_), "unknown animation");
-
-    animation->advance();
-
-    update_transforms(transforms_, bones_, parents_, std::addressof(*animation));
-}
-
-std::size_t Skeleton::bone_index(const std::string &name) const
+std::size_t Skeleton::bone_index(std::string_view name) const
 {
     const auto bone =
         std::find_if(std::cbegin(bones_), std::cend(bones_), [&name](const Bone &bone) { return bone.name() == name; });
@@ -213,6 +185,11 @@ std::size_t Skeleton::bone_index(const std::string &name) const
 Bone &Skeleton::bone(std::size_t index)
 {
     return bones_[index];
+}
+
+Matrix4 Skeleton::transform(std::size_t index) const
+{
+    return transforms_[index];
 }
 
 const Bone &Skeleton::bone(std::size_t index) const

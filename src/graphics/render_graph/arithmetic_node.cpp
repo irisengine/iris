@@ -6,6 +6,10 @@
 
 #include "graphics/render_graph/arithmetic_node.h"
 
+#include <cstddef>
+#include <functional>
+
+#include "core/utils.h"
 #include "graphics/render_graph/node.h"
 #include "graphics/render_graph/shader_compiler.h"
 
@@ -37,6 +41,11 @@ Node *ArithmeticNode::value2() const
 ArithmeticOperator ArithmeticNode::arithmetic_operator() const
 {
     return arithmetic_operator_;
+}
+
+std::size_t ArithmeticNode::hash() const
+{
+    return combine_hash(value1_, value2_, arithmetic_operator_, "arithmetic_node");
 }
 
 }

@@ -6,6 +6,7 @@
 
 #include "graphics/d3d12/d3d12_cube_map.h"
 
+#include <cstdint>
 #include <vector>
 
 #define WIN32_LEAN_AND_MEAN
@@ -17,10 +18,10 @@
 
 #include "core/data_buffer.h"
 #include "core/error_handling.h"
-#include "graphics/cube_map.h"
 #include "graphics/d3d12/d3d12_context.h"
 #include "graphics/d3d12/d3d12_descriptor_handle.h"
 #include "graphics/d3d12/d3d12_descriptor_manager.h"
+#include "graphics/sampler.h"
 
 namespace iris
 {
@@ -33,8 +34,10 @@ D3D12CubeMap::D3D12CubeMap(
     const DataBuffer &back_data,
     const DataBuffer &front_data,
     std::uint32_t width,
-    std::uint32_t height)
-    : CubeMap()
+    std::uint32_t height,
+    const Sampler *sampler,
+    std::uint32_t index)
+    : CubeMap(sampler, index)
     , resource_()
     , upload_()
     , resource_view_()
@@ -126,7 +129,7 @@ D3D12CubeMap::D3D12CubeMap(
         // copy texture data with respect to footprint
         for (auto j = 0u; j < heights[i]; ++j)
         {
-            std::memcpy(dst_cursor, src_cursor, row_sizes[i]);
+            std::memcpy(dst_cursor, src_cursor, static_cast<std::size_t>(row_sizes[i]));
             dst_cursor += footprints_[i].Footprint.RowPitch;
             src_cursor += row_sizes[i];
         }

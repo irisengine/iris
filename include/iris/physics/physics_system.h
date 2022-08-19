@@ -9,17 +9,25 @@
 #include <chrono>
 #include <memory>
 #include <optional>
+#include <set>
+#include <vector>
 
 #include "core/quaternion.h"
 #include "core/vector3.h"
+#include "graphics/scene.h"
 #include "physics/character_controller.h"
 #include "physics/collision_shape.h"
+#include "physics/contact_point.h"
+#include "physics/ray_cast_result.h"
 #include "physics/rigid_body.h"
+
 
 namespace iris
 {
 
 class RenderEntity;
+class Mesh;
+class Texture;
 
 /**
  * Interface for a class which stores the current state of a PhysicsSystem.
@@ -70,16 +78,8 @@ class PhysicsSystem
      */
     virtual RigidBody *create_rigid_body(
         const Vector3 &position,
-        CollisionShape *collision_shape,
+        const CollisionShape *collision_shape,
         RigidBodyType type) = 0;
-
-    /**
-     * Create a CharacterController and add it to the simulation.
-     *
-     * @returns
-     *   A pointer to the newly created CharacterController.
-     */
-    virtual CharacterController *create_character_controller() = 0;
 
     /**
      * Create a CollisionShape for a box.
@@ -90,7 +90,7 @@ class PhysicsSystem
      * @returns
      *   Pointer to newly created CollisionShape.
      */
-    virtual CollisionShape *create_box_collision_shape(const Vector3 &half_size) = 0;
+    virtual const CollisionShape *create_box_collision_shape(const Vector3 &half_size) = 0;
 
     /**
      * Create a CollisionShape for a capsule.
@@ -104,7 +104,61 @@ class PhysicsSystem
      * @returns
      *   Pointer to newly created CollisionShape.
      */
-    virtual CollisionShape *create_capsule_collision_shape(float width, float height) = 0;
+    virtual const CollisionShape *create_capsule_collision_shape(float width, float height) = 0;
+
+    /**
+     * Create a CollisionShape from a Mesh.
+     *
+     * @param mesh
+     *   Mesh to create collision shape from.
+     *
+     * @param scale
+     *   Scale of mesh as it will be rendered.
+     *
+     * @returns
+     *   Pointer to newly created CollisionShape.
+     */
+    virtual const CollisionShape *create_mesh_collision_shape(const Mesh *mesh, const Vector3 &scale) = 0;
+
+    /**
+     * Create a CollisionShape from a Texture (reads height data from r component).
+     *
+     * @param heightmap
+     *   Texture containing height data.
+     *
+     * @param scale
+     *   Scale of mesh as it will be rendered.
+     *
+     * @returns
+     *   Pointer to newly created CollisionShape.
+     */
+    virtual const CollisionShape *create_heightmap_collision_shape(const Texture *heightmap, const Vector3 &scale) = 0;
+
+    /**
+     * Add a character controller.
+     *
+     * @param character_controller
+     *   Character controller to add.
+     *
+     * @return
+     *   Pointer to added character controller.
+     */
+    virtual CharacterController *add(std::unique_ptr<CharacterController> character_controller) = 0;
+
+    /**
+     * Create a CharacterController object.
+     *
+     * @param args
+     *   Arguments to forward to CharacterController constructor.
+     *
+     * @returns
+     *   Pointer to newly added CharacterController.
+     */
+    template <class T, class... Args>
+    T *create_character_controller(Args &&...args)
+    {
+        return static_cast<T *>(add(std::make_unique<T>(std::forward<Args>(args)...)));
+    }
 
     /**
      * Remove a body from the physics system.
@@ -123,13 +177,13 @@ class PhysicsSystem
      * This will release all resources for the character, using the handle after
      * this call is undefined.
      *
-     * @param body
-     *   Body to remove.
+     * @param character
+     *   Character to remove.
      */
-    virtual void remove(CharacterController *charaacter) = 0;
+    virtual void remove(CharacterController *character) = 0;
 
     /**
-     * Cast a ray into physics engine world.
+     * Cast a ray into physics engine world and get all hits.
      *
      * @param origin
      *   Origin of ray.
@@ -137,20 +191,28 @@ class PhysicsSystem
      * @param direction.
      *   Direction of ray.
      *
+     * @param ignore
+     *   Collection of rigid bodies that should be ignored from ray cast results.
+     *
      * @returns
-     *   If ray hits an object then a tuple [object hit, point of intersection],
-     *   else empty optional.
+     *   Collection of RayCastResult objects for all intersection with ray. These will be sorted from distance to origin
+     *   (closest first).
      */
-    virtual std::optional<std::tuple<RigidBody *, Vector3>> ray_cast(const Vector3 &origin, const Vector3 &direction)
-        const = 0;
+    virtual std::vector<RayCastResult> ray_cast(
+        const Vector3 &origin,
+        const Vector3 &direction,
+        const std::set<const RigidBody *> &ignore) = 0;
 
     /**
-     * Add a body to be excluded from ray_casts
+     * Query all contacts with a body.
      *
      * @param body
-     *   Body to ignore.
+     *   The body to test, note that this will be contact_a in all the returned ContactPoint objects.
+     *
+     * @returns
+     *   Collection of ContactPoint objects for all bodies colliding with body.
      */
-    virtual void ignore_in_raycast(RigidBody *body) = 0;
+    virtual std::vector<ContactPoint> contacts(RigidBody *body) = 0;
 
     /**
      * Save the current state of the simulation.
@@ -181,7 +243,7 @@ class PhysicsSystem
      * @param entity.
      *   The RenderEntity to store debug render data in.
      */
-    virtual void enable_debug_draw(RenderEntity *entity) = 0;
+    virtual void enable_debug_draw(Scene *scene) = 0;
 };
 
 }

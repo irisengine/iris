@@ -7,6 +7,7 @@
 #include "graphics/d3d12/d3d12_material.h"
 
 #include <any>
+#include <functional>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -20,9 +21,11 @@
 
 #include "core/error_handling.h"
 #include "graphics/d3d12/d3d12_context.h"
-#include "graphics/d3d12/hlsl_shader_compiler.h"
+#include "graphics/d3d12/d3d12_root_signature.h"
 #include "graphics/lights/lighting_rig.h"
+#include "graphics/render_graph/shader_compiler.h"
 #include "graphics/shader_type.h"
+#include "log/log.h"
 
 #pragma comment(lib, "d3dcompiler.lib")
 
@@ -42,7 +45,7 @@ namespace
  */
 Microsoft::WRL::ComPtr<ID3DBlob> create_shader(const std::string &source, iris::ShaderType type)
 {
-    const auto target = type == iris::ShaderType::VERTEX ? "vs_5_0" : "ps_5_0";
+    const auto target = type == iris::ShaderType::VERTEX ? "vs_5_1" : "ps_5_1";
 
     Microsoft::WRL::ComPtr<ID3DBlob> shader = nullptr;
     Microsoft::WRL::ComPtr<ID3DBlob> error = nullptr;
@@ -54,15 +57,28 @@ Microsoft::WRL::ComPtr<ID3DBlob> create_shader(const std::string &source, iris::
             NULL,
             "main",
             target,
-            D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
+            D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_ENABLE_UNBOUNDED_DESCRIPTOR_TABLES,
             0u,
             &shader,
             &error) != S_OK)
     {
         const std::string error_message(static_cast<char *>(error->GetBufferPointer()), error->GetBufferSize());
 
+        auto line_number = 1u;
+
+        std::istringstream strm{source};
+        for (std::string line; std::getline(strm, line);)
+        {
+            LOG_ENGINE_ERROR("d3d12_material", "{}: {}", line_number, line);
+            ++line_number;
+        }
+
+        LOG_ENGINE_ERROR("d3d12_material", "{}", error_message);
+
         throw iris::Exception("shader compile failed: " + error_message);
     }
+
+    LOG_ENGINE_INFO("d3d12_material", "shader created");
 
     return shader;
 }
@@ -77,37 +93,49 @@ D3D12Material::D3D12Material(
     const std::vector<D3D12_INPUT_ELEMENT_DESC> &input_descriptors,
     PrimitiveType primitive_type,
     LightType light_type,
-    bool render_to_swapchain)
+    ID3D12RootSignature *root_signature,
+    bool render_to_swapchain,
+    bool render_to_normal_target,
+    bool render_to_position_target,
+    bool has_transparency)
     : pso_()
-    , textures_()
-    , cube_map_(nullptr)
 {
-    HLSLShaderCompiler compiler{render_graph, light_type};
+    ShaderCompiler compiler{
+        ShaderLanguage::HLSL, render_graph, light_type, render_to_normal_target, render_to_position_target};
     const auto vertex_source = compiler.vertex_shader();
     const auto fragment_source = compiler.fragment_shader();
 
     const auto vertex_shader = create_shader(vertex_source, ShaderType::VERTEX);
     const auto fragment_shader = create_shader(fragment_source, ShaderType::FRAGMENT);
 
-    textures_ = compiler.textures();
-    cube_map_ = compiler.cube_map();
-
     auto *device = D3D12Context::device();
-    auto *root_signature = D3D12Context::root_signature();
 
     // setup various descriptors for pipeline state
 
     auto blend_state = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+    blend_state.RenderTarget[0].BlendEnable = FALSE;
 
-    // set blend mode based on light
-    // ambient is always rendered first (no blending)
-    // directional and point are always rendered after (blending)
-    blend_state.RenderTarget[0].BlendEnable = TRUE;
-    blend_state.RenderTarget[0].DestBlend = (light_type == LightType::AMBIENT) ? D3D12_BLEND_ZERO : D3D12_BLEND_ONE;
-    blend_state.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
+    if (light_type == LightType::AMBIENT)
+    {
+        if (has_transparency)
+        {
+            blend_state.RenderTarget[0].BlendEnable = TRUE;
+            blend_state.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+            blend_state.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+            blend_state.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+        }
+    }
+    else
+    {
+        blend_state.RenderTarget[0].BlendEnable = TRUE;
+        blend_state.RenderTarget[0].DestBlend = D3D12_BLEND_ONE;
+        blend_state.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+    }
 
     auto depth_state = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
     depth_state.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+    depth_state.DepthWriteMask =
+        (light_type == LightType::AMBIENT) ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
 
     D3D12_RASTERIZER_DESC rasterizer_description = {0};
     rasterizer_description.FillMode = D3D12_FILL_MODE_SOLID;
@@ -127,9 +155,13 @@ D3D12Material::D3D12Material(
     descriptor.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
     descriptor.SampleMask = UINT_MAX;
     descriptor.RasterizerState = rasterizer_description;
-    descriptor.NumRenderTargets = 1;
-    descriptor.RTVFormats[0] = !render_to_swapchain ? DXGI_FORMAT_R16G16B16A16_FLOAT : DXGI_FORMAT_R8G8B8A8_UNORM;
     descriptor.SampleDesc.Count = 1;
+
+    // set formats for all render targets we might use, it's ok to set these even if they are unused
+    descriptor.NumRenderTargets = 3;
+    descriptor.RTVFormats[0] = !render_to_swapchain ? DXGI_FORMAT_R16G16B16A16_FLOAT : DXGI_FORMAT_R8G8B8A8_UNORM;
+    descriptor.RTVFormats[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    descriptor.RTVFormats[2] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
     switch (primitive_type)
     {
@@ -145,16 +177,6 @@ D3D12Material::D3D12Material(
     strm << L"pso_" << counter++;
     const auto name = strm.str();
     pso_->SetName(name.c_str());
-}
-
-std::vector<Texture *> D3D12Material::textures() const
-{
-    return textures_;
-}
-
-const CubeMap *D3D12Material::cube_map() const
-{
-    return cube_map_;
 }
 
 ID3D12PipelineState *D3D12Material::pso() const

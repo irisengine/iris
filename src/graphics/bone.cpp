@@ -18,15 +18,9 @@
 namespace iris
 {
 
-Bone::Bone(
-    const std::string &name,
-    const std::string &parent,
-    const std::vector<Weight> &weights,
-    const Matrix4 &offset,
-    const Matrix4 &transform)
+Bone::Bone(const std::string &name, const std::string &parent, const Matrix4 &offset, const Matrix4 &transform)
     : name_(name)
     , parent_(parent)
-    , weights_(weights)
     , offset_(offset)
     , transform_(transform)
     , is_manual_(false)
@@ -36,11 +30,6 @@ Bone::Bone(
 std::string Bone::name() const
 {
     return name_;
-}
-
-const std::vector<Weight> &Bone::weights() const
-{
-    return weights_;
 }
 
 const Matrix4 &Bone::offset() const

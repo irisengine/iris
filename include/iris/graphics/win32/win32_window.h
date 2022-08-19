@@ -69,6 +69,14 @@ class Win32Window : public Window
      */
     HDC device_context() const;
 
+    /**
+     * Get DPI of screen window is on.
+     *
+     * @returns
+     *   Screen DPI.
+     */
+    std::uint32_t dpi() const;
+
   protected:
     /** Win32 window handle. */
     AutoWindow window_;

@@ -9,6 +9,7 @@
 #include <cmath>
 #include <optional>
 #include <queue>
+#include <set>
 
 #define WIN32_LEAN_AND_MEAN
 #include <ShellScalingApi.h>
@@ -19,7 +20,11 @@
 #include "core/auto_release.h"
 #include "core/error_handling.h"
 #include "events/event.h"
+#include "events/keyboard_event.h"
+#include "events/mouse_button_event.h"
 #include "events/quit_event.h"
+#include "events/scroll_wheel_event.h"
+#include "log/log.h"
 
 #pragma comment(lib, "Shcore.lib")
 
@@ -148,14 +153,37 @@ LRESULT CALLBACK window_proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     LRESULT result = 0;
 
+    static std::set<WPARAM> pressed{};
+
     switch (uMsg)
     {
         case WM_CLOSE: event_queue.emplace(iris::QuitEvent{}); break;
         case WM_KEYDOWN:
-            event_queue.emplace(iris::KeyboardEvent{windows_key_to_engine_Key(wParam), iris::KeyState::DOWN});
+            if (!pressed.contains(wParam))
+            {
+                event_queue.emplace(iris::KeyboardEvent{windows_key_to_engine_Key(wParam), iris::KeyState::DOWN});
+                pressed.emplace(wParam);
+            }
             break;
         case WM_KEYUP:
             event_queue.emplace(iris::KeyboardEvent{windows_key_to_engine_Key(wParam), iris::KeyState::UP});
+            pressed.erase(wParam);
+            break;
+        case WM_LBUTTONDOWN:
+            event_queue.emplace(iris::MouseButtonEvent{iris::MouseButton::LEFT, iris::MouseButtonState::DOWN});
+            break;
+        case WM_LBUTTONUP:
+            event_queue.emplace(iris::MouseButtonEvent{iris::MouseButton::LEFT, iris::MouseButtonState::UP});
+            break;
+        case WM_RBUTTONDOWN:
+            event_queue.emplace(iris::MouseButtonEvent{iris::MouseButton::RIGHT, iris::MouseButtonState::DOWN});
+            break;
+        case WM_RBUTTONUP:
+            event_queue.emplace(iris::MouseButtonEvent{iris::MouseButton::RIGHT, iris::MouseButtonState::UP});
+            break;
+        case WM_MOUSEWHEEL:
+            event_queue.emplace(
+                iris::ScrollWheelEvent{static_cast<float>(GET_WHEEL_DELTA_WPARAM(wParam)) / WHEEL_DELTA});
             break;
         case WM_INPUT:
         {
@@ -175,6 +203,12 @@ LRESULT CALLBACK window_proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
                 event_queue.emplace(iris::MouseEvent{static_cast<float>(x), static_cast<float>(y)});
             }
+            else if ((raw.data.mouse.usButtonFlags & RI_MOUSE_WHEEL) == RI_MOUSE_WHEEL)
+            {
+                const auto delta = static_cast<float>(static_cast<std::uint16_t>(raw.data.mouse.usButtonData));
+                event_queue.emplace(iris::ScrollWheelEvent{delta});
+            }
+
             break;
         }
         default: result = ::DefWindowProc(hWnd, uMsg, wParam, lParam);
@@ -195,7 +229,7 @@ Win32Window::Win32Window(std::uint32_t width, std::uint32_t height)
     , wc_()
 {
     // ensure process is aware of high dpi monitors
-    ensure(::SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE) == S_OK, "could not set process dpi awareness");
+    ensure(::SetProcessDpiAwareness(PROCESS_SYSTEM_DPI_AWARE) == S_OK, "could not set process dpi awareness");
 
     const auto instance = ::GetModuleHandleA(NULL);
 
@@ -215,7 +249,8 @@ Win32Window::Win32Window(std::uint32_t width, std::uint32_t height)
 
     ensure(::AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false) != 0, "could not resize window");
 
-    // create window, we will resize it after for current dpi
+    // create window
+    // we cannot query dpi without first creating a window, so we will resize afterwards
     window_ = {
         CreateWindowExA(
             0,
@@ -233,11 +268,27 @@ Win32Window::Win32Window(std::uint32_t width, std::uint32_t height)
         ::DestroyWindow};
     ensure(window_, "could not create window");
 
+    const auto screen_width = ::GetSystemMetrics(SM_CXSCREEN);
+    const auto screen_height = ::GetSystemMetrics(SM_CYSCREEN);
+
     const auto scale = screen_scale();
+
+    rect = {0};
+    rect.right = static_cast<int>(width_ * scale);
+    rect.bottom = static_cast<int>(height_ * scale);
+
+    ensure(::AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false) != 0, "could not resize window");
 
     // ensure window size is correctly scaled for current dpi
     ensure(
-        ::SetWindowPos(window_, window_, 0, 0, width_ * scale, height_ * scale, SWP_NOZORDER | SWP_NOACTIVATE) != 0,
+        ::SetWindowPos(
+            window_,
+            window_,
+            rect.left + (screen_width / 2) - ((width_ * scale) / 2),
+            rect.top + (screen_height / 2) - ((height_ * scale) / 2),
+            rect.right - rect.left,
+            rect.bottom - rect.top,
+            SWP_NOZORDER | SWP_NOACTIVATE) != 0,
         "could not set window position");
 
     dc_ = {::GetDC(window_), [this](HDC dc) { ::ReleaseDC(window_, dc); }};
@@ -259,13 +310,20 @@ Win32Window::Win32Window(std::uint32_t width, std::uint32_t height)
     while (::ShowCursor(FALSE) >= 0)
     {
     }
+
+    auto clip_rect = rect;
+    clip_rect.left += (screen_width / 2) - ((width_ * scale) / 2),
+        clip_rect.bottom += (screen_height / 2) - ((height_ * scale) / 2),
+        clip_rect.right += (screen_width / 2) - ((width_ * scale) / 2),
+        clip_rect.top += (screen_height / 2) - ((height_ * scale) / 2);
+
+    // confine cursor to window
+    ensure(::ClipCursor(&clip_rect) == TRUE, "could not confine cursor");
 }
 
 std::uint32_t Win32Window::screen_scale() const
 {
-    const auto dpi = ::GetDpiForWindow(window_);
-
-    return static_cast<std::uint32_t>(std::ceil(static_cast<float>(dpi) / 96.0f));
+    return static_cast<std::uint32_t>(std::ceil(static_cast<float>(dpi()) / 96.0f));
 }
 
 std::optional<Event> Win32Window::pump_event()
@@ -293,6 +351,11 @@ std::optional<Event> Win32Window::pump_event()
 HDC Win32Window::device_context() const
 {
     return dc_;
+}
+
+std::uint32_t Win32Window::dpi() const
+{
+    return ::GetDpiForWindow(window_);
 }
 
 }

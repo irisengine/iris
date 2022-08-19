@@ -6,24 +6,19 @@
 
 #pragma once
 
-#include <memory>
-#include <vector>
+#include <cstddef>
+#include <string>
+#include <string_view>
 
-#include "core/camera_type.h"
-#include "core/matrix4.h"
-#include "core/quaternion.h"
-#include "core/transform.h"
 #include "graphics/mesh.h"
 #include "graphics/primitive_type.h"
-#include "graphics/render_graph/render_node.h"
-#include "graphics/skeleton.h"
-#include "graphics/texture.h"
+#include "graphics/render_entity_type.h"
 
 namespace iris
 {
 
 /**
- * A renderable entity.
+ * Abstract class representing a renderable entity.
  */
 class RenderEntity
 {
@@ -34,48 +29,12 @@ class RenderEntity
      * @param mesh
      *   Mesh to render.
      *
-     * @param position
-     *   Centre of mesh in world space.
-     *
      * @param primitive_type
      *   Primitive type of underlying mesh.
      */
-    RenderEntity(const Mesh *mesh, const Vector3 &position, PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
+    RenderEntity(const Mesh *mesh, PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
 
-    /**
-     * Construct a RenderEntity.
-     *
-     * @param mesh
-     *   Mesh to render.
-     *
-     * @param transform
-     *   Transform of entity in world space.
-     *
-     * @param primitive_type
-     *   Primitive type of underlying mesh.
-     */
-    RenderEntity(const Mesh *mesh, const Transform &transform, PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
-
-    /**
-     * Construct a RenderEntity.
-     *
-     * @param mesh
-     *   Mesh to render.
-     *
-     * @param transform
-     *   Transform of entity in world space.
-     *
-     * @param skeleton
-     *   Skeleton.
-     *
-     * @param primitive_type
-     *   Primitive type of underlying mesh.
-     */
-    RenderEntity(
-        const Mesh *mesh,
-        const Transform &transform,
-        Skeleton skeleton,
-        PrimitiveType primitive_type = PrimitiveType::TRIANGLES);
+    virtual ~RenderEntity() = default;
 
     RenderEntity(const RenderEntity &) = delete;
     RenderEntity &operator=(const RenderEntity &) = delete;
@@ -83,68 +42,20 @@ class RenderEntity
     RenderEntity &operator=(RenderEntity &&) = default;
 
     /**
-     * Get position.
+     * Get if entity will be rendered with transparency.
      *
      * @returns
-     *   Position.
+     *   True if entity will have transparency, otherwise false.
      */
-    Vector3 position() const;
+    virtual bool has_transparency() const = 0;
 
     /**
-     * Set the position of the RenderEntity.
-     *
-     * @param position
-     *   New position.
-     */
-    void set_position(const Vector3 &position);
-
-    /**
-     * Get orientation.
-     *
-     * @return
-     *   Orientation.
-     */
-    Quaternion orientation() const;
-
-    /**
-     * Set the orientation of the RenderEntity.
-     *
-     * @param orientation
-     *   New orientation.
-     */
-    void set_orientation(const Quaternion &orientation);
-
-    /**
-     * Set the scale of the RenderEntity.
-     *
-     * @param scale
-     *   New scale.
-     */
-    void set_scale(const Vector3 &scale);
-
-    /**
-     * Get the transformation matrix of the RenderEntity.
+     * Get entity type.
      *
      * @returns
-     *   Transformation matrix.
+     *   Entity type.
      */
-    Matrix4 transform() const;
-
-    /**
-     * Set transformation matrix.
-     *
-     * @param transform
-     *   New transform matrix.
-     */
-    void set_transform(const Matrix4 &transform);
-
-    /**
-     * Get the transformation matrix for the normals of the RenderEntity.
-     *
-     * @returns
-     *   Normal transformation matrix.
-     */
-    Matrix4 normal_transform() const;
+    virtual RenderEntityType type() const = 0;
 
     /**
      * Get all Mesh for this entity.
@@ -153,14 +64,6 @@ class RenderEntity
      *   Mesh.
      */
     const Mesh *mesh() const;
-
-    /**
-     * Set Mesh.
-     *
-     * @param mesh
-     *   New Mesh.
-     */
-    void set_mesh(const Mesh *mesh);
 
     /**
      * Returns whether the object should be rendered as a wireframe.
@@ -187,20 +90,20 @@ class RenderEntity
     PrimitiveType primitive_type() const;
 
     /**
-     * Get reference to skeleton.
+     * Get (optional) name.
      *
-     * @returns
-     *   Reference to skeleton.
+     * @return
+     *  Name of entity, empty string if not set.
      */
-    Skeleton &skeleton();
+    std::string name() const;
 
     /**
-     * Get const reference to skeleton.
+     * Set the name of the entity.
      *
-     * @returns
-     *   Reference to skeleton.
+     * @param name
+     *   New name.
      */
-    const Skeleton &skeleton() const;
+    void set_name(std::string_view name);
 
     /**
      * Can this entity have shadows rendered on it.
@@ -218,15 +121,9 @@ class RenderEntity
      */
     void set_receive_shadow(bool receive_shadow);
 
-  private:
+  protected:
     /** Mesh to render. */
     const Mesh *mesh_;
-
-    /** World space transform. */
-    Transform transform_;
-
-    /** Normal transformation matrix. */
-    Matrix4 normal_;
 
     /** Whether the object should be rendered as a wireframe. */
     bool wireframe_;
@@ -234,8 +131,8 @@ class RenderEntity
     /** Primitive type. */
     PrimitiveType primitive_type_;
 
-    /** Skeleton. */
-    Skeleton skeleton_;
+    /** Optional name (default is empty string). */
+    std::string name_;
 
     /** Should object render shadows. */
     bool receive_shadow_;

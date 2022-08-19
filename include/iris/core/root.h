@@ -15,6 +15,8 @@ namespace iris
 {
 
 class JobSystemManager;
+class MaterialManager;
+class RenderTargetManager;
 class MeshManager;
 class PhysicsManager;
 class TextureManager;
@@ -75,6 +77,22 @@ class Root
     static TextureManager &texture_manager();
 
     /**
+     * Get the current MaterialManager.
+     *
+     * @returns
+     *   Current MaterialManager.
+     */
+    static MaterialManager &material_manager();
+
+    /**
+     * Get the current RenderTargetManager.
+     *
+     * @returns
+     *   Current RenderTargetManager.
+     */
+    static RenderTargetManager &render_target_manager();
+
+    /**
      * Get the current PhysicsManager.
      *
      * @returns
@@ -104,12 +122,20 @@ class Root
      *
      * @param texture_manager
      *   New TextureManager.
+     *
+     * @param material_manager
+     *   New MaterialManager.
+     *
+     * @param RenderTargetManager
+     *   New RenderTargetManager.
      */
     static void register_graphics_api(
         const std::string &api,
         std::unique_ptr<WindowManager> window_manager,
         std::unique_ptr<MeshManager> mesh_manager,
-        std::unique_ptr<TextureManager> texture_manager);
+        std::unique_ptr<TextureManager> texture_manager,
+        std::unique_ptr<MaterialManager> material_manager,
+        std::unique_ptr<RenderTargetManager> render_target_manager);
 
     /**
      * Get the currently set graphics api.
@@ -228,6 +254,10 @@ class Root
 
     TextureManager &texture_manager_impl() const;
 
+    MaterialManager &material_manager_impl() const;
+
+    RenderTargetManager &render_target_manager_impl() const;
+
     PhysicsManager &physics_manager_impl() const;
 
     JobSystemManager &jobs_manager_impl() const;
@@ -236,7 +266,9 @@ class Root
         const std::string &api,
         std::unique_ptr<WindowManager> window_manager,
         std::unique_ptr<MeshManager> mesh_manager,
-        std::unique_ptr<TextureManager> texture_manager);
+        std::unique_ptr<TextureManager> texture_manager,
+        std::unique_ptr<MaterialManager> material_manager,
+        std::unique_ptr<RenderTargetManager> render_target_manager);
 
     std::string graphics_api_impl() const;
 
@@ -274,6 +306,8 @@ class Root
     {
         std::unique_ptr<MeshManager> mesh_manager;
         std::unique_ptr<TextureManager> texture_manager;
+        std::unique_ptr<MaterialManager> material_manager;
+        std::unique_ptr<RenderTargetManager> render_target_manager;
         std::unique_ptr<WindowManager> window_manager;
     };
 

@@ -6,7 +6,9 @@
 
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
+#include <iostream>
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -16,36 +18,41 @@
 #include "directx/d3dx12.h"
 
 #include "core/exception.h"
-#include "graphics/d3d12/d3d12_context.h"
-#include "graphics/d3d12/d3d12_cpu_descriptor_handle_allocator.h"
 #include "graphics/d3d12/d3d12_descriptor_handle.h"
-#include "graphics/d3d12/d3d12_descriptor_manager.h"
-#include "graphics/d3d12/d3d12_gpu_descriptor_handle_allocator.h"
-#include "graphics/texture_manager.h"
 
 namespace iris
 {
 
 /**
- * This class encapsulates a constant shader buffer. This is data that is set
- * once then made available to all vertices/fragments. It is analogous to an
- * OpenGL uniform.
+ * This class encapsulates a constant shader buffer. This is data that is set once then made available to all
+ * vertices/fragments.
  */
 class D3D12ConstantBuffer
 {
   public:
     /**
      * Construct a null D3D12ConstantBuffer.
+     *
+     * @param frame
+     *   The frame number using this buffer.
      */
-    D3D12ConstantBuffer();
+    D3D12ConstantBuffer(std::uint32_t frame);
 
     /**
      * Construct a new D3D12ConstantBuffer.
      *
+     * @param frame
+     *   The frame number using this buffer.
+     *
      * @param capacity
      *   Size (in bytes) of buffer.
      */
-    D3D12ConstantBuffer(std::uint32_t capacity);
+    D3D12ConstantBuffer(std::uint32_t frame, std::size_t capacity);
+
+    D3D12ConstantBuffer(const D3D12ConstantBuffer &) = delete;
+    D3D12ConstantBuffer &operator=(const D3D12ConstantBuffer &) = delete;
+    D3D12ConstantBuffer(D3D12ConstantBuffer &&) = default;
+    D3D12ConstantBuffer &operator=(D3D12ConstantBuffer &&) = default;
 
     /**
      * Get descriptor handle to buffer.
@@ -93,9 +100,20 @@ class D3D12ConstantBuffer
         std::memcpy(mapped_buffer_ + offset, object, size);
     }
 
+    /**
+     * Get D3D12 resource.
+     *
+     * @returns
+     *   Internal resource for buffer.
+     */
+    ID3D12Resource *resource() const
+    {
+        return resource_.Get();
+    }
+
   private:
     /** Capacity (in bytes) of buffer. */
-    std::uint32_t capacity_;
+    std::size_t capacity_;
 
     /** Pointer to mapped buffer where data can be written. */
     std::byte *mapped_buffer_;

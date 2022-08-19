@@ -7,7 +7,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-22.04, macos-latest, windows-latest]
         build_type: [Debug, Release]
 
     steps:
@@ -19,9 +19,9 @@ jobs:
           sudo add-apt-repository universe
           sudo add-apt-repository multiverse
           sudo apt update
-          sudo apt install gcc-11 g++-11 libgl1-mesa-dev libxfixes-dev
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 10
-          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 10
+          sudo apt install gcc-12 g++-12 libgl1-mesa-dev libxfixes-dev
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 10
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 10
           sudo update-alternatives --install /usr/bin/cc cc /usr/bin/gcc 30
           sudo update-alternatives --set cc /usr/bin/gcc
           sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++ 30

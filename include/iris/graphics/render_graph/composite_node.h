@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <memory>
 
 #include "core/vector3.h"
@@ -81,6 +82,14 @@ class CompositeNode : public Node
      *   Second depth.
      */
     Node *depth2() const;
+
+    /**
+     * Compute hash of node.
+     *
+     * @return
+     *   Hash of node.
+     */
+    std::size_t hash() const override;
 
   private:
     /** First colour. */

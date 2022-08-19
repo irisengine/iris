@@ -8,10 +8,15 @@
 
 #include <memory>
 
+#include "core/error_handling.h"
 #include "core/root.h"
+#include "graphics/d3d12/d3d12_material_manager.h"
 #include "graphics/d3d12/d3d12_mesh_manager.h"
+#include "graphics/d3d12/d3d12_render_target_manager.h"
 #include "graphics/d3d12/d3d12_texture_manager.h"
+#include "graphics/opengl/opengl_material_manager.h"
 #include "graphics/opengl/opengl_mesh_manager.h"
+#include "graphics/opengl/opengl_render_target_manager.h"
 #include "graphics/opengl/opengl_texture_manager.h"
 #include "graphics/win32/win32_window_manager.h"
 #include "iris_version.h"
@@ -20,6 +25,8 @@
 #include "log/log.h"
 #include "log/logger.h"
 #include "physics/bullet/bullet_physics_manager.h"
+
+#include <objbase.h>
 
 namespace
 {
@@ -30,24 +37,25 @@ void register_apis()
         "d3d12",
         std::make_unique<iris::Win32WindowManager>(),
         std::make_unique<iris::D3D12MeshManager>(),
-        std::make_unique<iris::D3D12TextureManager>());
+        std::make_unique<iris::D3D12TextureManager>(),
+        std::make_unique<iris::D3D12MaterialManager>(),
+        std::make_unique<iris::D3D12RenderTargetManager>());
 
     iris::Root::register_graphics_api(
         "opengl",
         std::make_unique<iris::Win32WindowManager>(),
         std::make_unique<iris::OpenGLMeshManager>(),
-        std::make_unique<iris::OpenGLTextureManager>());
+        std::make_unique<iris::OpenGLTextureManager>(),
+        std::make_unique<iris::OpenGLMaterialManager>(),
+        std::make_unique<iris::OpenGLRenderTargetManager>());
 
     iris::Root::set_graphics_api("d3d12");
 
     iris::Root::register_physics_api("bullet", std::make_unique<iris::BulletPhysicsManager>());
-
     iris::Root::set_physics_api("bullet");
 
     iris::Root::register_jobs_api("thread", std::make_unique<iris::ThreadJobSystemManager>());
-
     iris::Root::register_jobs_api("fiber", std::make_unique<iris::FiberJobSystemManager>());
-
     iris::Root::set_jobs_api("fiber");
 }
 
@@ -60,6 +68,8 @@ void start(int argc, char **argv, std::function<void(int, char **)> entry)
 {
     LOG_ENGINE_INFO("start", "engine start {}", IRIS_VERSION_STR);
 
+    ensure(::CoInitializeEx(nullptr, COINIT_MULTITHREADED) == S_OK, "CoInitialize failed");
+
     register_apis();
 
     entry(argc, argv);
@@ -71,6 +81,8 @@ void start_debug(int argc, char **argv, std::function<void(int, char **)> entry)
 {
     // enable engine logging
     Logger::instance().set_log_engine(true);
+
+    ensure(::CoInitializeEx(nullptr, COINIT_MULTITHREADED) == S_OK, "CoInitialize failed");
 
     LOG_ENGINE_INFO("start", "engine start (with debugging) {}", IRIS_VERSION_STR);
 

@@ -6,20 +6,37 @@
 
 #include "graphics/texture.h"
 
-#include <memory>
+#include <cstdint>
 
+#include "graphics/sampler.h"
 #include "graphics/texture_usage.h"
 
 namespace iris
 {
 
-Texture::Texture(const DataBuffer &data, std::uint32_t width, std::uint32_t height, TextureUsage usage)
+Texture::Texture(
+    const DataBuffer &data,
+    std::uint32_t width,
+    std::uint32_t height,
+    const Sampler *sampler,
+    TextureUsage usage,
+    std::uint32_t index)
     : data_(data)
     , width_(width)
     , height_(height)
-    , flip_(false)
+    , sampler_(sampler)
     , usage_(usage)
+    , index_(index)
+    , has_transparency_(false)
 {
+    for (auto i = 3u; i < data_.size(); i += 4u)
+    {
+        if (data_[i] != std::byte{0xFF})
+        {
+            has_transparency_ = true;
+            break;
+        }
+    }
 }
 
 Texture::~Texture() = default;
@@ -39,19 +56,24 @@ std::uint32_t Texture::height() const
     return height_;
 }
 
+const Sampler *Texture::sampler() const
+{
+    return sampler_;
+}
+
 TextureUsage Texture::usage() const
 {
     return usage_;
 }
 
-bool Texture::flip() const
+std::uint32_t Texture::index() const
 {
-    return flip_;
+    return index_;
 }
 
-void Texture::set_flip(bool flip)
+bool Texture::has_transparency() const
 {
-    flip_ = flip;
+    return has_transparency_;
 }
 
 }

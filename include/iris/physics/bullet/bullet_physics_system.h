@@ -20,15 +20,21 @@
 
 #include "core/quaternion.h"
 #include "core/vector3.h"
+#include "graphics/scene.h"
 #include "physics/bullet/bullet_collision_shape.h"
 #include "physics/bullet/debug_draw.h"
 #include "physics/character_controller.h"
 #include "physics/collision_shape.h"
+#include "physics/contact_point.h"
 #include "physics/physics_system.h"
+#include "physics/ray_cast_result.h"
 #include "physics/rigid_body.h"
 
 namespace iris
 {
+
+class Mesh;
+class Texture;
 
 /**
  * Implementation of PhysicsSystem for bullet.
@@ -72,15 +78,8 @@ class BulletPhysicsSystem : public PhysicsSystem
      * @returns
      *   A pointer to the newly created RigidBody.
      */
-    RigidBody *create_rigid_body(const Vector3 &position, CollisionShape *collision_shape, RigidBodyType type) override;
-
-    /**
-     * Create a CharacterController and add it to the simulation.
-     *
-     * @returns
-     *   A pointer to the newly created CharacterController.
-     */
-    CharacterController *create_character_controller() override;
+    RigidBody *create_rigid_body(const Vector3 &position, const CollisionShape *collision_shape, RigidBodyType type)
+        override;
 
     /**
      * Create a CollisionShape for a box.
@@ -91,7 +90,7 @@ class BulletPhysicsSystem : public PhysicsSystem
      * @returns
      *   Pointer to newly created CollisionShape.
      */
-    CollisionShape *create_box_collision_shape(const Vector3 &half_size) override;
+    const CollisionShape *create_box_collision_shape(const Vector3 &half_size) override;
 
     /**
      * Create a CollisionShape for a capsule.
@@ -105,7 +104,46 @@ class BulletPhysicsSystem : public PhysicsSystem
      * @returns
      *   Pointer to newly created CollisionShape.
      */
-    CollisionShape *create_capsule_collision_shape(float width, float height) override;
+    const CollisionShape *create_capsule_collision_shape(float width, float height) override;
+
+    /**
+     * Create a CollisionShape from a Mesh.
+     *
+     * @param mesh
+     *   Mesh to create collision shape from.
+     *
+     * @param scale
+     *   Scale of mesh as it will be rendered.
+     *
+     * @returns
+     *   Pointer to newly created CollisionShape.
+     */
+    const CollisionShape *create_mesh_collision_shape(const Mesh *mesh, const Vector3 &scale) override;
+
+    /**
+     * Create a CollisionShape from a Texture (reads height data from r component).
+     *
+     * @param heightmap
+     *   Texture containing height data.
+     *
+     * @param scale
+     *   Scale of mesh as it will be rendered.
+     *
+     * @returns
+     *   Pointer to newly created CollisionShape.
+     */
+    const CollisionShape *create_heightmap_collision_shape(const Texture *heightmap, const Vector3 &scale) override;
+
+    /**
+     * Add a character controller.
+     *
+     * @param character_controller
+     *   Character controller to add.
+     *
+     * @return
+     *   Pointer to added character controller.
+     */
+    CharacterController *add(std::unique_ptr<CharacterController> character_controller) override;
 
     /**
      * Remove a body from the physics system.
@@ -130,7 +168,7 @@ class BulletPhysicsSystem : public PhysicsSystem
     void remove(CharacterController *charaacter) override;
 
     /**
-     * Cast a ray into physics engine world.
+     * Cast a ray into physics engine world and get all hits.
      *
      * @param origin
      *   Origin of ray.
@@ -138,20 +176,28 @@ class BulletPhysicsSystem : public PhysicsSystem
      * @param direction.
      *   Direction of ray.
      *
+     * @param ignore
+     *   Collection of rigid bodies that should be ignored from ray cast results.
+     *
      * @returns
-     *   If ray hits an object then a tuple [object hit, point of intersection],
-     *   else empty optional.
+     *   Collection of RayCastResult objects for all intersection with ray. These will be sorted from distance to origin
+     *   (closest first).
      */
-    std::optional<std::tuple<RigidBody *, Vector3>> ray_cast(const Vector3 &origin, const Vector3 &direction)
-        const override;
+    std::vector<RayCastResult> ray_cast(
+        const Vector3 &origin,
+        const Vector3 &direction,
+        const std::set<const RigidBody *> &ignore) override;
 
     /**
-     * Add a body to be excluded from ray_casts
+     * Query all contacts with a body.
      *
      * @param body
-     *   Body to ignore.
+     *   The body to test, note that this will be contact_a in all the returned ContactPoint objects.
+     *
+     * @returns
+     *   Collection of ContactPoint objects for all bodies colliding with body.
      */
-    void ignore_in_raycast(RigidBody *body) override;
+    std::vector<ContactPoint> contacts(RigidBody *body) override;
 
     /**
      * Save the current state of the simulation.
@@ -182,7 +228,7 @@ class BulletPhysicsSystem : public PhysicsSystem
      * @param entity.
      *   The RenderEntity to store debug render data in.
      */
-    void enable_debug_draw(RenderEntity *entity) override;
+    void enable_debug_draw(Scene *scene) override;
 
   private:
     /** Bullet interface for detecting AABB overlapping pairs. */
@@ -209,17 +255,17 @@ class BulletPhysicsSystem : public PhysicsSystem
     /** Collection of rigid bodies. */
     std::vector<std::unique_ptr<RigidBody>> bodies_;
 
-    /** Collection of collision objects to be ignored during raycasts. */
-    std::set<const btCollisionObject *> ignore_;
-
     /** Collection of character controllers. */
     std::vector<std::unique_ptr<CharacterController>> character_controllers_;
 
     /** DebugDraw object. */
-    std::unique_ptr<DebugDraw> debug_draw_;
+    DebugDraw debug_draw_;
 
     /** Collection of collision shapes. */
     std::vector<std::unique_ptr<BulletCollisionShape>> collision_shapes_;
+
+    /** To prevent overloading the rendering with debug data we only update the debug geometry at a fixed interval. */
+    std::chrono::system_clock::time_point next_debug_update_;
 };
 
 }

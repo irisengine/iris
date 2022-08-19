@@ -1,0 +1,5 @@
+{% if type == 0 %}
+    in.vertex_position{{swizzle}}
+{% else %}
+    in.normal{{swizzle}}
+{% endif %}

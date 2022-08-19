@@ -8,39 +8,19 @@
 
 #include <vector>
 
-#include "graphics/cube_map.h"
-#include "graphics/texture.h"
-
 namespace iris
 {
 
 /**
- * Interface for a Material - a class which which encapsulates how to render
- * a Mesh.
+ * Interface for a Material - a class which which encapsulates how to render a Mesh.
  *
- * This interface is deliberately limited, most of the functionality is provided
- * by the implementations, which in turn is only used internally by the engine.
+ * This interface is deliberately limited, most of the functionality is provided by the implementations, which in turn
+ * is only used internally by the engine.
  */
 class Material
 {
   public:
     virtual ~Material() = default;
-
-    /**
-     * Get all the textures used by this Material
-     *
-     * @returns
-     *   Collection of Texture objects.
-     */
-    virtual std::vector<Texture *> textures() const = 0;
-
-    /**
-     * Get the CubeMap used by this Material (if any).
-     *
-     * @returns
-     *   CubeMap, or nullptr if not used by Material.
-     */
-    virtual const CubeMap *cube_map() const = 0;
 };
 
 }

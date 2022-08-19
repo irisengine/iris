@@ -6,6 +6,7 @@
 
 #include "graphics/render_graph/sin_node.h"
 
+#include <cstddef>
 #include <memory>
 
 #include "graphics/render_graph/shader_compiler.h"
@@ -26,6 +27,11 @@ void SinNode::accept(ShaderCompiler &compiler) const
 Node *SinNode::input_node() const
 {
     return input_node_;
+}
+
+std::size_t SinNode::hash() const
+{
+    return combine_hash(input_node_, "sin_node");
 }
 
 }

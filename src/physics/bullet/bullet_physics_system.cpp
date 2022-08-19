@@ -24,16 +24,24 @@
 #include "core/error_handling.h"
 #include "core/quaternion.h"
 #include "core/vector3.h"
+#include "graphics/mesh.h"
 #include "graphics/render_entity.h"
 #include "log/log.h"
 #include "physics/basic_character_controller.h"
 #include "physics/bullet/bullet_box_collision_shape.h"
 #include "physics/bullet/bullet_capsule_collision_shape.h"
 #include "physics/bullet/bullet_collision_shape.h"
+#include "physics/bullet/bullet_heightmap_collision_shape.h"
+#include "physics/bullet/bullet_mesh_collision_shape.h"
 #include "physics/bullet/bullet_rigid_body.h"
+#include "physics/bullet/collision_callback.h"
 #include "physics/bullet/debug_draw.h"
 #include "physics/character_controller.h"
+#include "physics/contact_point.h"
+#include "physics/ray_cast_result.h"
 #include "physics/rigid_body.h"
+
+using namespace std::literals::chrono_literals;
 
 namespace
 {
@@ -50,7 +58,7 @@ void remove_body_from_world(iris::RigidBody *body, btDynamicsWorld *world)
 {
     auto *bullet_body = static_cast<iris::BulletRigidBody *>(body);
 
-    if (body->type() == iris::RigidBodyType::GHOST)
+    if ((body->type() == iris::RigidBodyType::GHOST) || (body->type() == iris::RigidBodyType::CHARACTER_CONTROLLER))
     {
         auto *bullet_ghost = static_cast<::btGhostObject *>(bullet_body->handle());
         world->removeCollisionObject(bullet_ghost);
@@ -104,10 +112,10 @@ BulletPhysicsSystem::BulletPhysicsSystem()
     , solver_(nullptr)
     , world_(nullptr)
     , bodies_()
-    , ignore_()
     , character_controllers_()
-    , debug_draw_(nullptr)
+    , debug_draw_()
     , collision_shapes_()
+    , next_debug_update_(std::chrono::system_clock::now())
 {
     collision_config_ = std::make_unique<::btDefaultCollisionConfiguration>();
     collision_dispatcher_ = std::make_unique<::btCollisionDispatcher>(collision_config_.get());
@@ -119,7 +127,6 @@ BulletPhysicsSystem::BulletPhysicsSystem()
     broadphase_->getOverlappingPairCache()->setInternalGhostPairCallback(ghost_pair_callback_.get());
 
     world_->setGravity({0.0f, -10.0f, 0.0f});
-    debug_draw_ = nullptr;
 }
 
 BulletPhysicsSystem::~BulletPhysicsSystem()
@@ -144,29 +151,27 @@ BulletPhysicsSystem::~BulletPhysicsSystem()
 
 void BulletPhysicsSystem::step(std::chrono::milliseconds time_step)
 {
+    for (auto &controller : character_controllers_)
+    {
+        controller->update(this, time_step);
+    }
+
     const auto ticks = static_cast<float>(time_step.count());
     world_->stepSimulation(ticks / 1000.0f, 1);
 
-    if (debug_draw_)
-    {
-        // tell bullet to draw debug world
-        world_->debugDrawWorld();
-
-        // now we pass bullet debug information to our render system
-        debug_draw_->render();
-    }
+    debug_draw_.update();
 }
 
 RigidBody *BulletPhysicsSystem::create_rigid_body(
     const Vector3 &position,
-    CollisionShape *collision_shape,
+    const CollisionShape *collision_shape,
     RigidBodyType type)
 {
     bodies_.emplace_back(
-        std::make_unique<BulletRigidBody>(position, static_cast<BulletCollisionShape *>(collision_shape), type));
+        std::make_unique<BulletRigidBody>(position, static_cast<const BulletCollisionShape *>(collision_shape), type));
     auto *body = static_cast<BulletRigidBody *>(bodies_.back().get());
 
-    if (body->type() == RigidBodyType::GHOST)
+    if ((body->type() == RigidBodyType::GHOST) || (body->type() == RigidBodyType::CHARACTER_CONTROLLER))
     {
         auto *bullet_ghost = static_cast<btGhostObject *>(body->handle());
         world_->addCollisionObject(bullet_ghost);
@@ -177,29 +182,59 @@ RigidBody *BulletPhysicsSystem::create_rigid_body(
         world_->addRigidBody(bullet_rigid);
     }
 
+    debug_draw_.register_rigid_body(body);
+
     return body;
 }
 
-CharacterController *BulletPhysicsSystem::create_character_controller()
+const CollisionShape *BulletPhysicsSystem::create_box_collision_shape(const Vector3 &half_size)
 {
-    character_controllers_.emplace_back(std::make_unique<BasicCharacterController>(this));
+    const auto &collision_shape = collision_shapes_.emplace_back(std::make_unique<BulletBoxCollisionShape>(half_size));
+    debug_draw_.register_box_collision_shape(static_cast<const BulletBoxCollisionShape *>(collision_shape.get()));
+
+    return collision_shape.get();
+}
+
+const CollisionShape *BulletPhysicsSystem::create_capsule_collision_shape(float width, float height)
+{
+    const auto &collision_shape =
+        collision_shapes_.emplace_back(std::make_unique<BulletCapsuleCollisionShape>(width, height));
+    debug_draw_.register_capsule_collision_shape(
+        static_cast<const BulletCapsuleCollisionShape *>(collision_shape.get()));
+
+    return collision_shapes_.back().get();
+}
+
+const CollisionShape *BulletPhysicsSystem::create_mesh_collision_shape(const Mesh *mesh, const Vector3 &scale)
+{
+    const auto &collision_shape =
+        collision_shapes_.emplace_back(std::make_unique<BulletMeshCollisionShape>(mesh, scale));
+    debug_draw_.register_mesh_collision_shape(static_cast<const BulletMeshCollisionShape *>(collision_shape.get()));
+
+    return collision_shapes_.back().get();
+}
+
+const CollisionShape *BulletPhysicsSystem::create_heightmap_collision_shape(
+    const Texture *heightmap,
+    const Vector3 &scale)
+{
+    const auto &collision_shape =
+        collision_shapes_.emplace_back(std::make_unique<BulletHeightmapCollisionShape>(heightmap, scale));
+    debug_draw_.register_height_map_collision_shape(
+        static_cast<const BulletHeightmapCollisionShape *>(collision_shape.get()));
+
+    return collision_shapes_.back().get();
+}
+
+CharacterController *BulletPhysicsSystem::add(std::unique_ptr<CharacterController> character_controller)
+{
+    character_controllers_.emplace_back(std::move(character_controller));
     return character_controllers_.back().get();
-}
-
-CollisionShape *BulletPhysicsSystem::create_box_collision_shape(const Vector3 &half_size)
-{
-    collision_shapes_.emplace_back(std::make_unique<BulletBoxCollisionShape>(half_size));
-    return collision_shapes_.back().get();
-}
-
-CollisionShape *BulletPhysicsSystem::create_capsule_collision_shape(float width, float height)
-{
-    collision_shapes_.emplace_back(std::make_unique<BulletCapsuleCollisionShape>(width, height));
-    return collision_shapes_.back().get();
 }
 
 void BulletPhysicsSystem::remove(RigidBody *body)
 {
+    debug_draw_.deregister_rigid_body(body);
     remove_body_from_world(body, world_.get());
 
     bodies_.erase(
@@ -220,11 +255,12 @@ void BulletPhysicsSystem::remove(CharacterController *character)
         std::end(character_controllers_));
 }
 
-std::optional<std::tuple<RigidBody *, Vector3>> BulletPhysicsSystem::ray_cast(
+std::vector<RayCastResult> BulletPhysicsSystem::ray_cast(
     const Vector3 &origin,
-    const Vector3 &direction) const
+    const Vector3 &direction,
+    const std::set<const RigidBody *> &ignore)
 {
-    std::optional<std::tuple<RigidBody *, Vector3>> hit;
+    std::vector<RayCastResult> hits;
 
     // bullet does ray tracing between two vectors, so we create an end vector
     // some great distance away
@@ -232,43 +268,54 @@ std::optional<std::tuple<RigidBody *, Vector3>> BulletPhysicsSystem::ray_cast(
     const auto far_away = origin + (direction * 10000.0f);
     btVector3 to{far_away.x, far_away.y, far_away.z};
 
-    btCollisionWorld::AllHitsRayResultCallback callback{from, to};
+    // create an ignore list of bullet objects
+    std::set<const btCollisionObject *> bullet_ignore{};
+    std::transform(
+        std::cbegin(ignore),
+        std::cend(ignore),
+        std::inserter(bullet_ignore, std::begin(bullet_ignore)),
+        [](const RigidBody *element) {
+            const auto *bullet_body = static_cast<const iris::BulletRigidBody *>(element);
+            return bullet_body->handle();
+        });
 
+    // do the ray cast
+    btCollisionWorld::AllHitsRayResultCallback callback{from, to};
     world_->rayTest(from, to, callback);
 
     if (callback.hasHit())
     {
-        auto min = std::numeric_limits<float>::max();
-        btVector3 hit_position{};
-        const btRigidBody *body = nullptr;
-
-        // find the closest hit object excluding any ignored objects
+        // build up collection of hits which aren't being ignored
         for (auto i = 0; i < callback.m_collisionObjects.size(); ++i)
         {
-            const auto distance = from.distance(callback.m_hitPointWorld[i]);
-            if ((distance < min) && (ignore_.count(callback.m_collisionObjects[i]) == 0))
+            if (bullet_ignore.count(callback.m_collisionObjects[i]) == 0)
             {
-                min = distance;
-                hit_position = callback.m_hitPointWorld[i];
-                body = static_cast<const btRigidBody *>(callback.m_collisionObjects[i]);
-            }
-        }
+                const auto hit_position = callback.m_hitPointWorld[i];
+                const auto *bullet_body = static_cast<const btRigidBody *>(callback.m_collisionObjects[i]);
+                auto *body = static_cast<RigidBody *>(bullet_body->getUserPointer());
 
-        if (body != nullptr)
-        {
-            hit = {
-                static_cast<RigidBody *>(body->getUserPointer()),
-                {hit_position.x(), hit_position.y(), hit_position.z()}};
+                hits.push_back(
+                    {.body = body, .position = Vector3{hit_position.x(), hit_position.y(), hit_position.z()}});
+            }
         }
     }
 
-    return hit;
+    // sort the hits from closest to origin
+    std::sort(std::begin(hits), std::end(hits), [&origin](const auto &e1, const auto &e2) {
+        return Vector3::distance(origin, e1.position) < Vector3::distance(origin, e2.position);
+    });
+
+    return hits;
 }
 
-void BulletPhysicsSystem::ignore_in_raycast(RigidBody *body)
+std::vector<ContactPoint> BulletPhysicsSystem::contacts(RigidBody *body)
 {
     auto *bullet_body = static_cast<iris::BulletRigidBody *>(body);
-    ignore_.emplace(bullet_body->handle());
+
+    CollisionCallback callback{body};
+    world_->contactTest(bullet_body->handle(), callback);
+
+    return callback.yield_contact_points();
 }
 
 std::unique_ptr<PhysicsState> BulletPhysicsSystem::save()
@@ -320,16 +367,9 @@ void BulletPhysicsSystem::load(const PhysicsState *state)
     }
 }
 
-void BulletPhysicsSystem::enable_debug_draw(RenderEntity *entity)
+void BulletPhysicsSystem::enable_debug_draw(Scene *scene)
 {
-    expect(!debug_draw_, "debug draw already enabled");
-
-    // create debug drawer, only draw wireframe as that's what we support
-    debug_draw_ = std::make_unique<DebugDraw>(entity);
-    debug_draw_->setDebugMode(
-        btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawConstraints | btIDebugDraw::DBG_DrawConstraintLimits);
-
-    world_->setDebugDrawer(debug_draw_.get());
+    debug_draw_.set_scene(scene);
 }
 
 }

@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <deque>
+#include <functional>
 #include <memory>
 #include <string>
 #include <tuple>
@@ -13,6 +15,7 @@
 
 #include "core/colour.h"
 #include "core/vector3.h"
+#include "graphics/animation/animation.h"
 #include "graphics/mesh.h"
 #include "graphics/skeleton.h"
 #include "graphics/texture.h"
@@ -21,15 +24,49 @@
 namespace iris
 {
 
+class Texture;
+
 /**
- * Abstract class for creating and managing Mesh objects. This class handles
- * caching and lifetime management of all created objects. Implementers just
- * need to provide a graphics API specific method for creating Mesh objects.
+ * Abstract class for creating and managing Mesh objects. This class handles caching and lifetime management of all
+ * created objects. Implementers just need to provide a graphics API specific method for creating Mesh objects.
  */
 class MeshManager
 {
   public:
-    MeshManager();
+    /**
+     * Struct encapsulating all the data returned when loading a mesh file.
+     */
+    struct Meshes
+    {
+        /**
+         * Data for a single mesh.
+         */
+        struct MeshData
+        {
+            /** Pointer to mesh name. */
+            Mesh *mesh;
+
+            /** Name of diffuse colour texture (if found in mesh file). */
+            std::string texture_name;
+        };
+
+        /** Collection of loaded meshes. */
+        std::vector<MeshData> mesh_data;
+
+        /** Collection of animations. */
+        std::vector<Animation> animations;
+
+        /** Skeleton for all meshes. */
+        Skeleton *skeleton;
+    };
+
+    /**
+     * Construct a new MeshManager.
+     *
+     * @param flip_uvs_on_load
+     *   True if uvs should be flipped for all loaded meshes, false otherwise.
+     */
+    MeshManager(bool flip_uvs_on_load);
     virtual ~MeshManager() = default;
 
     /**
@@ -55,7 +92,7 @@ class MeshManager
     const Mesh *cube(const Colour &colour);
 
     /**
-     * Create a new Mesh, which is not cached. This should be used when the data of the cube Mesh needs to be mutated.
+     * Create a new cube, which is not cached. This should be used when the data of the cube Mesh needs to be mutated.
      * It returns a unique_ptr and therefore is not managed by this Manager.
      *
      * Most of the time you will want to use the cube method instead.
@@ -66,10 +103,29 @@ class MeshManager
      * @returns
      *   Newly created cube mesh.
      */
-    std::unique_ptr<Mesh> unique_cube(const Colour &colour);
+    std::unique_ptr<Mesh> unique_cube(const Colour &colour) const;
 
     /**
-     * Create a plane mesh.
+     * Create a new Mesh, which is not cached. This should be used when the data of the Mesh needs to be mutated.
+     * It returns a unique_ptr and therefore is not managed by this Manager.
+     *
+     * Most of the time you will want to use the other factory methods instead.
+     *
+     * @param verticies
+     *   Vertex data of mesh.
+     *
+     * @param indices
+     *   Indices of mesh.
+     *
+     * @returns
+     *   Newly created mesh.
+     */
+    std::unique_ptr<Mesh> unique_mesh(
+        const std::vector<iris::VertexData> &vertices,
+        const std::vector<std::uint32_t> &indices) const;
+
+    /**
+     * Create a (XY) plane mesh.
      *
      * @param colour
      *   Colour of plane.
@@ -78,9 +134,23 @@ class MeshManager
      *   Number of divisions (both horizontal and vertical).
      *
      * @returns
-     *   Mesh for cube.
+     *   Mesh for place.
      */
     const Mesh *plane(const Colour &colour, std::uint32_t divisions);
+
+    /**
+     * Create a (XY) height map mesh.
+     *
+     * @param colour
+     *   Colour of height map.
+     *
+     * @param height_image.
+     *   Image data to source heights from (will use r component).
+     *
+     * @returns
+     *   Mesh for heightmap.
+     */
+    const Mesh *heightmap(const Colour &colour, const Texture *height_image);
 
     /**
      * Create a Quad mesh.
@@ -101,7 +171,7 @@ class MeshManager
      *   World coords of upper right of quad.
      *
      * @returns
-     *   Mesh for sprite.
+     *   Mesh for quad.
      */
     const Mesh *quad(
         const Colour &colour,
@@ -119,7 +189,7 @@ class MeshManager
      * @returns
      *   Mesh loaded from file.
      */
-    const Mesh *load_mesh(const std::string &mesh_file);
+    Meshes load_mesh(const std::string &mesh_file);
 
     /**
      * Load a skeleton from a file.
@@ -132,9 +202,22 @@ class MeshManager
      *
      * @returns
      *   Skeleton loaded from file.
-     *
      */
-    Skeleton load_skeleton(const std::string &mesh_file);
+    // Skeleton* load_skeleton(const std::string &mesh_file);
+
+    /**
+     * Load animations from a file.
+     *
+     * Note that unlike load_mesh this returns a new copy each time, this is so
+     * each Skeleton can be mutated independently.
+     *
+     * @param mesh_file
+     *   File to load.
+     *
+     * @returns
+     *   Animations loaded from file.
+     */
+    // std::vector<Animation> load_animations(const std::string &mesh_file);
 
   protected:
     /**
@@ -144,7 +227,7 @@ class MeshManager
      *   Collection of vertices for the Mesh.
      *
      * @param indices
-     *   Collection of indices fro the Mesh.
+     *   Collection of indices for the Mesh.
      *
      * @returns
      *   Loaded Mesh.
@@ -154,11 +237,29 @@ class MeshManager
         const std::vector<std::uint32_t> &indices) const = 0;
 
   private:
-    /** Cache of created Mesh objects. */
-    std::unordered_map<std::string, std::unique_ptr<Mesh>> loaded_meshes_;
+    /**
+     * Internal struct for caching loaded mesh data.
+     */
+    struct LoadedMesh
+    {
+        std::unique_ptr<Mesh> mesh;
+        std::string texture_name;
+    };
 
-    /** Collection of created Skeleton objects. */
+    /** Cache of created Mesh objects. */
+    std::unordered_map<std::string, std::vector<LoadedMesh>> loaded_meshes_;
+
+    /** Collection of created Animation objects. */
+    std::unordered_map<std::string, std::vector<Animation>> loaded_animations_;
+
+    /** Collection of loaded skeletons - these are the "master" copies. */
     std::unordered_map<std::string, Skeleton> loaded_skeletons_;
+
+    /** Collection of skeletons returned to callers. */
+    std::deque<Skeleton> skeleton_copies_;
+
+    /** Flag indicating if uvs should be flipped for loaded meshes. */
+    bool flip_uvs_on_load_;
 };
 
 }

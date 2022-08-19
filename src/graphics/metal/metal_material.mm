@@ -15,11 +15,11 @@
 
 #include "core/error_handling.h"
 #include "core/macos/macos_ios_utility.h"
-#include "graphics/cube_map.h"
 #include "graphics/lights/lighting_rig.h"
 #include "graphics/mesh.h"
-#include "graphics/metal/msl_shader_compiler.h"
 #include "graphics/render_graph/render_graph.h"
+#include "graphics/render_graph/shader_compiler.h"
+#include "log/log.h"
 
 namespace
 {
@@ -49,9 +49,19 @@ id<MTLFunction> load_function(const std::string &source, const std::string &func
 
     if (library == nullptr)
     {
+        auto line_number = 1u;
+
+        std::istringstream strm{source};
+        for (std::string line; std::getline(strm, line);)
+        {
+            LOG_ENGINE_ERROR("metal_material", "{}: {}", line_number, line);
+            ++line_number;
+        }
         // an error occurred so parse error and throw
         const std::string error_message{[[error localizedDescription] UTF8String]};
-        IRIS_DEBUG_BREAK();
+
+        LOG_ENGINE_ERROR("metal_material", "{}", error_message);
+
         throw iris::Exception("failed to load shader: " + error_message);
     }
 
@@ -63,12 +73,17 @@ id<MTLFunction> load_function(const std::string &source, const std::string &func
 namespace iris
 {
 
-MetalMaterial::MetalMaterial(const RenderGraph *render_graph, MTLVertexDescriptor *descriptors, LightType light_type)
+MetalMaterial::MetalMaterial(
+    const RenderGraph *render_graph,
+    MTLVertexDescriptor *descriptors,
+    LightType light_type,
+    bool render_to_normal_target,
+    bool render_to_position_target,
+    bool has_transparency)
     : pipeline_state_()
-    , textures_()
-    , cube_map_(nullptr)
 {
-    MSLShaderCompiler compiler{render_graph, light_type};
+    ShaderCompiler compiler{
+        ShaderLanguage::MSL, render_graph, light_type, render_to_normal_target, render_to_position_target};
 
     const auto vertex_program = load_function(compiler.vertex_shader(), "vertex_main");
     const auto fragment_program = load_function(compiler.fragment_shader(), "fragment_main");
@@ -83,21 +98,34 @@ MetalMaterial::MetalMaterial(const RenderGraph *render_graph, MTLVertexDescripto
     [pipeline_state_descriptor setDepthAttachmentPixelFormat:MTLPixelFormatDepth32Float];
     [pipeline_state_descriptor setVertexDescriptor:descriptors];
 
-    // set blend mode based on light
-    // ambient is always rendered first (no blending)
-    // directional and point are always rendered after (blending)
-    switch (light_type)
+    if (render_to_normal_target)
     {
-        case LightType::AMBIENT:
-            [[[pipeline_state_descriptor colorAttachments] objectAtIndexedSubscript:0] setBlendingEnabled:false];
-            break;
-        case LightType::DIRECTIONAL:
-        case LightType::POINT:
+        pipeline_state_descriptor.colorAttachments[1].pixelFormat = MTLPixelFormatRGBA16Float;
+    }
+
+    if (render_to_position_target)
+    {
+        pipeline_state_descriptor.colorAttachments[2].pixelFormat = MTLPixelFormatRGBA16Float;
+    }
+
+    [[[pipeline_state_descriptor colorAttachments] objectAtIndexedSubscript:0] setBlendingEnabled:false];
+
+    if (light_type == LightType::AMBIENT)
+    {
+        if (has_transparency)
+        {
             [[[pipeline_state_descriptor colorAttachments] objectAtIndexedSubscript:0] setBlendingEnabled:true];
             pipeline_state_descriptor.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
             pipeline_state_descriptor.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
-            pipeline_state_descriptor.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOne;
-            break;
+            pipeline_state_descriptor.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+        }
+    }
+    else
+    {
+        [[[pipeline_state_descriptor colorAttachments] objectAtIndexedSubscript:0] setBlendingEnabled:true];
+        pipeline_state_descriptor.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
+        pipeline_state_descriptor.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+        pipeline_state_descriptor.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOne;
     }
 
     NSError *error = nullptr;
@@ -105,24 +133,11 @@ MetalMaterial::MetalMaterial(const RenderGraph *render_graph, MTLVertexDescripto
     pipeline_state_ = [device newRenderPipelineStateWithDescriptor:pipeline_state_descriptor error:&error];
 
     expect(error == nullptr, "failed to create pipeline state");
-
-    textures_ = compiler.textures();
-    cube_map_ = compiler.cube_map();
 }
 
 id<MTLRenderPipelineState> MetalMaterial::pipeline_state() const
 {
     return pipeline_state_;
-}
-
-std::vector<Texture *> MetalMaterial::textures() const
-{
-    return textures_;
-}
-
-const CubeMap *MetalMaterial::cube_map() const
-{
-    return cube_map_;
 }
 
 }

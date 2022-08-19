@@ -29,9 +29,10 @@
 namespace iris
 {
 
-MeshManager::MeshManager()
+MeshManager::MeshManager(bool flip_uvs_on_load)
     : loaded_meshes_()
-    , loaded_skeletons_()
+    , loaded_animations_()
+    , flip_uvs_on_load_(flip_uvs_on_load)
 {
 }
 
@@ -45,17 +46,17 @@ const Mesh *MeshManager::sprite(const Colour &colour)
     if (loaded_meshes_.count(id) == 0u)
     {
         std::vector<VertexData> vertices{
-            {{-1.0, 1.0, 0.0f}, {}, colour, {0.0f, 1.0f, 0.0f}},
-            {{1.0, 1.0, 0.0f}, {}, colour, {1.0f, 1.0f, 0.0f}},
-            {{1.0, -1.0, 0.0f}, {}, colour, {1.0f, 0.0f, 0.0f}},
-            {{-1.0, -1.0, 0.0f}, {}, colour, {0.0f, 0.0f, 0.0f}}};
+            {{-1.0, 1.0, 0.0f}, {}, colour, {0.0f, 0.0f, 0.0f}},
+            {{1.0, 1.0, 0.0f}, {}, colour, {1.0f, 0.0f, 0.0f}},
+            {{1.0, -1.0, 0.0f}, {}, colour, {1.0f, 1.0f, 0.0f}},
+            {{-1.0, -1.0, 0.0f}, {}, colour, {0.0f, 1.0f, 0.0f}}};
 
         std::vector<std::uint32_t> indices{0, 2, 1, 3, 2, 0};
 
-        loaded_meshes_[id] = create_mesh(vertices, indices);
+        loaded_meshes_[id].push_back({.mesh = create_mesh(vertices, indices)});
     }
 
-    return loaded_meshes_[id].get();
+    return loaded_meshes_[id].front().mesh.get();
 }
 
 const Mesh *MeshManager::cube(const Colour &colour)
@@ -68,13 +69,13 @@ const Mesh *MeshManager::cube(const Colour &colour)
 
     if (loaded_meshes_.count(id) == 0u)
     {
-        loaded_meshes_[id] = unique_cube(colour);
+        loaded_meshes_[id].push_back({.mesh = unique_cube(colour)});
     }
 
-    return loaded_meshes_[id].get();
+    return loaded_meshes_[id].front().mesh.get();
 }
 
-std::unique_ptr<Mesh> MeshManager::unique_cube(const Colour &colour)
+std::unique_ptr<Mesh> MeshManager::unique_cube(const Colour &colour) const
 {
     std::vector<VertexData> vertices{
         {{1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, colour, {0.0f, 0.0f, 0.0f}},
@@ -108,6 +109,13 @@ std::unique_ptr<Mesh> MeshManager::unique_cube(const Colour &colour)
     return create_mesh(vertices, indices);
 }
 
+std::unique_ptr<Mesh> MeshManager::unique_mesh(
+    const std::vector<iris::VertexData> &vertices,
+    const std::vector<std::uint32_t> &indices) const
+{
+    return create_mesh(vertices, indices);
+}
+
 const Mesh *MeshManager::plane(const Colour &colour, std::uint32_t divisions)
 {
     expect(divisions != 0, "divisions must be >= 0");
@@ -135,7 +143,7 @@ const Mesh *MeshManager::plane(const Colour &colour, std::uint32_t divisions)
                     {(x * width) - 0.5f, (y * width) - 0.5f, 0.0f},
                     normal,
                     colour,
-                    {(x * width), 1.0f - (y * width), 0.0f},
+                    {(x * width) * divisions, (1.0f - (y * width)) * divisions, 0.0f},
                     tangent,
                     bitangent};
             }
@@ -156,10 +164,105 @@ const Mesh *MeshManager::plane(const Colour &colour, std::uint32_t divisions)
             }
         }
 
-        loaded_meshes_[id] = create_mesh(vertices, indices);
+        loaded_meshes_[id].push_back({.mesh = create_mesh(vertices, indices)});
     }
 
-    return loaded_meshes_[id].get();
+    return loaded_meshes_[id].front().mesh.get();
+}
+
+const Mesh *MeshManager::heightmap(const Colour &colour, const Texture *height_image)
+{
+    ensure(height_image->width() == height_image->height(), "height_image must be square");
+
+    // create a unique for this mesh
+    std::stringstream strm{};
+    strm << "!height_map" << colour << ":" << height_image;
+    const auto id = strm.str();
+
+    const auto divisions = height_image->width();
+    const auto &height_data = height_image->data();
+
+    if (loaded_meshes_.count(id) == 0u)
+    {
+        std::vector<VertexData> vertices(static_cast<std::size_t>(std::pow(divisions, 2u)));
+
+        const Vector3 tangent{1.0f, 0.0f, 0.0f};
+        const Vector3 bitangent{0.0f, 1.0f, 0.0f};
+
+        const auto width = 1.0f / static_cast<float>(divisions);
+
+        // lambda to get adjacent points (clamped to edges)
+        const auto get_adjacent =
+            [&height_data,
+             divisions,
+             width](std::uint32_t x, std::uint32_t z, std::int32_t offset_x, std::int32_t offset_z) -> Vector3 {
+            auto adj_x = x;
+            if (x != 0u && offset_x == -1)
+            {
+                --adj_x;
+            }
+            else if (x != (divisions - 1u) && offset_x == 1)
+            {
+                ++adj_x;
+            }
+
+            auto adj_z = z;
+            if (z != 0u && offset_z == -1)
+            {
+                --adj_z;
+            }
+            else if (z != (divisions - 1u) && offset_z == 1)
+            {
+                ++adj_z;
+            }
+
+            const auto raw_y = height_data[((adj_z * divisions) + adj_x) * 4u];
+            const auto y = static_cast<float>(raw_y) / 255.0f;
+
+            return {(adj_x * width) - 0.5f, y, (adj_z * width) - 0.5f};
+        };
+
+        for (auto z = 0u; z < divisions; ++z)
+        {
+            for (auto x = 0u; x < divisions; ++x)
+            {
+                const auto right = get_adjacent(x, z, 1, 0);
+                const auto left = get_adjacent(x, z, -1, 0);
+                const auto top = get_adjacent(x, z, 0, -1);
+                const auto bottom = get_adjacent(x, z, 0, 1);
+
+                const auto raw_y = height_data[((z * divisions) + x) * 4u];
+                const auto y = static_cast<float>(raw_y) / 255.0f;
+
+                vertices[(z * (divisions)) + x] = {
+                    {(x * width) - 0.5f, y, (z * width) - 0.5f},
+                    Vector3::normalise(Vector3::cross((right - left), (top - bottom))),
+                    colour,
+                    {(x * width) * 30.0f, (1.0f - (z * width)) * 30.0f, 0.0f},
+                    tangent,
+                    bitangent};
+            }
+        }
+
+        std::vector<std::uint32_t> indices{};
+
+        for (auto z = 0u; z < divisions - 1u; ++z)
+        {
+            for (auto x = 0u; x < divisions - 1u; ++x)
+            {
+                indices.emplace_back((z * (divisions) + x));
+                indices.emplace_back(((z + 1) * (divisions) + x));
+                indices.emplace_back((z * (divisions) + x + 1u));
+                indices.emplace_back((z * (divisions) + x + 1u));
+                indices.emplace_back(((z + 1) * (divisions) + x));
+                indices.emplace_back(((z + 1) * (divisions) + x + 1u));
+            }
+        }
+
+        loaded_meshes_[id].push_back({.mesh = create_mesh(vertices, indices)});
+    }
+
+    return loaded_meshes_[id].front().mesh.get();
 }
 
 const Mesh *MeshManager::quad(
@@ -184,30 +287,74 @@ const Mesh *MeshManager::quad(
 
         std::vector<std::uint32_t> indices{0, 2, 1, 3, 2, 0};
 
-        loaded_meshes_[id] = create_mesh(vertices, indices);
+        loaded_meshes_[id].push_back({.mesh = create_mesh(vertices, indices)});
     }
 
-    return loaded_meshes_[id].get();
+    return loaded_meshes_[id].front().mesh.get();
 }
 
-const Mesh *MeshManager::load_mesh(const std::string &mesh_file)
+MeshManager::Meshes MeshManager::load_mesh(const std::string &mesh_file)
 {
-    if (loaded_meshes_.count(mesh_file) == 0u)
+    if (!loaded_meshes_.contains(mesh_file))
     {
-        const auto &[vertices, indices, skeleton] = mesh_loader::load(mesh_file);
-        loaded_meshes_[mesh_file] = create_mesh(vertices, indices);
-        loaded_skeletons_[mesh_file] = skeleton;
+        expect(!loaded_animations_.contains(mesh_file), "unexpected animations");
+        expect(!loaded_skeletons_.contains(mesh_file), "unexpected skeleton");
+
+        mesh_loader::load(
+            mesh_file,
+            flip_uvs_on_load_,
+            [this, &mesh_file](auto vertices, auto indices, auto weights, const auto &texture_name) {
+                if (loaded_skeletons_.contains(mesh_file))
+                {
+                    const auto &skeleton = loaded_skeletons_[mesh_file];
+
+                    std::vector<std::uint32_t> bone_indices(vertices.size());
+
+                    // stamp bone data into loaded vertices
+                    for (const auto &[id, weight, bone_name] : weights)
+                    {
+                        if (weight == 0.0f)
+                        {
+                            continue;
+                        }
+
+                        // only support four bones per vertex
+                        if (bone_indices[id] >= 4)
+                        {
+                            LOG_ENGINE_WARN("mf", "too many weights {} {}", id, weight);
+                            continue;
+                        }
+
+                        const auto bone_index = skeleton.bone_index(bone_name);
+
+                        // update vertex data with bone data
+                        vertices[id].bone_ids[bone_indices[id]] = static_cast<std::uint32_t>(bone_index);
+                        vertices[id].bone_weights[bone_indices[id]] = weight;
+
+                        ++bone_indices[id];
+                    }
+                }
+
+                loaded_meshes_[mesh_file].push_back(
+                    {.mesh = create_mesh(vertices, indices), .texture_name = texture_name});
+            },
+            [this, &mesh_file](auto animations, auto skeleton) {
+                loaded_animations_[mesh_file] = std::move(animations);
+                loaded_skeletons_[mesh_file] = std::move(skeleton);
+            });
     }
 
-    return loaded_meshes_[mesh_file].get();
-}
+    Meshes meshes{};
 
-Skeleton MeshManager::load_skeleton(const std::string &mesh_file)
-{
-    // load the mesh, this will also load the skeleton
-    load_mesh(mesh_file);
+    for (const auto &[mesh, texture_name] : loaded_meshes_[mesh_file])
+    {
+        meshes.mesh_data.push_back({.mesh = mesh.get(), .texture_name = texture_name});
+    };
 
-    return loaded_skeletons_[mesh_file];
+    meshes.animations = loaded_animations_[mesh_file];
+    meshes.skeleton = std::addressof(skeleton_copies_.emplace_back(loaded_skeletons_[mesh_file]));
+
+    return meshes;
 }
 
 }

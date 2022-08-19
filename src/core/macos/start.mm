@@ -10,10 +10,10 @@
 
 #include "core/root.h"
 #include "graphics/macos/macos_window_manager.h"
+#include "graphics/metal/metal_material_manager.h"
 #include "graphics/metal/metal_mesh_manager.h"
+#include "graphics/metal/metal_render_target_manager.h"
 #include "graphics/metal/metal_texture_manager.h"
-#include "graphics/opengl/opengl_mesh_manager.h"
-#include "graphics/opengl/opengl_texture_manager.h"
 #include "iris_version.h"
 #include "jobs/fiber/fiber_job_system_manager.h"
 #include "jobs/thread/thread_job_system_manager.h"
@@ -30,24 +30,16 @@ void register_apis()
         "metal",
         std::make_unique<iris::MacosWindowManager>(),
         std::make_unique<iris::MetalMeshManager>(),
-        std::make_unique<iris::MetalTextureManager>());
-
-    iris::Root::register_graphics_api(
-        "opengl",
-        std::make_unique<iris::MacosWindowManager>(),
-        std::make_unique<iris::OpenGLMeshManager>(),
-        std::make_unique<iris::OpenGLTextureManager>());
-
+        std::make_unique<iris::MetalTextureManager>(),
+        std::make_unique<iris::MetalMaterialManager>(),
+        std::make_unique<iris::MetalRenderTargetManager>());
     iris::Root::set_graphics_api("metal");
 
     iris::Root::register_physics_api("bullet", std::make_unique<iris::BulletPhysicsManager>());
-
     iris::Root::set_physics_api("bullet");
 
     iris::Root::register_jobs_api("thread", std::make_unique<iris::ThreadJobSystemManager>());
-
     iris::Root::register_jobs_api("fiber", std::make_unique<iris::FiberJobSystemManager>());
-
     iris::Root::set_jobs_api("fiber");
 }
 

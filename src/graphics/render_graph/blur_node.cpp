@@ -6,6 +6,10 @@
 
 #include "graphics/render_graph/blur_node.h"
 
+#include <cstddef>
+#include <string>
+
+#include "core/utils.h"
 #include "graphics/render_graph/shader_compiler.h"
 #include "graphics/render_graph/texture_node.h"
 
@@ -25,6 +29,11 @@ void BlurNode::accept(ShaderCompiler &compiler) const
 TextureNode *BlurNode::input_node() const
 {
     return input_node_;
+}
+
+std::size_t BlurNode::hash() const
+{
+    return combine_hash(input_node_, "blue_node");
 }
 
 }

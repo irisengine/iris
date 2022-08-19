@@ -11,20 +11,25 @@
 
 #include "core/data_buffer.h"
 #include "graphics/metal/metal_cube_map.h"
+#include "graphics/metal/metal_sampler.h"
 #include "graphics/metal/metal_texture.h"
+#include "graphics/sampler.h"
 #include "graphics/texture.h"
 #include "graphics/texture_manager.h"
 #include "graphics/texture_usage.h"
 
 namespace iris
 {
+
 std::unique_ptr<Texture> MetalTextureManager::do_create(
     const DataBuffer &data,
     std::uint32_t width,
     std::uint32_t height,
-    TextureUsage usage)
+    const Sampler *sampler,
+    TextureUsage usage,
+    std::uint32_t index)
 {
-    return std::make_unique<MetalTexture>(data, width, height, usage);
+    return std::make_unique<MetalTexture>(data, width, height, sampler, usage, index);
 }
 
 std::unique_ptr<CubeMap> MetalTextureManager::do_create(
@@ -35,10 +40,17 @@ std::unique_ptr<CubeMap> MetalTextureManager::do_create(
     const DataBuffer &near_data,
     const DataBuffer &far_data,
     std::uint32_t width,
-    std::uint32_t height)
+    std::uint32_t height,
+    const Sampler *sampler,
+    std::uint32_t index)
 {
     return std::make_unique<MetalCubeMap>(
-        right_data, left_data, top_data, bottom_data, near_data, far_data, width, height);
+        right_data, left_data, top_data, bottom_data, near_data, far_data, width, height, sampler, index);
+}
+
+std::unique_ptr<Sampler> MetalTextureManager::do_create(const SamplerDescriptor &descriptor, std::uint32_t index)
+{
+    return std::make_unique<MetalSampler>(descriptor, index);
 }
 
 }

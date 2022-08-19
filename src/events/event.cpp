@@ -6,11 +6,13 @@
 
 #include "events/event.h"
 
+#include "core/error_handling.h"
 #include "events/event_type.h"
 #include "events/keyboard_event.h"
 #include "events/mouse_button_event.h"
 #include "events/mouse_event.h"
 #include "events/quit_event.h"
+#include "events/scroll_wheel_event.h"
 #include "events/touch_event.h"
 
 namespace iris
@@ -42,6 +44,12 @@ Event::Event(MouseButtonEvent event)
 
 Event::Event(TouchEvent event)
     : type_(EventType::TOUCH)
+    , event_(event)
+{
+}
+
+Event::Event(ScrollWheelEvent event)
+    : type_(EventType::SCROLL_WHEEL)
     , event_(event)
 {
 }
@@ -87,10 +95,7 @@ bool Event::is_key(Key key, KeyState state) const
 
 KeyboardEvent Event::key() const
 {
-    if (!is_key())
-    {
-        throw Exception("not keyboard event");
-    }
+    expect(is_key(), "not keyboard event");
 
     return std::get<KeyboardEvent>(event_);
 }
@@ -102,10 +107,7 @@ bool Event::is_mouse() const
 
 MouseEvent Event::mouse() const
 {
-    if (!is_mouse())
-    {
-        throw Exception("not mouse event");
-    }
+    expect(is_mouse(), "not mouse event");
 
     return std::get<MouseEvent>(event_);
 }
@@ -141,10 +143,7 @@ bool Event::is_mouse_button(MouseButton button, MouseButtonState state) const
 
 MouseButtonEvent Event::mouse_button() const
 {
-    if (!is_key())
-    {
-        throw Exception("not mouse button event");
-    }
+    expect(is_mouse_button(), "not mouse button event");
 
     return std::get<MouseButtonEvent>(event_);
 }
@@ -156,12 +155,19 @@ bool Event::is_touch() const
 
 TouchEvent Event::touch() const
 {
-    if (!is_touch())
-    {
-        throw Exception("not touch event");
-    }
+    expect(is_touch(), "not touch event");
 
     return std::get<TouchEvent>(event_);
+}
+
+bool Event::is_scroll_wheel() const
+{
+    return std::holds_alternative<ScrollWheelEvent>(event_);
+}
+
+ScrollWheelEvent Event::scroll_wheel() const
+{
+    return std::get<ScrollWheelEvent>(event_);
 }
 
 }

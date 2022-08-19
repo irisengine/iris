@@ -6,19 +6,36 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include "core/vector3.h"
 #include "graphics/render_graph/node.h"
+#include "graphics/sampler.h"
 #include "graphics/texture.h"
 #include "graphics/texture_usage.h"
 
 namespace iris
 {
+
 class ShaderCompiler;
 
 /**
- * Implementation of Node which provides access to a texture. The compiler will
- * sample this texture for the current fragments UV, using this as input to
- * another node will produce a four float value (RGBA).
+ * Enumeration of possible sources of UV data.
+ */
+enum class UVSource
+{
+    /** Source from vertex data. */
+    VERTEX_DATA,
+
+    /** Source from screen space of fragment being rendered. */
+    SCREEN_SPACE,
+
+    /** Source from a node. */
+    NODE
+};
+
+/**
+ * Implementation of Node which provides access to a texture.
  */
 class TextureNode : public Node
 {
@@ -28,16 +45,39 @@ class TextureNode : public Node
      *
      * @param texture
      *   Texture to provide access to.
+     *
+     * @param uv_source
+     *   Source of UV data.
+     *
+     * @param uv_input
+     *   Optional node to calculate uv, only valid if uv_source is NODE.
      */
-    TextureNode(Texture *texture);
+    TextureNode(const Texture *texture, UVSource uv_source = UVSource::VERTEX_DATA, const Node *uv_input = nullptr);
 
     /**
      * Create a new TextureNode.
      *
      * @param path
      *   Path of texture.
+     *
+     * @param usage
+     *   The usage of the texture.
+     *
+     * @param sampler
+     *   Sampler to use for this texture.
+     *
+     * @param uv_source
+     *   Source of UV data.
+     *
+     * @param uv_input
+     *   Optional node to calculate uv, only valid if uv_source is NODE.
      */
-    TextureNode(const std::string &path, TextureUsage usage = TextureUsage::IMAGE);
+    TextureNode(
+        const std::string &path,
+        TextureUsage usage = TextureUsage::IMAGE,
+        const Sampler *sampler = nullptr,
+        UVSource uv_source = UVSource::VERTEX_DATA,
+        const Node *uv_input = nullptr);
 
     ~TextureNode() override = default;
 
@@ -55,10 +95,40 @@ class TextureNode : public Node
      * @returns
      *   Texture.
      */
-    Texture *texture() const;
+    const Texture *texture() const;
+
+    /**
+     * Get source of UV data.
+     *
+     * @returns
+     *   UV data source.
+     */
+    UVSource uv_source() const;
+
+    /**
+     * Get node for uv input.
+     *
+     * @returns
+     *   Node if source is NODE, otherwise nullptr.
+     */
+    const Node *uv_input() const;
+
+    /**
+     * Compute hash of node.
+     *
+     * @return
+     *   Hash of node.
+     */
+    std::size_t hash() const override;
 
   private:
     /** Texture. */
-    Texture *texture_;
+    const Texture *texture_;
+
+    /** Source of UV data. */
+    UVSource uv_source_;
+
+    /** Optional node for uv. */
+    const Node *uv_input_;
 };
 }

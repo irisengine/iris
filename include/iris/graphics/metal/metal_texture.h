@@ -35,10 +35,22 @@ class MetalTexture : public Texture
      * @param height
      *   Height of data.
      *
+     * @param sampler
+     *   Sampler to use for this texture.
+     *
      * @param usage
      *   Texture usage.
+     *
+     * @param index
+     *   Index into the global array of all allocated textures.
      */
-    MetalTexture(const DataBuffer &data, std::uint32_t width, std::uint32_t height, TextureUsage usage);
+    MetalTexture(
+        const DataBuffer &data,
+        std::uint32_t width,
+        std::uint32_t height,
+        const Sampler *sampler,
+        TextureUsage usage,
+        std::uint32_t index);
 
     ~MetalTexture() override = default;
 

@@ -9,15 +9,18 @@
 #include <cstddef>
 #include <map>
 #include <string>
-#include <vector>
 
 #include <core/camera.h>
 #include <core/transform.h>
 #include <events/event.h>
+#include <graphics/animation/animation_controller.h>
 #include <graphics/cube_map.h>
 #include <graphics/lights/directional_light.h>
 #include <graphics/render_entity.h>
 #include <graphics/render_graph/render_graph.h>
+#include <graphics/render_pipeline.h>
+#include <graphics/single_entity.h>
+#include <graphics/skeleton.h>
 #include <graphics/window.h>
 #include <physics/physics_system.h>
 #include <physics/rigid_body.h>
@@ -39,7 +42,7 @@ class AnimationSample : public Sample
      * @param target
      *   Target to render to.
      */
-    AnimationSample(iris::Window *window, iris::RenderTarget *target);
+    AnimationSample(iris::Window *window, iris::RenderPipeline &render_pipeline);
     ~AnimationSample() override = default;
 
     /**
@@ -60,8 +63,6 @@ class AnimationSample : public Sample
      */
     void handle_input(const iris::Event &event) override;
 
-    std::vector<iris::RenderPass> render_passes() override;
-
     /**
      * Title of sample.
      *
@@ -70,14 +71,15 @@ class AnimationSample : public Sample
      */
     std::string title() const override;
 
+    /**
+     * Get the target the sample will render to.
+     *
+     * @returns
+     *   Sample render target.
+     */
+    const iris::RenderTarget *target() const override;
+
   private:
-    /** Pointer to window. */
-    iris::Window *window_;
-
-    iris::RenderTarget *target_;
-
-    iris::Scene scene_;
-
     /** Transform for moving light. */
     iris::Transform light_transform_;
 
@@ -91,7 +93,7 @@ class AnimationSample : public Sample
     iris::PhysicsSystem *physics_;
 
     /** Zombie entity. */
-    iris::RenderEntity *zombie_;
+    iris::SingleEntity *zombie_;
 
     /** Current animation number. */
     std::size_t animation_;
@@ -108,7 +110,18 @@ class AnimationSample : public Sample
     /** User input key map. */
     std::map<iris::Key, iris::KeyState> key_map_;
 
+    /** Sky box for sample. */
     iris::CubeMap *sky_box_;
 
+    /** Mesh for debug rendering. */
     std::unique_ptr<iris::Mesh> debug_mesh_;
+
+    /** Animation controller for zombie. */
+    std::unique_ptr<iris::AnimationController> animation_controller_;
+
+    /** Scene for sample. */
+    iris::Scene *scene_;
+
+    /** Render target for sample. */
+    const iris::RenderTarget *render_target_;
 };

@@ -13,44 +13,30 @@
 
 // platform specific opengl includes
 
-#if defined(IRIS_PLATFORM_MACOS)
-#include <OpenGL/gl3.h>
-#include <OpenGL/gl3ext.h>
-#elif defined(IRIS_PLATFORM_WIN32)
-// clang-format off
+#if defined(IRIS_PLATFORM_WIN32)
 #define WIN32_LEAN_AND_MEAN
+// clang-format off
 #include <Windows.h>
 #include "gl/gl.h"
-
-// in order to avoid duplicating all the opengl function definitions as both
-// extern and concrete we can use the EXTERN macro to control its linkage
-// by default all functions will be marked as extern (the common case) unless
-// this include is prefaced with DONT_MAKE_GL_FUNCTIONS_EXTERN
-#if defined(DONT_MAKE_GL_FUNCTIONS_EXTERN)
-#define EXTERN
-#else
-#define EXTERN extern
-#endif
-#include "graphics/opengl/opengl_windows.h"
-#pragma comment(lib, "opengl32.lib")
 // clang-format on
+#pragma comment(lib, "opengl32.lib")
 #elif defined(IRIS_PLATFORM_LINUX)
 #include <GL/gl.h>
 #include <GL/glx.h>
+#else
+#error unsupported platform
+#endif
 
-// in order to avoid duplicating all the opengl function definitions as both
-// extern and concrete we can use the EXTERN macro to control its linkage
-// by default all functions will be marked as extern (the common case) unless
-// this include is prefaced with DONT_MAKE_GL_FUNCTIONS_EXTERN
+// in order to avoid duplicating all the opengl function definitions as both extern and concrete we can use the EXTERN
+// macro to control its linkage
+// by default all functions will be marked as extern (the common case) unless this include is prefaced with
+// DONT_MAKE_GL_FUNCTIONS_EXTERN
 #if defined(DONT_MAKE_GL_FUNCTIONS_EXTERN)
 #define EXTERN
 #else
 #define EXTERN extern
 #endif
-#include "graphics/opengl/opengl_linux.h"
-#else
-#error unsupported platform
-#endif
+#include "graphics/opengl/opengl_defines.h"
 
 namespace iris
 {

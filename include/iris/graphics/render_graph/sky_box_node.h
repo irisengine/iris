@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include "graphics/cube_map.h"
 #include "graphics/render_graph/render_node.h"
 
@@ -42,6 +44,14 @@ class SkyBoxNode : public RenderNode
      *   Cube map for sky box.
      */
     const CubeMap *sky_box() const;
+
+    /**
+     * Compute hash of node.
+     *
+     * @return
+     *   Hash of node.
+     */
+    std::size_t hash() const override;
 
   private:
     /** Cube map for sky box. */

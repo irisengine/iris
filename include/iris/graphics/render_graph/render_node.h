@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <memory>
 #include <vector>
 
@@ -142,6 +143,22 @@ class RenderNode : public Node
     void set_shadow_map_input(Node *input);
 
     /**
+     * Get ambient occlusion input.
+     *
+     * @returns
+     *   Ambient occlusion input.
+     */
+    Node *ambient_occlusion_input() const;
+
+    /**
+     * Set ambient occlusion input.
+     *
+     * @param input
+     *   New input.
+     */
+    void set_ambient_occlusion_input(Node *input);
+
+    /**
      * Is this render node a depth only render.
      *
      * @returns
@@ -157,7 +174,15 @@ class RenderNode : public Node
      */
     void set_depth_only(bool depth_only);
 
-  private:
+    /**
+     * Compute hash of node.
+     *
+     * @return
+     *   Hash of node.
+     */
+    std::size_t hash() const override;
+
+  protected:
     /** Colour input. */
     Node *colour_input_;
 
@@ -175,6 +200,9 @@ class RenderNode : public Node
 
     /** Collection of shadow map inputs. */
     Node *shadow_map_input_;
+
+    /** Ambient occlusion input. */
+    Node *ambient_occlusion_input_;
 
     /** Is depth only render. */
     bool depth_only_;

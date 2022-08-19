@@ -19,8 +19,12 @@
 #include "core/auto_release.h"
 #include "core/error_handling.h"
 #include "core/root.h"
+#include "graphics/sampler.h"
 #include "graphics/texture.h"
 #include "graphics/texture_manager.h"
+#include "graphics/win32/win32_window.h"
+#include "graphics/window.h"
+#include "graphics/window_manager.h"
 #include "log/log.h"
 
 #pragma comment(lib, "d2d1.lib")
@@ -101,6 +105,10 @@ Texture *create(const std::string &font_name, const std::uint32_t size, const st
     // widen font name for win32 api calls
     const auto font_name_wide = widen(font_name);
 
+    // widen text for win32 api calls
+    const auto text_wide = widen(text);
+    ensure(!text_wide.empty(), "cannot render empty string");
+
     // create object describing text format
     IDWriteTextFormat *text_format = nullptr;
     ensure(
@@ -114,9 +122,6 @@ Texture *create(const std::string &font_name, const std::uint32_t size, const st
             L"en-us",
             &text_format) == S_OK,
         "failed to create text format");
-
-    // widen text for win32 api calls
-    const auto text_wide = widen(text);
 
     // create object for text layout
     // we assume a very large size, but can query after this call for actual
@@ -161,9 +166,9 @@ Texture *create(const std::string &font_name, const std::uint32_t size, const st
     const auto properties = ::D2D1::RenderTargetProperties(
         D2D1_RENDER_TARGET_TYPE_DEFAULT,
         ::D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
-        0.f,
-        0.f,
-        D2D1_RENDER_TARGET_USAGE_GDI_COMPATIBLE);
+        0.0f,
+        0.0f,
+        D2D1_RENDER_TARGET_USAGE_NONE);
 
     // create a render target to render font to bitmap
     AutoRelease<ID2D1RenderTarget *, nullptr> render_target = {nullptr, &SafeRelease<ID2D1RenderTarget *>};
@@ -174,16 +179,17 @@ Texture *create(const std::string &font_name, const std::uint32_t size, const st
     // create a brush with supplied colour
     AutoRelease<ID2D1SolidColorBrush *, nullptr> brush = {nullptr, &SafeRelease<ID2D1SolidColorBrush *>};
     expect(
-        render_target.get()->CreateSolidColorBrush(
+        render_target->CreateSolidColorBrush(
             ::D2D1::ColorF(::D2D1::ColorF::ColorF(colour.r, colour.g, colour.b)), &brush) == S_OK,
         "failed to create brush");
 
     const auto origin = ::D2D1::Point2F(0.0f, 0.0f);
 
     // render text
-    render_target.get()->BeginDraw();
-    render_target.get()->DrawTextLayout(origin, text_layout, brush);
-    render_target.get()->EndDraw();
+    render_target->BeginDraw();
+    render_target->Clear();
+    render_target->DrawTextLayout(origin, text_layout, brush);
+    render_target->EndDraw();
 
     // get size of bitmap
     UINT bitmap_width = 0u;
@@ -206,14 +212,30 @@ Texture *create(const std::string &font_name, const std::uint32_t size, const st
 
     DataBuffer pixel_data(buffer, buffer + buffer_size);
 
-    // we have rendered font as BGRA, so swap red and blue
+    // we have rendered the font with premultiplied alpha - which will change the rgb values based on the alpha
+    // component and can leave dark artifacts around the letters (especially with a light font on a light background)
+    // to fix this we remove the premultiplied alpha component from the rgb
     for (auto i = 0u; i < pixel_data.size(); i += 4u)
     {
-        std::swap(pixel_data[i], pixel_data[i + 2u]);
+        if (pixel_data[i + 3u] != std::byte{0x00})
+        {
+            const auto alpha = static_cast<float>(pixel_data[i + 3u]) / 255.0f;
+            pixel_data[i + 0u] =
+                static_cast<std::byte>(((static_cast<float>(pixel_data[i + 0u]) / 255.0f) / alpha) * 255.0f);
+            pixel_data[i + 1u] =
+                static_cast<std::byte>(((static_cast<float>(pixel_data[i + 1u]) / 255.0f) / alpha) * 255.0f);
+            pixel_data[i + 2u] =
+                static_cast<std::byte>(((static_cast<float>(pixel_data[i + 2u]) / 255.0f) / alpha) * 255.0f);
+        }
     }
 
-    auto *texture = Root::texture_manager().create(pixel_data, width, height, TextureUsage::IMAGE);
-    texture->set_flip(true);
+    // using linear filters can also lead to dark borders - so set an appropriate sampler
+    auto *sampler = Root::texture_manager().create(SamplerDescriptor{
+        .minification_filter = SamplerFilter::NEAREST,
+        .magnification_filter = SamplerFilter::NEAREST,
+        .uses_mips = false,
+        .mip_filter = SamplerFilter::NEAREST});
+    auto *texture = Root::texture_manager().create(pixel_data, width, height, TextureUsage::IMAGE, sampler);
 
     return texture;
 }

@@ -112,3 +112,13 @@ TEST(auto_release, address)
 
     ASSERT_EQ(x, 0);
 }
+
+TEST(auto_release, pointer)
+{
+    std::string str;
+
+    iris::AutoRelease<std::string *, nullptr> v{&str, nullptr};
+    v->push_back('c');
+
+    ASSERT_EQ(str, "c");
+}

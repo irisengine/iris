@@ -7,9 +7,9 @@
 #pragma once
 
 #include <string>
-#include <vector>
 
 #include <events/event.h>
+#include <graphics/render_target.h>
 #include <graphics/renderer.h>
 
 /**
@@ -38,8 +38,6 @@ class Sample
      */
     virtual void handle_input(const iris::Event &event) = 0;
 
-    virtual std::vector<iris::RenderPass> render_passes() = 0;
-
     /**
      * Title of sample.
      *
@@ -47,4 +45,12 @@ class Sample
      *   Sample title.
      */
     virtual std::string title() const = 0;
+
+    /**
+     * Get the target the sample will render to.
+     *
+     * @returns
+     *   Sample render target.
+     */
+    virtual const iris::RenderTarget *target() const = 0;
 };

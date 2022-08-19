@@ -6,9 +6,12 @@
 
 #pragma once
 
+#include <chrono>
+
 #include "core/quaternion.h"
 #include "core/vector3.h"
 #include "physics/character_controller.h"
+#include "physics/physics_system.h"
 #include "physics/rigid_body.h"
 
 namespace iris
@@ -17,7 +20,7 @@ namespace iris
 class PhysicsSystem;
 
 /**
- * Implementation of CharacterController for a basic FPS character controller.
+ * Implementation of CharacterController for a basic walking character controller.
  * Uses a capsule shape for character.
  */
 class BasicCharacterController : public CharacterController
@@ -29,12 +32,7 @@ class BasicCharacterController : public CharacterController
      * @param physics_system
      *   Pointer to physics_system that owns this controller.
      */
-    explicit BasicCharacterController(PhysicsSystem *physics_system);
-
-    /**
-     * Destructor.
-     */
-    ~BasicCharacterController() override;
+    BasicCharacterController(PhysicsSystem *physics_system, float speed, float width, float height, float float_height);
 
     /**
      * Set the direction the character is walking. Should be a normalised
@@ -43,7 +41,7 @@ class BasicCharacterController : public CharacterController
      * @param direction
      *   Direction character is moving.
      */
-    void set_walk_direction(const Vector3 &direction) override;
+    void set_movement_direction(const Vector3 &direction) override;
 
     /**
      * Get position of character in the world.
@@ -60,38 +58,6 @@ class BasicCharacterController : public CharacterController
      *   Orientation of character
      */
     Quaternion orientation() const override;
-
-    /**
-     * Get linear velocity.
-     *
-     * @returns
-     *   Linear velocity.
-     */
-    Vector3 linear_velocity() const override;
-
-    /**
-     * Get angular velocity.
-     *
-     * @returns
-     *   Angular velocity.
-     */
-    Vector3 angular_velocity() const override;
-
-    /**
-     * Set linear velocity.
-     *
-     * @param linear_velocity
-     *   New linear velocity.
-     */
-    void set_linear_velocity(const Vector3 &linear_velocity) override;
-
-    /**
-     * Set angular velocity.
-     *
-     * @param angular_velocity
-     *   New angular velocity.
-     */
-    void set_angular_velocity(const Vector3 &angular_velocity) override;
 
     /**
      * Set speed of character.
@@ -113,19 +79,6 @@ class BasicCharacterController : public CharacterController
     void reposition(const Vector3 &position, const Quaternion &orientation) override;
 
     /**
-     * Make the character jump.
-     */
-    void jump() override;
-
-    /**
-     * Check if character is standing on the ground.
-     *
-     * @returns
-     *   True if character is on a surface, false otherwise.
-     */
-    bool on_ground() const override;
-
-    /**
      * Get the underlying RigidBody.
      *
      * @returns
@@ -133,23 +86,15 @@ class BasicCharacterController : public CharacterController
      */
     RigidBody *rigid_body() const override;
 
-    /**
-     * Set the collision shape for the controller.
-     *
-     * @param collision_shape
-     *   New collision shape.
-     */
-    void set_collision_shape(CollisionShape *collision_shape) override;
+    void update(PhysicsSystem *ps, std::chrono::milliseconds delta) override;
 
-  private:
+  protected:
+    Vector3 movement_direction_;
+
     /** Speed of character. */
     float speed_;
 
-    /* Mass of character. */
-    float mass_;
-
-    /** Physics system. */
-    PhysicsSystem *physics_system_;
+    float float_height_;
 
     /** Underlying rigid body, */
     RigidBody *body_;

@@ -6,11 +6,9 @@
 
 #pragma once
 
-#include <memory>
-
 #include "graphics/d3d12/d3d12_descriptor_handle.h"
-#include "graphics/d3d12/d3d12_texture.h"
 #include "graphics/render_target.h"
+
 
 namespace iris
 {
@@ -30,7 +28,7 @@ class D3D12RenderTarget : public RenderTarget
      * @param depth_texture
      *   Texture to render depth data to.
      */
-    D3D12RenderTarget(std::unique_ptr<D3D12Texture> colour_texture, std::unique_ptr<D3D12Texture> depth_texture);
+    D3D12RenderTarget(const Texture *colour_texture, const Texture *depth_texture);
 
     ~D3D12RenderTarget() override = default;
 

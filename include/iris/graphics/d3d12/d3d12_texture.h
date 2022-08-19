@@ -17,6 +17,7 @@
 
 #include "core/data_buffer.h"
 #include "graphics/d3d12/d3d12_descriptor_handle.h"
+#include "graphics/sampler.h"
 #include "graphics/texture.h"
 #include "graphics/texture_usage.h"
 
@@ -26,8 +27,8 @@ namespace iris
 /**
  * Implementation of Texture for d3d12.
  *
- * Internally texture data is first copied to an upload heap. The renderer can
- * then encode a command to copy that data to a shader visible heap.
+ * Internally texture data is first copied to an upload heap. The renderer can then encode a command to copy that data
+ * to a shader visible heap.
  */
 class D3D12Texture : public Texture
 {
@@ -44,10 +45,21 @@ class D3D12Texture : public Texture
      * @param height
      *   Height of image.
      *
+     * @param sampler
+     *   Sampler to use for this texture.
+     *
      * @param usage
      *   Texture usage.
+     *
+     * @param index
      */
-    D3D12Texture(const DataBuffer &data, std::uint32_t width, std::uint32_t height, TextureUsage usage);
+    D3D12Texture(
+        const DataBuffer &data,
+        std::uint32_t width,
+        std::uint32_t height,
+        const Sampler *sampler,
+        TextureUsage usage,
+        std::uint32_t index);
 
     ~D3D12Texture() override = default;
 
@@ -70,12 +82,12 @@ class D3D12Texture : public Texture
     ID3D12Resource *upload() const;
 
     /**
-     * Get the d3d12 footprint describing the image data layout.
+     * Get the d3d12 footprints describing the image data layout.
      *
      * @returns
-     *   D3D12 footprint.
+     *   D3D12 footprints.
      */
-    D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint() const;
+    std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> footprints() const;
 
     /**
      * Get the handle to the image resource view. Only valid if the object was
@@ -116,8 +128,8 @@ class D3D12Texture : public Texture
     /** Resource view to image data (depth only). */
     D3D12DescriptorHandle depth_resource_view_;
 
-    /** Footprint describing image data layout. */
-    D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint_;
+    /** Footprints describing image data layout. */
+    std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> footprints_;
 
     /** Type of heap to copy data to. */
     D3D12_DESCRIPTOR_HEAP_TYPE type_;

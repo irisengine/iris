@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include "core/colour.h"
 #include "graphics/render_graph/node.h"
 
@@ -44,6 +46,14 @@ class ColourNode : public Node
      *   Colour.
      */
     Colour colour() const;
+
+    /**
+     * Compute hash of node.
+     *
+     * @return
+     *   Hash of node.
+     */
+    std::size_t hash() const override;
 
   private:
     /** Colour. */
