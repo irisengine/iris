@@ -120,6 +120,12 @@ void main()
         offset.x = offset.x * 0.5f + 0.5f;
         offset.y = -offset.y * 0.5f + 0.5f;
 
+        const vec3 sample_normal = normalize(texture(sampler2D(texture_table[{{normal_texture_index}}]), offset.xy).rgb);
+        if (dot(normal, sample_normal) > 0.99f)
+        {
+            continue;
+        }
+
         const float sample_depth =
             texture(sampler2D(texture_table[{{position_texture_index}}]), vec2(offset.x, 1.0 - offset.y)).z;
 
