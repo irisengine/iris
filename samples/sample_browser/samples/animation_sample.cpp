@@ -13,6 +13,7 @@
 #include <vector>
 
 #include <core/camera.h>
+#include <core/error_handling.h>
 #include <core/matrix4.h>
 #include <core/quaternion.h>
 #include <core/root.h>
@@ -22,15 +23,22 @@
 #include <graphics/cube_map.h>
 #include <graphics/lights/point_light.h>
 #include <graphics/mesh_manager.h>
+#include <graphics/post_processing_description.h>
+#include <graphics/render_graph/arithmetic_node.h>
 #include <graphics/render_graph/blur_node.h>
+#include <graphics/render_graph/colour_node.h>
 #include <graphics/render_graph/composite_node.h>
 #include <graphics/render_graph/invert_node.h>
 #include <graphics/render_graph/render_graph.h>
 #include <graphics/render_graph/render_node.h>
 #include <graphics/render_graph/texture_node.h>
 #include <graphics/render_graph/value_node.h>
+#include <graphics/render_graph/vertex_node.h>
+#include <graphics/render_pipeline.h>
 #include <graphics/render_target.h>
+#include <graphics/render_target_manager.h>
 #include <graphics/scene.h>
+#include <graphics/single_entity.h>
 #include <graphics/texture_manager.h>
 #include <graphics/window.h>
 #include <physics/physics_manager.h>
@@ -90,13 +98,10 @@ void update_camera(iris::Camera &camera, const std::map<iris::Key, iris::KeyStat
 
 }
 
-AnimationSample::AnimationSample(iris::Window *window, iris::RenderTarget *target)
-    : window_(window)
-    , target_(target)
-    , scene_()
-    , light_transform_()
+AnimationSample::AnimationSample(iris::Window *window, iris::RenderPipeline &render_pipeline)
+    : light_transform_()
     , light_(nullptr)
-    , camera_(iris::CameraType::PERSPECTIVE, window_->width(), window_->height())
+    , camera_(iris::CameraType::PERSPECTIVE, window->width(), window->height())
     , physics_(iris::Root::physics_manager().create_physics_system())
     , zombie_(nullptr)
     , animation_(0u)
@@ -107,6 +112,7 @@ AnimationSample::AnimationSample(iris::Window *window, iris::RenderTarget *targe
     , sky_box_(nullptr)
     , debug_mesh_(nullptr)
     , animation_controller_()
+    , render_target_(nullptr)
 {
     key_map_ = {
         {iris::Key::W, iris::KeyState::UP},
@@ -119,50 +125,56 @@ AnimationSample::AnimationSample(iris::Window *window, iris::RenderTarget *targe
 
     camera_.set_position(camera_.position() + iris::Vector3{0.0f, 5.0f, 0.0f});
 
-    scene_.set_ambient_light({0.1f, 0.1f, 0.1f, 1.0f});
+    scene_ = render_pipeline.create_scene();
 
-    auto *floor_graph = scene_.create_render_graph();
+    scene_->set_ambient_light({0.5f, 0.5f, 0.5f, 1.0f});
+
+    auto *floor_graph = render_pipeline.create_render_graph();
 
     floor_graph->render_node()->set_specular_amount_input(floor_graph->create<iris::ValueNode<float>>(0.0f));
+    floor_graph->render_node()->set_colour_input(floor_graph->create<iris::ColourNode>(iris::Colour{0.9f, 0.9f, 0.9f}));
 
     auto &mesh_manager = iris::Root::mesh_manager();
 
-    scene_.create_entity(
+    scene_->create_entity<iris::SingleEntity>(
         floor_graph,
         mesh_manager.cube({1.0f, 1.0f, 1.0f}),
         iris::Transform{iris::Vector3{0.0f, -500.0f, 0.0f}, {}, iris::Vector3{500.0f}});
 
-    auto *render_graph = scene_.create_render_graph();
+    auto meshes = mesh_manager.load_mesh("Zombie.fbx");
+    iris::ensure(meshes.mesh_data.size() == 1u, "expecting single mesh");
 
-    auto *texture = render_graph->create<iris::TextureNode>("ZombieTexture.png");
+    auto [mesh, texture_name] = meshes.mesh_data.front();
 
-    render_graph->render_node()->set_colour_input(texture);
-
-    zombie_ = scene_.create_entity(
+    auto *render_graph = render_pipeline.create_render_graph();
+    render_graph->render_node()->set_colour_input(render_graph->create<iris::TextureNode>(texture_name));
+    zombie_ = scene_->create_entity<iris::SingleEntity>(
         render_graph,
-        mesh_manager.load_mesh("Zombie.fbx"),
+        mesh,
         iris::Transform{iris::Vector3{0.0f, 0.0f, 0.0f}, {}, iris::Vector3{0.05f}},
-        mesh_manager.load_skeleton("Zombie.fbx"));
+        meshes.skeleton);
 
     zombie_->set_receive_shadow(false);
 
     sky_box_ = iris::Root::texture_manager().create(
         iris::Colour{0.275f, 0.51f, 0.796f}, iris::Colour{0.5f, 0.5f, 0.5f}, 2048u, 2048u);
 
-    debug_mesh_ = mesh_manager.unique_cube({});
-
-    auto *debug_draw = scene_.create_entity(nullptr, debug_mesh_.get(), iris::Vector3{}, iris::PrimitiveType::LINES);
-
-    light_ = scene_.create_light<iris::DirectionalLight>(iris::Vector3{-1.0f, -1.0f, 0.0f}, true);
+    light_ = scene_->create_light<iris::DirectionalLight>(iris::Vector3{-1.0f, -1.0f, 0.0f}, true);
     light_transform_ = iris::Transform{light_->direction(), {}, {1.0f}};
 
-    physics_->enable_debug_draw(debug_draw);
+    auto *pass = render_pipeline.create_render_pass(scene_);
+    pass->post_processing_description = {.ambient_occlusion = {iris::AmbientOcclusionDescription{}}};
+    pass->colour_target = iris::Root::render_target_manager().create();
+    pass->camera = &camera_;
+    pass->sky_box = sky_box_;
+
+    render_target_ = pass->colour_target;
 
     animations_ = {
         "Zombie|ZombieWalk", "Zombie|ZombieBite", "Zombie|ZombieCrawl", "Zombie|ZombieIdle", "Zombie|ZombieRun"};
 
     animation_controller_ = std::make_unique<iris::AnimationController>(
-        mesh_manager.load_animations("Zombie.fbx"),
+        meshes.animations,
         std::vector<iris::AnimationLayer>{
             {{{animations_[0], animations_[1], 500ms},
               {animations_[1], animations_[2], 500ms},
@@ -171,8 +183,6 @@ AnimationSample::AnimationSample(iris::Window *window, iris::RenderTarget *targe
               {animations_[4], animations_[0], 500ms}},
              animations_.front()}},
         zombie_->skeleton());
-
-    // zombie_->skeleton().set_animation(animations_[animation_]);
 
     // offsets and scales for bones we want to add rigid bodies to, these were
     // all handcrafted
@@ -202,9 +212,9 @@ AnimationSample::AnimationSample(iris::Window *window, iris::RenderTarget *targe
         {"RightFoot", {{}, {1.0f, 2.5f, 1.0f}}}};
 
     // iterate all bones and create hit boxes for those we have data for
-    for (auto i = 0u; i < zombie_->skeleton().bones().size(); ++i)
+    for (auto i = 0u; i < zombie_->skeleton()->bones().size(); ++i)
     {
-        const auto &bone = zombie_->skeleton().bone(i);
+        const auto &bone = zombie_->skeleton()->bone(i);
 
         const auto box_data = hit_box_data_.find(bone.name());
         if (box_data != std::end(hit_box_data_))
@@ -213,7 +223,7 @@ AnimationSample::AnimationSample(iris::Window *window, iris::RenderTarget *targe
 
             // get bone transform in world space
             const auto transform = iris::Transform{
-                zombie_->transform() * zombie_->skeleton().transforms()[i] * iris::Matrix4::invert(bone.offset())};
+                zombie_->transform() * zombie_->skeleton()->transforms()[i] * iris::Matrix4::invert(bone.offset())};
 
             // create hit box
             hit_boxes_[box_data->first] = {
@@ -246,7 +256,6 @@ void AnimationSample::fixed_update()
 
 void AnimationSample::variable_update()
 {
-    // zombie_->skeleton().advance();
     animation_controller_->update();
 
     // update hit boxes
@@ -256,8 +265,8 @@ void AnimationSample::variable_update()
 
         // get hotbox transform in world space
         const auto transform = iris::Transform{
-            zombie_->transform() * zombie_->skeleton().transforms()[index] *
-            iris::Matrix4::invert(zombie_->skeleton().bone(index).offset())};
+            zombie_->transform() * zombie_->skeleton()->transforms()[index] *
+            iris::Matrix4::invert(zombie_->skeleton()->bone(index).offset())};
         const auto offset = transform * iris::Matrix4::make_translate(std::get<0>(hit_box_data_[name]));
 
         body->reposition(offset.translation(), transform.rotation());
@@ -274,7 +283,6 @@ void AnimationSample::handle_input(const iris::Event &event)
         if ((keyboard.key == iris::Key::SPACE) && (keyboard.state == iris::KeyState::UP))
         {
             animation_ = (animation_ + 1u) % animations_.size();
-            // zombie_->skeleton().set_animation(animations_[animation_]);
             animation_controller_->play(0u, animations_[animation_]);
         }
     }
@@ -288,12 +296,12 @@ void AnimationSample::handle_input(const iris::Event &event)
     }
 }
 
-std::vector<iris::RenderPass> AnimationSample::render_passes()
-{
-    return {{.scene = &scene_, .camera = &camera_, .render_target = target_, .sky_box = sky_box_}};
-}
-
 std::string AnimationSample::title() const
 {
     return "Animation";
+}
+
+const iris::RenderTarget *AnimationSample::target() const
+{
+    return render_target_;
 }
