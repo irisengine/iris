@@ -1,6 +1,9 @@
 set(INCLUDE_ROOT "${PROJECT_SOURCE_DIR}/include/iris/jobs")
 
-add_subdirectory("fiber")
+if(IRIS_ARCH MATCHES "X86_64")
+    add_subdirectory("fiber")
+endif()
+
 add_subdirectory("thread")
 
 target_sources(iris PRIVATE
