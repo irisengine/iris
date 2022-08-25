@@ -105,10 +105,13 @@ id<MTLRenderCommandEncoder> create_render_encoder(
 /**
  * Helper function to build the texture table - a global GPU buffer of all textures (used for bindless rendering)
  *
+ * @param resident_resources
+ *   Collection to add any resources that should be made resident before rendering.
+ *
  * @returns
  *   Metal buffer with all loaded textures.
  */
-std::unique_ptr<iris::MetalConstantBuffer> create_texture_table()
+std::unique_ptr<iris::MetalConstantBuffer> create_texture_table(std::vector<id<MTLResource>> &resident_resources)
 {
     const auto *device = iris::core::utility::metal_device();
 
@@ -116,6 +119,8 @@ std::unique_ptr<iris::MetalConstantBuffer> create_texture_table()
     const auto max_index = textures.back()->index();
     const auto *blank_texture = static_cast<const iris::MetalTexture *>(iris::Root::texture_manager().blank_texture());
     auto iter = std::cbegin(textures);
+
+    resident_resources.push_back(blank_texture->handle());
 
     // create descriptor for arguments we want to write
     auto *argument_descriptor = [MTLArgumentDescriptor argumentDescriptor];
@@ -143,6 +148,7 @@ std::unique_ptr<iris::MetalConstantBuffer> create_texture_table()
             const auto *metal_texture = static_cast<const iris::MetalTexture *>(*iter);
             [texture_table_argument_encoder setTexture:metal_texture->handle() atIndex:i];
             ++iter;
+            resident_resources.push_back(metal_texture->handle());
         }
         else
         {
@@ -157,10 +163,13 @@ std::unique_ptr<iris::MetalConstantBuffer> create_texture_table()
 /**
  * Helper function to build the cube map table - a global GPU buffer of all cube maps (used for bindless rendering)
  *
+ * @param resident_resources
+ *   Collection to add any resources that should be made resident before rendering.
+ *
  * @returns
  *   Metal buffer with all loaded cube map.
  */
-std::unique_ptr<iris::MetalConstantBuffer> create_cube_map_table()
+std::unique_ptr<iris::MetalConstantBuffer> create_cube_map_table(std::vector<id<MTLResource>> &resident_resources)
 {
     const auto *device = iris::core::utility::metal_device();
 
@@ -169,6 +178,7 @@ std::unique_ptr<iris::MetalConstantBuffer> create_cube_map_table()
     const auto *blank_cube_map =
         static_cast<const iris::MetalCubeMap *>(iris::Root::texture_manager().blank_cube_map());
     auto iter = std::cbegin(cube_maps);
+    resident_resources.push_back(blank_cube_map->handle());
 
     // create descriptor for arguments we want to write
     auto *argument_descriptor = [MTLArgumentDescriptor argumentDescriptor];
@@ -196,6 +206,7 @@ std::unique_ptr<iris::MetalConstantBuffer> create_cube_map_table()
             const auto *metal_cube_map = static_cast<const iris::MetalCubeMap *>(*iter);
             [cube_map_table_argument_encoder setTexture:metal_cube_map->handle() atIndex:i];
             ++iter;
+            resident_resources.push_back(metal_cube_map->handle());
         }
         else
         {
@@ -392,8 +403,9 @@ void MetalRenderer::do_set_render_pipeline(std::function<void()> build_queue)
         }
     }
 
-    texture_table_ = create_texture_table();
-    cube_map_table_ = create_cube_map_table();
+    resident_resources_.clear();
+    texture_table_ = create_texture_table(resident_resources_);
+    cube_map_table_ = create_cube_map_table(resident_resources_);
     sampler_table_ = create_sampler_table();
 }
 
@@ -479,6 +491,12 @@ void MetalRenderer::execute_draw(RenderCommand &command)
     }
 
     render_encoder_ = render_encoders_[colour_target];
+
+    // make resident any resources we need to
+    for (const auto &resource : resident_resources_)
+    {
+        [render_encoder_ useResource:resource usage:MTLResourceUsageRead stages:MTLRenderStageFragment];
+    }
 
     // if we haven't seen this entity yet this pass then create buffers for its data
     if (!frame.bone_data.contains(entity))
