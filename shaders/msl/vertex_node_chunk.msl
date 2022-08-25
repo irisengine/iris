@@ -1,5 +1,7 @@
 {% if type == 0 %}
     in.vertex_position{{swizzle}}
-{% else %}
+{% else if type == 1 %}
     in.normal{{swizzle}}
+{% else if type == 2 %}
+    float3(in.tex.xy, 0.0)
 {% endif %}

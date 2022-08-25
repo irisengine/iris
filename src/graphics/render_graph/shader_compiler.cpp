@@ -348,7 +348,7 @@ void ShaderCompiler::visit(const ComponentNode &node)
     const auto value = stream_stack_.top().str();
     stream_stack_.pop();
 
-    const ::inja::json args{{"value", value, {"component", node.component()}}};
+    const ::inja::json args{{"value", value}, {"component", node.component()}};
 
     stream_stack_.top() << ::inja::render(
         language_string(language_, hlsl::component_node_chunk, glsl::component_node_chunk, msl::component_node_chunk),
