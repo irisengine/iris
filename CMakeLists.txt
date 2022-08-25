@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.18)
 
 project(
   iris
-  VERSION "3.0.0"
+  VERSION "3.0.1"
   DESCRIPTION "Cross-platform game engine"
   LANGUAGES C CXX)
 
@@ -14,7 +14,6 @@ include(GenerateExportHeader)
 # set options for library
 option(IRIS_BUILD_UNIT_TESTS "whether to build unit tests" ON)
 
-set(CMAKE_CXX_STANDARD 23)
 set(ASM_OPTIONS "-x assembler-with-cpp")
 
 # if a platform wasn't supplied then default to current platform
@@ -22,7 +21,12 @@ if(NOT IRIS_PLATFORM)
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(CMAKE_CXX_STANDARD 20)
     set(IRIS_PLATFORM "MACOS")
-    set(IRIS_ARCH "X86_64")
+
+    if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm64")
+      set(IRIS_ARCH "ARM64")
+    else()
+      set(IRIS_ARCH "X86_64")
+    endif()
   elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(IRIS_PLATFORM "WIN32")
     set(IRIS_ARCH "X86_64")

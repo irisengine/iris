@@ -1,5 +1,7 @@
-{% if vertex_data %}
+{% if uv_source == 0 %}
     texture_table[{{texture_index}}].texture.sample(sampler_table[{{sampler_index}}].smplr, in.tex.xy)
-{% else %}
+{% else if uv_source == 1 %}
     texture_table[{{texture_index}}].texture.sample(sampler_table[{{sampler_index}}].smplr, in.position.xy * float2({{reciprocal_width}}, {{reciprocal_height}}))
+{% else if uv_source == 2 %}
+    texture_table[{{texture_index}}].texture.sample(sampler_table[{{sampler_index}}].smplr, {{tex_coord}})
 {% endif %}

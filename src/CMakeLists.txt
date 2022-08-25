@@ -12,6 +12,8 @@ add_subdirectory("scripting")
 add_library(iris::iris ALIAS iris)
 generate_export_header(iris)
 
+target_compile_features(iris PUBLIC cxx_std_20)
+
 # hide symbols
 set_target_properties(iris PROPERTIES
   CMAKE_CXX_VISIBILITY_PRESET hidden
@@ -51,7 +53,13 @@ set(IRIS_LINKED_LIBS_PRIVATE)
 # handle platform specific setup including setting default graphics apis
 if(IRIS_PLATFORM MATCHES "MACOS")
   target_compile_definitions(iris PUBLIC IRIS_PLATFORM_MACOS)
-  target_compile_definitions(iris PUBLIC IRIS_ARCH_X86_64)
+
+  if(IRIS_ARCH MATCHES "ARM64")
+    target_compile_definitions(iris PUBLIC IRIS_ARCH_ARM64)
+  else()
+    target_compile_definitions(iris PUBLIC IRIS_ARCH_X86_64)
+  endif()
+
   target_compile_options(iris PRIVATE -Wall -Werror -pedantic -glldb -fobjc-arc)
 elseif(IRIS_PLATFORM MATCHES "IOS")
   target_compile_definitions(iris PUBLIC IRIS_PLATFORM_IOS)

@@ -20,7 +20,6 @@ Iris is a cross-platform game engine written in modern C++
     1. [Options](#options)
     2. [Command line](#command-line)
     3. [Visual Studio Code / Visual Studio](#visual-studio-code-visual-studio)
-    5. [Xcode](#xcode)
 7. [Examples](#examples)
 8. [Design](#design)
     1. [Versioning](#versioning)
@@ -40,6 +39,7 @@ Iris is a cross-platform game engine written in modern C++
 ---
 
 ## Screenshots
+![trinket](media/trinket.png)
 ![zombie](media/zombie.png)
 ![physics](media/physics.png)
 
@@ -68,6 +68,7 @@ The following compilers have been tested
 | Platform | Version | Compiler |
 | -------- | ------- | -------- |
 | macOS | 14.0.5 | clang |
+| macOS | 13.1.6 | Apple clang (Xcode) |
 | linux | 14.0.5 | clang |
 | linux | 12.1.0 | g++ |
 | windows | 19.32.31332 | msvc |

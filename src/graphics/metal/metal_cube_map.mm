@@ -41,6 +41,7 @@ MetalCubeMap::MetalCubeMap(
         [MTLTextureDescriptor textureCubeDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm_sRGB
                                                               size:width
                                                          mipmapped:NO];
+    texture_descriptor.resourceOptions = MTLResourceStorageModeShared;
     texture_ = [device newTextureWithDescriptor:texture_descriptor];
 
     const std::byte *data_ptrs[] = {

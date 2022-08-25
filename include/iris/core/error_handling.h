@@ -107,7 +107,7 @@ inline void check_and_handle(
 #define IRIS_DEBUG_BREAK()                                                                                             \
     do                                                                                                                 \
     {                                                                                                                  \
-        asm("BKPT");                                                                                                   \
+        __builtin_debugtrap();                                                                                         \
     } while (false)
 #else
 #error unsupported architecture

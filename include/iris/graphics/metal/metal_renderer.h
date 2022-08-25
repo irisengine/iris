@@ -144,6 +144,9 @@ class MetalRenderer : public Renderer
 
     /** Buffer for bindless sampler table. */
     std::unique_ptr<MetalConstantBuffer> sampler_table_;
+
+    /** Collection of resources that need to be made resident before rendering. */
+    std::vector<id<MTLResource>> resident_resources_;
 };
 
 }
