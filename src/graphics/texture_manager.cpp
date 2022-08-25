@@ -250,9 +250,8 @@ CubeMap *TextureManager::load(
             std::all_of(
                 std::cbegin(parsed_sides) + 1u,
                 std::cend(parsed_sides),
-                [width, height](const auto &side) {
-                    return (std::get<1>(side) == width) && (std::get<2>(side) == height);
-                }),
+                [width, height](const auto &side)
+                { return (std::get<1>(side) == width) && (std::get<2>(side) == height); }),
             "cube map images must all have the same dimensions");
 
         auto cube_map = do_create(
@@ -374,10 +373,10 @@ void TextureManager::unload(const Texture *texture)
     if (texture != blank_texture())
     {
         // find the texture that we want to unload
-        auto loaded =
-            std::find_if(std::begin(loaded_textures_), std::end(loaded_textures_), [texture](const auto &element) {
-                return element.second.asset.get() == texture;
-            });
+        auto loaded = std::find_if(
+            std::begin(loaded_textures_),
+            std::end(loaded_textures_),
+            [texture](const auto &element) { return element.second.asset.get() == texture; });
 
         expect(loaded != std::cend(loaded_textures_), "texture has not been loaded");
 
@@ -402,10 +401,10 @@ void TextureManager::unload(const CubeMap *cube_map)
     if (cube_map != blank_cube_map())
     {
         // find the texture that we want to unload
-        auto loaded =
-            std::find_if(std::begin(loaded_cube_maps_), std::end(loaded_cube_maps_), [cube_map](const auto &element) {
-                return element.second.asset.get() == cube_map;
-            });
+        auto loaded = std::find_if(
+            std::begin(loaded_cube_maps_),
+            std::end(loaded_cube_maps_),
+            [cube_map](const auto &element) { return element.second.asset.get() == cube_map; });
 
         expect(loaded != std::cend(loaded_cube_maps_), "cube_map has not been loaded");
 
@@ -429,10 +428,10 @@ void TextureManager::unload(const Sampler *sampler)
     // don't unload the default sampler!
     if ((sampler != default_texture_sampler()) && (sampler != default_cube_map_sampler()))
     {
-        auto loaded =
-            std::find_if(std::begin(loaded_samplers_), std::end(loaded_samplers_), [sampler](const auto &element) {
-                return element.second.asset.get() == sampler;
-            });
+        auto loaded = std::find_if(
+            std::begin(loaded_samplers_),
+            std::end(loaded_samplers_),
+            [sampler](const auto &element) { return element.second.asset.get() == sampler; });
 
         expect(loaded != std::end(loaded_samplers_), "sampler has not been loaded");
 
@@ -551,9 +550,10 @@ std::vector<const Texture *> TextureManager::textures() const
         std::back_inserter(textures),
         [](const auto &element) { return element.second.asset.get(); });
 
-    std::sort(std::begin(textures), std::end(textures), [](const Texture *a, const Texture *b) {
-        return a->index() < b->index();
-    });
+    std::sort(
+        std::begin(textures),
+        std::end(textures),
+        [](const Texture *a, const Texture *b) { return a->index() < b->index(); });
 
     return textures;
 }
@@ -568,9 +568,10 @@ std::vector<const Sampler *> TextureManager::samplers() const
         std::back_inserter(samplers),
         [](const auto &element) { return element.second.asset.get(); });
 
-    std::sort(std::begin(samplers), std::end(samplers), [](const Sampler *a, const Sampler *b) {
-        return a->index() < b->index();
-    });
+    std::sort(
+        std::begin(samplers),
+        std::end(samplers),
+        [](const Sampler *a, const Sampler *b) { return a->index() < b->index(); });
 
     return samplers;
 }
@@ -585,9 +586,10 @@ std::vector<const CubeMap *> TextureManager::cube_maps() const
         std::back_inserter(cube_maps),
         [](const auto &element) { return element.second.asset.get(); });
 
-    std::sort(std::begin(cube_maps), std::end(cube_maps), [](const CubeMap *a, const CubeMap *b) {
-        return a->index() < b->index();
-    });
+    std::sort(
+        std::begin(cube_maps),
+        std::end(cube_maps),
+        [](const CubeMap *a, const CubeMap *b) { return a->index() < b->index(); });
 
     return cube_maps;
 }

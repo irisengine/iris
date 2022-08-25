@@ -103,11 +103,13 @@ void go(int, char **)
     iris::Looper looper{
         0ms,
         16ms,
-        [&sample = sample](auto, auto) {
+        [&sample = sample](auto, auto)
+        {
             sample->fixed_update();
             return true;
         },
-        [&, &sample = sample](std::chrono::microseconds elapsed, auto) {
+        [&, &sample = sample](std::chrono::microseconds elapsed, auto)
+        {
             auto running = true;
             auto event = window->pump_event();
             while (event)
