@@ -16,6 +16,7 @@
 #import <Metal/Metal.h>
 
 #include "core/data_buffer.h"
+#include "core/error_handling.h"
 #include "core/exception.h"
 #include "core/macos/macos_ios_utility.h"
 #include "core/resource_loader.h"
@@ -47,6 +48,7 @@ MTLTextureDescriptor *image_texture_descriptor(std::uint32_t width, std::uint32_
     texture_descriptor.width = width;
     texture_descriptor.height = height;
     texture_descriptor.pixelFormat = MTLPixelFormatRGBA8Unorm_sRGB;
+    texture_descriptor.resourceOptions = MTLResourceStorageModeShared;
     texture_descriptor.usage = MTLTextureUsageShaderRead;
 
     return texture_descriptor;
@@ -72,6 +74,7 @@ MTLTextureDescriptor *data_texture_descriptor(std::uint32_t width, std::uint32_t
     texture_descriptor.width = width;
     texture_descriptor.height = height;
     texture_descriptor.pixelFormat = MTLPixelFormatRGBA8Unorm;
+    texture_descriptor.resourceOptions = MTLResourceStorageModeShared;
     texture_descriptor.usage = MTLTextureUsageShaderRead;
 
     return texture_descriptor;
