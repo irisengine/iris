@@ -8,6 +8,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/utility.h
     ${LINUX_ROOT}/static_buffer.cpp
     macos_ios_utility.mm
+    profiler.cpp
     semaphore.cpp
     start.mm
     thread.cpp)
