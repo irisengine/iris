@@ -27,7 +27,7 @@ namespace
 {
 
 static constexpr auto stack_frame_size = 100u;
-static std::vector<std::byte> proc_info_buffer(1024u * 1024u * 100u);
+static std::vector<std::byte> proc_info_buffer;
 static const auto max_thread_count = std::thread::hardware_concurrency() * 10u;
 
 /**
@@ -164,6 +164,8 @@ struct Profiler::implementation
 Profiler::Profiler()
     : impl_(std::make_unique<implementation>())
 {
+    proc_info_buffer.resize(1024u * 1024u * 100u);
+
     // ensure we can resolve symbols
     ensure(::SymInitialize(::GetCurrentProcess(), NULL, TRUE) == TRUE, "failed to init symbol handler");
 
@@ -172,116 +174,118 @@ Profiler::Profiler()
     impl_->running = true;
 
     // create a new thread for handling the sampling, this thread will be excluded from the sampling
-    impl_->worker = Thread([&]() {
-        ProfilerAnalyser pa{};
-
-        while (impl_->running)
+    impl_->worker = Thread(
+        [&]()
         {
-            // get all threads for the current process
-            if (const auto &thread_handles = threads_for_current_process(); thread_handles)
+            ProfilerAnalyser pa{};
+
+            while (impl_->running)
             {
-                auto i = 0u;
-                for (const auto &handle : *thread_handles)
+                // get all threads for the current process
+                if (const auto &thread_handles = threads_for_current_process(); thread_handles)
                 {
-                    // skip the thread if it is the current thread, otherwise we will end up suspending ourselves
-                    if (::GetThreadId(handle) == ::GetThreadId(::GetCurrentThread()))
+                    auto i = 0u;
+                    for (const auto &handle : *thread_handles)
                     {
-                        continue;
-                    }
+                        // skip the thread if it is the current thread, otherwise we will end up suspending ourselves
+                        if (::GetThreadId(handle) == ::GetThreadId(::GetCurrentThread()))
+                        {
+                            continue;
+                        }
 
-                    // suspend the thread
-                    AutoSuspendThread auto_suspend(handle);
+                        // suspend the thread
+                        AutoSuspendThread auto_suspend(handle);
 
-                    // DANGER ZONE START
-                    // as we don't know what a thread was doing when we suspended it we have to be careful what we do
-                    // we cannot allocate memory, most platform/system calls or anything which might involve trying to
-                    // take a lock that a suspended thread might be holding
+                        // DANGER ZONE START
+                        // as we don't know what a thread was doing when we suspended it we have to be careful what we
+                        // do we cannot allocate memory, most platform/system calls or anything which might involve
+                        // trying to take a lock that a suspended thread might be holding
 
-                    if (auto_suspend.suspend_result() == -1)
-                    {
-                        break;
-                    }
-
-                    CONTEXT context = {.ContextFlags = CONTEXT_FULL};
-                    if (::GetThreadContext(handle, &context) == 0)
-                    {
-                        break;
-                    }
-
-                    // build the STACKFRAME64 object based on the thread context
-                    STACKFRAME64 stack_frame = {
-                        .AddrPC = {.Offset = context.Rip, .Mode = AddrModeFlat},
-                        .AddrFrame = {.Offset = context.Rbp, .Mode = AddrModeFlat},
-                        .AddrStack = {.Offset = context.Rsp, .Mode = AddrModeFlat}};
-
-                    // get the stack trace for the thread
-                    auto index = i++ * 100u;
-                    while (::StackWalk64(
-                               IMAGE_FILE_MACHINE_AMD64,
-                               ::GetCurrentProcess(),
-                               handle,
-                               &stack_frame,
-                               &context,
-                               NULL,
-                               ::SymFunctionTableAccess64,
-                               ::SymGetModuleBase64,
-                               NULL) == TRUE)
-                    {
-                        impl_->stack_traces[index] = stack_frame.AddrPC.Offset;
-                        ++index;
-
-                        if (index == 100u)
+                        if (auto_suspend.suspend_result() == -1)
                         {
                             break;
                         }
-                    }
 
-                    // terminate the stack trace so we can find the end
-                    if (index != 100u)
-                    {
-                        impl_->stack_traces[index] = 0u;
-                    }
+                        CONTEXT context = {.ContextFlags = CONTEXT_FULL};
+                        if (::GetThreadContext(handle, &context) == 0)
+                        {
+                            break;
+                        }
 
-                    // DANGER ZONE END
+                        // build the STACKFRAME64 object based on the thread context
+                        STACKFRAME64 stack_frame = {
+                            .AddrPC = {.Offset = context.Rip, .Mode = AddrModeFlat},
+                            .AddrFrame = {.Offset = context.Rbp, .Mode = AddrModeFlat},
+                            .AddrStack = {.Offset = context.Rsp, .Mode = AddrModeFlat}};
+
+                        // get the stack trace for the thread
+                        auto index = i++ * 100u;
+                        while (::StackWalk64(
+                                   IMAGE_FILE_MACHINE_AMD64,
+                                   ::GetCurrentProcess(),
+                                   handle,
+                                   &stack_frame,
+                                   &context,
+                                   NULL,
+                                   ::SymFunctionTableAccess64,
+                                   ::SymGetModuleBase64,
+                                   NULL) == TRUE)
+                        {
+                            impl_->stack_traces[index] = stack_frame.AddrPC.Offset;
+                            ++index;
+
+                            if (index == 100u)
+                            {
+                                break;
+                            }
+                        }
+
+                        // terminate the stack trace so we can find the end
+                        if (index != 100u)
+                        {
+                            impl_->stack_traces[index] = 0u;
+                        }
+
+                        // DANGER ZONE END
+                    }
                 }
-            }
 
-            // now that all threads have resumed we can resolve the symbols for all the stack traces
-            for (auto i = 0u; i < max_thread_count; ++i)
-            {
-                std::vector<std::string> stack_trace{};
-                auto index = i * 100u;
-
-                while (impl_->stack_traces[index] != 0u)
+                // now that all threads have resumed we can resolve the symbols for all the stack traces
+                for (auto i = 0u; i < max_thread_count; ++i)
                 {
-                    char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME];
-                    auto *symbol_info = reinterpret_cast<SYMBOL_INFO *>(buffer);
-                    symbol_info->SizeOfStruct = sizeof(SYMBOL_INFO);
-                    symbol_info->MaxNameLen = MAX_SYM_NAME;
-                    DWORD64 displacement = 0u;
+                    std::vector<std::string> stack_trace{};
+                    auto index = i * 100u;
 
-                    if (::SymFromAddr(::GetCurrentProcess(), impl_->stack_traces[index], &displacement, symbol_info) ==
-                        TRUE)
+                    while (impl_->stack_traces[index] != 0u)
                     {
-                        stack_trace.emplace_back(symbol_info->Name, symbol_info->NameLen);
-                    }
-                    else
-                    {
-                        stack_trace.push_back("unknown");
+                        char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME];
+                        auto *symbol_info = reinterpret_cast<SYMBOL_INFO *>(buffer);
+                        symbol_info->SizeOfStruct = sizeof(SYMBOL_INFO);
+                        symbol_info->MaxNameLen = MAX_SYM_NAME;
+                        DWORD64 displacement = 0u;
+
+                        if (::SymFromAddr(
+                                ::GetCurrentProcess(), impl_->stack_traces[index], &displacement, symbol_info) == TRUE)
+                        {
+                            stack_trace.emplace_back(symbol_info->Name, symbol_info->NameLen);
+                        }
+                        else
+                        {
+                            stack_trace.push_back("unknown");
+                        }
+
+                        ++index;
                     }
 
-                    ++index;
+                    // record the resolved stack trace
+                    pa.add_stack_trace(stack_trace);
                 }
 
-                // record the resolved stack trace
-                pa.add_stack_trace(stack_trace);
+                ::Sleep(10);
             }
 
-            ::Sleep(10);
-        }
-
-        pa.print();
-    });
+            pa.print();
+        });
 }
 
 Profiler::~Profiler()
