@@ -159,10 +159,10 @@ Profiler::Profiler()
                 arm_thread_state64_t state;
                 mach_msg_type_number_t state_count = ARM_THREAD_STATE64_COUNT;
                 const auto flavour = ARM_THREAD_STATE64;
-#elif defined(IRIS_ARCH_X86)
+#elif defined(IRIS_ARCH_X86_64)
                 x86_thread_state64_t state;
-                mach_msg_type_number_t state_count = X86_THREAD_STATE64_COUNT;
-                const auto flavour = X86_THREAD_STATE64;
+                mach_msg_type_number_t state_count = x86_THREAD_STATE64_COUNT;
+                const auto flavour = x86_THREAD_STATE64;
 #else
 #error unsupported architecture
 #endif
@@ -174,9 +174,17 @@ Profiler::Profiler()
                     continue;
                 }
 
+#if defined(IRIS_ARCH_ARM64)
                 // get the stack trace
                 const auto stack_size = ::backtrace_from_fp(
                     reinterpret_cast<void *>(state.__fp), &impl_->stack_traces[index], stack_frame_size);
+#elif defined(IRIS_ARCH_X86_64)
+                // get the stack trace
+                const auto stack_size = ::backtrace_from_fp(
+                    reinterpret_cast<void *>(state.__rbp), &impl_->stack_traces[index], stack_frame_size);
+#else
+#error unsupported architecture
+#endif
 
                 if (stack_size < stack_frame_size)
                 {
