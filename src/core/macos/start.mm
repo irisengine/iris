@@ -78,6 +78,8 @@ void start_debug(int argc, char **argv, std::function<void(int, char **)> entry)
 
     LOG_ENGINE_INFO("start", "engine start (with debugging) {}", IRIS_VERSION_STR);
 
+    Profiler profiler{};
+
     register_apis();
 
     entry(argc, argv);
