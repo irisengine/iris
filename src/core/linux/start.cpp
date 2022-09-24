@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "core/profiler.h"
 #include "core/root.h"
 #include "graphics/linux/linux_window_manager.h"
 #include "graphics/opengl/opengl_material_manager.h"
@@ -66,6 +67,8 @@ void start_debug(int argc, char **argv, std::function<void(int, char **)> entry)
     Logger::instance().set_log_engine(true);
 
     LOG_ENGINE_INFO("start", "engine start (with debugging) {}", IRIS_VERSION_STR);
+
+    Profiler profiler{};
 
     register_apis();
 

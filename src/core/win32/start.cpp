@@ -9,6 +9,7 @@
 #include <memory>
 
 #include "core/error_handling.h"
+#include "core/profiler.h"
 #include "core/root.h"
 #include "graphics/d3d12/d3d12_material_manager.h"
 #include "graphics/d3d12/d3d12_mesh_manager.h"
@@ -85,6 +86,8 @@ void start_debug(int argc, char **argv, std::function<void(int, char **)> entry)
     ensure(::CoInitializeEx(nullptr, COINIT_MULTITHREADED) == S_OK, "CoInitialize failed");
 
     LOG_ENGINE_INFO("start", "engine start (with debugging) {}", IRIS_VERSION_STR);
+
+    Profiler profiler{};
 
     register_apis();
 

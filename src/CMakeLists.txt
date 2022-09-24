@@ -92,6 +92,7 @@ elseif(IRIS_PLATFORM MATCHES "LINUX")
   target_compile_definitions(iris PUBLIC IRIS_PLATFORM_LINUX)
   target_compile_definitions(iris PUBLIC IRIS_ARCH_X86_64)
   target_compile_options(iris PRIVATE -Wall -Werror)
+  target_link_options(iris PUBLIC -rdynamic)
 
   list(APPEND IRIS_LINKED_LIBS_PRIVATE pthread GL Xfixes X11)
 else()

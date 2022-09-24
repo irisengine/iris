@@ -47,6 +47,7 @@ Iris is a cross-platform game engine written in modern C++
 * Cross platform: Windows, Linux, macOS and iOS
 * Multiple rendering backends: D3D12, Metal, OpenGL 
 * 3D rendering and physics
+* Custom sampling profiler
 * Post processing effects:
     - FXAA
     - SSAO

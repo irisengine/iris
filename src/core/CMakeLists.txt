@@ -21,6 +21,8 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/looper.h
     ${INCLUDE_ROOT}/matrix4.h
     ${INCLUDE_ROOT}/object_pool.h
+  ${INCLUDE_ROOT}/profiler.h
+  ${INCLUDE_ROOT}/profiler_analyser.h
     ${INCLUDE_ROOT}/quaternion.h
     ${INCLUDE_ROOT}/random.h
     ${INCLUDE_ROOT}/resource_loader.h
@@ -34,6 +36,7 @@ target_sources(iris PRIVATE
     camera.cpp
     exception.cpp
     looper.cpp
+  profiler_analyser.cpp
     random.cpp
     root.cpp
     transform.cpp
