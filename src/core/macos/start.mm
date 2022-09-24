@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "core/profiler.h"
 #include "core/root.h"
 #include "graphics/macos/macos_window_manager.h"
 #include "graphics/metal/metal_material_manager.h"
