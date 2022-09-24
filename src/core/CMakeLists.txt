@@ -21,6 +21,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/looper.h
     ${INCLUDE_ROOT}/matrix4.h
     ${INCLUDE_ROOT}/object_pool.h
+  ${INCLUDE_ROOT}/profiler.h
     ${INCLUDE_ROOT}/quaternion.h
     ${INCLUDE_ROOT}/random.h
     ${INCLUDE_ROOT}/resource_loader.h
