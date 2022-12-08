@@ -553,6 +553,8 @@ void D3D12Renderer::do_set_render_pipeline(std::function<void()> build_queue)
     ::WaitForSingleObject(fence_event_, INFINITE);
     ++frames_[frame_index_].fence_value;
 
+    D3D12DescriptorManager::gpu_allocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV).reset_static();
+
     build_queue();
 
     instance_data_buffers_.clear();

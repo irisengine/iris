@@ -6,4 +6,5 @@ target_sources(iris PRIVATE
     semaphore.cpp
     start.cpp
     static_buffer.cpp
-    thread.cpp)
+    thread.cpp
+)

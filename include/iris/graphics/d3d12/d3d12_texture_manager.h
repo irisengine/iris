@@ -25,7 +25,7 @@ namespace iris
 class D3D12TextureManager : public TextureManager
 {
   public:
-    ~D3D12TextureManager() override = default;
+    D3D12TextureManager();
 
   protected:
     /**

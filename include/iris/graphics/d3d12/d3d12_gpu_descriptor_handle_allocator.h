@@ -236,6 +236,11 @@ class D3D12GPUDescriptorHandleAllocator
         dynamic_indices_[frame] = static_capacity_ + (frame * dynamic_capacity_);
     }
 
+    void reset_static()
+    {
+        static_index_ = 0u;
+    }
+
   private:
     /** D3D12 handle to descriptor heap. */
     ::Microsoft::WRL::ComPtr<::ID3D12DescriptorHeap> descriptor_heap_;

@@ -78,7 +78,7 @@ class MeshManager
      * @returns
      *   Mesh for sprite.
      */
-    const Mesh *sprite(const Colour &colour);
+    const Mesh *sprite(const Colour &colour, float size = 0.5f);
 
     /**
      * Create a cube mesh.

@@ -22,6 +22,12 @@
 namespace iris
 {
 
+D3D12TextureManager::D3D12TextureManager()
+{
+    static_cast<void>(blank_texture());
+    static_cast<void>(blank_cube_map());
+}
+
 std::unique_ptr<Texture> D3D12TextureManager::do_create(
     const DataBuffer &data,
     std::uint32_t width,

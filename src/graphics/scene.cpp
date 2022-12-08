@@ -18,7 +18,6 @@ namespace iris
 {
 Scene::Scene(RenderGraph *default_render_graph, bool *dirty_pipeline)
     : entities_()
-    , render_graphs_()
     , lighting_rig_()
     , default_render_graph_(default_render_graph)
     , dirty_pipeline_(dirty_pipeline)

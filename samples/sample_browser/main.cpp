@@ -69,7 +69,9 @@ RenderState create_render_state(iris::Window *window, iris::Camera *camera, std:
     auto *rg = render_pipeline->create_render_graph();
     rg->render_node()->set_colour_input(rg->create<iris::TextureNode>(sample_target->colour_texture()));
     scene->create_entity<iris::SingleEntity>(
-        rg, iris::Root::mesh_manager().sprite({1.0f, 1.0f, 1.0f}), iris::Transform{{0.0f}, {}, {800.0f, 800.0f, 1.0f}});
+        rg,
+        iris::Root::mesh_manager().sprite({1.0f, 1.0f, 1.0f}, 1.0f),
+        iris::Transform{{0.0f}, {}, {1920.0f, 1080.0f, 1.0f}});
 
     iris::PostProcessingDescription post_processing_description{
         .bloom = {iris::BloomDescription{6.0f}},
@@ -88,7 +90,7 @@ void go(int, char **)
     iris::ResourceLoader::instance().set_root_directory("assets");
     auto &rtm = iris::Root::render_target_manager();
 
-    auto window = iris::Root::window_manager().create_window(800u, 800u);
+    auto window = iris::Root::window_manager().create_window(1920u, 1080u);
     std::size_t sample_number = 0u;
 
     iris::Camera camera{iris::CameraType::ORTHOGRAPHIC, window->width(), window->height()};
@@ -103,13 +105,11 @@ void go(int, char **)
     iris::Looper looper{
         0ms,
         16ms,
-        [&sample = sample](auto, auto)
-        {
+        [&sample = sample](auto, auto) {
             sample->fixed_update();
             return true;
         },
-        [&, &sample = sample](std::chrono::microseconds elapsed, auto)
-        {
+        [&, &sample = sample](std::chrono::microseconds elapsed, auto) {
             auto running = true;
             auto event = window->pump_event();
             while (event)

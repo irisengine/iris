@@ -154,6 +154,7 @@ LRESULT CALLBACK window_proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     LRESULT result = 0;
 
     static std::set<WPARAM> pressed{};
+    // static auto handle_leave = false;
 
     switch (uMsg)
     {
@@ -185,8 +186,34 @@ LRESULT CALLBACK window_proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             event_queue.emplace(
                 iris::ScrollWheelEvent{static_cast<float>(GET_WHEEL_DELTA_WPARAM(wParam)) / WHEEL_DELTA});
             break;
+        // case WM_MOUSELEAVE:
+        //    ::SetCursorPos(0, 0);
+        //    handle_leave = false;
+        //    break;
         case WM_INPUT:
         {
+            // if (!handle_leave)
+            //{
+            //    handle_leave = true;
+
+            //    TRACKMOUSEEVENT tme{};
+            //    tme.cbSize = sizeof(TRACKMOUSEEVENT);
+            //    tme.dwFlags = TME_LEAVE;
+            //    tme.hwndTrack = hWnd;
+
+            //    ::TrackMouseEvent(&tme);
+            //}
+
+            static auto once = false;
+
+            if (!once)
+            {
+                // once = true;
+                RECT rect{};
+                ::GetWindowRect(hWnd, &rect);
+                ::ClipCursor(&rect);
+            }
+
             UINT dwSize = sizeof(RAWINPUT);
             BYTE lpb[sizeof(RAWINPUT)];
 
@@ -312,13 +339,16 @@ Win32Window::Win32Window(std::uint32_t width, std::uint32_t height)
     }
 
     auto clip_rect = rect;
-    clip_rect.left += (screen_width / 2) - ((width_ * scale) / 2),
-        clip_rect.bottom += (screen_height / 2) - ((height_ * scale) / 2),
-        clip_rect.right += (screen_width / 2) - ((width_ * scale) / 2),
-        clip_rect.top += (screen_height / 2) - ((height_ * scale) / 2);
+    // clip_rect.left += (screen_width / 2) - ((width_ * scale) / 2),
+    //    clip_rect.bottom += (screen_height / 2) - ((height_ * scale) / 2),
+    //    clip_rect.right += (screen_width / 2) - ((width_ * scale) / 2),
+    //    clip_rect.top += (screen_height / 2) - ((height_ * scale) / 2);
 
     // confine cursor to window
     ensure(::ClipCursor(&clip_rect) == TRUE, "could not confine cursor");
+    ensure(
+        ::SetCursorPos(rect.left + (screen_width / 2), rect.top + (screen_height / 2)) == TRUE,
+        "could not centre cursor");
 }
 
 std::uint32_t Win32Window::screen_scale() const

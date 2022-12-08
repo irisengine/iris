@@ -413,8 +413,8 @@ const RenderTarget *RenderPipeline::add_pass(
     create_render_graph_callback(rg, target);
     scene->create_entity<SingleEntity>(
         rg,
-        Root::mesh_manager().sprite({}),
-        Transform({}, {}, {static_cast<float>(width_), static_cast<float>(height_), 1. - 1}));
+        Root::mesh_manager().sprite({}, 1.0f),
+        Transform({}, {}, {static_cast<float>(width_), static_cast<float>(height_), 1.0f}));
 
     auto *pass = create_engine_render_pass(scene);
     pass->camera = camera;

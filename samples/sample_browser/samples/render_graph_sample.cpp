@@ -158,7 +158,9 @@ RenderGraphSample::RenderGraphSample(iris::Window *window, iris::RenderPipeline 
         graph3->create<iris::TextureNode>(sphere1_rt->depth_texture())));
 
     scene3->create_entity<iris::SingleEntity>(
-        graph3, mesh_manager.sprite({}), iris::Transform{iris::Vector3{}, {}, iris::Vector3{800.0f, 800.0f, 1.0f}});
+        graph3,
+        mesh_manager.sprite({}, 1.0f),
+        iris::Transform{iris::Vector3{}, {}, iris::Vector3{1920.0f, 1080.0f, 1.0f}});
 
     auto *graph4 = render_pipeline.create_render_graph();
     graph4->render_node()->set_colour_input(graph4->create<iris::CombineNode>(

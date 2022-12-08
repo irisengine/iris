@@ -36,20 +36,20 @@ MeshManager::MeshManager(bool flip_uvs_on_load)
 {
 }
 
-const Mesh *MeshManager::sprite(const Colour &colour)
+const Mesh *MeshManager::sprite(const Colour &colour, float size)
 {
     // create a unique for this mesh
     std::stringstream strm{};
-    strm << "!sprite" << colour;
+    strm << "!sprite" << colour << ":" << size;
     const auto id = strm.str();
 
     if (loaded_meshes_.count(id) == 0u)
     {
         std::vector<VertexData> vertices{
-            {{-1.0, 1.0, 0.0f}, {}, colour, {0.0f, 0.0f, 0.0f}},
-            {{1.0, 1.0, 0.0f}, {}, colour, {1.0f, 0.0f, 0.0f}},
-            {{1.0, -1.0, 0.0f}, {}, colour, {1.0f, 1.0f, 0.0f}},
-            {{-1.0, -1.0, 0.0f}, {}, colour, {0.0f, 1.0f, 0.0f}}};
+            {{-size, size, 0.0f}, {}, colour, {0.0f, 0.0f, 0.0f}},
+            {{size, size, 0.0f}, {}, colour, {1.0f, 0.0f, 0.0f}},
+            {{size, -size, 0.0f}, {}, colour, {1.0f, 1.0f, 0.0f}},
+            {{-size, -size, 0.0f}, {}, colour, {0.0f, 1.0f, 0.0f}}};
 
         std::vector<std::uint32_t> indices{0, 2, 1, 3, 2, 0};
 

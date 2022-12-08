@@ -164,9 +164,6 @@ class Scene
     /** Collection of <RenderGraph, RenderEntity> tuples. */
     std::vector<std::tuple<RenderGraph *, std::unique_ptr<RenderEntity>>> entities_;
 
-    /** Collection of RenderGraphs. */
-    std::vector<std::unique_ptr<RenderGraph>> render_graphs_;
-
     /** Lighting rig for scene. */
     LightingRig lighting_rig_;
 
