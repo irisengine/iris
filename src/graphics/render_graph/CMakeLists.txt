@@ -18,6 +18,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/sin_node.h
     ${INCLUDE_ROOT}/sky_box_node.h
     ${INCLUDE_ROOT}/texture_node.h
+    ${INCLUDE_ROOT}/time_node.h
     ${INCLUDE_ROOT}/vertex_node.h
     arithmetic_node.cpp
     blur_node.cpp
@@ -33,4 +34,6 @@ target_sources(iris PRIVATE
     sin_node.cpp
     sky_box_node.cpp
     texture_node.cpp
-    vertex_node.cpp)
+    time_node.cpp
+    vertex_node.cpp
+)

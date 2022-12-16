@@ -38,6 +38,7 @@ class VertexNode;
 class AmbientOcclusionNode;
 class ColourAdjustNode;
 class AntiAliasingNode;
+class TimeNode;
 
 /**
  * Interface for a class that compiles a RenderGraph into API specific shaders.
@@ -73,6 +74,7 @@ class ShaderCompiler
     void visit(const AmbientOcclusionNode &node);
     void visit(const ColourAdjustNode &node);
     void visit(const AntiAliasingNode &node);
+    void visit(const TimeNode &node);
 
     /**
      * Get the compiled vertex shader.
@@ -119,5 +121,7 @@ class ShaderCompiler
 
     /** Stack of streams to be used the render graph is traversed. */
     std::stack<std::stringstream> stream_stack_;
+
+    bool is_vertex_shader_;
 };
 }

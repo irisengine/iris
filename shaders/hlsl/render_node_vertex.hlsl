@@ -26,7 +26,13 @@ struct ModelData
     matrix normal_matrix;
 };
 
+struct IntValue
+{
+    int value;
+};
+
 StructuredBuffer<ModelData> model_data : register(t0);
+ConstantBuffer<IntValue> time : register(b5);
 
 struct PSInput
 {
@@ -69,6 +75,11 @@ PSInput main(
     PSInput result;
 
     result.vertex_position = position;
+
+    {% if exists("position") %}
+        result.vertex_position = {{ position }};
+    {% endif %}
+
     result.frag_position = mul(result.vertex_position, bone_transform);
     result.frag_position = mul(result.frag_position, model_data[instance_id].model);
     result.view_position = mul(result.frag_position, view);

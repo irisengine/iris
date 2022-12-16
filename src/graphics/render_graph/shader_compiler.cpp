@@ -39,6 +39,7 @@
 #include "graphics/render_graph/sin_node.h"
 #include "graphics/render_graph/sky_box_node.h"
 #include "graphics/render_graph/texture_node.h"
+#include "graphics/render_graph/time_node.h"
 #include "graphics/render_graph/value_node.h"
 #include "graphics/render_graph/vertex_node.h"
 #include "graphics/sampler.h"
@@ -99,6 +100,7 @@ ShaderCompiler::ShaderCompiler(
     , light_type_(light_type)
     , render_to_normal_target_(render_to_normal_target)
     , render_to_position_target_(render_to_position_target)
+    , is_vertex_shader_(true)
 {
     render_graph->render_node()->accept(*this);
 }
@@ -107,12 +109,24 @@ void ShaderCompiler::visit(const RenderNode &node)
 {
     // build vertex shader
 
-    const ::inja::json vertex_args{{"is_directional_light", light_type_ == LightType::DIRECTIONAL}};
+    ::inja::json vertex_args{
+        {"is_directional_light", light_type_ == LightType::DIRECTIONAL}, {"is_vertex_shader", true}};
+
+    if (node.position_input() != nullptr)
+    {
+        stream_stack_.push(std::stringstream{});
+        node.position_input()->accept(*this);
+        vertex_args["position"] = stream_stack_.top().str();
+        stream_stack_.pop();
+    }
+
     vertex_stream_ << ::inja::render(
         language_string(language_, hlsl::render_node_vertex, glsl::render_node_vertex, msl::render_node_vertex),
         vertex_args);
 
     // build fragment shader
+
+    is_vertex_shader_ = false;
 
     fragment_functions_.emplace(
         language_string(language_, hlsl::shadow_function, glsl::shadow_function, msl::shadow_function));
@@ -178,7 +192,8 @@ void ShaderCompiler::visit(const ColourNode &node)
 {
     const auto colour = node.colour();
 
-    const ::inja::json args{{"r", colour.r}, {"g", colour.g}, {"b", colour.b}, {"a", colour.a}};
+    const ::inja::json args{
+        {"is_vertex_shader", is_vertex_shader_}, {"r", colour.r}, {"g", colour.g}, {"b", colour.b}, {"a", colour.a}};
 
     stream_stack_.top() << ::inja::render(
         language_string(language_, hlsl::colour_node_chunk, glsl::colour_node_chunk, msl::colour_node_chunk), args);
@@ -196,6 +211,7 @@ void ShaderCompiler::visit(const TextureNode &node)
     }
 
     const ::inja::json args{
+        {"is_vertex_shader", is_vertex_shader_},
         {"uv_source", static_cast<std::uint32_t>(node.uv_source())},
         {"texture_index", node.texture()->index()},
         {"sampler_index", node.texture()->sampler()->index()},
@@ -215,7 +231,7 @@ void ShaderCompiler::visit(const InvertNode &node)
     stream_stack_.push(std::stringstream{});
     node.input_node()->accept(*this);
 
-    const ::inja::json args{{"input", stream_stack_.top().str()}};
+    const ::inja::json args{{"is_vertex_shader", is_vertex_shader_}, {"input", stream_stack_.top().str()}};
 
     stream_stack_.pop();
     stream_stack_.top() << ::inja::render(
@@ -228,6 +244,7 @@ void ShaderCompiler::visit(const BlurNode &node)
         language_string(language_, hlsl::blur_function, glsl::blur_function, msl::blur_function));
 
     const ::inja::json args{
+        {"is_vertex_shader", is_vertex_shader_},
         {"texture_index", node.input_node()->texture()->index()},
         {"sampler_index", node.input_node()->texture()->sampler()->index()}};
 
@@ -252,7 +269,11 @@ void ShaderCompiler::visit(const CompositeNode &node)
     }
 
     const ::inja::json args{
-        {"colour1", node_strs[0]}, {"colour2", node_strs[1]}, {"depth1", node_strs[2]}, {"depth2", node_strs[3]}};
+        {"is_vertex_shader", is_vertex_shader_},
+        {"colour1", node_strs[0]},
+        {"colour2", node_strs[1]},
+        {"depth1", node_strs[2]},
+        {"depth2", node_strs[3]}};
 
     stream_stack_.top() << ::inja::render(
         language_string(language_, hlsl::composite_node_chunk, glsl::composite_node_chunk, msl::composite_node_chunk),
@@ -261,7 +282,7 @@ void ShaderCompiler::visit(const CompositeNode &node)
 
 void ShaderCompiler::visit(const ValueNode<float> &node)
 {
-    const ::inja::json args{{"value", node.value()}};
+    const ::inja::json args{{"is_vertex_shader", is_vertex_shader_}, {"value", node.value()}};
     stream_stack_.top() << ::inja::render(
         language_string(
             language_, hlsl::value_node_float_chunk, glsl::value_node_float_chunk, msl::value_node_float_chunk),
@@ -272,7 +293,7 @@ void ShaderCompiler::visit(const ValueNode<Vector3> &node)
 {
     const auto value = node.value();
 
-    const ::inja::json args{{"x", value.x}, {"y", value.y}, {"z", value.z}};
+    const ::inja::json args{{"is_vertex_shader", is_vertex_shader_}, {"x", value.x}, {"y", value.y}, {"z", value.z}};
     stream_stack_.top() << ::inja::render(
         language_string(
             language_, hlsl::value_node_vector3_chunk, glsl::value_node_vector3_chunk, msl::value_node_vector3_chunk),
@@ -283,7 +304,8 @@ void ShaderCompiler::visit(const ValueNode<Colour> &node)
 {
     const auto value = node.value();
 
-    const ::inja::json args{{"r", value.r}, {"g", value.g}, {"b", value.b}, {"a", value.a}};
+    const ::inja::json args{
+        {"is_vertex_shader", is_vertex_shader_}, {"r", value.r}, {"g", value.g}, {"b", value.b}, {"a", value.a}};
     stream_stack_.top() << ::inja::render(
         language_string(
             language_, hlsl::value_node_colour_chunk, glsl::value_node_colour_chunk, msl::value_node_colour_chunk),
@@ -304,6 +326,7 @@ void ShaderCompiler::visit(const ArithmeticNode &node)
     }
 
     const ::inja::json args{
+        {"is_vertex_shader", is_vertex_shader_},
         {"operator", static_cast<std::uint32_t>(node.arithmetic_operator())},
         {"value1", node_strs[0]},
         {"value2", node_strs[1]}};
@@ -329,6 +352,7 @@ void ShaderCompiler::visit(const ConditionalNode &node)
     }
 
     const ::inja::json args{
+        {"is_vertex_shader", is_vertex_shader_},
         {"input1", node_strs[0]},
         {"input2", node_strs[1]},
         {"output1", node_strs[2]},
@@ -348,7 +372,7 @@ void ShaderCompiler::visit(const ComponentNode &node)
     const auto value = stream_stack_.top().str();
     stream_stack_.pop();
 
-    const ::inja::json args{{"value", value}, {"component", node.component()}};
+    const ::inja::json args{{"is_vertex_shader", is_vertex_shader_}, {"value", value}, {"component", node.component()}};
 
     stream_stack_.top() << ::inja::render(
         language_string(language_, hlsl::component_node_chunk, glsl::component_node_chunk, msl::component_node_chunk),
@@ -368,7 +392,12 @@ void ShaderCompiler::visit(const CombineNode &node)
         stream_stack_.pop();
     }
 
-    const ::inja::json args{{"x", node_strs[0]}, {"y", node_strs[1]}, {"z", node_strs[2]}, {"w", node_strs[3]}};
+    const ::inja::json args{
+        {"is_vertex_shader", is_vertex_shader_},
+        {"x", node_strs[0]},
+        {"y", node_strs[1]},
+        {"z", node_strs[2]},
+        {"w", node_strs[3]}};
 
     stream_stack_.top() << ::inja::render(
         language_string(language_, hlsl::combine_node_chunk, glsl::combine_node_chunk, msl::combine_node_chunk), args);
@@ -377,11 +406,11 @@ void ShaderCompiler::visit(const CombineNode &node)
 void ShaderCompiler::visit(const SinNode &node)
 {
     stream_stack_.push(std::stringstream{});
-    node.accept(*this);
+    node.input_node()->accept(*this);
     const auto value = stream_stack_.top().str();
     stream_stack_.pop();
 
-    const ::inja::json args{{"value", value}};
+    const ::inja::json args{{"is_vertex_shader", is_vertex_shader_}, {"value", value}};
 
     stream_stack_.top() << ::inja::render(
         language_string(language_, hlsl::sin_node_chunk, glsl::sin_node_chunk, msl::sin_node_chunk), args);
@@ -390,7 +419,9 @@ void ShaderCompiler::visit(const SinNode &node)
 void ShaderCompiler::visit(const VertexNode &node)
 {
     const ::inja::json args{
-        {"type", static_cast<std::uint32_t>(node.vertex_data_type())}, {"swizzle", node.swizzle().value_or("")}};
+        {"is_vertex_shader", is_vertex_shader_},
+        {"type", static_cast<std::uint32_t>(node.vertex_data_type())},
+        {"swizzle", node.swizzle().value_or("")}};
 
     stream_stack_.top() << ::inja::render(
         language_string(language_, hlsl::vertex_node_chunk, glsl::vertex_node_chunk, msl::vertex_node_chunk), args);
@@ -529,6 +560,11 @@ void ShaderCompiler::visit(const AntiAliasingNode &node)
             glsl::anti_aliasing_node_fragment,
             msl::anti_aliasing_node_fragment),
         fragment_args);
+}
+
+void ShaderCompiler::visit(const TimeNode &)
+{
+    stream_stack_.top() << language_string(language_, hlsl::time_node_chunk, "", "");
 }
 
 std::string ShaderCompiler::vertex_shader() const

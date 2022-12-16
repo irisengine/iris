@@ -422,6 +422,7 @@ D3D12Renderer::D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t hei
     , texture_table_()
     , cube_map_table_()
     , sampler_table_()
+    , start_(std::chrono::steady_clock::now())
 {
     // we will use triple buffering
     const auto num_frames = 3u;
@@ -800,6 +801,8 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
     const auto shadow_map_sampler_index =
         (command.shadow_map() == nullptr) ? 0u : command.shadow_map()->depth_texture()->sampler()->index();
 
+    const auto time = std::chrono::steady_clock::now() - start_;
+
     // encode all out root signature arguments
     D3D12Context::root_signature().encode_arguments(
         command_list_.Get(),
@@ -808,6 +811,7 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
         camera_buffer,
         shadow_map_index,
         shadow_map_sampler_index,
+        static_cast<std::uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(time).count()),
         model_buffer,
         texture_table_,
         cube_map_table_,

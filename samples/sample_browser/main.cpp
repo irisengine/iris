@@ -36,8 +36,9 @@
 #include "samples/physics_sample.h"
 #include "samples/render_graph_sample.h"
 #include "samples/sample.h"
+#include "samples/water_sample.h"
 
-static constexpr std::size_t sample_count = 3u;
+static constexpr std::size_t sample_count = 4u;
 
 using namespace std::chrono_literals;
 
@@ -54,6 +55,7 @@ std::unique_ptr<Sample> create_sample(iris::Window *window, iris::RenderPipeline
         case 0: return std::make_unique<AnimationSample>(window, render_pipeline); break;
         case 1: return std::make_unique<RenderGraphSample>(window, render_pipeline); break;
         case 2: return std::make_unique<PhysicsSample>(window, render_pipeline); break;
+        case 3: return std::make_unique<WaterSample>(window, render_pipeline); break;
         default: throw iris::Exception("unknown sample index");
     }
 }
@@ -69,7 +71,9 @@ RenderState create_render_state(iris::Window *window, iris::Camera *camera, std:
     auto *rg = render_pipeline->create_render_graph();
     rg->render_node()->set_colour_input(rg->create<iris::TextureNode>(sample_target->colour_texture()));
     scene->create_entity<iris::SingleEntity>(
-        rg, iris::Root::mesh_manager().sprite({1.0f, 1.0f, 1.0f}), iris::Transform{{0.0f}, {}, {800.0f, 800.0f, 1.0f}});
+        rg,
+        iris::Root::mesh_manager().sprite({1.0f, 1.0f, 1.0f}),
+        iris::Transform{{0.0f}, {}, {1920.0f, 1080.0f, 1.0f}});
 
     iris::PostProcessingDescription post_processing_description{
         .bloom = {iris::BloomDescription{6.0f}},
@@ -85,11 +89,13 @@ RenderState create_render_state(iris::Window *window, iris::Camera *camera, std:
 
 void go(int, char **)
 {
+    // iris::Root::set_graphics_api("opengl");
+
     iris::ResourceLoader::instance().set_root_directory("assets");
     auto &rtm = iris::Root::render_target_manager();
 
-    auto window = iris::Root::window_manager().create_window(800u, 800u);
-    std::size_t sample_number = 0u;
+    auto window = iris::Root::window_manager().create_window(1920, 1080);
+    std::size_t sample_number = 3u;
 
     iris::Camera camera{iris::CameraType::ORTHOGRAPHIC, window->width(), window->height()};
 
@@ -103,13 +109,11 @@ void go(int, char **)
     iris::Looper looper{
         0ms,
         16ms,
-        [&sample = sample](auto, auto)
-        {
+        [&sample = sample](auto, auto) {
             sample->fixed_update();
             return true;
         },
-        [&, &sample = sample](std::chrono::microseconds elapsed, auto)
-        {
+        [&, &sample = sample](std::chrono::microseconds elapsed, auto) {
             auto running = true;
             auto event = window->pump_event();
             while (event)

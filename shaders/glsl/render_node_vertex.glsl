@@ -66,6 +66,11 @@ void main()
     mat3 tbn = transpose(mat3(T, B, N));
 
     vertex_pos = position;
+
+    {% if position %}
+        vertex_pos = {{position}};
+    {% endif %}
+
     frag_pos = transpose(models[gl_InstanceID].model) * bone_transform * position;
     view_position = transpose(view) * frag_pos;
     gl_Position = transpose(projection) * view_position;

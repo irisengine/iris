@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <cstdint>
 #include <deque>
 #include <limits>
@@ -196,5 +197,7 @@ class D3D12Renderer : public Renderer
 
     /** Descriptor handle to a global sampler table (for bindless). */
     D3D12DescriptorHandle sampler_table_;
+
+    std::chrono::steady_clock::time_point start_;
 };
 }
