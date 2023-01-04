@@ -6,6 +6,7 @@
 
 #include "graphics/window.h"
 
+#include <chrono>
 #include <cstdint>
 #include <deque>
 #include <memory>
@@ -43,6 +44,11 @@ void Window::set_render_pipeline(std::unique_ptr<RenderPipeline> render_pipeline
 {
     render_pipeline->clear_dirty_bit();
     renderer_->set_render_pipeline(std::move(render_pipeline));
+}
+
+std::chrono::milliseconds Window::time() const
+{
+    return renderer_->time();
 }
 
 }
