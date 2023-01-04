@@ -18,9 +18,15 @@ namespace iris
 {
 
 DirectionalLight::DirectionalLight(const Vector3 &direction, bool cast_shadows)
+    : DirectionalLight(direction, {1.0f, 1.0f, 1.0f, 1.0f}, cast_shadows)
+{
+}
+
+DirectionalLight::DirectionalLight(const Vector3 &direction, const Colour &colour, bool cast_shadows)
     : direction_(direction)
     , shadow_camera_(CameraType::ORTHOGRAPHIC, 100u, 100u, 1000u)
     , cast_shadows_(cast_shadows)
+    , colour_(colour)
 {
     shadow_camera_.set_view(Matrix4::make_look_at(-direction_, {}, {0.0f, 1.0f, 0.0f}));
 }
@@ -33,7 +39,13 @@ LightType DirectionalLight::type() const
 std::array<float, 4u> DirectionalLight::colour_data() const
 {
     std::array<float, 4u> light_data{};
-    light_data.fill(1.0f);
+    light_data.fill(0.0f);
+
+    // sanity check we have enough space
+    static_assert(light_data.size() * sizeof(decltype(light_data)::value_type) >= sizeof(colour_));
+
+    // copy light data straight into buffer
+    std::memcpy(light_data.data(), &colour_, sizeof(colour_));
 
     return light_data;
 }
@@ -43,8 +55,10 @@ std::array<float, 4u> DirectionalLight::world_space_data() const
     std::array<float, 4u> light_data{};
     light_data.fill(0.0f);
 
+    // sanity check we have enough space
     static_assert(light_data.size() * sizeof(decltype(light_data)::value_type) >= sizeof(direction_));
 
+    // copy light data straight into buffer
     std::memcpy(light_data.data(), &direction_, sizeof(direction_));
 
     return light_data;
