@@ -6,10 +6,14 @@
 
 #include "graphics/utils.h"
 
+#include <cmath>
 #include <cstdint>
+#include <string>
 #include <vector>
 
 #include "core/data_buffer.h"
+
+#include <stb_image_write.h>
 
 namespace iris
 {
@@ -18,7 +22,7 @@ std::vector<MipLevelData> generate_mip_maps(const MipLevelData &start_level)
 {
     std::vector<MipLevelData> mip_maps{start_level};
 
-    // each subsequent mipmap is half the size of the precedng one
+    // each subsequent mipmap is half the size of the preceding one
     static constexpr auto scale = 2u;
 
     // next mip level dimensions
@@ -27,6 +31,9 @@ std::vector<MipLevelData> generate_mip_maps(const MipLevelData &start_level)
 
     while ((width > 0u) && (height > 0u))
     {
+        const auto scale_x = static_cast<float>(mip_maps.back().width) / static_cast<float>(width);
+        const auto scale_y = static_cast<float>(mip_maps.back().height) / static_cast<float>(height);
+
         // we work on RGBA images
         static constexpr auto stride = 4u;
 
@@ -35,36 +42,24 @@ std::vector<MipLevelData> generate_mip_maps(const MipLevelData &start_level)
         auto *dst = mip_data.data();
         const auto *src = reinterpret_cast<const std::uint8_t *>(mip_maps.back().data.data());
 
+        // simple downsize algorithm by skipping pixels, will produce aliasing
         for (auto y = 0u; y < height; ++y)
         {
-            const auto proj_y = y * scale;
+            const auto y_nearest = static_cast<int>(std::floor(y * scale_y));
 
             for (auto x = 0u; x < width; ++x)
             {
-                const auto proj_x = x * scale;
+                const auto x_nearest = static_cast<int>(std::floor(x * scale_x));
 
-                // calculate average for RGBA components one at a time
-                for (auto i = 0u; i < stride; ++i)
-                {
-                    // get the 2x2 kernel
-                    const auto pixel_1 = +(src[((((proj_y + 0u) * width * scale) + (proj_x + 0u)) * stride) + i]);
-                    const auto pixel_2 = +(src[((((proj_y + 1u) * width * scale) + (proj_x + 0u)) * stride) + i]);
-                    const auto pixel_3 = +(src[((((proj_y + 0u) * width * scale) + (proj_x + 1u)) * stride) + i]);
-                    const auto pixel_4 = +(src[((((proj_y + 1u) * width * scale) + (proj_x + 1u)) * stride) + i]);
-
-                    // average the values
-                    const auto pixel = (pixel_1 + pixel_2 + pixel_3 + pixel_4) / 4;
-
-                    *dst = static_cast<std::byte>(pixel);
-                    ++dst;
-                }
+                std::memcpy(dst, src + ((y_nearest * mip_maps.back().width) + x_nearest) * stride, stride);
+                dst += stride;
             }
         }
 
         mip_maps.push_back({.data = std::move(mip_data), .width = width, .height = height});
 
-        width /= 2;
-        height /= 2;
+        width /= scale;
+        height /= scale;
     }
 
     return mip_maps;
