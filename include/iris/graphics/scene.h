@@ -60,6 +60,12 @@ class Scene
      */
     RenderEntity *add(RenderGraph *render_graph, std::unique_ptr<RenderEntity> entity);
 
+    /**
+     * Remove an entity from the scene.
+     *
+     * @param entity
+     *   The entity to remove.
+     */
     void remove(RenderEntity *entity);
 
     /**
@@ -136,6 +142,12 @@ class Scene
      */
     std::vector<std::tuple<RenderGraph *, std::unique_ptr<RenderEntity>>> &entities();
 
+    /**
+     * Get a const reference to all entities in the scene.
+     *
+     * @returns
+     *   Collection of <RenderGraph, RenderEntity> tuples.
+     */
     const std::vector<std::tuple<RenderGraph *, std::unique_ptr<RenderEntity>>> &entities() const;
 
     /**
@@ -160,6 +172,50 @@ class Scene
      *   Flag to set when the scene is modified.
      */
     Scene(RenderGraph *default_render_graph, bool *dirty_pipeline);
+
+    /**
+     * Create a RenderEntity and add it to the scene. Uses perfect forwarding to pass along all arguments.
+     *
+     * Note that this inserts into the internal collection of entities at the front. It's a private method so only
+     * RenderPipeline can call it, this is because:
+     *  1. A user shouldn't have to care about internal entity ordering
+     *  2. RenderPipeline does care about ordering and needs a bit more control.
+     *
+     * @param render_graph
+     *   RenderGraph for RenderEntity.
+     *
+     * @param args
+     *   Arguments for RenderEntity.
+     *
+     * @returns
+     *   Pointer to the newly created RenderEntity.
+     */
+    template <class T, class... Args>
+    T *create_entity_at_front(RenderGraph *render_graph, Args &&...args)
+    {
+        auto element = std::make_unique<T>(std::forward<Args>(args)...);
+
+        return static_cast<T *>(add_at_front(std::move(render_graph), std::move(element)));
+    }
+
+    /**
+     * Add a RenderEntity to the scene.
+     *
+     * Note that this inserts into the internal collection of entities at the front. It's a private method so only
+     * RenderPipeline can call it, this is because:
+     *  1. A user shouldn't have to care about internal entity ordering
+     *  2. RenderPipeline does care about ordering and needs a bit more control.
+     *
+     * @param render_graph
+     *   RenderGraph for RenderEntity.
+     *
+     * @param entity
+     *   RenderEntity to add to scene.
+     *
+     * @returns
+     *   Pointer to the added RenderEntity.
+     */
+    RenderEntity *add_at_front(RenderGraph *render_graph, std::unique_ptr<RenderEntity> entity);
 
     /** Collection of <RenderGraph, RenderEntity> tuples. */
     std::vector<std::tuple<RenderGraph *, std::unique_ptr<RenderEntity>>> entities_;
