@@ -16,37 +16,39 @@ namespace iris
 
 class ShaderCompiler;
 
-enum class ArithmeticOperator : std::uint8_t
+enum class BinaryOperator : std::uint8_t
 {
     ADD,
     SUBTRACT,
     MULTIPLY,
     DIVIDE,
-    DOT
+    DOT,
+    CROSS,
+    DISTANCE
 };
 
 /**
- * Implementation of Node which performs an ArithmeticOperator on two input
+ * Implementation of Node which performs an BinaryOperator on two input
  * Nodes.
  *
- * The hierarchy of Arithmetic nodes can be used to set operator precedence,
+ * The hierarchy of binary nodes can be used to set operator precedence,
  * for example:
  *
  *  ValueNode(3) ------\
- *                      ArithmeticNode(+) ------\
+ *                      BinaryOperatorNode(+) ------\
  *  ValueNode(4) ------/                         \
  *                                                ArithmeticNode(/)
  *  ValueNode(5) ------\                         /
- *                      ArithmeticNode(+) ------/
+ *                      BinaryOperatorNode(+) ------/
  *  ValueNode(6) ------/
  *
- * Weill evaluate to ((3 + 4) / (5 + 6))
+ * Will evaluate to ((3 + 4) / (5 + 6))
  */
-class ArithmeticNode : public Node
+class BinaryOperatorNode : public Node
 {
   public:
     /**
-     * Create a new ArithmeticNode.
+     * Create a new BinaryOperatorNode.
      *
      * @param value1
      *   First input value.
@@ -54,12 +56,12 @@ class ArithmeticNode : public Node
      * @param value2
      *   Second input value.
      *
-     * @param arithmetic_operator
+     * @param binary_operator
      *   Operator to apply to value1 and value2.
      */
-    ArithmeticNode(Node *value1, Node *value2, ArithmeticOperator arithmetic_operator);
+    BinaryOperatorNode(Node *value1, Node *value2, BinaryOperator binary_operator);
 
-    ~ArithmeticNode() override = default;
+    ~BinaryOperatorNode() override = default;
 
     /**
      * Accept a compiler visitor.
@@ -86,12 +88,12 @@ class ArithmeticNode : public Node
     Node *value2() const;
 
     /**
-     * Get arithmetic operator.
+     * Get binary operator.
      *
      * @returns
-     *   Arithmetic operator.
+     *   Binary operator.
      */
-    ArithmeticOperator arithmetic_operator() const;
+    BinaryOperator binary_operator() const;
 
     /**
      * Compute hash of node.
@@ -108,7 +110,7 @@ class ArithmeticNode : public Node
     /** Second value. */
     Node *value2_;
 
-    /** Arithmetic operator applied to value1 and value2. */
-    ArithmeticOperator arithmetic_operator_;
+    /** Binary operator applied to value1 and value2. */
+    BinaryOperator binary_operator_;
 };
 }

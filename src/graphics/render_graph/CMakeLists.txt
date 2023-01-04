@@ -3,7 +3,7 @@ set(INCLUDE_ROOT "${PROJECT_SOURCE_DIR}/include/iris/graphics/render_graph")
 add_subdirectory("post_processing")
 
 target_sources(iris PRIVATE
-    ${INCLUDE_ROOT}/arithmetic_node.h
+    ${INCLUDE_ROOT}/binary_operator_node.h
     ${INCLUDE_ROOT}/blur_node.h
     ${INCLUDE_ROOT}/colour_node.h
     ${INCLUDE_ROOT}/combine_node.h
@@ -20,7 +20,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/texture_node.h
     ${INCLUDE_ROOT}/time_node.h
     ${INCLUDE_ROOT}/vertex_node.h
-    arithmetic_node.cpp
+    binary_operator_node.cpp
     blur_node.cpp
     colour_node.cpp
     combine_node.cpp

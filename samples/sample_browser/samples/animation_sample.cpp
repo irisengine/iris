@@ -24,7 +24,7 @@
 #include <graphics/lights/point_light.h>
 #include <graphics/mesh_manager.h>
 #include <graphics/post_processing_description.h>
-#include <graphics/render_graph/arithmetic_node.h>
+#include <graphics/render_graph/binary_operator_node.h>
 #include <graphics/render_graph/blur_node.h>
 #include <graphics/render_graph/colour_node.h>
 #include <graphics/render_graph/composite_node.h>

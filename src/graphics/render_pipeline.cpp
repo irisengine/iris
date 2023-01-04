@@ -14,7 +14,7 @@
 #include "core/root.h"
 #include "graphics/material_manager.h"
 #include "graphics/mesh_manager.h"
-#include "graphics/render_graph/arithmetic_node.h"
+#include "graphics/render_graph/binary_operator_node.h"
 #include "graphics/render_graph/blur_node.h"
 #include "graphics/render_graph/component_node.h"
 #include "graphics/render_graph/conditional_node.h"
@@ -440,10 +440,10 @@ void RenderPipeline::add_post_processing_passes()
 
             add_pass(render_passes, [&bloom](RenderGraph *rg, const RenderTarget *target) {
                 rg->render_node()->set_colour_input(rg->create<ConditionalNode>(
-                    rg->create<ArithmeticNode>(
+                    rg->create<BinaryOperatorNode>(
                         rg->create<TextureNode>(target->colour_texture()),
                         rg->create<ValueNode<Colour>>(Colour{0.2126f, 0.7152f, 0.0722f, 0.0f}),
-                        ArithmeticOperator::DOT),
+                        BinaryOperator::DOT),
                     rg->create<ValueNode<float>>(bloom->threshold),
                     rg->create<TextureNode>(target->colour_texture()),
                     rg->create<ValueNode<Colour>>(Colour{0.0f, 0.0f, 0.0f, 1.0f}),
@@ -459,10 +459,10 @@ void RenderPipeline::add_post_processing_passes()
             }
 
             add_pass(render_passes, [null_target](RenderGraph *rg, const RenderTarget *target) {
-                rg->render_node()->set_colour_input(rg->create<ArithmeticNode>(
+                rg->render_node()->set_colour_input(rg->create<BinaryOperatorNode>(
                     rg->create<TextureNode>(null_target->colour_texture()),
                     rg->create<TextureNode>(target->colour_texture()),
-                    ArithmeticOperator::ADD));
+                    BinaryOperator::ADD));
             });
         }
 

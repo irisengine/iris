@@ -24,7 +24,7 @@
 #include "core/vector3.h"
 #include "graphics/default_shader_languages.h"
 #include "graphics/lights/lighting_rig.h"
-#include "graphics/render_graph/arithmetic_node.h"
+#include "graphics/render_graph/binary_operator_node.h"
 #include "graphics/render_graph/blur_node.h"
 #include "graphics/render_graph/colour_node.h"
 #include "graphics/render_graph/combine_node.h"
@@ -312,7 +312,7 @@ void ShaderCompiler::visit(const ValueNode<Colour> &node)
         args);
 }
 
-void ShaderCompiler::visit(const ArithmeticNode &node)
+void ShaderCompiler::visit(const BinaryOperatorNode &node)
 {
     std::array<Node *, 2u> nodes{{node.value1(), node.value2()}};
     std::array<std::string, 2u> node_strs{};
@@ -327,13 +327,16 @@ void ShaderCompiler::visit(const ArithmeticNode &node)
 
     const ::inja::json args{
         {"is_vertex_shader", is_vertex_shader_},
-        {"operator", static_cast<std::uint32_t>(node.arithmetic_operator())},
+        {"operator", static_cast<std::uint32_t>(node.binary_operator())},
         {"value1", node_strs[0]},
         {"value2", node_strs[1]}};
 
-    stream_stack_.top() << ::inja::render(
+    stream_stack_.top() << env_->render(
         language_string(
-            language_, hlsl::arithmetic_node_chunk, glsl::arithmetic_node_chunk, msl::arithmetic_node_chunk),
+            language_,
+            hlsl::binary_operator_node_chunk,
+            glsl::binary_operator_node_chunk,
+            msl::binary_operator_node_chunk),
         args);
 }
 

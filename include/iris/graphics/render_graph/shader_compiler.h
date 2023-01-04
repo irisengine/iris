@@ -27,7 +27,7 @@ class TextureNode;
 class InvertNode;
 class BlurNode;
 class CompositeNode;
-class ArithmeticNode;
+class BinaryOperatorNode;
 class ConditionalNode;
 class ComponentNode;
 class CombineNode;
@@ -65,7 +65,7 @@ class ShaderCompiler
     void visit(const ValueNode<float> &node);
     void visit(const ValueNode<Vector3> &node);
     void visit(const ValueNode<Colour> &node);
-    void visit(const ArithmeticNode &node);
+    void visit(const BinaryOperatorNode &node);
     void visit(const ConditionalNode &node);
     void visit(const ComponentNode &node);
     void visit(const CombineNode &node);

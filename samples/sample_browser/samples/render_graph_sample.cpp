@@ -21,6 +21,7 @@
 #include <graphics/render_graph/blur_node.h>
 #include <graphics/render_graph/combine_node.h>
 #include <graphics/render_graph/composite_node.h>
+#include <graphics/render_graph/fragment_node.h>
 #include <graphics/render_graph/invert_node.h>
 #include <graphics/render_graph/render_graph.h>
 #include <graphics/render_graph/render_node.h>
@@ -115,7 +116,7 @@ RenderGraphSample::RenderGraphSample(iris::Window *window, iris::RenderPipeline 
     auto *graph1 = render_pipeline.create_render_graph();
     graph1->render_node()->set_colour_input(
         graph1->create<iris::InvertNode>(graph1->create<iris::TextureNode>("brickwall.jpg")));
-    graph1->render_node()->set_normal_input(
+    graph1->render_node()->set_fragment_normal_input(
         graph1->create<iris::TextureNode>("brickwall_normal.jpg", iris::TextureUsage::DATA));
 
     scene1->set_ambient_light({0.15f, 0.15f, 0.15f});
@@ -162,9 +163,9 @@ RenderGraphSample::RenderGraphSample(iris::Window *window, iris::RenderPipeline 
 
     auto *graph4 = render_pipeline.create_render_graph();
     graph4->render_node()->set_colour_input(graph4->create<iris::CombineNode>(
-        graph4->create<iris::VertexNode>(iris::VertexDataType::NORMAL, ".r"),
-        graph4->create<iris::VertexNode>(iris::VertexDataType::NORMAL, ".g"),
-        graph4->create<iris::VertexNode>(iris::VertexDataType::NORMAL, ".b"),
+        graph4->create<iris::FragmentNode>(iris::FragmentDataType::NORMAL, ".r"),
+        graph4->create<iris::FragmentNode>(iris::FragmentDataType::NORMAL, ".g"),
+        graph4->create<iris::FragmentNode>(iris::FragmentDataType::NORMAL, ".b"),
         graph4->create<iris::ValueNode<float>>(1.0f)));
 
     auto *sphere3 = scene1->create_entity<iris::SingleEntity>(
