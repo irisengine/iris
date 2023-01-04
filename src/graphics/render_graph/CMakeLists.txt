@@ -19,6 +19,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/texture_node.h
     ${INCLUDE_ROOT}/time_node.h
     ${INCLUDE_ROOT}/unary_operator_node.h
+    ${INCLUDE_ROOT}/variable_node.h
     ${INCLUDE_ROOT}/vertex_node.h
     binary_operator_node.cpp
     blur_node.cpp
@@ -35,5 +36,6 @@ target_sources(iris PRIVATE
     texture_node.cpp
     time_node.cpp
     unary_operator_node.cpp
+    variable_node.cpp
     vertex_node.cpp
 )

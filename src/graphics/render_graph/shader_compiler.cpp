@@ -41,6 +41,7 @@
 #include "graphics/render_graph/time_node.h"
 #include "graphics/render_graph/unary_operator_node.h"
 #include "graphics/render_graph/value_node.h"
+#include "graphics/render_graph/variable_node.h"
 #include "graphics/render_graph/vertex_node.h"
 #include "graphics/sampler.h"
 #include "graphics/texture.h"
@@ -574,6 +575,32 @@ void ShaderCompiler::visit(const AntiAliasingNode &node)
 void ShaderCompiler::visit(const TimeNode &)
 {
     stream_stack_.top() << language_string(language_, hlsl::time_node_chunk, "", "");
+}
+
+void ShaderCompiler::visit(const VariableNode &node)
+{
+    auto found = false;
+    for (auto &variable : variables_)
+    {
+        if (variable.name == node.name())
+        {
+            found = true;
+
+            if (is_vertex_shader_)
+            {
+                ++variable.vertex_count;
+            }
+            else
+            {
+                ++variable.fragment_count;
+            }
+        }
+    }
+    ensure(found, "variable node declared");
+
+    const ::inja::json args{{"is_vertex_shader", is_vertex_shader_}, {"name", node.name()}};
+
+    stream_stack_.top() << env_->render(language_string(language_, hlsl::variable_chunk, "", ""), args);
 }
 
 std::string ShaderCompiler::vertex_shader() const

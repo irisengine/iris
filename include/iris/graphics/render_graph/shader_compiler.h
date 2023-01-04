@@ -44,6 +44,7 @@ class AmbientOcclusionNode;
 class ColourAdjustNode;
 class AntiAliasingNode;
 class TimeNode;
+class VariableNode;
 
 /**
  * Interface for a class that compiles a RenderGraph into API specific shaders.
@@ -82,6 +83,7 @@ class ShaderCompiler
     void visit(const ColourAdjustNode &node);
     void visit(const AntiAliasingNode &node);
     void visit(const TimeNode &node);
+    void visit(const VariableNode &node);
 
     /**
      * Get the compiled vertex shader.
