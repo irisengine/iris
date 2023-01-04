@@ -125,7 +125,7 @@ class MeshManager
         const std::vector<std::uint32_t> &indices) const;
 
     /**
-     * Create a (XY) plane mesh.
+     * Create a (XZ) plane mesh (normals pointing up along Y).
      *
      * @param colour
      *   Colour of plane.
@@ -133,10 +133,13 @@ class MeshManager
      * @param divisions
      *   Number of divisions (both horizontal and vertical).
      *
+     * @param scale
+     *   How much to scale each division by.
+     *
      * @returns
      *   Mesh for place.
      */
-    const Mesh *plane(const Colour &colour, std::uint32_t divisions);
+    const Mesh *plane(const Colour &colour, std::uint32_t divisions, float scale = 1.0f);
 
     /**
      * Create a (XY) height map mesh.
