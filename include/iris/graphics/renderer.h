@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <memory>
 #include <vector>
 
@@ -43,6 +44,14 @@ class Renderer
      */
     void set_render_pipeline(std::unique_ptr<RenderPipeline> render_pipeline);
 
+    /**
+     * Elapsed time since set_render_pipeline was called. This is also the value that is passed to shaders via TimeNode.
+     *
+     * @returns
+     *   Elapsed time.
+     */
+    std::chrono::milliseconds time() const;
+
   protected:
     /**
      * Implementers should use this method to perform any engine specific tasks before/after building the render queue.
@@ -71,6 +80,12 @@ class Renderer
 
     /** Pipeline to execute with render(). */
     std::unique_ptr<RenderPipeline> render_pipeline_;
+
+    /** Time point when set_render_pipeline was called. */
+    std::chrono::steady_clock::time_point start_;
+
+    /** Elapsed time since set_render_pipeline was called. */
+    std::chrono::steady_clock::duration time_;
 };
 
 }
