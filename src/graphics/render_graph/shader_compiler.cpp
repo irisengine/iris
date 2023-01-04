@@ -36,10 +36,10 @@
 #include "graphics/render_graph/post_processing/anti_aliasing_node.h"
 #include "graphics/render_graph/post_processing/colour_adjust_node.h"
 #include "graphics/render_graph/render_node.h"
-#include "graphics/render_graph/sin_node.h"
 #include "graphics/render_graph/sky_box_node.h"
 #include "graphics/render_graph/texture_node.h"
 #include "graphics/render_graph/time_node.h"
+#include "graphics/render_graph/unary_operator_node.h"
 #include "graphics/render_graph/value_node.h"
 #include "graphics/render_graph/vertex_node.h"
 #include "graphics/sampler.h"
@@ -409,17 +409,20 @@ void ShaderCompiler::visit(const CombineNode &node)
         language_string(language_, hlsl::combine_node_chunk, glsl::combine_node_chunk, msl::combine_node_chunk), args);
 }
 
-void ShaderCompiler::visit(const SinNode &node)
+void ShaderCompiler::visit(const UnaryOperatorNode &node)
 {
     stream_stack_.push(std::stringstream{});
     node.input_node()->accept(*this);
     const auto value = stream_stack_.top().str();
     stream_stack_.pop();
 
-    const ::inja::json args{{"is_vertex_shader", is_vertex_shader_}, {"value", value}};
+    const ::inja::json args{
+        {"is_vertex_shader", is_vertex_shader_},
+        {"type", static_cast<std::uint32_t>(node.unary_operator())},
+        {"value", value}};
 
     stream_stack_.top() << env_->render(
-        language_string(language_, hlsl::sin_node_chunk, glsl::sin_node_chunk, msl::sin_node_chunk), args);
+        language_string(language_, hlsl::unary_operator_node_chunk, glsl::sin_node_chunk, msl::sin_node_chunk), args);
 }
 
 void ShaderCompiler::visit(const VertexNode &node)

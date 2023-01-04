@@ -36,7 +36,7 @@ class BinaryOperatorNode;
 class ConditionalNode;
 class ComponentNode;
 class CombineNode;
-class SinNode;
+class UnaryOperatorNode;
 template <typename>
 class ValueNode;
 class VertexNode;
@@ -76,7 +76,7 @@ class ShaderCompiler
     void visit(const ConditionalNode &node);
     void visit(const ComponentNode &node);
     void visit(const CombineNode &node);
-    void visit(const SinNode &node);
+    void visit(const UnaryOperatorNode &node);
     void visit(const VertexNode &node);
     void visit(const AmbientOcclusionNode &node);
     void visit(const ColourAdjustNode &node);

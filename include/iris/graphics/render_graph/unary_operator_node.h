@@ -13,23 +13,34 @@
 
 namespace iris
 {
+
 class ShaderCompiler;
 
+enum class UnaryOperator
+{
+    NEGATE,
+    NORMALISE,
+    SIN,
+    COS,
+    SQUARE_ROOT
+};
+
 /**
- * Implementation of Node which calculates the sine of the input node.
+ * Implementation of Node which performs a unary operator on an input.
  */
-class SinNode : public Node
+class UnaryOperatorNode : public Node
 {
   public:
     /**
-     * Create a new SinNode.
+     * Create a new UnaryOperatorNode.
      *
      * @param input_node
-     *   Node to sine.
+     *   Input value for operator.
+     *
+     * @param unary_operator
+     *   Operator to apply to input.
      */
-    SinNode(Node *input_node);
-
-    ~SinNode() override = default;
+    UnaryOperatorNode(Node *input_node, UnaryOperator unary_operator);
 
     /**
      * Accept a compiler visitor.
@@ -48,6 +59,14 @@ class SinNode : public Node
     Node *input_node() const;
 
     /**
+     * Get unary operator.
+     *
+     * @returns
+     *   Unary operator.
+     */
+    UnaryOperator unary_operator() const;
+
+    /**
      * Compute hash of node.
      *
      * @return
@@ -58,5 +77,8 @@ class SinNode : public Node
   private:
     /** Input node. */
     Node *input_node_;
+
+    /** Unary operator to apply to input. */
+    UnaryOperator unary_operator_;
 };
 }

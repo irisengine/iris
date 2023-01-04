@@ -15,10 +15,10 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/render_graph.h
     ${INCLUDE_ROOT}/render_node.h
     ${INCLUDE_ROOT}/shader_compiler.h
-    ${INCLUDE_ROOT}/sin_node.h
     ${INCLUDE_ROOT}/sky_box_node.h
     ${INCLUDE_ROOT}/texture_node.h
     ${INCLUDE_ROOT}/time_node.h
+    ${INCLUDE_ROOT}/unary_operator_node.h
     ${INCLUDE_ROOT}/vertex_node.h
     binary_operator_node.cpp
     blur_node.cpp
@@ -31,9 +31,9 @@ target_sources(iris PRIVATE
     render_graph.cpp
     render_node.cpp
     shader_compiler.cpp
-    sin_node.cpp
     sky_box_node.cpp
     texture_node.cpp
     time_node.cpp
+    unary_operator_node.cpp
     vertex_node.cpp
 )
