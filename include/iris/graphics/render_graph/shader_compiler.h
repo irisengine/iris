@@ -17,6 +17,11 @@
 #include "graphics/lights/light_type.h"
 #include "graphics/render_graph/render_graph.h"
 
+namespace inja
+{
+class Environment;
+}
+
 namespace iris
 {
 
@@ -53,6 +58,8 @@ class ShaderCompiler
         LightType light_type,
         bool render_to_normal_target,
         bool render_to_position_target);
+
+    ~ShaderCompiler();
 
     // visitor methods
     void visit(const RenderNode &node);
@@ -123,5 +130,8 @@ class ShaderCompiler
     std::stack<std::stringstream> stream_stack_;
 
     bool is_vertex_shader_;
+
+    /** inja library environemnt. */
+    std::unique_ptr<inja::Environment> env_;
 };
 }
