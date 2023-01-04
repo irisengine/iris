@@ -54,6 +54,9 @@ namespace
  * @param has_position_target
  *   Flag indicating if positions should be rendered.
  *
+ * @param sky_box_render_graph
+ *   Render graph for the sky box for this scene (if one is present), otherwise nullptr.
+ *
  * @param cmd
  *   Command object to mutate and enqueue, this is passed in so it can be "pre-loaded" with the correct state.
  *
@@ -68,13 +71,19 @@ void encode_light_pass_commands(
     iris::LightType light_type,
     bool has_normal_target,
     bool has_position_target,
+    const iris::RenderGraph *sky_box_render_graph,
     iris::RenderCommand &cmd,
     std::vector<iris::RenderCommand> &render_queue,
     const std::unordered_map<iris::DirectionalLight *, iris::RenderTarget *> &shadow_maps)
 {
-
     for (const auto &[render_graph, render_entity] : scene->entities())
     {
+        // if we have a sky box we only want to render it once on the ambient pass
+        if ((render_graph == sky_box_render_graph) && (light_type != iris::LightType::AMBIENT))
+        {
+            continue;
+        }
+
         auto *material = iris::Root::material_manager().create(
             render_graph,
             render_entity.get(),
@@ -251,7 +260,7 @@ std::vector<RenderCommand> RenderPipeline::build()
             pass->clear_depth = false;
         }
 
-        // if a skybox has been added enure it has en entity in the scene
+        // if a skybox has been added ensure it has an entity in the scene
         if (pass->sky_box != nullptr)
         {
             auto *scene = pass->scene;
@@ -261,11 +270,12 @@ std::vector<RenderCommand> RenderPipeline::build()
 
             const auto [_, inserted] = sky_box_entities_.try_emplace(
                 pass.get(),
-                scene->create_entity<SingleEntity>(
+                scene->create_entity_at_front<SingleEntity>(
                     sky_box_rg, Root::mesh_manager().cube({}), Transform({}, {}, {0.5f})));
             expect(inserted, "sky box exists");
 
             sky_box_entities_[pass.get()]->set_receive_shadow(false);
+            sky_box_render_graphs_[pass.get()] = sky_box_rg;
         }
     }
 
@@ -297,6 +307,8 @@ std::vector<RenderCommand> RenderPipeline::rebuild()
         const auto has_normal_target = pass->normal_target != nullptr;
         const auto has_position_target = pass->position_target != nullptr;
 
+        const auto *sky_box_rg = (sky_box_render_graphs_.contains(pass)) ? sky_box_render_graphs_[pass] : nullptr;
+
         // encode ambient light pass unless we have used ssao (in which case this gets done by the ssao pass itself)
         if (!pass->post_processing_description.ambient_occlusion)
         {
@@ -305,6 +317,7 @@ std::vector<RenderCommand> RenderPipeline::rebuild()
                 LightType::AMBIENT,
                 has_normal_target,
                 has_position_target,
+                sky_box_rg,
                 cmd,
                 render_queue,
                 shadow_maps_);
@@ -320,6 +333,7 @@ std::vector<RenderCommand> RenderPipeline::rebuild()
                     LightType::POINT,
                     has_normal_target,
                     has_position_target,
+                    sky_box_rg,
                     cmd,
                     render_queue,
                     shadow_maps_);
@@ -333,33 +347,10 @@ std::vector<RenderCommand> RenderPipeline::rebuild()
                     LightType::DIRECTIONAL,
                     has_normal_target,
                     has_position_target,
+                    sky_box_rg,
                     cmd,
                     render_queue,
                     shadow_maps_);
-            }
-
-            if (pass->sky_box != nullptr)
-            {
-                auto *scene = pass->scene;
-
-                auto *sky_box_rg = create_render_graph();
-                sky_box_rg->set_render_node<SkyBoxNode>(pass->sky_box);
-
-                auto *material = Root::material_manager().create(
-                    sky_box_rg,
-                    sky_box_entities_[pass],
-                    LightType::AMBIENT,
-                    cmd.render_pass()->colour_target != nullptr,
-                    false,
-                    false,
-                    false);
-                cmd.set_material(material);
-
-                cmd.set_render_entity(sky_box_entities_[pass]);
-
-                cmd.set_type(iris::RenderCommandType::DRAW);
-                cmd.set_light(scene->lighting_rig()->ambient_light.get());
-                render_queue.push_back(cmd);
             }
         }
 

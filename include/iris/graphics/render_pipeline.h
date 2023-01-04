@@ -179,8 +179,11 @@ class RenderPipeline
     /** Collection of pointers to all render passes in the pipeline. */
     std::vector<RenderPass *> render_passes_;
 
-    /** Collection of created sky boxes. */
+    /** Collection of created sky box entities. */
     std::unordered_map<const RenderPass *, SingleEntity *> sky_box_entities_;
+
+    /** Collection of created sky box render graphs. */
+    std::unordered_map<const RenderPass *, const RenderGraph *> sky_box_render_graphs_;
 
     /** Flag indicating a scene in the pipeline has changed. */
     bool dirty_;
