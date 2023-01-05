@@ -6,6 +6,11 @@
 
 #pragma once
 
+#include <array>
+#include <cstddef>
+#include <span>
+#include <unordered_map>
+
 #include "graphics/lights/light_type.h"
 
 namespace iris
@@ -16,7 +21,10 @@ class RenderGraph;
 class RenderEntity;
 
 /**
- * Interface for creating and managing materials.
+ * Abstract class for creating and managing materials.
+ *
+ * This class also manages property buffers. These are byte buffers into which user values are copied and then uploaded
+ * to the gpu. This allows runtime changing of variables in shaders.
  */
 class MaterialManager
 {
@@ -63,6 +71,19 @@ class MaterialManager
      * Clear all cached materials. This will invalidate any returned pointers.
      */
     virtual void clear() = 0;
+
+    /**
+     * Get property buffer for a render graph. There is only one buffer for render graph so subsequent calls will with
+     * the same graph will return the same buffer.
+     *
+     * @returns
+     *   A span to the allocated buffer.
+     */
+    std::span<std::byte> create_property_buffer(const RenderGraph *render_graph);
+
+  private:
+    /** Map of render graphs to buffers. */
+    std::unordered_map<const RenderGraph *, std::array<std::byte, 256u>> property_buffers_;
 };
 
 }
