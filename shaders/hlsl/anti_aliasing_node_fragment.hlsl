@@ -32,7 +32,8 @@ float4 main(PSInput input) : SV_TARGET
     const float2 inverse_size = float2({{inverse_width}}f, {{inverse_height}}f);
 
     // get luminance for current sample
-    const float3 colour_centre = tex.Sample(smplr, uv).rgb;
+    const float4 colour_centre_full = tex.Sample(smplr, uv).rgba;
+    const float3 colour_centre = colour_centre_full.rgb;
     const float luma_centre = rgb_to_luma(colour_centre);
     
     // get luminance for surrounding samples
@@ -50,7 +51,7 @@ float4 main(PSInput input) : SV_TARGET
     // filter anything outside of the accepted range
     if (luma_range < max(0.0312f, 0.125f * luma_max))
     {
-        return float4(colour_centre, 1.0);
+        return colour_centre_full;
     }
     
     // get corner luminance

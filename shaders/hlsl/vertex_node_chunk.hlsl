@@ -1,6 +1,3 @@
-
-/* DEBUG: {{type}} */
-
 {% if type == 0 %}
     position{{swizzle}}
 {% else if type == 1 %}
