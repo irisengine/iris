@@ -115,6 +115,7 @@ class D3D12Renderer : public Renderer
             , model_data_buffers()
             , light_data_buffers()
             , camera_data_buffers()
+            , property_buffers()
         {
         }
 
@@ -147,6 +148,9 @@ class D3D12Renderer : public Renderer
 
         /** Cache of data buffers for cameras in this frame. */
         std::unordered_map<const Camera *, std::unique_ptr<D3D12ConstantBuffer>> camera_data_buffers;
+
+        /** Cache of data buffers for material properties. */
+        std::unordered_map<const Material *, std::unique_ptr<D3D12ConstantBuffer>> property_buffers;
     };
 
     /** Width of window to present to. */
@@ -197,7 +201,5 @@ class D3D12Renderer : public Renderer
 
     /** Descriptor handle to a global sampler table (for bindless). */
     D3D12DescriptorHandle sampler_table_;
-
-    std::chrono::steady_clock::time_point start_;
 };
 }

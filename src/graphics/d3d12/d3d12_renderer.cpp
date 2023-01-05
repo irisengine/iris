@@ -422,7 +422,6 @@ D3D12Renderer::D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t hei
     , texture_table_()
     , cube_map_table_()
     , sampler_table_()
-    , start_(std::chrono::steady_clock::now())
 {
     // we will use triple buffering
     const auto num_frames = 3u;
@@ -607,6 +606,7 @@ void D3D12Renderer::pre_render()
     frame.bone_data_buffers.clear();
     frame.light_data_buffers.clear();
     frame.camera_data_buffers.clear();
+    frame.property_buffers.clear();
 }
 
 void D3D12Renderer::execute_pass_start(RenderCommand &command)
@@ -791,27 +791,37 @@ void D3D12Renderer::execute_draw(RenderCommand &command)
         writer.write(camera->position());
     }
 
-    auto *vertex_buffer = frame.bone_data_buffers[entity].get();
+    if (!frame.property_buffers.contains(material))
+    {
+        const auto property_buffer = material->property_buffer();
+        frame.property_buffers[material] =
+            std::make_unique<D3D12ConstantBuffer>(frame_index_, property_buffer.size_bytes());
+        frame.property_buffers[material]->write(property_buffer.data(), property_buffer.size_bytes(), 0u);
+    }
+
+    auto *bone_buffer = frame.bone_data_buffers[entity].get();
     auto *light_buffer = frame.light_data_buffers[light].get();
     auto *model_buffer = (entity->type() != RenderEntityType::INSTANCED) ? frame.model_data_buffers[entity].get()
                                                                          : instance_data_buffers_[entity].get();
+    auto *property_buffer = frame.property_buffers[material].get();
     auto *camera_buffer = frame.camera_data_buffers[camera].get();
     const auto shadow_map_index =
         (command.shadow_map() == nullptr) ? 0u : command.shadow_map()->depth_texture()->index();
     const auto shadow_map_sampler_index =
         (command.shadow_map() == nullptr) ? 0u : command.shadow_map()->depth_texture()->sampler()->index();
 
-    const auto time = std::chrono::steady_clock::now() - start_;
+    const auto time_value = static_cast<float>(time().count()) / 1000.0f;
 
     // encode all out root signature arguments
     D3D12Context::root_signature().encode_arguments(
         command_list_.Get(),
-        vertex_buffer,
+        bone_buffer,
         light_buffer,
         camera_buffer,
         shadow_map_index,
         shadow_map_sampler_index,
-        static_cast<std::uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(time).count()),
+        std::bit_cast<std::uint32_t>(time_value),
+        property_buffer,
         model_buffer,
         texture_table_,
         cube_map_table_,

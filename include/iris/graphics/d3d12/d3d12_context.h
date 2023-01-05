@@ -84,6 +84,7 @@ class D3D12Context
         ConstantParameter<3u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
         ConstantParameter<4u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
         ConstantParameter<5u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
+        ConstantBufferViewParameter<6u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
         ShaderResourceViewParameter<0u, 0u, D3D12_SHADER_VISIBILITY_ALL>,
         TableParameter<D3D12_DESCRIPTOR_RANGE_TYPE_SRV, UINT_MAX, 0u, 1u, D3D12_SHADER_VISIBILITY_PIXEL>,
         TableParameter<D3D12_DESCRIPTOR_RANGE_TYPE_SRV, UINT_MAX, 0u, 2u, D3D12_SHADER_VISIBILITY_PIXEL>,
