@@ -16,6 +16,7 @@ namespace iris
 
 RenderGraph::RenderGraph()
     : nodes_()
+    , variables_()
 {
     nodes_.emplace_back(std::make_unique<RenderNode>());
 }
@@ -29,6 +30,11 @@ Node *RenderGraph::add(std::unique_ptr<Node> node)
 {
     nodes_.emplace_back(std::move(node));
     return nodes_.back().get();
+}
+
+std::vector<RenderGraphVariable> RenderGraph::variables() const
+{
+    return variables_;
 }
 
 }

@@ -22,6 +22,34 @@ template <class T>
 concept IsNode = std::is_base_of_v<Node, T> && !std::is_same_v<RenderNode, T>;
 
 /**
+ * Enumeration of possible variable types.
+ */
+enum class VariableNodeType
+{
+    FLOAT,
+    VEC3,
+    VEC4
+};
+
+/**
+ * Struct encapsulating all the data needed for a variable.
+ */
+struct RenderGraphVariable
+{
+    /** User name of variable. */
+    std::string name;
+
+    /** Type of variable. */
+    VariableNodeType type;
+
+    /** Node which when parsed will create the value for the variable. */
+    Node *value;
+
+    /** Whether this is declaring and setting (true) or just setting (false) a variable. */
+    bool is_declaration;
+};
+
+/**
  * This class encapsulates a render graph - a series of connected nodes that
  * can be compiled into API specific shaders.
  *
@@ -56,6 +84,29 @@ class RenderGraph
     }
 
     /**
+     * Create a new variable. This will be available to both vertex and fragment shaders, but will only be included if
+     * it is actually used.
+     *
+     * @param name
+     *   User name of variable.
+     *
+     * @param type
+     *   Type of variable
+     *
+     * @param is_declaration
+     *   Whether this is declaring and setting (true) or just setting (false) a variable.
+     *
+     * @param args
+     *   Pack of arguments used to construct node of type T.
+     */
+    template <IsNode T, class... Args>
+    void create_variable(const std::string &name, VariableNodeType type, bool is_declaration, Args &&...args)
+    {
+        auto *node = create<T>(std::forward<Args>(args)...);
+        variables_.push_back({.name = name, .type = type, .value = node, .is_declaration = is_declaration});
+    }
+
+    /**
      * Set the render node.
      *
      * @param args
@@ -82,6 +133,14 @@ class RenderGraph
      */
     Node *add(std::unique_ptr<Node> node);
 
+    /**
+     * Get all variables.
+     *
+     * @returns
+     *   Collection of variables.
+     */
+    std::vector<RenderGraphVariable> variables() const;
+
   private:
     // friend to allow only the RenderPipeline to create
     friend class RenderPipeline;
@@ -93,6 +152,9 @@ class RenderGraph
 
     /** Collection of nodes in graph. */
     std::vector<std::unique_ptr<Node>> nodes_;
+
+    /** Collection of variables. */
+    std::vector<RenderGraphVariable> variables_;
 };
 
 }
