@@ -97,8 +97,8 @@ D3D12Material::D3D12Material(
     bool render_to_swapchain,
     bool render_to_normal_target,
     bool render_to_position_target,
-    bool has_transparency)
-    : pso_()
+    : Material(render_graph)
+    , pso_()
 {
     ShaderCompiler compiler{
         ShaderLanguage::HLSL, render_graph, light_type, render_to_normal_target, render_to_position_target};

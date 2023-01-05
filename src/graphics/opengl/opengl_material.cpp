@@ -92,7 +92,8 @@ OpenGLMaterial::OpenGLMaterial(
     LightType light_type,
     bool render_to_normal_target,
     bool render_to_position_target)
-    : handle_(0u)
+    : Material(render_graph)
+    , handle_(0u)
 {
     ShaderCompiler compiler{
         ShaderLanguage::GLSL, render_graph, light_type, render_to_normal_target, render_to_position_target};
