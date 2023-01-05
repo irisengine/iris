@@ -13,6 +13,8 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/invert_node.h
     ${INCLUDE_ROOT}/lerp_node.h
     ${INCLUDE_ROOT}/node.h
+    ${INCLUDE_ROOT}/property.h
+    ${INCLUDE_ROOT}/property_writer.h
     ${INCLUDE_ROOT}/render_graph.h
     ${INCLUDE_ROOT}/render_node.h
     ${INCLUDE_ROOT}/shader_compiler.h
@@ -31,6 +33,7 @@ target_sources(iris PRIVATE
     conditional_node.cpp
     invert_node.cpp
     lerp_node.cpp
+    property.cpp
     render_graph.cpp
     render_node.cpp
     shader_compiler.cpp
