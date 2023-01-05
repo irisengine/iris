@@ -27,6 +27,7 @@
 #include "graphics/lights/lighting_rig.h"
 #include "graphics/render_graph/binary_operator_node.h"
 #include "graphics/render_graph/blur_node.h"
+#include "graphics/render_graph/camera_node.h"
 #include "graphics/render_graph/colour_node.h"
 #include "graphics/render_graph/combine_node.h"
 #include "graphics/render_graph/component_node.h"
@@ -716,6 +717,16 @@ void ShaderCompiler::visit(const FragmentNode &node)
         {"swizzle", node.swizzle().value_or("")}};
 
     stream_stack_.top() << env_->render(language_string(language_, hlsl::fragment_node_chunk, "", ""), args);
+}
+
+void ShaderCompiler::visit(const CameraNode &node)
+{
+    const ::inja::json args{
+        {"is_vertex_shader", is_vertex_shader_},
+        {"type", static_cast<std::uint32_t>(node.camera_data_type())},
+        {"swizzle", node.swizzle().value_or("")}};
+
+    stream_stack_.top() << env_->render(language_string(language_, hlsl::camera_node_chunk, "", ""), args);
 }
 
 std::string ShaderCompiler::vertex_shader() const
