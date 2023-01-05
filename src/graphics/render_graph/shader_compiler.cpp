@@ -147,7 +147,7 @@ ShaderCompiler::ShaderCompiler(
 
     // evaluate and store all variables from the render graph
     for (const auto &[name, type, value, is_declaration] : render_graph->variables())
-{
+    {
         ::inja::json args{{"name", name}, {"type", static_cast<std::uint32_t>(type)}};
 
         stream_stack_.push(std::stringstream{});
@@ -172,6 +172,8 @@ void ShaderCompiler::visit(const RenderNode &node)
     // build vertex shader
 
     ::inja::json vertex_args{
+        {"is_directional_light", light_type_ == LightType::DIRECTIONAL},
+        {"is_vertex_shader", true},
         {"variables", std::vector<std::string>{}}};
 
     if (node.position_input() != nullptr)
@@ -179,6 +181,14 @@ void ShaderCompiler::visit(const RenderNode &node)
         stream_stack_.push(std::stringstream{});
         node.position_input()->accept(*this);
         vertex_args["position"] = stream_stack_.top().str();
+        stream_stack_.pop();
+    }
+
+    if (node.vertex_normal_input() != nullptr)
+    {
+        stream_stack_.push(std::stringstream{});
+        node.vertex_normal_input()->accept(*this);
+        vertex_args["normal"] = stream_stack_.top().str();
         stream_stack_.pop();
     }
 
@@ -203,6 +213,7 @@ void ShaderCompiler::visit(const RenderNode &node)
         language_string(language_, hlsl::shadow_function, glsl::shadow_function, msl::shadow_function));
 
     ::inja::json fragment_args{
+        {"properties", build_properties_string(render_graph_->properties(), *env_, language_)},
         {"render_normal", render_to_normal_target_},
         {"render_position", render_to_position_target_},
         {"light_type", static_cast<std::uint32_t>(light_type_)},
@@ -216,10 +227,10 @@ void ShaderCompiler::visit(const RenderNode &node)
         stream_stack_.pop();
     }
 
-    if (node.normal_input() != nullptr)
+    if (node.fragment_normal_input() != nullptr)
     {
         stream_stack_.push(std::stringstream{});
-        node.normal_input()->accept(*this);
+        node.fragment_normal_input()->accept(*this);
         fragment_args["normal"] = stream_stack_.top().str();
         stream_stack_.pop();
     }
@@ -777,5 +788,4 @@ precision mediump float;
 
     return strm.str();
 }
-
 }

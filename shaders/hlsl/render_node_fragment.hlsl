@@ -35,10 +35,18 @@ struct ModelData
     matrix normal_matrix;
 };
 
+struct RenderValues
+{
+    float time;
+};
+
 StructuredBuffer<ModelData> model_data : register(t0);
 SamplerState sampler_table[] : register(s0);
 Texture2D texture_table[] : register(t0, space1);
 TextureCube cube_map_table[] : register(t0, space2);
+ConstantBuffer<RenderValues> render_values : register(b5);
+
+{{properties}}
 
 struct PSInput
 {
@@ -74,6 +82,10 @@ struct PS_OUTPUT
 PS_OUTPUT main(PSInput input)
 {% endif %}
 {
+    {% for variable in variables %}
+        {{variable}}
+    {% endfor %}
+
     {% if exists("fragment_colour") %}
         float4 fragment_colour = {{ fragment_colour }};
     {% else %}
@@ -111,7 +123,14 @@ PS_OUTPUT main(PSInput input)
 
         float diff = (1.0 - shadow) * max(dot(normal, light_dir), 0.0);
         float3 diffuse = {diff, diff, diff};
-        float4 out_colour = float4(diffuse, 1.0) * fragment_colour;
+
+        float3 view_dir = normalize(camera - input.frag_position.xyz);
+        float3 reflect_dir = reflect(-light_dir, normal);
+        float spec = pow(max(dot(view_dir, reflect_dir), 0.0), 32);
+        float spec_strength = 0.5;
+        float3 specular = {spec * spec_strength, spec * spec_strength, spec * spec_strength};
+
+        float4 out_colour = float4((diffuse + specular) * light_colour.xyz, 1.0) * fragment_colour;
     {% endif %}
     {% if light_type == 2 %}
         {% if exists("normal") %}
@@ -129,8 +148,14 @@ PS_OUTPUT main(PSInput input)
     
         float diff = max(dot(normal, light_dir), 0.0);
         float3 diffuse = {diff, diff, diff};
+
+        float3 view_dir = normalize(camera - input.frag_position.xyz);
+        float3 reflect_dir = reflect(-light_dir, normal);
+        float spec = pow(max(dot(view_dir, reflect_dir), 0.0), 64);
+        float spec_strength = 1.0;
+        float3 specular = {spec * spec_strength, spec * spec_strength, spec * spec_strength};
         
-        float4 out_colour = float4(diffuse * light_colour.xyz * att, 1.0) * fragment_colour;
+        float4 out_colour = float4((diffuse + specular) * light_colour.xyz * att, 1.0) * fragment_colour;
     {% endif %}
 
     {% if not render_normal and not render_position %}

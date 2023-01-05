@@ -8,6 +8,8 @@
 
 #include <cstddef>
 #include <memory>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "graphics/render_graph/node.h"
@@ -92,20 +94,36 @@ class RenderNode : public Node
     void set_specular_amount_input(Node *input);
 
     /**
-     * Get normal input.
+     * Get vertex normal input.
      *
      * @returns
-     *   Colour input.
+     *   Normal input.
      */
-    Node *normal_input() const;
+    Node *vertex_normal_input() const;
 
     /**
-     * Set normal input.
+     * Set vertex normal input.
      *
      * @param input
      *   New input.
      */
-    void set_normal_input(Node *input);
+    void set_vertex_normal_input(Node *input);
+
+    /**
+     * Get fragment normal input.
+     *
+     * @returns
+     *   Normal input.
+     */
+    Node *fragment_normal_input() const;
+
+    /**
+     * Set fragment normal input.
+     *
+     * @param input
+     *   New input.
+     */
+    void set_fragment_normal_input(Node *input);
 
     /**
      * Get vertex position input.
@@ -192,8 +210,11 @@ class RenderNode : public Node
     /** Specular amount input. */
     Node *specular_amount_input_;
 
-    /** Normal input. */
-    Node *normal_input_;
+    /** Vertex normal input. */
+    Node *vertex_normal_input_;
+
+    /** Fragment normal input. */
+    Node *fragment_normal_input_;
 
     /** Vertex position input. */
     Node *position_input_;
