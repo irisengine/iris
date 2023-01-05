@@ -85,6 +85,7 @@ class ShaderCompiler
     void visit(const AntiAliasingNode &node);
     void visit(const TimeNode &node);
     void visit(const VariableNode &node);
+    void visit(const LerpNode &node);
 
     /**
      * Get the compiled vertex shader.

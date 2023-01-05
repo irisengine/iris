@@ -32,6 +32,7 @@
 #include "graphics/render_graph/composite_node.h"
 #include "graphics/render_graph/conditional_node.h"
 #include "graphics/render_graph/invert_node.h"
+#include "graphics/render_graph/lerp_node.h"
 #include "graphics/render_graph/post_processing/ambient_occlusion_node.h"
 #include "graphics/render_graph/post_processing/anti_aliasing_node.h"
 #include "graphics/render_graph/post_processing/colour_adjust_node.h"
@@ -640,6 +641,28 @@ void ShaderCompiler::visit(const VariableNode &node)
     const ::inja::json args{{"is_vertex_shader", is_vertex_shader_}, {"name", node.name()}};
 
     stream_stack_.top() << env_->render(language_string(language_, hlsl::variable_node_chunk, "", ""), args);
+}
+
+void ShaderCompiler::visit(const LerpNode &node)
+{
+    std::array<Node *, 3u> nodes{{node.input_value1(), node.input_value2(), node.lerp_amount()}};
+    std::array<std::string, 3u> node_strs{};
+
+    for (auto i = 0u; i < nodes.size(); ++i)
+    {
+        stream_stack_.push(std::stringstream{});
+        nodes[i]->accept(*this);
+        node_strs[i] = stream_stack_.top().str();
+        stream_stack_.pop();
+    }
+
+    const ::inja::json args{
+        {"is_vertex_shader", is_vertex_shader_},
+        {"input1", node_strs[0]},
+        {"input2", node_strs[1]},
+        {"lerp_amount", node_strs[2]}};
+
+    stream_stack_.top() << env_->render(language_string(language_, hlsl::lerp_node_chunk, "", ""), args);
 }
 
 std::string ShaderCompiler::vertex_shader() const

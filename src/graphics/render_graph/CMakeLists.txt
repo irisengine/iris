@@ -11,6 +11,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/composite_node.h
     ${INCLUDE_ROOT}/conditional_node.h
     ${INCLUDE_ROOT}/invert_node.h
+    ${INCLUDE_ROOT}/lerp_node.h
     ${INCLUDE_ROOT}/node.h
     ${INCLUDE_ROOT}/render_graph.h
     ${INCLUDE_ROOT}/render_node.h
@@ -29,6 +30,7 @@ target_sources(iris PRIVATE
     composite_node.cpp
     conditional_node.cpp
     invert_node.cpp
+    lerp_node.cpp
     render_graph.cpp
     render_node.cpp
     shader_compiler.cpp
