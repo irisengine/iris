@@ -10,6 +10,7 @@
 #include <sstream>
 #include <stack>
 #include <string>
+#include <vector>
 
 #include "core/colour.h"
 #include "core/vector3.h"
@@ -108,6 +109,24 @@ class ShaderCompiler
     std::string fragment_shader() const;
 
   private:
+    /**
+     * Internal struct for variable bookkeeping.
+     */
+    struct Variable
+    {
+        /** Name of variable. */
+        std::string name;
+
+        /** Resolved variable value. */
+        std::string value;
+
+        /** Count of times variable is used in the vertex shader. */
+        std::uint32_t vertex_count = 0u;
+
+        /** Count of times variable is used in the fragment shader. */
+        std::uint32_t fragment_count = 0u;
+    };
+
     ShaderLanguage language_;
 
     /** Stream for vertex shader. */
@@ -132,6 +151,9 @@ class ShaderCompiler
     std::stack<std::stringstream> stream_stack_;
 
     bool is_vertex_shader_;
+
+    /** Collection of variable states. */
+    std::vector<Variable> variables_;
 
     /** inja library environemnt. */
     std::unique_ptr<inja::Environment> env_;

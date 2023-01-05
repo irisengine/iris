@@ -102,19 +102,39 @@ ShaderCompiler::ShaderCompiler(
     , render_to_normal_target_(render_to_normal_target)
     , render_to_position_target_(render_to_position_target)
     , is_vertex_shader_(true)
+    , variables_()
     , env_(std::make_unique<inja::Environment>())
     env_->set_trim_blocks(true);
     env_->set_lstrip_blocks(true);
+
+    // evaluate and store all variables from the render graph
+    for (const auto &[name, type, value, is_declaration] : render_graph->variables())
 {
+        ::inja::json args{{"name", name}, {"type", static_cast<std::uint32_t>(type)}};
+
+        stream_stack_.push(std::stringstream{});
+        value->accept(*this);
+        args["value"] = stream_stack_.top().str();
+        stream_stack_.pop();
+
+        const auto parsed_value =
+            is_declaration ? env_->render(language_string(language_, hlsl::declare_variable_chunk, "", ""), args)
+                           : env_->render(language_string(language_, hlsl::set_variable_chunk, "", ""), args);
+
+        variables_.push_back({.name = name, .value = parsed_value});
+    }
+
     render_graph->render_node()->accept(*this);
 }
+
+ShaderCompiler::~ShaderCompiler() = default;
 
 void ShaderCompiler::visit(const RenderNode &node)
 {
     // build vertex shader
 
     ::inja::json vertex_args{
-        {"is_directional_light", light_type_ == LightType::DIRECTIONAL}, {"is_vertex_shader", true}};
+        {"variables", std::vector<std::string>{}}};
 
     if (node.position_input() != nullptr)
     {
@@ -122,6 +142,15 @@ void ShaderCompiler::visit(const RenderNode &node)
         node.position_input()->accept(*this);
         vertex_args["position"] = stream_stack_.top().str();
         stream_stack_.pop();
+    }
+
+    // add any used variables
+    for (const auto &[_1, value, vertex_count, _2] : variables_)
+    {
+        if (vertex_count > 0u)
+        {
+            vertex_args["variables"].push_back(value);
+        }
     }
 
     vertex_stream_ << env_->render(
@@ -138,7 +167,8 @@ void ShaderCompiler::visit(const RenderNode &node)
     ::inja::json fragment_args{
         {"render_normal", render_to_normal_target_},
         {"render_position", render_to_position_target_},
-        {"light_type", static_cast<std::uint32_t>(light_type_)}};
+        {"light_type", static_cast<std::uint32_t>(light_type_)},
+        {"variables", std::vector<std::string>{}}};
 
     if (node.colour_input() != nullptr)
     {
@@ -162,6 +192,15 @@ void ShaderCompiler::visit(const RenderNode &node)
         node.ambient_occlusion_input()->accept(*this);
         fragment_args["ambient_input"] = stream_stack_.top().str();
         stream_stack_.pop();
+    }
+
+    // add any used variables
+    for (const auto &[_1, value, _2, fragment_count] : variables_)
+    {
+        if (fragment_count > 0u)
+        {
+            fragment_args["variables"].push_back(value);
+        }
     }
 
     fragment_stream_ << env_->render(
@@ -600,7 +639,7 @@ void ShaderCompiler::visit(const VariableNode &node)
 
     const ::inja::json args{{"is_vertex_shader", is_vertex_shader_}, {"name", node.name()}};
 
-    stream_stack_.top() << env_->render(language_string(language_, hlsl::variable_chunk, "", ""), args);
+    stream_stack_.top() << env_->render(language_string(language_, hlsl::variable_node_chunk, "", ""), args);
 }
 
 std::string ShaderCompiler::vertex_shader() const
