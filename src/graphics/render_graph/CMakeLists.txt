@@ -10,6 +10,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/component_node.h
     ${INCLUDE_ROOT}/composite_node.h
     ${INCLUDE_ROOT}/conditional_node.h
+    ${INCLUDE_ROOT}/fragment_node.h
     ${INCLUDE_ROOT}/invert_node.h
     ${INCLUDE_ROOT}/lerp_node.h
     ${INCLUDE_ROOT}/node.h
@@ -32,6 +33,7 @@ target_sources(iris PRIVATE
     component_node.cpp
     composite_node.cpp
     conditional_node.cpp
+    fragment_node.cpp
     invert_node.cpp
     lerp_node.cpp
     property.cpp

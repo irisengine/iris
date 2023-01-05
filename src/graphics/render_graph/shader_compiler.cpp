@@ -32,6 +32,7 @@
 #include "graphics/render_graph/component_node.h"
 #include "graphics/render_graph/composite_node.h"
 #include "graphics/render_graph/conditional_node.h"
+#include "graphics/render_graph/fragment_node.h"
 #include "graphics/render_graph/invert_node.h"
 #include "graphics/render_graph/lerp_node.h"
 #include "graphics/render_graph/post_processing/ambient_occlusion_node.h"
@@ -705,6 +706,16 @@ void ShaderCompiler::visit(const PropertyNode &node)
     const ::inja::json args{{"is_vertex_shader", is_vertex_shader_}, {"name", "property_" + node.name()}};
 
     stream_stack_.top() << env_->render(language_string(language_, hlsl::property_chunk, "", ""), args);
+}
+
+void ShaderCompiler::visit(const FragmentNode &node)
+{
+    const ::inja::json args{
+        {"is_vertex_shader", is_vertex_shader_},
+        {"type", static_cast<std::uint32_t>(node.fragment_data_type())},
+        {"swizzle", node.swizzle().value_or("")}};
+
+    stream_stack_.top() << env_->render(language_string(language_, hlsl::fragment_node_chunk, "", ""), args);
 }
 
 std::string ShaderCompiler::vertex_shader() const

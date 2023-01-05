@@ -49,6 +49,7 @@ class TimeNode;
 class VariableNode;
 class LerpNode;
 class PropertyNode;
+class FragmentNode;
 
 /**
  * Interface for a class that compiles a RenderGraph into API specific shaders.
@@ -90,6 +91,7 @@ class ShaderCompiler
     void visit(const VariableNode &node);
     void visit(const LerpNode &node);
     void visit(const PropertyNode &node);
+    void visit(const FragmentNode &node);
 
     /**
      * Get the compiled vertex shader.
