@@ -6,13 +6,20 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
+#include <deque>
 #include <functional>
 #include <memory>
+#include <span>
+#include <string>
 #include <type_traits>
 #include <vector>
 
+#include "core/error_handling.h"
 #include "graphics/render_graph/node.h"
+#include "graphics/render_graph/property.h"
+#include "graphics/render_graph/property_writer.h"
 #include "graphics/render_graph/render_node.h"
 
 namespace iris
@@ -107,6 +114,29 @@ class RenderGraph
     }
 
     /**
+     * Create a new property.
+     *
+     * @param name
+     *   User name of property.
+     *
+     * @param value
+     *   Initial value.
+     *
+     * @returns
+     *   A PropertyWriter which can be used to update the property value.
+     */
+    template <class T>
+    PropertyWriter<T> create_property(const std::string &name, const T &value)
+    {
+        expect(property_buffer_.size_bytes() >= sizeof(T), "not enough space in property buffer");
+
+        properties_.push_back({name, property_buffer_.data(), value});
+        property_buffer_ = property_buffer_.subspan(sizeof(T));
+
+        return PropertyWriter<T>{std::addressof(properties_.back())};
+    }
+
+    /**
      * Set the render node.
      *
      * @param args
@@ -141,6 +171,14 @@ class RenderGraph
      */
     std::vector<RenderGraphVariable> variables() const;
 
+    /**
+     * Get a const reference to all properties.
+     *
+     * @returns
+     *   Const reference to property collection.
+     */
+    const std::deque<Property> &properties() const;
+
   private:
     // friend to allow only the RenderPipeline to create
     friend class RenderPipeline;
@@ -155,6 +193,12 @@ class RenderGraph
 
     /** Collection of variables. */
     std::vector<RenderGraphVariable> variables_;
+
+    /** Collection of properties. */
+    std::deque<Property> properties_;
+
+    /** Span of property buffer. */
+    std::span<std::byte> property_buffer_;
 };
 
 }

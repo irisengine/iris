@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <memory>
 #include <set>
 #include <sstream>
 #include <stack>
@@ -46,6 +47,8 @@ class ColourAdjustNode;
 class AntiAliasingNode;
 class TimeNode;
 class VariableNode;
+class LerpNode;
+class PropertyNode;
 
 /**
  * Interface for a class that compiles a RenderGraph into API specific shaders.
@@ -86,6 +89,7 @@ class ShaderCompiler
     void visit(const TimeNode &node);
     void visit(const VariableNode &node);
     void visit(const LerpNode &node);
+    void visit(const PropertyNode &node);
 
     /**
      * Get the compiled vertex shader.
@@ -158,5 +162,8 @@ class ShaderCompiler
 
     /** inja library environemnt. */
     std::unique_ptr<inja::Environment> env_;
+
+    /** Render graph being compiled. */
+    const RenderGraph *render_graph_;
 };
 }

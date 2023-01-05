@@ -14,6 +14,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/lerp_node.h
     ${INCLUDE_ROOT}/node.h
     ${INCLUDE_ROOT}/property.h
+    ${INCLUDE_ROOT}/property_node.h
     ${INCLUDE_ROOT}/property_writer.h
     ${INCLUDE_ROOT}/render_graph.h
     ${INCLUDE_ROOT}/render_node.h
@@ -34,6 +35,7 @@ target_sources(iris PRIVATE
     invert_node.cpp
     lerp_node.cpp
     property.cpp
+    property_node.cpp
     render_graph.cpp
     render_node.cpp
     shader_compiler.cpp

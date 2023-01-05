@@ -6,6 +6,7 @@
 
 #include "graphics/render_graph/shader_compiler.h"
 
+#include <deque>
 #include <iterator>
 #include <sstream>
 #include <string>
@@ -36,6 +37,8 @@
 #include "graphics/render_graph/post_processing/ambient_occlusion_node.h"
 #include "graphics/render_graph/post_processing/anti_aliasing_node.h"
 #include "graphics/render_graph/post_processing/colour_adjust_node.h"
+#include "graphics/render_graph/property.h"
+#include "graphics/render_graph/property_node.h"
 #include "graphics/render_graph/render_node.h"
 #include "graphics/render_graph/sky_box_node.h"
 #include "graphics/render_graph/texture_node.h"
@@ -84,6 +87,36 @@ std::string language_string(
     }
 }
 
+/**
+ * Helper function to build a string declaring all properties.
+ *
+ * @param properties
+ *   Properties to build string for.
+ *
+ * @param env
+ *   inja environment.
+ *
+ * @param language
+ *   The shader language to build the string in.
+ *
+ * @returns
+ *   Language specific string for declaring properties.
+ */
+std::string build_properties_string(
+    const std::deque<iris::Property> &properties,
+    inja::Environment &env,
+    iris::ShaderLanguage language)
+{
+    ::inja::json args{{"properties", std::vector<std::tuple<std::string, std::uint32_t>>{}}};
+
+    for (const auto &property : properties)
+    {
+        args["properties"].push_back({property.name(), static_cast<std::uint32_t>(property.type())});
+    }
+
+    return env.render(language_string(language, iris::hlsl::declare_property_chunk, "", ""), args);
+}
+
 }
 
 namespace iris
@@ -105,6 +138,8 @@ ShaderCompiler::ShaderCompiler(
     , is_vertex_shader_(true)
     , variables_()
     , env_(std::make_unique<inja::Environment>())
+    , render_graph_(render_graph)
+{
     env_->set_trim_blocks(true);
     env_->set_lstrip_blocks(true);
 
@@ -663,6 +698,13 @@ void ShaderCompiler::visit(const LerpNode &node)
         {"lerp_amount", node_strs[2]}};
 
     stream_stack_.top() << env_->render(language_string(language_, hlsl::lerp_node_chunk, "", ""), args);
+}
+
+void ShaderCompiler::visit(const PropertyNode &node)
+{
+    const ::inja::json args{{"is_vertex_shader", is_vertex_shader_}, {"name", "property_" + node.name()}};
+
+    stream_stack_.top() << env_->render(language_string(language_, hlsl::property_chunk, "", ""), args);
 }
 
 std::string ShaderCompiler::vertex_shader() const
