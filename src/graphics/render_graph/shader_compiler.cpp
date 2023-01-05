@@ -435,13 +435,21 @@ void ShaderCompiler::visit(const ConditionalNode &node)
         stream_stack_.pop();
     }
 
+    std::string op{};
+    switch (node.conditional_operator())
+    {
+        using enum ConditionalOperator;
+        case GREATER: op = ">"; break;
+        case LESS: op = "<"; break;
+    }
+
     const ::inja::json args{
         {"is_vertex_shader", is_vertex_shader_},
         {"input1", node_strs[0]},
         {"input2", node_strs[1]},
         {"output1", node_strs[2]},
         {"output2", node_strs[3]},
-        {"operator", ">"}};
+        {"operator", op}};
 
     stream_stack_.top() << env_->render(
         language_string(
