@@ -15,6 +15,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/camera.h
     ${INCLUDE_ROOT}/camera_type.h
     ${INCLUDE_ROOT}/colour.h
+  ${INCLUDE_ROOT}/context.h
     ${INCLUDE_ROOT}/data_buffer.h
   ${INCLUDE_ROOT}/default_resource_manager.h
     ${INCLUDE_ROOT}/error_handling.h
@@ -35,13 +36,13 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/utils.h
     ${INCLUDE_ROOT}/vector3.h
     camera.cpp
+  context.cpp
   default_resource_manager.cpp
     exception.cpp
     looper.cpp
   profiler_analyser.cpp
     random.cpp
-    root.cpp
-    transform.cpp
   resource_manager.cpp
+  transform.cpp
   utils.cpp
 )

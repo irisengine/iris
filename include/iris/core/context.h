@@ -21,36 +21,44 @@ class MeshManager;
 class PhysicsManager;
 class TextureManager;
 class WindowManager;
+class ResourceManager;
 
 /**
- * This class allows for the runtime registration and retrieval of various
- * manager classes. It is a singleton and therefore provides singleton access to
- * the various components in owns without requiring them to be singletons.
+ * This class allows for the runtime registration and retrieval of various manager classes. It is automatically created
+ * by the engine and passed to the user via the entry function provided tio start().
  *
- * These managers are factory classes that can create engine components, the
- * reason for all this machinery is:
- *  - it decouples actual implementation from the Root
- *  - start() can register all supported mangers for the current platform and
- *    set sane defaults
- *  - allows a user to register their own implementations (e.g. for a different
- *    physics library)
- *
- * Note that there is a subtle difference between setting the graphics/physics
- * apis and the jobs api. Graphics/Physics are entirely a user choice, they may
- * want one, both or neither. The Root makes this possible as they only need to
- * get the manager for the components they need and call the varies create
- * methods.
- *
- * Whereas physics/graphics are opt-in the jobs api is compulsory. The engine
- * has to have a jobs system. Therefore setting the jobs api (set_jobs_api())
- * will actually create the job system. To make things a bit less verbose the
- * JobsApiManager interface exposes the two job system api methods, so a user
- * can use jobs directly from the jobs_manager() call.
+ * These managers are factory classes that can create engine components, the reason for all this machinery is:
+ *  - it decouples actual implementation from the Context
+ *  - start() can register all supported mangers for the current platform and set sane defaults
+ *  - allows a user to register their own implementations (e.g. for a different physics library)
  */
-class Root
+class Context
 {
   public:
-    ~Root() = default;
+    /**
+     * Construct a new Context.
+     *
+     * @param argc
+     *   Program argc.
+     *
+     * @param argv
+     *   Program argv.
+     */
+    Context(int argc, char **argv);
+    ~Context();
+
+    Context(const Context &) = delete;
+    Context &operator=(const Context &) = delete;
+    Context(Context &&);
+    Context &operator=(Context &&);
+
+    /**
+     * Get the program arguments.
+     *
+     * @returns
+     *   Collection of program arguments.
+     */
+    const std::vector<std::string> &args() const;
 
     /**
      * Get the current WindowManager.
@@ -58,7 +66,7 @@ class Root
      * @returns
      *   Current WindowManager.
      */
-    static WindowManager &window_manager();
+    WindowManager &window_manager() const;
 
     /**
      * Get the current MeshManager.
@@ -66,7 +74,7 @@ class Root
      * @returns
      *   Current MeshManager.
      */
-    static MeshManager &mesh_manager();
+    MeshManager &mesh_manager() const;
 
     /**
      * Get the current TextureManager.
@@ -74,7 +82,7 @@ class Root
      * @returns
      *   Current TextureManager.
      */
-    static TextureManager &texture_manager();
+    TextureManager &texture_manager() const;
 
     /**
      * Get the current MaterialManager.
@@ -82,7 +90,7 @@ class Root
      * @returns
      *   Current MaterialManager.
      */
-    static MaterialManager &material_manager();
+    MaterialManager &material_manager() const;
 
     /**
      * Get the current RenderTargetManager.
@@ -90,7 +98,7 @@ class Root
      * @returns
      *   Current RenderTargetManager.
      */
-    static RenderTargetManager &render_target_manager();
+    RenderTargetManager &render_target_manager() const;
 
     /**
      * Get the current PhysicsManager.
@@ -98,7 +106,7 @@ class Root
      * @returns
      *   Current PhysicsManager.
      */
-    static PhysicsManager &physics_manager();
+    PhysicsManager &physics_manager() const;
 
     /**
      * Get the current JobSystemManager.
@@ -106,7 +114,15 @@ class Root
      * @returns
      *   Current JobSystemManager.
      */
-    static JobSystemManager &jobs_manager();
+    JobSystemManager &jobs_manager() const;
+
+    /**
+     * Get the current ResourceManager.
+     *
+     * @returns
+     *   Current ResourceManager.
+     */
+    ResourceManager &resource_manager() const;
 
     /**
      * Register managers for a given api name.
@@ -129,7 +145,7 @@ class Root
      * @param RenderTargetManager
      *   New RenderTargetManager.
      */
-    static void register_graphics_api(
+    void register_graphics_api(
         const std::string &api,
         std::unique_ptr<WindowManager> window_manager,
         std::unique_ptr<MeshManager> mesh_manager,
@@ -143,7 +159,7 @@ class Root
      * @returns
      *   Name of currently set graphics api.
      */
-    static std::string graphics_api();
+    std::string graphics_api() const;
 
     /**
      * Set the current graphics api.
@@ -151,7 +167,7 @@ class Root
      * @param api
      *   New graphics api name.
      */
-    static void set_graphics_api(const std::string &api);
+    void set_graphics_api(const std::string &api);
 
     /**
      * Get a collection of all registered api names.
@@ -159,7 +175,7 @@ class Root
      * @returns
      *   Collection of registered api names.
      */
-    static std::vector<std::string> registered_graphics_apis();
+    std::vector<std::string> registered_graphics_apis() const;
 
     /**
      * Register managers for a given api name.
@@ -170,7 +186,7 @@ class Root
      * @param physics_manager
      *   New PhysicsManager.
      */
-    static void register_physics_api(const std::string &api, std::unique_ptr<PhysicsManager> physics_manager);
+    void register_physics_api(const std::string &api, std::unique_ptr<PhysicsManager> physics_manager);
 
     /**
      * Get the currently set physics api.
@@ -178,7 +194,7 @@ class Root
      * @returns
      *   Name of currently set physics api.
      */
-    static std::string physics_api();
+    std::string physics_api() const;
 
     /**
      * Set the current physics api.
@@ -186,7 +202,7 @@ class Root
      * @param api
      *   New physics api name.
      */
-    static void set_physics_api(const std::string &api);
+    void set_physics_api(const std::string &api);
 
     /**
      * Get a collection of all registered api names.
@@ -194,7 +210,7 @@ class Root
      * @returns
      *   Collection of registered api names.
      */
-    static std::vector<std::string> registered_physics_apis();
+    std::vector<std::string> registered_physics_apis() const;
 
     /**
      * Register managers for a given api name.
@@ -205,7 +221,7 @@ class Root
      * @param jobs_manager
      *   New JobSystemManager.
      */
-    static void register_jobs_api(const std::string &api, std::unique_ptr<JobSystemManager> jobs_manager);
+    void register_jobs_api(const std::string &api, std::unique_ptr<JobSystemManager> jobs_manager);
 
     /**
      * Get the currently set jobs api.
@@ -213,7 +229,7 @@ class Root
      * @returns
      *   Name of currently set jobs api.
      */
-    static std::string jobs_api();
+    std::string jobs_api() const;
 
     /**
      * Set the current jobs api.
@@ -221,7 +237,7 @@ class Root
      * @param api
      *   New jobs api name.
      */
-    static void set_jobs_api(const std::string &api);
+    void set_jobs_api(const std::string &api);
 
     /**
      * Get a collection of all registered api names.
@@ -229,78 +245,22 @@ class Root
      * @returns
      *   Collection of registered api names.
      */
-    static std::vector<std::string> registered_jobs_apis();
+    std::vector<std::string> registered_jobs_apis() const;
 
     /**
-     * Clear all registered components.
+     * Set the resource manager object.
      *
-     * This method exists to allow the engine to destroy the internal managers
-     * at a time of its choosing, rather than waiting for the singleton itself
-     * to be destroyed. There is no reason a user should have to call this.
+     * @param resource_manager
+     *   New resource manager.
      */
-    static void reset();
+    void set_resource_manager(std::unique_ptr<ResourceManager> resource_manager);
 
   private:
-    // private to force access through above public static methods
-    Root();
-    static Root &instance();
-
-    // these are the member function equivalents of the above static methods
-    // see their docs for details
-
-    WindowManager &window_manager_impl() const;
-
-    MeshManager &mesh_manager_impl() const;
-
-    TextureManager &texture_manager_impl() const;
-
-    MaterialManager &material_manager_impl() const;
-
-    RenderTargetManager &render_target_manager_impl() const;
-
-    PhysicsManager &physics_manager_impl() const;
-
-    JobSystemManager &jobs_manager_impl() const;
-
-    void register_graphics_api_impl(
-        const std::string &api,
-        std::unique_ptr<WindowManager> window_manager,
-        std::unique_ptr<MeshManager> mesh_manager,
-        std::unique_ptr<TextureManager> texture_manager,
-        std::unique_ptr<MaterialManager> material_manager,
-        std::unique_ptr<RenderTargetManager> render_target_manager);
-
-    std::string graphics_api_impl() const;
-
-    void set_graphics_api_impl(const std::string &api);
-
-    std::vector<std::string> registered_graphics_apis_impl() const;
-
-    void register_physics_api_impl(const std::string &api, std::unique_ptr<PhysicsManager> physics_manager);
-
-    std::string physics_api_impl() const;
-
-    void set_physics_api_impl(const std::string &api);
-
-    std::vector<std::string> registered_physics_apis_impl() const;
-
-    void register_jobs_api_impl(const std::string &api, std::unique_ptr<JobSystemManager> jobs_manager);
-
-    std::string jobs_api_impl() const;
-
-    void set_jobs_api_impl(const std::string &api);
-
-    std::vector<std::string> registered_jobs_apis_impl() const;
-
-    void reset_impl();
-
     /**
      * Helper struct encapsulating all managers for a graphics api.
      *
-     * Note that the member order is important, we want the WindowManager to
-     * be destroyed first as some implementations require the Renderer
-     * destructor to wait for gpu operations to finish before destroying other
-     * resources.
+     * Note that the member order is important, we want the WindowManager to be destroyed first as some implementations
+     * require the Renderer destructor to wait for gpu operations to finish before destroying other resources.
      */
     struct GraphicsApiManagers
     {
@@ -328,6 +288,12 @@ class Root
 
     /** Name of current jobs api. */
     std::string jobs_api_;
+
+    /** Resource manager object. */
+    std::unique_ptr<ResourceManager> resource_manager_;
+
+    /** Collection of program arguments. */
+    std::vector<std::string> args_;
 };
 
 }
