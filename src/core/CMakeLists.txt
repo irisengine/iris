@@ -29,6 +29,7 @@ target_sources(iris PRIVATE
     ${INCLUDE_ROOT}/root.h
     ${INCLUDE_ROOT}/start.h
     ${INCLUDE_ROOT}/static_buffer.h
+  ${INCLUDE_ROOT}/string_hash.h
     ${INCLUDE_ROOT}/thread.h
     ${INCLUDE_ROOT}/transform.h
     ${INCLUDE_ROOT}/utils.h
