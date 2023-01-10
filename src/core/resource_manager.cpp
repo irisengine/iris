@@ -4,7 +4,7 @@
 //                 https://www.boost.org/LICENSE_1_0.txt)                     //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "core/resource_loader.h"
+#include "core/resource_manager.h"
 
 #include <filesystem>
 #include <fstream>
@@ -15,18 +15,12 @@
 namespace iris
 {
 
-ResourceLoader::ResourceLoader()
+ResourceManager::ResourceManager()
     : root_(".")
 {
 }
 
-ResourceLoader &ResourceLoader::instance()
-{
-    static ResourceLoader loader{};
-    return loader;
-}
-
-const DataBuffer &ResourceLoader::load(const std::string &resource)
+const DataBuffer &ResourceManager::load(std::string_view resource)
 {
     // lookup resource
     auto loaded_resource = resources_.find(resource);
@@ -35,25 +29,16 @@ const DataBuffer &ResourceLoader::load(const std::string &resource)
     // root
     if (loaded_resource == std::cend(resources_))
     {
-        std::stringstream strm{};
-        std::fstream f(root_ / std::filesystem::path(resource), std::ios::in | std::ios::binary);
-
-        strm << f.rdbuf();
-
-        ensure(f.good() && !f.bad(), "failed to read file");
-
-        const auto str = strm.str();
-        const auto *str_ptr = reinterpret_cast<const std::byte *>(str.data());
-
-        const auto [iter, _] = resources_.insert({resource, {str_ptr, str_ptr + str.length()}});
+        const auto [iter, _] = resources_.insert({std::string{resource}, do_load(resource)});
         loaded_resource = iter;
     }
 
     return loaded_resource->second;
 }
 
-void ResourceLoader::set_root_directory(const std::filesystem::path &root)
+void ResourceManager::set_root_directory(const std::filesystem::path &root)
 {
     root_ = root;
 }
+
 }
