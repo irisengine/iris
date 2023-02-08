@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <memory>
 
+#include "core/resource_manager.h"
 #include "graphics/mesh.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/vertex_data.h"
@@ -24,9 +25,11 @@ class D3D12MeshManager : public MeshManager
   public:
     /**
      * Construct a new D3D12MeshManager.
+     *
+     * @param resource_manager
+     *   Resource manager object.
      */
-    D3D12MeshManager();
-    ~D3D12MeshManager() override = default;
+    D3D12MeshManager(ResourceManager &resource_manager);
 
   protected:
     /**
