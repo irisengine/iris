@@ -11,6 +11,7 @@
 #include <stack>
 
 #include "core/data_buffer.h"
+#include "core/resource_manager.h"
 #include "graphics/cube_map.h"
 #include "graphics/opengl/opengl.h"
 #include "graphics/sampler.h"
@@ -28,10 +29,11 @@ class OpenGLTextureManager : public TextureManager
   public:
     /**
      * Construct a new OpenGLTextureManager.
+     *
+     * @param resource_manager
+     *   Resource manager object.
      */
-    OpenGLTextureManager();
-
-    ~OpenGLTextureManager() override = default;
+    OpenGLTextureManager(ResourceManager &resource_manager);
 
   protected:
     /**

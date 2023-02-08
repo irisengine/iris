@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "core/data_buffer.h"
+#include "core/resource_manager.h"
 #include "graphics/cube_map.h"
 #include "graphics/d3d12/d3d12_cube_map.h"
 #include "graphics/d3d12/d3d12_sampler.h"
@@ -19,8 +20,14 @@
 #include "graphics/texture_manager.h"
 #include "graphics/texture_usage.h"
 
+
 namespace iris
 {
+
+D3D12TextureManager::D3D12TextureManager(ResourceManager &resource_manager)
+    : TextureManager(resource_manager)
+{
+}
 
 std::unique_ptr<Texture> D3D12TextureManager::do_create(
     const DataBuffer &data,

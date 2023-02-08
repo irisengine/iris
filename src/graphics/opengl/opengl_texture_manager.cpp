@@ -12,6 +12,7 @@
 
 #include "core/data_buffer.h"
 #include "core/error_handling.h"
+#include "core/resource_manager.h"
 #include "graphics/opengl/opengl.h"
 #include "graphics/opengl/opengl_cube_map.h"
 #include "graphics/opengl/opengl_sampler.h"
@@ -20,11 +21,12 @@
 #include "graphics/texture_manager.h"
 #include "graphics/texture_usage.h"
 
+
 namespace iris
 {
 
-OpenGLTextureManager::OpenGLTextureManager()
-    : TextureManager()
+OpenGLTextureManager::OpenGLTextureManager(ResourceManager &resource_manager)
+    : TextureManager(resource_manager)
 {
 }
 

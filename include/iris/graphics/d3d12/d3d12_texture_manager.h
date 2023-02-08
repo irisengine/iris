@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "core/data_buffer.h"
+#include "core/resource_manager.h"
 #include "graphics/cube_map.h"
 #include "graphics/sampler.h"
 #include "graphics/texture.h"
@@ -25,7 +26,13 @@ namespace iris
 class D3D12TextureManager : public TextureManager
 {
   public:
-    ~D3D12TextureManager() override = default;
+    /**
+     * Construct a new D3D12TextureManager object.
+     *
+     * @param resource_manager
+     *   Resource manager object.
+     */
+    D3D12TextureManager(ResourceManager &resource_manager);
 
   protected:
     /**
