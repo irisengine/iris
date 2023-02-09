@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "graphics/mesh_manager.h"
 #include "physics/basic_character_controller.h"
 #include "physics/bullet/bullet_physics_system.h"
 #include "physics/bullet/bullet_rigid_body.h"
@@ -17,9 +18,14 @@
 namespace iris
 {
 
+BulletPhysicsManager::BulletPhysicsManager(MeshManager &mesh_manager)
+    : mesh_manager_(mesh_manager)
+{
+}
+
 PhysicsSystem *BulletPhysicsManager::create_physics_system()
 {
-    physics_system_ = std::make_unique<BulletPhysicsSystem>();
+    physics_system_ = std::make_unique<BulletPhysicsSystem>(mesh_manager_);
     return current_physics_system();
 }
 

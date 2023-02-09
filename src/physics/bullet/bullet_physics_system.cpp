@@ -24,8 +24,7 @@
 #include "core/error_handling.h"
 #include "core/quaternion.h"
 #include "core/vector3.h"
-#include "graphics/mesh.h"
-#include "graphics/render_entity.h"
+#include "graphics/mesh_manager.h"
 #include "log/log.h"
 #include "physics/basic_character_controller.h"
 #include "physics/bullet/bullet_box_collision_shape.h"
@@ -103,7 +102,7 @@ struct BulletPhysicsState : public PhysicsState
     std::map<btRigidBody *, RigidBodyState> bodies;
 };
 
-BulletPhysicsSystem::BulletPhysicsSystem()
+BulletPhysicsSystem::BulletPhysicsSystem(MeshManager &mesh_manager)
     : PhysicsSystem()
     , broadphase_(nullptr)
     , ghost_pair_callback_(nullptr)
@@ -113,7 +112,7 @@ BulletPhysicsSystem::BulletPhysicsSystem()
     , world_(nullptr)
     , bodies_()
     , character_controllers_()
-    , debug_draw_()
+    , debug_draw_(mesh_manager)
     , collision_shapes_()
     , next_debug_update_(std::chrono::system_clock::now())
 {
