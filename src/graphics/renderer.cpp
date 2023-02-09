@@ -9,14 +9,14 @@
 #include <cassert>
 
 #include "core/exception.h"
-#include "core/root.h"
 #include "graphics/material_manager.h"
 
 namespace iris
 {
 
-Renderer::Renderer()
-    : render_queue_()
+Renderer::Renderer(MaterialManager &material_manager)
+    : material_manager_(material_manager)
+    , render_queue_()
     , render_pipeline_()
     , start_(std::chrono::steady_clock::now())
     , time_(0u)
@@ -55,11 +55,11 @@ void Renderer::render()
 
 void Renderer::set_render_pipeline(std::unique_ptr<RenderPipeline> render_pipeline)
 {
-    Root::material_manager().clear();
+    material_manager_.clear();
     start_ = std::chrono::steady_clock::now();
 
     render_pipeline_ = std::move(render_pipeline);
-    do_set_render_pipeline([this]() {
+    do_set_render_pipeline([this] {
         render_queue_ = render_pipeline_->build();
         render_pipeline_->clear_dirty_bit();
     });

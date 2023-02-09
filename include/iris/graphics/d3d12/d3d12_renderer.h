@@ -34,9 +34,12 @@
 #include "graphics/d3d12/d3d12_structured_buffer.h"
 #include "graphics/d3d12/d3d12_texture.h"
 #include "graphics/material_cache.h"
+#include "graphics/material_manager.h"
 #include "graphics/render_pipeline.h"
 #include "graphics/render_target.h"
 #include "graphics/renderer.h"
+#include "graphics/texture_manager.h"
+#include "graphics/window_manager.h"
 
 namespace iris
 {
@@ -57,6 +60,15 @@ class D3D12Renderer : public Renderer
     /**
      * Construct a new D3D12Renderer.
      *
+     * @param window_manager
+     *   Window manager object.
+     *
+     * @param texture_manager
+     *   Texture manager object.
+     *
+     * @param material_manager
+     *   Material manager object.
+     *
      * @param window
      *   The window to present to.
      *
@@ -69,7 +81,14 @@ class D3D12Renderer : public Renderer
      * @param initial_screen_scale
      *   The natural scale of the screen with window is currently on.
      */
-    D3D12Renderer(HWND window, std::uint32_t width, std::uint32_t height, std::uint32_t initial_screen_scale);
+    D3D12Renderer(
+        WindowManager &window_manager,
+        TextureManager &texture_manager,
+        MaterialManager &material_manager,
+        HWND window,
+        std::uint32_t width,
+        std::uint32_t height,
+        std::uint32_t initial_screen_scale);
 
     /**
      * Destructor, will block until all inflight frames have finished rendering.
@@ -152,6 +171,12 @@ class D3D12Renderer : public Renderer
         /** Cache of data buffers for material properties. */
         std::unordered_map<const Material *, std::unique_ptr<D3D12ConstantBuffer>> property_buffers;
     };
+
+    /** Window manager object. */
+    WindowManager &window_manager_;
+
+    /** Texture manager object. */
+    TextureManager &texture_manager_;
 
     /** Width of window to present to. */
     std::uint32_t width_;

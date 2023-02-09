@@ -8,7 +8,10 @@
 
 #include <cstdint>
 #include <memory>
+#include <string>
 
+#include "graphics/material_manager.h"
+#include "graphics/texture_manager.h"
 #include "graphics/window.h"
 #include "graphics/window_manager.h"
 
@@ -21,7 +24,20 @@ namespace iris
 class Win32WindowManager : public WindowManager
 {
   public:
-    ~Win32WindowManager() override = default;
+    /**
+     * @param texture_manager
+     *   Texture manager object.
+     *
+     * @param material_manager
+     *   Material manager object.
+     *
+     * @param graphics_api
+     *   The graphics api to create a window for.
+     */
+    Win32WindowManager(
+        TextureManager &texture_manager,
+        MaterialManager &material_manager,
+        const std::string &graphics_api);
 
     /**
      * Create a new Window.
@@ -43,6 +59,15 @@ class Win32WindowManager : public WindowManager
     Window *current_window() const override;
 
   private:
+    /** Texture manager object. */
+    TextureManager &texture_manager_;
+
+    /** Material manager object. */
+    MaterialManager &material_manager_;
+
+    /** Graphics api to create windows for. */
+    std::string graphics_api_;
+
     /** Current window .*/
     std::unique_ptr<Window> current_window_;
 };

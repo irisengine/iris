@@ -24,6 +24,8 @@
 #include "events/mouse_button_event.h"
 #include "events/quit_event.h"
 #include "events/scroll_wheel_event.h"
+#include "graphics/texture_manager.h"
+#include "graphics/window_manager.h"
 #include "log/log.h"
 
 #pragma comment(lib, "Shcore.lib")

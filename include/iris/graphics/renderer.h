@@ -12,6 +12,7 @@
 
 #include "core/camera.h"
 #include "graphics/lights/light_type.h"
+#include "graphics/material_manager.h"
 #include "graphics/render_command.h"
 #include "graphics/render_pass.h"
 #include "graphics/render_pipeline.h"
@@ -28,7 +29,13 @@ namespace iris
 class Renderer
 {
   public:
-    Renderer();
+    /**
+     * Construct a new Renderer.
+     *
+     * @param material_manager
+     *   Material manager object.
+     */
+    Renderer(MaterialManager &material_manager);
     virtual ~Renderer() = default;
 
     /**
@@ -86,6 +93,10 @@ class Renderer
 
     /** Elapsed time since set_render_pipeline was called. */
     std::chrono::steady_clock::duration time_;
+
+  private:
+    /** Material manager object. */
+    MaterialManager &material_manager_;
 };
 
 }

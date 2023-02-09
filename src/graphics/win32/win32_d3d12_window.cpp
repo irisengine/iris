@@ -22,18 +22,26 @@
 #include "events/event.h"
 #include "events/quit_event.h"
 #include "graphics/d3d12/d3d12_renderer.h"
+#include "graphics/material_manager.h"
 #include "graphics/render_target.h"
 #include "log/log.h"
+
 
 #pragma comment(lib, "Shcore.lib")
 
 namespace iris
 {
 
-Win32D3D12Window::Win32D3D12Window(std::uint32_t width, std::uint32_t height)
+Win32D3D12Window::Win32D3D12Window(
+    WindowManager &window_manager,
+    TextureManager &texture_manager,
+    MaterialManager &material_manager,
+    std::uint32_t width,
+    std::uint32_t height)
     : Win32Window(width, height)
 {
-    renderer_ = std::make_unique<D3D12Renderer>(window_, width_, height_, screen_scale());
+    renderer_ = std::make_unique<D3D12Renderer>(
+        window_manager, texture_manager, material_manager, window_, width_, height_, screen_scale());
 
     ::SetWindowTextA(window_, "iris::d3d12");
 }

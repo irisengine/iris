@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "graphics/material_cache.h"
+#include "graphics/material_manager.h"
 #include "graphics/opengl/opengl_buffer.h"
 #include "graphics/opengl/opengl_frame_buffer.h"
 #include "graphics/opengl/opengl_material.h"
@@ -20,6 +21,8 @@
 #include "graphics/opengl/opengl_uniform.h"
 #include "graphics/render_pipeline.h"
 #include "graphics/renderer.h"
+#include "graphics/texture_manager.h"
+#include "graphics/window_manager.h"
 
 namespace iris
 {
@@ -33,13 +36,27 @@ class OpenGLRenderer : public Renderer
     /**
      * Construct a new OpenGLRenderer.
      *
+     * @param window_manager
+     *   Window manager object.
+     *
+     * @param texture_manager
+     *   Texture manager object.
+     *
+     * @param material_manager
+     *   Material manager object.
+     *
      * @param width
      *   Width of window being rendered to.
      *
      * @param height
      *   Height of window being rendered to.
      */
-    OpenGLRenderer(std::uint32_t width, std::uint32_t height);
+    OpenGLRenderer(
+        WindowManager &window_manager,
+        TextureManager &texture_manager,
+        MaterialManager &material_manager,
+        std::uint32_t width,
+        std::uint32_t height);
     ~OpenGLRenderer() override = default;
 
   protected:
@@ -60,6 +77,12 @@ class OpenGLRenderer : public Renderer
     void execute_present(RenderCommand &command) override;
 
   private:
+    /** Window manager object. */
+    WindowManager &window_manager_;
+
+    /** Texture manager object. */
+    TextureManager &texture_manager_;
+
     // helper aliases to try and simplify the verbose types
     using LightMaterialMap = std::unordered_map<LightType, std::unique_ptr<OpenGLMaterial>>;
 

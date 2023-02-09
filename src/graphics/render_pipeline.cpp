@@ -11,7 +11,6 @@
 #include <vector>
 
 #include "core/error_handling.h"
-#include "core/root.h"
 #include "graphics/material_manager.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/render_graph/binary_operator_node.h"
@@ -67,6 +66,7 @@ namespace
  *   Map of directional lights to their associated shadow map render target.
  */
 void encode_light_pass_commands(
+    iris::MaterialManager &material_manager,
     const iris::Scene *scene,
     iris::LightType light_type,
     bool has_normal_target,
@@ -84,7 +84,7 @@ void encode_light_pass_commands(
             continue;
         }
 
-        auto *material = iris::Root::material_manager().create(
+        auto *material = material_manager.create(
             render_graph,
             render_entity.get(),
             light_type,
@@ -138,8 +138,16 @@ void encode_light_pass_commands(
 namespace iris
 {
 
-RenderPipeline::RenderPipeline(std::uint32_t width, std::uint32_t height)
-    : scenes_()
+RenderPipeline::RenderPipeline(
+    MaterialManager &material_manager,
+    MeshManager &mesh_manager,
+    RenderTargetManager &render_target_manager,
+    std::uint32_t width,
+    std::uint32_t height)
+    : material_manager_(material_manager)
+    , mesh_manager_(mesh_manager)
+    , render_target_manager_(render_target_manager)
+    , scenes_()
     , render_graphs_()
     , user_created_passes_()
     , engine_created_passes_()
@@ -157,7 +165,7 @@ RenderPipeline::~RenderPipeline() = default;
 
 Scene *RenderPipeline::create_scene()
 {
-    static RenderGraph default_render_graph{};
+    static RenderGraph default_render_graph{material_manager_.create_property_buffer()};
 
     // using new to access private ctor
     scenes_.push_back(std::unique_ptr<Scene>(new Scene{&default_render_graph, &dirty_}));
@@ -168,7 +176,7 @@ Scene *RenderPipeline::create_scene()
 RenderGraph *RenderPipeline::create_render_graph()
 {
     // using new to access private ctor
-    render_graphs_.push_back(std::unique_ptr<RenderGraph>(new RenderGraph{}));
+    render_graphs_.push_back(std::unique_ptr<RenderGraph>(new RenderGraph{material_manager_.create_property_buffer()}));
 
     return render_graphs_.back().get();
 }
@@ -199,7 +207,7 @@ std::vector<RenderCommand> RenderPipeline::build()
         {
             if (light->casts_shadows())
             {
-                auto *rt = Root::render_target_manager().create(1024u, 1024u);
+                auto *rt = render_target_manager_.create(1024u, 1024u);
                 RenderPass *shadow_pass = create_engine_render_pass(pass->scene);
                 shadow_pass->post_processing_description = {};
                 shadow_pass->camera = std::addressof(light->shadow_camera());
@@ -227,8 +235,8 @@ std::vector<RenderCommand> RenderPipeline::build()
             RenderPass *ao_data_pass = create_engine_render_pass(pass->scene);
             ao_data_pass->post_processing_description = {};
             ao_data_pass->colour_target = nullptr;
-            ao_data_pass->normal_target = Root::render_target_manager().create(width_, height_);
-            ao_data_pass->position_target = Root::render_target_manager().create(width_, height_);
+            ao_data_pass->normal_target = render_target_manager_.create(width_, height_);
+            ao_data_pass->position_target = render_target_manager_.create(width_, height_);
             ao_data_pass->depth_only = true;
             ao_data_pass->clear_colour = true;
             ao_data_pass->camera = pass->camera;
@@ -255,7 +263,7 @@ std::vector<RenderCommand> RenderPipeline::build()
             prev->colour_target = pass->colour_target;
 
             // fudge the colour target of the pre pass and the depth target of the ssao pass into one render target
-            pass->colour_target = Root::render_target_manager().create(prev->colour_target, ao_target);
+            pass->colour_target = render_target_manager_.create(prev->colour_target, ao_target);
             pass->clear_colour = false;
             pass->clear_depth = false;
         }
@@ -271,7 +279,7 @@ std::vector<RenderCommand> RenderPipeline::build()
             const auto [_, inserted] = sky_box_entities_.try_emplace(
                 pass.get(),
                 scene->create_entity_at_front<SingleEntity>(
-                    sky_box_rg, Root::mesh_manager().cube({}), Transform({}, {}, {0.5f})));
+                    sky_box_rg, mesh_manager_.cube({}), Transform({}, {}, {0.5f})));
             expect(inserted, "sky box exists");
 
             sky_box_entities_[pass.get()]->set_receive_shadow(false);
@@ -313,6 +321,7 @@ std::vector<RenderCommand> RenderPipeline::rebuild()
         if (!pass->post_processing_description.ambient_occlusion)
         {
             encode_light_pass_commands(
+                material_manager_,
                 pass->scene,
                 LightType::AMBIENT,
                 has_normal_target,
@@ -329,6 +338,7 @@ std::vector<RenderCommand> RenderPipeline::rebuild()
             if (!pass->scene->lighting_rig()->point_lights.empty())
             {
                 encode_light_pass_commands(
+                    material_manager_,
                     pass->scene,
                     LightType::POINT,
                     has_normal_target,
@@ -343,6 +353,7 @@ std::vector<RenderCommand> RenderPipeline::rebuild()
             if (!pass->scene->lighting_rig()->directional_lights.empty())
             {
                 encode_light_pass_commands(
+                    material_manager_,
                     pass->scene,
                     LightType::DIRECTIONAL,
                     has_normal_target,
@@ -397,14 +408,14 @@ const RenderTarget *RenderPipeline::add_pass(
     // create new pass with
     cameras_.push_back({CameraType::ORTHOGRAPHIC, width_, height_});
     auto *camera = std::addressof(cameras_.back());
-    const auto *target = Root::render_target_manager().create(width_, height_);
+    const auto *target = render_target_manager_.create(width_, height_);
 
     auto *scene = create_scene();
     auto *rg = create_render_graph();
     create_render_graph_callback(rg, target);
     scene->create_entity<SingleEntity>(
         rg,
-        Root::mesh_manager().sprite({}),
+        mesh_manager_.sprite({}),
         Transform({}, {}, {static_cast<float>(width_), static_cast<float>(height_), 1. - 1}));
 
     auto *pass = create_engine_render_pass(scene);
