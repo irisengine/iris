@@ -6,11 +6,13 @@
 
 #include "core/start.h"
 
+#include <algorithm>
 #include <memory>
 
+#include "core/context.h"
+#include "core/default_resource_manager.h"
 #include "core/error_handling.h"
 #include "core/profiler.h"
-#include "core/root.h"
 #include "graphics/d3d12/d3d12_material_manager.h"
 #include "graphics/d3d12/d3d12_mesh_manager.h"
 #include "graphics/d3d12/d3d12_render_target_manager.h"
@@ -32,32 +34,56 @@
 namespace
 {
 
-void register_apis()
+iris::Context create_context(int argc, char **argv)
 {
-    iris::Root::register_graphics_api(
+    iris::Context ctx{argc, argv};
+
+    auto resource_manager = std::make_unique<iris::DefaultResourceManager>();
+
+    auto d3d12_texture_manager = std::make_unique<iris::D3D12TextureManager>(*resource_manager);
+    auto d3d12_material_manager = std::make_unique<iris::D3D12MaterialManager>();
+    auto d3d12_window_manager =
+        std::make_unique<iris::Win32WindowManager>(*d3d12_texture_manager, *d3d12_material_manager, "d3d12");
+    auto d3d12_mesh_manager = std::make_unique<iris::D3D12MeshManager>(*resource_manager);
+    auto d3d12_render_target_manager =
+        std::make_unique<iris::D3D12RenderTargetManager>(*d3d12_window_manager, *d3d12_texture_manager);
+
+    ctx.register_graphics_api(
         "d3d12",
-        std::make_unique<iris::Win32WindowManager>(),
-        std::make_unique<iris::D3D12MeshManager>(),
-        std::make_unique<iris::D3D12TextureManager>(),
-        std::make_unique<iris::D3D12MaterialManager>(),
-        std::make_unique<iris::D3D12RenderTargetManager>());
+        std::move(d3d12_window_manager),
+        std::move(d3d12_mesh_manager),
+        std::move(d3d12_texture_manager),
+        std::move(d3d12_material_manager),
+        std::move(d3d12_render_target_manager));
 
-    iris::Root::register_graphics_api(
+    auto opengl_texture_manager = std::make_unique<iris::OpenGLTextureManager>(*resource_manager);
+    auto opengl_material_manager = std::make_unique<iris::OpenGLMaterialManager>();
+    auto opengl_window_manager =
+        std::make_unique<iris::Win32WindowManager>(*opengl_texture_manager, *opengl_material_manager, "opengl");
+    auto opengl_mesh_manager = std::make_unique<iris::OpenGLMeshManager>(*resource_manager);
+    auto opengl_render_target_manager =
+        std::make_unique<iris::OpenGLRenderTargetManager>(*opengl_window_manager, *opengl_texture_manager);
+
+    ctx.register_graphics_api(
         "opengl",
-        std::make_unique<iris::Win32WindowManager>(),
-        std::make_unique<iris::OpenGLMeshManager>(),
-        std::make_unique<iris::OpenGLTextureManager>(),
-        std::make_unique<iris::OpenGLMaterialManager>(),
-        std::make_unique<iris::OpenGLRenderTargetManager>());
+        std::move(opengl_window_manager),
+        std::move(opengl_mesh_manager),
+        std::move(opengl_texture_manager),
+        std::move(opengl_material_manager),
+        std::move(opengl_render_target_manager));
 
-    iris::Root::set_graphics_api("d3d12");
+    ctx.set_graphics_api("d3d12");
 
-    iris::Root::register_physics_api("bullet", std::make_unique<iris::BulletPhysicsManager>());
-    iris::Root::set_physics_api("bullet");
+    ctx.register_physics_api("bullet", std::make_unique<iris::BulletPhysicsManager>(ctx.mesh_manager()));
+    ctx.set_physics_api("bullet");
 
-    iris::Root::register_jobs_api("thread", std::make_unique<iris::ThreadJobSystemManager>());
-    iris::Root::register_jobs_api("fiber", std::make_unique<iris::FiberJobSystemManager>());
-    iris::Root::set_jobs_api("fiber");
+    ctx.register_jobs_api("thread", std::make_unique<iris::ThreadJobSystemManager>());
+    ctx.register_jobs_api("fiber", std::make_unique<iris::FiberJobSystemManager>());
+    ctx.set_jobs_api("fiber");
+
+    ctx.set_resource_manager(std::move(resource_manager));
+
+    return ctx;
 }
 
 }
@@ -65,35 +91,23 @@ void register_apis()
 namespace iris
 {
 
-void start(int argc, char **argv, std::function<void(int, char **)> entry)
+void start(int argc, char **argv, std::function<void(Context)> entry, bool debug)
 {
+    std::unique_ptr<Profiler> profiler;
+
+    if (debug)
+    {
+        profiler = std::make_unique<Profiler>();
+
+        Logger::instance().set_log_engine(true);
+        LOG_ENGINE_INFO("start", "debug mode on");
+    }
+
     LOG_ENGINE_INFO("start", "engine start {}", IRIS_VERSION_STR);
 
     ensure(::CoInitializeEx(nullptr, COINIT_MULTITHREADED) == S_OK, "CoInitialize failed");
 
-    register_apis();
-
-    entry(argc, argv);
-
-    Root::reset();
-}
-
-void start_debug(int argc, char **argv, std::function<void(int, char **)> entry)
-{
-    // enable engine logging
-    Logger::instance().set_log_engine(true);
-
-    ensure(::CoInitializeEx(nullptr, COINIT_MULTITHREADED) == S_OK, "CoInitialize failed");
-
-    LOG_ENGINE_INFO("start", "engine start (with debugging) {}", IRIS_VERSION_STR);
-
-    Profiler profiler{};
-
-    register_apis();
-
-    entry(argc, argv);
-
-    Root::reset();
+    entry(create_context(argc, argv));
 }
 
 }
