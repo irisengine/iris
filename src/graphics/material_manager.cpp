@@ -13,11 +13,10 @@
 namespace iris
 {
 
-std::span<std::byte> MaterialManager::create_property_buffer(const RenderGraph *render_graph)
+std::span<std::byte> MaterialManager::create_property_buffer()
 {
-    auto &buffer = property_buffers_[render_graph];
-
-    return {std::begin(buffer), std::end(buffer)};
+    auto &new_buffer = property_buffers_.emplace_back();
+    return {std::begin(new_buffer), std::end(new_buffer)};
 }
 
 }

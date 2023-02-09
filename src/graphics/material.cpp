@@ -9,7 +9,6 @@
 #include <cstddef>
 #include <span>
 
-#include "core/root.h"
 #include "graphics/material_manager.h"
 #include "graphics/render_graph/render_graph.h"
 
@@ -17,8 +16,12 @@ namespace iris
 {
 
 Material::Material(const RenderGraph *render_graph)
-    : property_buffer_(Root::material_manager().create_property_buffer(render_graph))
+    : property_buffer_()
 {
+    if (render_graph != nullptr)
+    {
+        property_buffer_ = render_graph->property_buffer();
+    }
 }
 
 std::span<std::byte> Material::property_buffer() const

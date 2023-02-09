@@ -73,17 +73,16 @@ class MaterialManager
     virtual void clear() = 0;
 
     /**
-     * Get property buffer for a render graph. There is only one buffer for render graph so subsequent calls will with
-     * the same graph will return the same buffer.
+     * Get property buffer for a render graph.
      *
      * @returns
      *   A span to the allocated buffer.
      */
-    std::span<std::byte> create_property_buffer(const RenderGraph *render_graph);
+    std::span<std::byte> create_property_buffer();
 
   private:
-    /** Map of render graphs to buffers. */
-    std::unordered_map<const RenderGraph *, std::array<std::byte, 256u>> property_buffers_;
+    /** Collection of property buffers. */
+    std::vector<std::array<std::byte, 256u>> property_buffers_;
 };
 
 }
