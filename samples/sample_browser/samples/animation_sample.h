@@ -11,6 +11,7 @@
 #include <string>
 
 #include <core/camera.h>
+#include <core/context.h>
 #include <core/transform.h>
 #include <events/event.h>
 #include <graphics/animation/animation_controller.h>
@@ -39,10 +40,13 @@ class AnimationSample : public Sample
      * @param window
      *   Window to render with.
      *
-     * @param target
-     *   Target to render to.
+     * @param render_pipeline
+     *   Render pipeline to use for sample.
+     *
+     * @param context
+     *   Engine context object.
      */
-    AnimationSample(iris::Window *window, iris::RenderPipeline &render_pipeline);
+    AnimationSample(iris::Window *window, iris::RenderPipeline &render_pipeline, iris::Context &context);
     ~AnimationSample() override = default;
 
     /**

@@ -13,10 +13,10 @@
 #include <vector>
 
 #include <core/camera.h>
+#include <core/context.h>
 #include <core/error_handling.h>
 #include <core/matrix4.h>
 #include <core/quaternion.h>
-#include <core/root.h>
 #include <core/transform.h>
 #include <core/vector3.h>
 #include <graphics/animation/animation_controller.h>
@@ -98,11 +98,11 @@ void update_camera(iris::Camera &camera, const std::map<iris::Key, iris::KeyStat
 
 }
 
-AnimationSample::AnimationSample(iris::Window *window, iris::RenderPipeline &render_pipeline)
+AnimationSample::AnimationSample(iris::Window *window, iris::RenderPipeline &render_pipeline, iris::Context &context)
     : light_transform_()
     , light_(nullptr)
     , camera_(iris::CameraType::PERSPECTIVE, window->width(), window->height())
-    , physics_(iris::Root::physics_manager().create_physics_system())
+    , physics_(context.physics_manager().create_physics_system())
     , zombie_(nullptr)
     , animation_(0u)
     , animations_()
@@ -134,7 +134,9 @@ AnimationSample::AnimationSample(iris::Window *window, iris::RenderPipeline &ren
     floor_graph->render_node()->set_specular_amount_input(floor_graph->create<iris::ValueNode<float>>(0.0f));
     floor_graph->render_node()->set_colour_input(floor_graph->create<iris::ColourNode>(iris::Colour{0.9f, 0.9f, 0.9f}));
 
-    auto &mesh_manager = iris::Root::mesh_manager();
+    auto &mesh_manager = context.mesh_manager();
+    auto &texture_manager = context.texture_manager();
+    auto &render_target_manager = context.render_target_manager();
 
     scene_->create_entity<iris::SingleEntity>(
         floor_graph,
@@ -145,9 +147,10 @@ AnimationSample::AnimationSample(iris::Window *window, iris::RenderPipeline &ren
     iris::ensure(meshes.mesh_data.size() == 1u, "expecting single mesh");
 
     auto [mesh, texture_name] = meshes.mesh_data.front();
+    const auto *texture = texture_manager.load(texture_name);
 
     auto *render_graph = render_pipeline.create_render_graph();
-    render_graph->render_node()->set_colour_input(render_graph->create<iris::TextureNode>(texture_name));
+    render_graph->render_node()->set_colour_input(render_graph->create<iris::TextureNode>(texture));
     zombie_ = scene_->create_entity<iris::SingleEntity>(
         render_graph,
         mesh,
@@ -156,15 +159,15 @@ AnimationSample::AnimationSample(iris::Window *window, iris::RenderPipeline &ren
 
     zombie_->set_receive_shadow(false);
 
-    sky_box_ = iris::Root::texture_manager().create(
-        iris::Colour{0.275f, 0.51f, 0.796f}, iris::Colour{0.5f, 0.5f, 0.5f}, 2048u, 2048u);
+    sky_box_ =
+        texture_manager.create(iris::Colour{0.275f, 0.51f, 0.796f}, iris::Colour{0.5f, 0.5f, 0.5f}, 2048u, 2048u);
 
     light_ = scene_->create_light<iris::DirectionalLight>(iris::Vector3{-1.0f, -1.0f, 0.0f}, true);
     light_transform_ = iris::Transform{light_->direction(), {}, {1.0f}};
 
     auto *pass = render_pipeline.create_render_pass(scene_);
     pass->post_processing_description = {.ambient_occlusion = {iris::AmbientOcclusionDescription{}}};
-    pass->colour_target = iris::Root::render_target_manager().create();
+    pass->colour_target = render_target_manager.create();
     pass->camera = &camera_;
     pass->sky_box = sky_box_;
 

@@ -6,24 +6,24 @@
 
 #pragma once
 
+#include <chrono>
 #include <cstddef>
 #include <map>
 #include <string>
 
 #include <core/camera.h>
+#include <core/context.h>
 #include <core/transform.h>
 #include <events/event.h>
 #include <graphics/animation/animation_controller.h>
 #include <graphics/cube_map.h>
 #include <graphics/lights/directional_light.h>
 #include <graphics/render_entity.h>
+#include <graphics/render_graph/property_writer.h>
 #include <graphics/render_graph/render_graph.h>
 #include <graphics/render_pipeline.h>
 #include <graphics/single_entity.h>
-#include <graphics/skeleton.h>
 #include <graphics/window.h>
-#include <physics/physics_system.h>
-#include <physics/rigid_body.h>
 
 #include "sample.h"
 
@@ -38,10 +38,13 @@ class WaterSample : public Sample
      * @param window
      *   Window to render with.
      *
-     * @param target
-     *   Target to render to.
+     * @param render_pipeline
+     *   Render pipeline to use for sample.
+     *
+     * @param context
+     *   Engine context object.
      */
-    WaterSample(iris::Window *window, iris::RenderPipeline &render_pipeline);
+    WaterSample(iris::Window *window, iris::RenderPipeline &render_pipeline, iris::Context &context);
     ~WaterSample() override = default;
 
     /**
@@ -83,7 +86,7 @@ class WaterSample : public Sample
     iris::Transform light_transform_;
 
     /** Scene light */
-    iris::PointLight *light_;
+    iris::DirectionalLight *light_;
 
     /** Render camera. */
     iris::Camera camera_;
@@ -97,6 +100,41 @@ class WaterSample : public Sample
     /** Scene for sample. */
     iris::Scene *scene_;
 
+    std::vector<std::tuple<iris::SingleEntity *, iris::Vector3>> player_;
+
+    /** Camera azimuth. */
+    float azimuth_;
+
+    /** Camera altitude. */
+    float altitude_;
+
+    /** Distance to player. */
+    float camera_distance_;
+
     /** Render target for sample. */
     const iris::RenderTarget *render_target_;
+
+    /** Writer for water texture uv. */
+    iris::PropertyWriter<float> water_offset_x_property_;
+
+    /** Writer for water texture uv. */
+    iris::PropertyWriter<float> water_offset_y_property_;
+
+    /** Offset for water texture uv. */
+    float water_offset_x_;
+
+    /** Offset for water texture uv. */
+    float water_offset_y_;
+
+    /** Water entity. */
+    iris::SingleEntity *water_;
+
+    /** Player position. */
+    iris::Vector3 player_position_;
+
+    /** Island entity. */
+    iris::SingleEntity *island_;
+
+    /** Window object. */
+    iris::Window *window_;
 };
