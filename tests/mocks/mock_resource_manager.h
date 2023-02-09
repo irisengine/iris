@@ -6,19 +6,15 @@
 
 #pragma once
 
-#include <vector>
+#include <string_view>
 
-#include "graphics/cube_map.h"
-#include "graphics/material.h"
-#include "graphics/texture.h"
+#include <gmock/gmock.h>
 
-class FakeMaterial : public iris::Material
+#include "core/data_buffer.h"
+#include "core/resource_manager.h"
+
+class MockResourceManager : public iris::ResourceManager
 {
-  public:
-    FakeMaterial()
-        : Material(nullptr)
-    {
-    }
-
-    ~FakeMaterial() override = default;
+  protected:
+    MOCK_METHOD(iris::DataBuffer, do_load, (std::string_view), (override));
 };

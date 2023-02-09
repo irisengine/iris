@@ -6,19 +6,23 @@
 
 #pragma once
 
-#include <vector>
+#include <cstdint>
 
-#include "graphics/cube_map.h"
+#include <gmock/gmock.h>
+
+#include "graphics/lights/light_type.h"
 #include "graphics/material.h"
-#include "graphics/texture.h"
+#include "graphics/material_manager.h"
+#include "graphics/render_entity.h"
 
-class FakeMaterial : public iris::Material
+
+class MockMaterialManager : public iris::MaterialManager
 {
   public:
-    FakeMaterial()
-        : Material(nullptr)
-    {
-    }
-
-    ~FakeMaterial() override = default;
+    MOCK_METHOD(
+        iris::Material *,
+        create,
+        (iris::RenderGraph *, iris::RenderEntity *, iris::LightType, bool, bool, bool, bool),
+        (override));
+    MOCK_METHOD(void, clear, (), (override));
 };
