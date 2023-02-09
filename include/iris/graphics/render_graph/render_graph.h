@@ -128,10 +128,10 @@ class RenderGraph
     template <class T>
     PropertyWriter<T> create_property(const std::string &name, const T &value)
     {
-        expect(property_buffer_.size_bytes() >= sizeof(T), "not enough space in property buffer");
+        expect(property_buffer_.size_bytes() >= offset_ + sizeof(T), "not enough space in property buffer");
 
-        properties_.push_back({name, property_buffer_.data(), value});
-        property_buffer_ = property_buffer_.subspan(sizeof(T));
+        properties_.push_back({name, property_buffer_.data() + offset_, value});
+        offset_ += sizeof(T);
 
         return PropertyWriter<T>{std::addressof(properties_.back())};
     }
@@ -179,14 +179,25 @@ class RenderGraph
      */
     const std::deque<Property> &properties() const;
 
+    /**
+     * Get property buffer.
+     *
+     * @returns
+     *   Property buffer.
+     */
+    std::span<std::byte> property_buffer() const;
+
   private:
     // friend to allow only the RenderPipeline to create
     friend class RenderPipeline;
 
     /**
      * Create a new RenderGraph.
+     *
+     * @param property_buffer
+     *   Property buffer for graph.
      */
-    RenderGraph();
+    RenderGraph(std::span<std::byte> property_buffer);
 
     /** Collection of nodes in graph. */
     std::vector<std::unique_ptr<Node>> nodes_;
@@ -199,6 +210,9 @@ class RenderGraph
 
     /** Span of property buffer. */
     std::span<std::byte> property_buffer_;
+
+    /** Write offset into property buffer. */
+    std::size_t offset_;
 };
 
 }
