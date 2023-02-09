@@ -21,7 +21,6 @@
 #include "core/error_handling.h"
 #include "core/exception.h"
 #include "core/random.h"
-#include "core/root.h"
 #include "core/vector3.h"
 #include "graphics/default_shader_languages.h"
 #include "graphics/lights/lighting_rig.h"

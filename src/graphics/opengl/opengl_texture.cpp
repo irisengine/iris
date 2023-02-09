@@ -15,7 +15,6 @@
 
 #include "core/data_buffer.h"
 #include "core/error_handling.h"
-#include "core/resource_loader.h"
 #include "graphics/opengl/opengl.h"
 #include "graphics/opengl/opengl_sampler.h"
 #include "graphics/sampler.h"
