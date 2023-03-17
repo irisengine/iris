@@ -44,8 +44,11 @@ class LinuxWindow : public Window
      * @param material_manager
      *   Material manager object.
      */
-    LinuxWindow(std::uint32_t width, std::uint32_t height);
-    ~LinuxWindow() override = default;
+    LinuxWindow(
+        std::uint32_t width,
+        std::uint32_t height,
+        TextureManager &texture_manager,
+        MaterialManager &material_manager);
 
     /**
      * Get the natural scale for the screen. This value reflects the scale
