@@ -15,7 +15,6 @@
 #include "graphics/material_manager.h"
 #include "graphics/render_entity.h"
 
-
 class MockMaterialManager : public iris::MaterialManager
 {
   public:

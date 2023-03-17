@@ -11,6 +11,7 @@
 #include <memory>
 #include <string>
 
+#include "core/context.h"
 #include "networking/server_socket.h"
 #include "networking/server_socket_data.h"
 #include "networking/simulated_socket.h"
@@ -31,6 +32,9 @@ class SimulatedServerSocket : public ServerSocket
     /**
      * Construct a new SimulatedServerSocket.
      *
+     * @param context
+     *   Engine context object.
+     *
      * @param delay
      *   The fixed delay for all packets.
      *
@@ -47,6 +51,7 @@ class SimulatedServerSocket : public ServerSocket
      * with simulated conditions.
      */
     SimulatedServerSocket(
+        Context &context,
         std::chrono::milliseconds delay,
         std::chrono::milliseconds jitter,
         float drop_rate,
@@ -77,6 +82,9 @@ class SimulatedServerSocket : public ServerSocket
 
     /** Simulated packet drop rate. */
     float drop_rate_;
+
+    /** Engine context. */
+    Context &context_;
 };
 
 }

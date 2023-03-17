@@ -23,13 +23,6 @@
 #include "jobs/job_system_manager.h"
 #include "log/log.h"
 
-struct Sphere;
-
-// helpful globals
-std::random_device rd;
-std::mt19937 generator(rd());
-static std::vector<Sphere> scene;
-
 /**
  * Simple ray class.
  */
@@ -91,6 +84,11 @@ struct Sphere
 
     float rougness = 0.0f;
 };
+
+// helpful globals
+std::random_device rd;
+std::mt19937 generator(rd());
+static std::vector<Sphere> scene;
 
 iris::Vector3 random_unit_vector()
 {
@@ -201,33 +199,35 @@ void go(iris::Context context)
     {
         for (std::size_t i = 0; i < width; i++)
         {
-            jobs.emplace_back([i, j, fov, counter, &pixels, &dist1]() {
-                const auto dir_x = (i + 0.5f) - width / 2.0f;
-                const auto dir_y = -(j + 0.5f) + height / 2.0f;
-                const auto dir_z = -height / (2.0f * tan(fov / 2.0f));
-
-                iris::Colour pixel;
-
-                auto samples = 100;
-
-                for (int i = 0; i < samples; i++)
+            jobs.emplace_back(
+                [i, j, fov, counter, &pixels, &dist1]()
                 {
-                    pixel += trace(
-                        {{0, 0, 0},
-                         iris::Vector3::normalise({dir_x + dist1(generator), dir_y + dist1(generator), dir_z})},
-                        1);
-                }
+                    const auto dir_x = (i + 0.5f) - width / 2.0f;
+                    const auto dir_y = -(j + 0.5f) + height / 2.0f;
+                    const auto dir_z = -height / (2.0f * tan(fov / 2.0f));
 
-                pixel *= (1.0 / (float)samples);
+                    iris::Colour pixel;
 
-                // clamp colours
-                pixels[counter + 0u] =
-                    static_cast<std::uint8_t>((255.0f * std::max(0.0f, std::min(1.0f, (float)pixel.r))));
-                pixels[counter + 1u] =
-                    static_cast<std::uint8_t>((255.0f * std::max(0.0f, std::min(1.0f, (float)pixel.g))));
-                pixels[counter + 2u] =
-                    static_cast<std::uint8_t>((255.0f * std::max(0.0f, std::min(1.0f, (float)pixel.b))));
-            });
+                    auto samples = 100;
+
+                    for (int i = 0; i < samples; i++)
+                    {
+                        pixel += trace(
+                            {{0, 0, 0},
+                             iris::Vector3::normalise({dir_x + dist1(generator), dir_y + dist1(generator), dir_z})},
+                            1);
+                    }
+
+                    pixel *= (1.0 / (float)samples);
+
+                    // clamp colours
+                    pixels[counter + 0u] =
+                        static_cast<std::uint8_t>((255.0f * std::max(0.0f, std::min(1.0f, (float)pixel.r))));
+                    pixels[counter + 1u] =
+                        static_cast<std::uint8_t>((255.0f * std::max(0.0f, std::min(1.0f, (float)pixel.g))));
+                    pixels[counter + 2u] =
+                        static_cast<std::uint8_t>((255.0f * std::max(0.0f, std::min(1.0f, (float)pixel.b))));
+                });
 
             counter += 3u;
         }

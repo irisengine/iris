@@ -63,8 +63,8 @@ class RenderPipeline
 
     RenderPipeline(const RenderPipeline &) = delete;
     RenderPipeline &operator=(const RenderPipeline &) = delete;
-    RenderPipeline(RenderPipeline &&) = default;
-    RenderPipeline &operator=(RenderPipeline &&) = default;
+    RenderPipeline(RenderPipeline &&) = delete;
+    RenderPipeline &operator=(RenderPipeline &&) = delete;
 
     /**
      * Create a new scene.

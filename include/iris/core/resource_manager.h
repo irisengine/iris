@@ -26,6 +26,8 @@ class ResourceManager
   public:
     ResourceManager();
 
+    virtual ~ResourceManager() = default;
+
     /**
      * Load a resource. If this is the first load of resource then it is fetched (via the deriving classes
      * implementation). Otherwise a cached copy is returned.

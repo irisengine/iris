@@ -9,7 +9,7 @@
 #include <array>
 #include <cstddef>
 #include <span>
-#include <unordered_map>
+#include <vector>
 
 #include "graphics/lights/light_type.h"
 
@@ -29,7 +29,13 @@ class RenderEntity;
 class MaterialManager
 {
   public:
+    MaterialManager() = default;
     virtual ~MaterialManager() = default;
+
+    MaterialManager(const MaterialManager &) = delete;
+    MaterialManager &operator=(const MaterialManager &) = delete;
+    MaterialManager(MaterialManager &&) = default;
+    MaterialManager &operator=(MaterialManager &&) = default;
 
     /**
      * Create a new material. Implementations should use a cache to avoid recreating the same material.

@@ -19,9 +19,9 @@
 #include <memory>
 #include <string>
 
+#include "core/context.h"
 #include "core/data_buffer.h"
 #include "core/error_handling.h"
-#include "core/root.h"
 #include "jobs/concurrent_queue.h"
 #include "jobs/job.h"
 #include "jobs/job_system_manager.h"
@@ -154,7 +154,7 @@ std::chrono::milliseconds handle_sync_finish(const iris::Packet &packet)
 namespace iris
 {
 
-ClientConnectionHandler::ClientConnectionHandler(std::unique_ptr<Socket> socket)
+ClientConnectionHandler::ClientConnectionHandler(Context &context, std::unique_ptr<Socket> socket)
     : socket_(std::move(socket))
     , id_(std::numeric_limits<std::uint32_t>::max())
     , lag_(0u)
@@ -178,7 +178,7 @@ ClientConnectionHandler::ClientConnectionHandler(std::unique_ptr<Socket> socket)
     // a background job
     // this will handle any protocol packets and stick data into queues, which
     // can then be retrieved by calls to try_read
-    Root::jobs_manager().add(
+    context.jobs_manager().add(
         {[this]()
          {
              for (;;)

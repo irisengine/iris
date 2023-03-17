@@ -13,6 +13,7 @@
 #include <memory>
 #include <mutex>
 
+#include "core/context.h"
 #include "core/data_buffer.h"
 #include "networking/channel/channel.h"
 #include "networking/channel/channel_type.h"
@@ -92,6 +93,9 @@ class ServerConnectionHandler
     /**
      * Create a new ServerConnectionHandler.
      *
+     * @param context
+     *   Engine context object.
+
      * @param socket
      *   The underlying socket to use.
      *
@@ -102,6 +106,7 @@ class ServerConnectionHandler
      *   Callback to fire when data is received.
      */
     ServerConnectionHandler(
+        Context &context,
         std::unique_ptr<ServerSocket> socket,
         NewConnectionCallback new_connection,
         RecvCallback recv);
