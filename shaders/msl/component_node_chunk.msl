@@ -1,1 +1,1 @@
-{{value}}.{{component}}
+{{value}}{{component}}

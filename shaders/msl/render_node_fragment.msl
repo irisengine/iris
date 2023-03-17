@@ -56,6 +56,11 @@ struct Sampler
     sampler smplr;
 };
 
+struct RenderValues
+{
+    float time;
+};
+
 struct FragmentOutput
 {
     float4 colour [[color(0)]];
@@ -69,6 +74,8 @@ struct FragmentOutput
     {% endif %}
 };
 
+{{properties}}
+
 fragment FragmentOutput fragment_main(
     VertexOut in [[stage_in]],
     constant CameraData *camera_data [[buffer(0)]],
@@ -77,8 +84,14 @@ fragment FragmentOutput fragment_main(
     device CubeMap *cube_map_table [[buffer(3)]],
     device Sampler* sampler_table [[buffer(4)]],
     constant int &shadow_map_index [[buffer(5)]],
-    constant int &shadow_map_sampler_index [[buffer(6)]])
+    constant int &shadow_map_sampler_index [[buffer(6)]],
+    constant Properties *properties [[buffer(7)]],
+    constant RenderValues *render_values [[buffer(8)]])
 {
+    {% for variable in variables %}
+        {{variable}}
+    {% endfor %}
+
     {% if exists("fragment_colour") %}
         float4 fragment_colour = {{ fragment_colour }};
     {% else %}

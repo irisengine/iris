@@ -6,7 +6,6 @@
 
 #include "graphics/metal/metal_render_target_manager.h"
 
-#include "core/root.h"
 #include "graphics/metal/metal_render_target.h"
 #include "graphics/metal/metal_texture.h"
 #include "graphics/sampler.h"
@@ -17,17 +16,24 @@
 namespace iris
 {
 
+MetalRenderTargetManager::MetalRenderTargetManager(WindowManager &window_manager, TextureManager &texture_manager)
+    : window_manager_(window_manager)
+    , texture_manager_(texture_manager)
+    , render_targets_()
+{
+}
+
 RenderTarget *MetalRenderTargetManager::create()
 {
-    const auto *window = Root::window_manager().current_window();
+    const auto *window = window_manager_.current_window();
     return create(window->width(), window->height());
 }
 
 RenderTarget *MetalRenderTargetManager::create(std::uint32_t width, std::uint32_t height)
 {
-    const auto scale = Root::window_manager().current_window()->screen_scale();
-    const auto *sampler = Root::texture_manager().create(SamplerDescriptor{.uses_mips = false});
-    const auto *depth_sampler = Root::texture_manager().create(SamplerDescriptor{
+    const auto scale = window_manager_.current_window()->screen_scale();
+    const auto *sampler = texture_manager_.create(SamplerDescriptor{.uses_mips = false});
+    const auto *depth_sampler = texture_manager_.create(SamplerDescriptor{
         .s_address_mode = SamplerAddressMode::CLAMP_TO_BORDER,
         .t_address_mode = SamplerAddressMode::CLAMP_TO_BORDER,
         .border_colour = Colour{1.0f, 1.0f, 1.0f, 1.0f},
@@ -35,10 +41,8 @@ RenderTarget *MetalRenderTargetManager::create(std::uint32_t width, std::uint32_
 
     return render_targets_
         .emplace_back(std::make_unique<MetalRenderTarget>(
-            Root::texture_manager().create(
-                DataBuffer{}, width * scale, height * scale, TextureUsage::RENDER_TARGET, sampler),
-            Root::texture_manager().create(
-                DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH, depth_sampler)))
+            texture_manager_.create(DataBuffer{}, width * scale, height * scale, TextureUsage::RENDER_TARGET, sampler),
+            texture_manager_.create(DataBuffer{}, width * scale, height * scale, TextureUsage::DEPTH, depth_sampler)))
         .get();
 }
 

@@ -115,7 +115,13 @@ std::string build_properties_string(
         args["properties"].push_back({property.name(), static_cast<std::uint32_t>(property.type())});
     }
 
-    return env.render(language_string(language, iris::hlsl::declare_property_chunk, "", ""), args);
+    return env.render(
+        language_string(
+            language,
+            iris::hlsl::declare_property_chunk,
+            iris::glsl::declare_property_chunk,
+            iris::msl::declare_property_chunk),
+        args);
 }
 
 }
@@ -155,8 +161,18 @@ ShaderCompiler::ShaderCompiler(
         stream_stack_.pop();
 
         const auto parsed_value =
-            is_declaration ? env_->render(language_string(language_, hlsl::declare_variable_chunk, "", ""), args)
-                           : env_->render(language_string(language_, hlsl::set_variable_chunk, "", ""), args);
+            is_declaration
+                ? env_->render(
+                      language_string(
+                          language_,
+                          hlsl::declare_variable_chunk,
+                          glsl::declare_variable_chunk,
+                          msl::declare_variable_chunk),
+                      args)
+                : env_->render(
+                      language_string(
+                          language_, hlsl::set_variable_chunk, glsl::set_variable_chunk, msl::set_variable_chunk),
+                      args);
 
         variables_.push_back({.name = name, .value = parsed_value});
     }
@@ -518,7 +534,9 @@ void ShaderCompiler::visit(const UnaryOperatorNode &node)
         {"value", value}};
 
     stream_stack_.top() << env_->render(
-        language_string(language_, hlsl::unary_operator_node_chunk, glsl::sin_node_chunk, msl::sin_node_chunk), args);
+        language_string(
+            language_, hlsl::unary_operator_node_chunk, glsl::sin_node_chunk, msl::unary_operator_node_chunk),
+        args);
 }
 
 void ShaderCompiler::visit(const VertexNode &node)
@@ -669,7 +687,8 @@ void ShaderCompiler::visit(const AntiAliasingNode &node)
 
 void ShaderCompiler::visit(const TimeNode &)
 {
-    stream_stack_.top() << language_string(language_, hlsl::time_node_chunk, "", "");
+    stream_stack_.top() << language_string(
+        language_, hlsl::time_node_chunk, glsl::time_node_chunk, msl::time_node_chunk);
 }
 
 void ShaderCompiler::visit(const VariableNode &node)
@@ -695,7 +714,9 @@ void ShaderCompiler::visit(const VariableNode &node)
 
     const ::inja::json args{{"is_vertex_shader", is_vertex_shader_}, {"name", node.name()}};
 
-    stream_stack_.top() << env_->render(language_string(language_, hlsl::variable_node_chunk, "", ""), args);
+    stream_stack_.top() << env_->render(
+        language_string(language_, hlsl::variable_node_chunk, glsl::variable_node_chunk, msl::variable_node_chunk),
+        args);
 }
 
 void ShaderCompiler::visit(const LerpNode &node)
@@ -717,14 +738,16 @@ void ShaderCompiler::visit(const LerpNode &node)
         {"input2", node_strs[1]},
         {"lerp_amount", node_strs[2]}};
 
-    stream_stack_.top() << env_->render(language_string(language_, hlsl::lerp_node_chunk, "", ""), args);
+    stream_stack_.top() << env_->render(
+        language_string(language_, hlsl::lerp_node_chunk, glsl::lerp_node_chunk, msl::lerp_node_chunk), args);
 }
 
 void ShaderCompiler::visit(const PropertyNode &node)
 {
     const ::inja::json args{{"is_vertex_shader", is_vertex_shader_}, {"name", "property_" + node.name()}};
 
-    stream_stack_.top() << env_->render(language_string(language_, hlsl::property_chunk, "", ""), args);
+    stream_stack_.top() << env_->render(
+        language_string(language_, hlsl::property_chunk, glsl::property_chunk, msl::property_chunk), args);
 }
 
 void ShaderCompiler::visit(const FragmentNode &node)
@@ -734,7 +757,9 @@ void ShaderCompiler::visit(const FragmentNode &node)
         {"type", static_cast<std::uint32_t>(node.fragment_data_type())},
         {"swizzle", node.swizzle().value_or("")}};
 
-    stream_stack_.top() << env_->render(language_string(language_, hlsl::fragment_node_chunk, "", ""), args);
+    stream_stack_.top() << env_->render(
+        language_string(language_, hlsl::fragment_node_chunk, glsl::fragment_node_chunk, msl::fragment_node_chunk),
+        args);
 }
 
 void ShaderCompiler::visit(const CameraNode &node)
@@ -744,7 +769,8 @@ void ShaderCompiler::visit(const CameraNode &node)
         {"type", static_cast<std::uint32_t>(node.camera_data_type())},
         {"swizzle", node.swizzle().value_or("")}};
 
-    stream_stack_.top() << env_->render(language_string(language_, hlsl::camera_node_chunk, "", ""), args);
+    stream_stack_.top() << env_->render(
+        language_string(language_, hlsl::camera_node_chunk, glsl::camera_node_chunk, msl::camera_node_chunk), args);
 }
 
 std::string ShaderCompiler::vertex_shader() const

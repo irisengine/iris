@@ -25,7 +25,13 @@ namespace iris
 class MetalTextureManager : public TextureManager
 {
   public:
-    ~MetalTextureManager() override = default;
+    /**
+     * Construct a new MetalTextureManager object.
+     *
+     * @param resource_manager
+     *   Resource manager object.
+     */
+    MetalTextureManager(ResourceManager &resource_manager);
 
   protected:
     /**

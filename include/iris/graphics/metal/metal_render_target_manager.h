@@ -12,6 +12,8 @@
 
 #include "graphics/metal/metal_render_target.h"
 #include "graphics/render_target_manager.h"
+#include "graphics/texture_manager.h"
+#include "graphics/window_manager.h"
 
 namespace iris
 {
@@ -24,7 +26,16 @@ class RenderTarget;
 class MetalRenderTargetManager : public RenderTargetManager
 {
   public:
-    ~MetalRenderTargetManager() override = default;
+    /**
+     * Create a new MetalRenderTargetManager object.
+     *
+     * @param window_manager
+     *   Window manager object.
+     *
+     * @param texture_manager
+     *   Texture manager object.
+     */
+    MetalRenderTargetManager(WindowManager &window_manager, TextureManager &texture_manager);
 
     /**
      * Create a render target the size of the current window.
@@ -63,6 +74,12 @@ class MetalRenderTargetManager : public RenderTargetManager
     RenderTarget *create(const RenderTarget *colour_target, const RenderTarget *depth_target) override;
 
   private:
+    /** Window manager object.  */
+    WindowManager &window_manager_;
+
+    /** Texture manager object.  */
+    TextureManager &texture_manager_;
+
     /** Collection of created render targets. */
     std::vector<std::unique_ptr<MetalRenderTarget>> render_targets_;
 };

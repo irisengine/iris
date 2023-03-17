@@ -8,8 +8,9 @@
 
 #include <memory>
 
+#include "core/context.h"
+#include "core/default_resource_manager.h"
 #include "core/profiler.h"
-#include "core/root.h"
 #include "graphics/macos/macos_window_manager.h"
 #include "graphics/metal/metal_material_manager.h"
 #include "graphics/metal/metal_mesh_manager.h"
@@ -29,28 +30,57 @@
 namespace
 {
 
-void register_apis()
+/**
+ * Create the engine context object, with defaults for the current platform.
+ *
+ * @param argc
+ *   Number of command line arguments.
+ *
+ * @param argv
+ *   Array of command line arguments.
+ *
+ * @returns
+ *   Engine conetext object.
+ */
+iris::Context create_context(int argc, char **argv)
 {
-    iris::Root::register_graphics_api(
-        "metal",
-        std::make_unique<iris::MacosWindowManager>(),
-        std::make_unique<iris::MetalMeshManager>(),
-        std::make_unique<iris::MetalTextureManager>(),
-        std::make_unique<iris::MetalMaterialManager>(),
-        std::make_unique<iris::MetalRenderTargetManager>());
-    iris::Root::set_graphics_api("metal");
+    iris::Context ctx{argc, argv};
 
-    iris::Root::register_physics_api("bullet", std::make_unique<iris::BulletPhysicsManager>());
-    iris::Root::set_physics_api("bullet");
+    auto resource_manager = std::make_unique<iris::DefaultResourceManager>();
+
+    auto metal_texture_manager = std::make_unique<iris::MetalTextureManager>(*resource_manager);
+    auto metal_material_manager = std::make_unique<iris::MetalMaterialManager>();
+    auto metal_window_manager =
+        std::make_unique<iris::MacosWindowManager>(*metal_texture_manager, *metal_material_manager);
+    auto metal_mesh_manager = std::make_unique<iris::MetalMeshManager>(*resource_manager);
+    auto metal_render_target_manager =
+        std::make_unique<iris::MetalRenderTargetManager>(*metal_window_manager, *metal_texture_manager);
+
+    ctx.register_graphics_api(
+        "metal",
+        std::move(metal_window_manager),
+        std::move(metal_mesh_manager),
+        std::move(metal_texture_manager),
+        std::move(metal_material_manager),
+        std::move(metal_render_target_manager));
+
+    ctx.set_graphics_api("metal");
+
+    ctx.register_physics_api("bullet", std::make_unique<iris::BulletPhysicsManager>(ctx.mesh_manager()));
+    ctx.set_physics_api("bullet");
 
 #if defined(IRIS_ARCH_X86_64)
-    iris::Root::register_jobs_api("thread", std::make_unique<iris::ThreadJobSystemManager>());
-    iris::Root::register_jobs_api("fiber", std::make_unique<iris::FiberJobSystemManager>());
-    iris::Root::set_jobs_api("fiber");
+    ctx.register_jobs_api("thread", std::make_unique<iris::ThreadJobSystemManager>());
+    ctx.register_jobs_api("fiber", std::make_unique<iris::FiberJobSystemManager>());
+    ctx.set_jobs_api("fiber");
 #else
-    iris::Root::register_jobs_api("thread", std::make_unique<iris::ThreadJobSystemManager>());
-    iris::Root::set_jobs_api("thread");
+    ctx.register_jobs_api("thread", std::make_unique<iris::ThreadJobSystemManager>());
+    ctx.set_jobs_api("thread");
 #endif
+
+    ctx.set_resource_manager(std::move(resource_manager));
+
+    return ctx;
 }
 
 }
@@ -58,34 +88,23 @@ void register_apis()
 namespace iris
 {
 
-void start(int argc, char **argv, std::function<void(int, char **)> entry)
+void start(int argc, char **argv, std::function<void(Context)> entry, bool debug)
 {
     Logger::instance().set_Formatter<EmojiFormatter>();
 
-    LOG_ERROR("start", "engine start {}", IRIS_VERSION_STR);
+    std::unique_ptr<Profiler> profiler;
 
-    register_apis();
+    if (debug)
+    {
+        profiler = std::make_unique<Profiler>();
 
-    entry(argc, argv);
+        Logger::instance().set_log_engine(true);
+        LOG_ENGINE_INFO("start", "debug mode on");
+    }
 
-    Root::reset();
-}
+    LOG_ENGINE_INFO("start", "engine start {}", IRIS_VERSION_STR);
 
-void start_debug(int argc, char **argv, std::function<void(int, char **)> entry)
-{
-    // enable engine logging
-    Logger::instance().set_Formatter<EmojiFormatter>();
-    Logger::instance().set_log_engine(true);
-
-    LOG_ENGINE_INFO("start", "engine start (with debugging) {}", IRIS_VERSION_STR);
-
-    Profiler profiler{};
-
-    register_apis();
-
-    entry(argc, argv);
-
-    Root::reset();
+    entry(create_context(argc, argv));
 }
 
 }

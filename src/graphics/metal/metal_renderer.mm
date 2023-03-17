@@ -19,7 +19,6 @@
 #include "core/error_handling.h"
 #include "core/macos/macos_ios_utility.h"
 #include "core/matrix4.h"
-#include "core/root.h"
 #include "core/vector3.h"
 #include "graphics/constant_buffer_writer.h"
 #include "graphics/instanced_entity.h"
@@ -108,16 +107,21 @@ id<MTLRenderCommandEncoder> create_render_encoder(
  * @param resident_resources
  *   Collection to add any resources that should be made resident before rendering.
  *
+ * @param texture_manager
+ *   Texture manager object.
+ *
  * @returns
  *   Metal buffer with all loaded textures.
  */
-std::unique_ptr<iris::MetalConstantBuffer> create_texture_table(std::vector<id<MTLResource>> &resident_resources)
+std::unique_ptr<iris::MetalConstantBuffer> create_texture_table(
+    std::vector<id<MTLResource>> &resident_resources,
+    iris::TextureManager &texture_manager)
 {
     const auto *device = iris::core::utility::metal_device();
 
-    const auto textures = iris::Root::texture_manager().textures();
+    const auto textures = texture_manager.textures();
     const auto max_index = textures.back()->index();
-    const auto *blank_texture = static_cast<const iris::MetalTexture *>(iris::Root::texture_manager().blank_texture());
+    const auto *blank_texture = static_cast<const iris::MetalTexture *>(texture_manager.blank_texture());
     auto iter = std::cbegin(textures);
 
     resident_resources.push_back(blank_texture->handle());
@@ -166,17 +170,21 @@ std::unique_ptr<iris::MetalConstantBuffer> create_texture_table(std::vector<id<M
  * @param resident_resources
  *   Collection to add any resources that should be made resident before rendering.
  *
+ * @param texture_manager
+ *   Texture manager object.
+ *
  * @returns
  *   Metal buffer with all loaded cube map.
  */
-std::unique_ptr<iris::MetalConstantBuffer> create_cube_map_table(std::vector<id<MTLResource>> &resident_resources)
+std::unique_ptr<iris::MetalConstantBuffer> create_cube_map_table(
+    std::vector<id<MTLResource>> &resident_resources,
+    iris::TextureManager &texture_manager)
 {
     const auto *device = iris::core::utility::metal_device();
 
-    const auto cube_maps = iris::Root::texture_manager().cube_maps();
+    const auto cube_maps = texture_manager.cube_maps();
     const auto max_index = cube_maps.back()->index();
-    const auto *blank_cube_map =
-        static_cast<const iris::MetalCubeMap *>(iris::Root::texture_manager().blank_cube_map());
+    const auto *blank_cube_map = static_cast<const iris::MetalCubeMap *>(texture_manager.blank_cube_map());
     auto iter = std::cbegin(cube_maps);
     resident_resources.push_back(blank_cube_map->handle());
 
@@ -221,17 +229,19 @@ std::unique_ptr<iris::MetalConstantBuffer> create_cube_map_table(std::vector<id<
 /**
  * Helper function to build the sampler table - a global GPU buffer of all samplers (used for bindless rendering)
  *
+ * @param texture_manager
+ *   Texture manager object.
+ *
  * @returns
  *   Metal buffer with all loaded samplers.
  */
-std::unique_ptr<iris::MetalConstantBuffer> create_sampler_table()
+std::unique_ptr<iris::MetalConstantBuffer> create_sampler_table(iris::TextureManager &texture_manager)
 {
     const auto *device = iris::core::utility::metal_device();
 
-    const auto samplers = iris::Root::texture_manager().samplers();
+    const auto samplers = texture_manager.samplers();
     const auto max_index = samplers.back()->index();
-    const auto *default_sampler =
-        static_cast<const iris::MetalSampler *>(iris::Root::texture_manager().default_texture_sampler());
+    const auto *default_sampler = static_cast<const iris::MetalSampler *>(texture_manager.default_texture_sampler());
     auto iter = std::cbegin(samplers);
 
     // create descriptor for arguments we want to write
@@ -275,8 +285,13 @@ std::unique_ptr<iris::MetalConstantBuffer> create_sampler_table()
 namespace iris
 {
 
-MetalRenderer::MetalRenderer(std::uint32_t width, std::uint32_t height)
-    : Renderer()
+MetalRenderer::MetalRenderer(
+    TextureManager &texture_manager,
+    MaterialManager &material_manager,
+    std::uint32_t width,
+    std::uint32_t height)
+    : Renderer(material_manager)
+    , texture_manager_(texture_manager)
     , command_queue_()
     , single_pass_descriptor_()
     , drawable_()
@@ -344,19 +359,14 @@ MetalRenderer::MetalRenderer(std::uint32_t width, std::uint32_t height)
     [[multi_pass_descriptor_ depthAttachment] setLoadAction:MTLLoadActionClear];
     [[multi_pass_descriptor_ depthAttachment] setStoreAction:MTLStoreActionStore];
 
-    const auto *rt_sampler = Root::texture_manager().create(SamplerDescriptor{
+    const auto *rt_sampler = texture_manager_.create(SamplerDescriptor{
         .s_address_mode = SamplerAddressMode::CLAMP_TO_BORDER,
         .t_address_mode = SamplerAddressMode::CLAMP_TO_BORDER,
         .border_colour = Colour{1.0f, 1.0f, 1.0f, 1.0f},
         .uses_mips = false});
     // create default depth buffer
     default_depth_buffer_ = std::make_unique<MetalTexture>(
-        DataBuffer{},
-        width * 2u,
-        height * 2u,
-        rt_sampler,
-        TextureUsage::DEPTH,
-        Root::texture_manager().next_texture_index()),
+        DataBuffer{}, width * 2u, height * 2u, rt_sampler, TextureUsage::DEPTH, texture_manager_.next_texture_index()),
 
     render_encoder_ = nullptr;
 }
@@ -404,9 +414,9 @@ void MetalRenderer::do_set_render_pipeline(std::function<void()> build_queue)
     }
 
     resident_resources_.clear();
-    texture_table_ = create_texture_table(resident_resources_);
-    cube_map_table_ = create_cube_map_table(resident_resources_);
-    sampler_table_ = create_sampler_table();
+    texture_table_ = create_texture_table(resident_resources_, texture_manager_);
+    cube_map_table_ = create_cube_map_table(resident_resources_, texture_manager_);
+    sampler_table_ = create_sampler_table(texture_manager_);
 }
 
 void MetalRenderer::pre_render()
@@ -437,6 +447,7 @@ void MetalRenderer::execute_pass_start(RenderCommand &)
     frame.bone_data.clear();
     frame.light_data.clear();
     frame.camera_data.clear();
+    frame.property_data.clear();
 }
 
 void MetalRenderer::execute_draw(RenderCommand &command)
@@ -569,12 +580,21 @@ void MetalRenderer::execute_draw(RenderCommand &command)
         writer.write(camera->position());
     }
 
+    if(!frame.property_data.contains(material))
+    {
+        const auto property_buffer = material->property_buffer();
+        frame.property_data[material] = std::make_unique<MetalConstantBuffer>(property_buffer.size_bytes());
+        frame.property_data[material]->write(property_buffer.data(), property_buffer.size_bytes(), 0u);
+    }
+
     auto *model_buffer =
         entity->type() == RenderEntityType::SINGLE ? frame.model_data[entity].get() : instance_data_[entity].get();
     const std::uint32_t shadow_map_index =
         (command.shadow_map() == nullptr) ? 0u : command.shadow_map()->depth_texture()->index();
     const std::uint32_t shadow_map_sampler_index =
         (command.shadow_map() == nullptr) ? 0u : command.shadow_map()->depth_texture()->sampler()->index();
+
+    const auto time_value = static_cast<float>(time().count()) / 1000.0f;
 
     [render_encoder_ setVertexBuffer:frame.bone_data[entity]->handle() offset:0 atIndex:1];
     [render_encoder_ setVertexBuffer:frame.camera_data[camera]->handle() offset:0 atIndex:2];
@@ -588,6 +608,8 @@ void MetalRenderer::execute_draw(RenderCommand &command)
     [render_encoder_ setFragmentBuffer:sampler_table_->handle() offset:0 atIndex:4];
     [render_encoder_ setFragmentBytes:&shadow_map_index length:sizeof(shadow_map_index) atIndex:5];
     [render_encoder_ setFragmentBytes:&shadow_map_sampler_index length:sizeof(shadow_map_sampler_index) atIndex:6];
+    [render_encoder_ setFragmentBuffer:frame.property_data[material]->handle() offset:0 atIndex:7];
+    [render_encoder_ setFragmentBytes:&time_value length:time_value atIndex:8];
 
     const auto &vertex_buffer = mesh->vertex_buffer();
     const auto &index_buffer = mesh->index_buffer();

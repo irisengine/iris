@@ -16,7 +16,7 @@
 #import <MetalKit/MetalKit.h>
 #import <QuartzCore/QuartzCore.h>
 
-#include "core/root.h"
+#include "graphics/material_manager.h"
 #include "graphics/metal/metal_constant_buffer.h"
 #include "graphics/metal/metal_material.h"
 #include "graphics/metal/metal_render_target.h"
@@ -25,7 +25,7 @@
 #include "graphics/render_graph/render_graph.h"
 #include "graphics/render_pipeline.h"
 #include "graphics/renderer.h"
-#include "graphics/window_manager.h"
+#include "graphics/texture_manager.h"
 
 namespace iris
 {
@@ -46,13 +46,23 @@ class MetalRenderer : public Renderer
     /**
      * Construct a new MetalRenderer.
      *
+     * @param texture_manager
+     *   Texture manager object.
+     *
+     * @param material_manager
+     *   Material manager object.
+     *
      * @param width
      *   Width of window being rendered to.
      *
      * @param height
      *   Height of window being rendered to.
      */
-    MetalRenderer(std::uint32_t width, std::uint32_t height);
+    MetalRenderer(
+        TextureManager &texture_manager,
+        MaterialManager &material_manager,
+        std::uint32_t width,
+        std::uint32_t height);
 
     /**
      * Destructor, will block until all inflight frames have finished rendering.
@@ -99,7 +109,12 @@ class MetalRenderer : public Renderer
         std::unordered_map<const Light *, std::unique_ptr<MetalConstantBuffer>> light_data;
 
         std::unordered_map<const Camera *, std::unique_ptr<MetalConstantBuffer>> camera_data;
+
+        std::unordered_map<const Material *, std::unique_ptr<MetalConstantBuffer>> property_data;
     };
+
+    /** Texture manager object. */
+    TextureManager &texture_manager_;
 
     /** Current command queue. */
     id<MTLCommandQueue> command_queue_;
