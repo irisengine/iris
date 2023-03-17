@@ -19,6 +19,7 @@
 #include "graphics/material_manager.h"
 #include "graphics/texture_manager.h"
 #include "graphics/window.h"
+#include "graphics/window_manager.h"
 
 namespace iris
 {
@@ -38,6 +39,9 @@ class LinuxWindow : public Window
      * @param height
      *   Height of window.
      *
+     * @param window_manager
+     *   Window manager object.
+     *
      * @param texture_manager
      *   Texture manager object.
      *
@@ -47,6 +51,7 @@ class LinuxWindow : public Window
     LinuxWindow(
         std::uint32_t width,
         std::uint32_t height,
+        WindowManager &window_manager,
         TextureManager &texture_manager,
         MaterialManager &material_manager);
 

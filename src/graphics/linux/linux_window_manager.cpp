@@ -30,7 +30,7 @@ Window *LinuxWindowManager::create_window(std::uint32_t width, std::uint32_t hei
     // only support one window at the moment
     ensure(!current_window_, "window already created");
 
-    current_window_ = std::make_unique<LinuxWindow>(width, height, texture_manager_, current_window_);
+    current_window_ = std::make_unique<LinuxWindow>(width, height, *this, texture_manager_, material_manager_);
 
     return current_window_.get();
 }

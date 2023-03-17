@@ -24,6 +24,7 @@
 #include "events/quit_event.h"
 #include "events/scroll_wheel_event.h"
 #include "graphics/linux/scoped_error_handler.h"
+#include "graphics/window_manager.h"
 #define DONT_MAKE_GL_FUNCTIONS_EXTERN // get concrete function pointers for all
                                       // opengl functions
 #include "graphics/opengl/opengl.h"
@@ -172,6 +173,7 @@ namespace iris
 LinuxWindow::LinuxWindow(
     std::uint32_t width,
     std::uint32_t height,
+    WindowManager &window_manager,
     TextureManager &texture_manager,
     MaterialManager &material_manager)
     : Window(width, height)
@@ -317,7 +319,7 @@ LinuxWindow::LinuxWindow(
 
     ensure(::glXMakeCurrent(display_, window_, context_) == True, "could not make context current");
 
-    renderer_ = std::make_unique<OpenGLRenderer>(texture_manager, material_manager, width_, height_);
+    renderer_ = std::make_unique<OpenGLRenderer>(window_manager, texture_manager, material_manager, width_, height_);
 
     const auto scale = screen_scale();
 
