@@ -110,6 +110,9 @@ class OpenGLRenderer : public Renderer
     /** Buffers for per scene cube map data. */
     std::unique_ptr<SSBO> cube_map_table_;
 
+    /** Buffer for render specific values. */
+    std::unique_ptr<UBO> render_values_;
+
     /** Buffers for per pass light data. */
     std::unordered_map<const Light *, std::unique_ptr<UBO>> light_data_;
 

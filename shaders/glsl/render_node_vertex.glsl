@@ -51,8 +51,17 @@ layout (std430, binding = 5) buffer ModelData
     Model models[];
 };
 
+layout (std430, binding = 6) buffer RenderValues
+{
+    float time;
+};
+
 void main()
 {
+    {% for variable in variables %}
+        {{variable}}
+    {% endfor %}
+
     mat4 bone_transform = bones[bone_ids[0]] * bone_weights[0];
     bone_transform += bones[bone_ids[1]] * bone_weights[1];
     bone_transform += bones[bone_ids[2]] * bone_weights[2];
@@ -67,7 +76,7 @@ void main()
 
     vertex_pos = position;
 
-    {% if position %}
+    {% if exists("position") %}
         vertex_pos = {{position}};
     {% endif %}
 

@@ -280,6 +280,7 @@ void OpenGLRenderer::execute_pass_start(RenderCommand &command)
     light_data_.clear();
 
     camera_data_ = std::make_unique<UBO>((sizeof(Matrix4) * 3u) + sizeof(Vector3), 0u);
+    render_values_ = std::make_unique<UBO>(64u, 6u);
 
     // calculate view matrix for normals
     auto normal_view = Matrix4::transpose(Matrix4::invert(camera->view()));
@@ -424,6 +425,10 @@ void OpenGLRenderer::execute_draw(RenderCommand &command)
         }
     }
 
+    const auto time_value = static_cast<float>(time().count()) / 1000.0f;
+    ConstantBufferWriter writer(*render_values_);
+    writer.write(time_value);
+
     ::glBindBufferBase(GL_UNIFORM_BUFFER, 0, camera_data_->handle());
     expect(check_opengl_error, "could not bind camera data ubo");
 
@@ -438,6 +443,9 @@ void OpenGLRenderer::execute_draw(RenderCommand &command)
 
     ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, cube_map_table_->handle());
     expect(check_opengl_error, "could not bind cube map data ssbo");
+
+    ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, render_values_->handle());
+    expect(check_opengl_error, "could not bind cube render value ssbo");
 
     // bind model data, depending on if we're rendering a single or instanced entity
     if (render_entity->type() != RenderEntityType::INSTANCED)
