@@ -20,7 +20,7 @@
 #include "core/error_handling.h"
 #include "core/matrix4.h"
 #include "core/quaternion.h"
-#include "core/resource_loader.h"
+#include "core/resource_manager.h"
 #include "core/transform.h"
 #include "core/vector3.h"
 #include "graphics/animation/animation.h"
@@ -325,12 +325,13 @@ namespace iris::mesh_loader
 {
 
 void load(
-    const std::string &mesh_name,
+    ResourceManager &resource_manager,
+    std::string_view mesh_name,
     bool flip_uvs,
     MeshDataCallback mesh_data_callback,
     AnimationCallback animation_callback)
 {
-    const auto file_data = ResourceLoader::instance().load(mesh_name);
+    const auto file_data = resource_manager.load(mesh_name);
 
     const auto import_flags = flip_uvs ? aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_FlipUVs
                                        : aiProcess_Triangulate | aiProcess_CalcTangentSpace;

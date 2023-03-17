@@ -21,6 +21,9 @@ if(IRIS_PLATFORM MATCHES "WIN32")
   set_target_properties(gmock_main PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
 endif()
 
+target_include_directories(
+  unit_tests SYSTEM
+  PRIVATE ${inja_SOURCE_DIR}/include ${inja_SOURCE_DIR}/third_party/include)
 target_link_libraries(unit_tests iris gmock_main)
 target_compile_definitions(unit_tests PRIVATE IRIS_FORCE_EXPECT)
 gtest_discover_tests(unit_tests)

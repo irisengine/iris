@@ -9,6 +9,7 @@
 #include <array>
 
 #include "core/camera.h"
+#include "core/colour.h"
 #include "core/vector3.h"
 #include "graphics/lights/light.h"
 
@@ -26,7 +27,7 @@ namespace iris
 class DirectionalLight : public Light
 {
   public:
-    /** Create a new DirectionalLight.
+    /** Create a new DirectionalLight (white).
      *
      * @param direction
      *   The direction the rays of light are pointing, for examples to have a
@@ -37,6 +38,21 @@ class DirectionalLight : public Light
      *   True if this light should generate shadows, false otherwise.
      */
     DirectionalLight(const Vector3 &direction, bool cast_shadows = false);
+
+    /** Create a new DirectionalLight.
+     *
+     * @param direction
+     *   The direction the rays of light are pointing, for examples to have a
+     *   light shining directly down on a scene then its direction would be
+     *   (0, -1, 0).
+     *
+     * @param colour
+     *   The colour of the light.
+     *
+     * @param cast_shadows
+     *   True if this light should generate shadows, false otherwise.
+     */
+    DirectionalLight(const Vector3 &direction, const Colour &colour, bool cast_shadows = false);
 
     ~DirectionalLight() override = default;
 
@@ -115,6 +131,9 @@ class DirectionalLight : public Light
 
     /** Should shadows be generated. */
     bool cast_shadows_;
+
+    /** Light colour. */
+    Colour colour_;
 };
 
 }

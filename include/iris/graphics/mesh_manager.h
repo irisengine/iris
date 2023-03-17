@@ -14,6 +14,7 @@
 #include <unordered_map>
 
 #include "core/colour.h"
+#include "core/resource_manager.h"
 #include "core/vector3.h"
 #include "graphics/animation/animation.h"
 #include "graphics/mesh.h"
@@ -63,10 +64,13 @@ class MeshManager
     /**
      * Construct a new MeshManager.
      *
+     * @param resource_manager
+     *   Resource manager object.
+     *
      * @param flip_uvs_on_load
      *   True if uvs should be flipped for all loaded meshes, false otherwise.
      */
-    MeshManager(bool flip_uvs_on_load);
+    MeshManager(ResourceManager &resource_manager, bool flip_uvs_on_load);
     virtual ~MeshManager() = default;
 
     /**
@@ -125,7 +129,7 @@ class MeshManager
         const std::vector<std::uint32_t> &indices) const;
 
     /**
-     * Create a (XY) plane mesh.
+     * Create a (XZ) plane mesh (normals pointing up along Y).
      *
      * @param colour
      *   Colour of plane.
@@ -133,10 +137,13 @@ class MeshManager
      * @param divisions
      *   Number of divisions (both horizontal and vertical).
      *
+     * @param scale
+     *   How much to scale each division by.
+     *
      * @returns
      *   Mesh for place.
      */
-    const Mesh *plane(const Colour &colour, std::uint32_t divisions);
+    const Mesh *plane(const Colour &colour, std::uint32_t divisions, float scale = 1.0f);
 
     /**
      * Create a (XY) height map mesh.
@@ -233,7 +240,7 @@ class MeshManager
      *   Loaded Mesh.
      */
     virtual std::unique_ptr<Mesh> create_mesh(
-        const std::vector<iris::VertexData> &vertices,
+        const std::vector<VertexData> &vertices,
         const std::vector<std::uint32_t> &indices) const = 0;
 
   private:
@@ -245,6 +252,9 @@ class MeshManager
         std::unique_ptr<Mesh> mesh;
         std::string texture_name;
     };
+
+    /** Resource manager object. */
+    ResourceManager &resource_manager_;
 
     /** Cache of created Mesh objects. */
     std::unordered_map<std::string, std::vector<LoadedMesh>> loaded_meshes_;

@@ -15,7 +15,6 @@
 
 #include "core/colour.h"
 #include "core/error_handling.h"
-#include "core/resource_loader.h"
 #include "core/transform.h"
 #include "core/vector3.h"
 #include "graphics/bone.h"
@@ -29,9 +28,12 @@
 namespace iris
 {
 
-MeshManager::MeshManager(bool flip_uvs_on_load)
-    : loaded_meshes_()
+MeshManager::MeshManager(ResourceManager &resource_manager, bool flip_uvs_on_load)
+    : resource_manager_(resource_manager)
+    , loaded_meshes_()
     , loaded_animations_()
+    , loaded_skeletons_()
+    , skeleton_copies_()
     , flip_uvs_on_load_(flip_uvs_on_load)
 {
 }
@@ -116,7 +118,7 @@ std::unique_ptr<Mesh> MeshManager::unique_mesh(
     return create_mesh(vertices, indices);
 }
 
-const Mesh *MeshManager::plane(const Colour &colour, std::uint32_t divisions)
+const Mesh *MeshManager::plane(const Colour &colour, std::uint32_t divisions, float scale)
 {
     expect(divisions != 0, "divisions must be >= 0");
 
@@ -129,21 +131,23 @@ const Mesh *MeshManager::plane(const Colour &colour, std::uint32_t divisions)
     {
         std::vector<VertexData> vertices(static_cast<std::size_t>(std::pow(divisions + 1u, 2u)));
 
-        const Vector3 normal{0.0f, 0.0f, 1.0f};
+        const Vector3 normal{0.0f, 1.0f, 0.0f};
         const Vector3 tangent{1.0f, 0.0f, 0.0f};
-        const Vector3 bitangent{0.0f, 1.0f, 0.0f};
+        const Vector3 bitangent{0.0f, 0.0f, 1.0f};
 
-        const auto width = 1.0f / static_cast<float>(divisions);
+        const auto width_unit = (1.0f / static_cast<float>(divisions));
+        const auto width = width_unit * scale;
+        const auto offset = 0.5f * scale;
 
         for (auto y = 0u; y <= divisions; ++y)
         {
             for (auto x = 0u; x <= divisions; ++x)
             {
                 vertices[(y * (divisions + 1u)) + x] = {
-                    {(x * width) - 0.5f, (y * width) - 0.5f, 0.0f},
+                    {(x * width) - offset, 0.0f, (y * width) - offset},
                     normal,
                     colour,
-                    {(x * width) * divisions, (1.0f - (y * width)) * divisions, 0.0f},
+                    {(x * width_unit) * divisions, (scale - (y * width_unit)) * divisions, 0.0f},
                     tangent,
                     bitangent};
             }
@@ -301,6 +305,7 @@ MeshManager::Meshes MeshManager::load_mesh(const std::string &mesh_file)
         expect(!loaded_skeletons_.contains(mesh_file), "unexpected skeleton");
 
         mesh_loader::load(
+            resource_manager_,
             mesh_file,
             flip_uvs_on_load_,
             [this, &mesh_file](auto vertices, auto indices, auto weights, const auto &texture_name) {

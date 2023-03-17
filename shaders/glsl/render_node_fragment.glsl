@@ -20,6 +20,14 @@ layout (location = 1) out vec4 out_normal;
 layout (location = 2) out vec4 out_position;
 {% endif %}
 
+layout (std140, binding = 0) uniform CameraData
+{
+    mat4 projection;
+    mat4 view;
+    mat4 normal_view;
+    vec3 camera;
+};
+
 layout (std140, binding = 2) uniform LightData
 {
     mat4 light_projection;
@@ -39,10 +47,21 @@ layout (std430, binding = 4) buffer CubeMapData
     uvec2 cube_map_table[];
 };
 
+layout (std140, binding = 6) uniform RenderValues
+{
+    float time;
+};
+
 uniform int shadow_map_index;
+
+{{properties}}
 
 void main()
 {
+    {% for variable in variables %}
+        {{variable}}
+    {% endfor %}
+
     {% if exists("fragment_colour") %}
         vec4 fragment_colour = {{ fragment_colour }};
     {% else %}

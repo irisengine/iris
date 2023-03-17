@@ -12,6 +12,7 @@
 #include <memory>
 #include <string>
 
+#include "core/context.h"
 #include "core/data_buffer.h"
 #include "jobs/concurrent_queue.h"
 #include "networking/channel/channel.h"
@@ -38,10 +39,13 @@ class ClientConnectionHandler
     /**
      * Create a new ClientConnectionHandler.
      *
-     * @param socker
+     * @param context
+     *   Engine context object.
+     *
+     * @param socket
      *   The underlying socket to use.
      */
-    explicit ClientConnectionHandler(std::unique_ptr<Socket> socket);
+    explicit ClientConnectionHandler(Context &context, std::unique_ptr<Socket> socket);
 
     /**
      * Try and read data from the supplied channel.

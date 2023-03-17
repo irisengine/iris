@@ -28,6 +28,17 @@ TEST(colour, float_ctor)
     ASSERT_EQ(c.a, 0.4f);
 }
 
+TEST(colour, colour_alpha_ctor)
+{
+    const iris::Colour c1{0.1f, 0.2f, 0.3f, 0.4f};
+    const iris::Colour c2{c1, 0.9f};
+
+    ASSERT_EQ(c2.r, 0.1f);
+    ASSERT_EQ(c2.g, 0.2f);
+    ASSERT_EQ(c2.b, 0.3f);
+    ASSERT_EQ(c2.a, 0.9f);
+}
+
 TEST(colour, byte_ctor)
 {
     const iris::Colour c{0x0, 0x7f, 0xff, 0x33};

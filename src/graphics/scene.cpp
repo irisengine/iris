@@ -41,6 +41,21 @@ RenderEntity *Scene::add(RenderGraph *render_graph, std::unique_ptr<RenderEntity
     return std::get<1>(entities_.back()).get();
 }
 
+RenderEntity *Scene::add_at_front(RenderGraph *render_graph, std::unique_ptr<RenderEntity> entity)
+{
+    *dirty_pipeline_ = true;
+
+    if (render_graph == nullptr)
+    {
+        render_graph = default_render_graph_;
+        entity->set_receive_shadow(false);
+    }
+
+    entities_.insert(std::begin(entities_), {render_graph, std::move(entity)});
+
+    return std::get<1>(entities_.front()).get();
+}
+
 void Scene::remove(RenderEntity *entity)
 {
     *dirty_pipeline_ = true;

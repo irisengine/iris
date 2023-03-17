@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <cstdint>
 #include <deque>
 #include <memory>
@@ -90,6 +91,14 @@ class Window
      *   Pipeline to execute.
      */
     void set_render_pipeline(std::unique_ptr<RenderPipeline> render_pipeline);
+
+    /**
+     * Elapsed time since set_render_pipeline was called. This is also the value that is passed to shaders via TimeNode.
+     *
+     * @returns
+     *   Elapsed time.
+     */
+    std::chrono::milliseconds time() const;
 
   protected:
     /** Window width. */

@@ -8,13 +8,9 @@
 
 #include <memory>
 
-#include "core/vector3.h"
-#include "physics/basic_character_controller.h"
+#include "graphics/mesh_manager.h"
 #include "physics/bullet/bullet_physics_system.h"
-#include "physics/collision_shape.h"
 #include "physics/physics_manager.h"
-#include "physics/rigid_body.h"
-#include "physics/rigid_body_type.h"
 
 namespace iris
 {
@@ -25,6 +21,13 @@ namespace iris
 class BulletPhysicsManager : public PhysicsManager
 {
   public:
+    /**
+     * Create new BulletPhysicsManager object.
+     *
+     * @param mesh_manager
+     *   Mesh manager object.
+     */
+    BulletPhysicsManager(MeshManager &mesh_manager);
     ~BulletPhysicsManager() override = default;
 
     /**
@@ -43,6 +46,9 @@ class BulletPhysicsManager : public PhysicsManager
   private:
     /** Current physics system. */
     std::unique_ptr<BulletPhysicsSystem> physics_system_;
+
+    /** Mesh manager object. */
+    MeshManager &mesh_manager_;
 };
 
 }

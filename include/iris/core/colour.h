@@ -53,6 +53,23 @@ class Colour
     }
 
     /**
+     * Create a new colour from another but specify the alpha.
+     *
+     * @param rgb
+     *   Colour to get rgb from
+     *
+     * @param a
+     *   Alpha.
+     */
+    constexpr Colour(const Colour &rgb, float a)
+        : r(rgb.r)
+        , g(rgb.g)
+        , b(rgb.b)
+        , a(a)
+    {
+    }
+
+    /**
      * Create a new colour with integer components.
      *
      * Ideally this would take the values as std::uint8_t, but this causes an

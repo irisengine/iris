@@ -26,7 +26,13 @@ struct ModelData
     matrix normal_matrix;
 };
 
+struct RenderValues
+{
+    float time;
+};
+
 StructuredBuffer<ModelData> model_data : register(t0);
+ConstantBuffer<RenderValues> render_values : register(b5);
 
 struct PSInput
 {
@@ -55,6 +61,10 @@ PSInput main(
     float4 bone_weights : TEXCOORD7,
     uint instance_id : SV_InstanceID)
 {
+    {% for variable in variables %}
+        {{variable}}
+    {% endfor %}
+
     matrix bone_transform = mul(bones[bone_ids[0]], bone_weights[0]);
     bone_transform += mul(bones[bone_ids[1]], bone_weights[1]);
     bone_transform += mul(bones[bone_ids[2]], bone_weights[2]);
@@ -69,12 +79,22 @@ PSInput main(
     PSInput result;
 
     result.vertex_position = position;
+    result.normal = normal;
+
+    {% if exists("position") %}
+        result.vertex_position = {{ position }};
+    {% endif %}
+
+    {% if exists("normal") %}
+        result.normal = {{ normal }};
+    {% endif %}
+
     result.frag_position = mul(result.vertex_position, bone_transform);
     result.frag_position = mul(result.frag_position, model_data[instance_id].model);
     result.view_position = mul(result.frag_position, view);
     result.position = mul(result.view_position, projection);
 
-    result.normal = mul(normal, bone_transform);
+    result.normal = mul(result.normal, bone_transform);
     result.normal = mul(result.normal, model_data[instance_id].normal_matrix);
     result.view_normal = mul(result.normal, normal_view);
     result.colour = colour;

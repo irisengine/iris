@@ -1,0 +1,11 @@
+{% if type == 0 %}
+    in.position{{swizzle}}
+{% else if type == 1 %}
+    in.view_position{{swizzle}}
+{% else if type == 2 %}
+    in.fragment_position{{swizzle}}
+{% else if type == 3 %}
+    in.tex{{swizzle}}
+{% else if type == 4 %}
+    in.normal{{swizzle}}
+{% endif %}

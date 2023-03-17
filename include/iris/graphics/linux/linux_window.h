@@ -16,7 +16,10 @@
 
 #include "core/auto_release.h"
 #include "events/event.h"
+#include "graphics/material_manager.h"
+#include "graphics/texture_manager.h"
 #include "graphics/window.h"
+#include "graphics/window_manager.h"
 
 namespace iris
 {
@@ -35,9 +38,22 @@ class LinuxWindow : public Window
      *
      * @param height
      *   Height of window.
+     *
+     * @param window_manager
+     *   Window manager object.
+     *
+     * @param texture_manager
+     *   Texture manager object.
+     *
+     * @param material_manager
+     *   Material manager object.
      */
-    LinuxWindow(std::uint32_t width, std::uint32_t height);
-    ~LinuxWindow() override = default;
+    LinuxWindow(
+        std::uint32_t width,
+        std::uint32_t height,
+        WindowManager &window_manager,
+        TextureManager &texture_manager,
+        MaterialManager &material_manager);
 
     /**
      * Get the natural scale for the screen. This value reflects the scale

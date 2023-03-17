@@ -12,14 +12,15 @@
 #import <Foundation/Foundation.h>
 
 #include "core/error_handling.h"
-#include "core/root.h"
 #include "events/keyboard_event.h"
 #include "events/mouse_button_event.h"
 #include "events/mouse_event.h"
 #include "events/scroll_wheel_event.h"
 #include "graphics/macos/metal_app_delegate.h"
+#include "graphics/material_manager.h"
 #include "graphics/metal/metal_renderer.h"
 #include "graphics/render_target.h"
+#include "graphics/texture_manager.h"
 #include "log/log.h"
 
 namespace
@@ -200,7 +201,11 @@ iris::MouseEvent handle_mouse_event(NSEvent *event)
 namespace iris
 {
 
-MacosWindow::MacosWindow(std::uint32_t width, std::uint32_t height)
+MacosWindow::MacosWindow(
+    std::uint32_t width,
+    std::uint32_t height,
+    TextureManager &texture_manager,
+    MaterialManager &material_manager)
     : Window(width, height)
 {
     // get and/or create the application singleton
@@ -214,13 +219,11 @@ MacosWindow::MacosWindow(std::uint32_t width, std::uint32_t height)
 
     id<NSApplicationDelegate> app_delegate = nullptr;
 
-    const auto api = Root::graphics_api();
-
     // create a metal renderer and app delegate
     app_delegate = [[MetalAppDelegate alloc] initWithRect:NSMakeRect(0.0f, 0.0f, width_, height_)];
     ensure(app_delegate != nil, "failed to create AppDelegate");
 
-    renderer_ = std::make_unique<MetalRenderer>(width_, height_);
+    renderer_ = std::make_unique<MetalRenderer>(texture_manager, material_manager, width_, height_);
 
     // set the delegate
     [app setDelegate:app_delegate];

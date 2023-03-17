@@ -9,8 +9,6 @@
 namespace iris::${SHADER_LANGUAGE}
 {
 
-static constexpr auto ${SHADER_NAME} = R"(
-    ${SHADER_SOURCE}
-)";
+static constexpr auto ${SHADER_NAME} = R"(${SHADER_SOURCE})";
 
 }

@@ -130,7 +130,7 @@ TEST(quaternion, dot)
     const iris::Quaternion q1(1.1f, 2.2f, 1.1f, 2.2f);
     const iris::Quaternion q2(0.1f, 0.2f, 0.3f, 0.4f);
 
-    ASSERT_EQ(q1.dot(q2), 1.76f);
+    ASSERT_FLOAT_EQ(q1.dot(q2), 1.76f);
 }
 
 TEST(quaternion, slerp)

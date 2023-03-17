@@ -375,7 +375,7 @@ class Vector3
     }
 
     /**
-     * Get the Euclidian distance between two vectors.
+     * Get the Euclidean distance between two vectors.
      *
      * @param a
      *   Point to calculate distance from.

@@ -8,7 +8,10 @@
 
 #include <cstdint>
 
+#include "graphics/material_manager.h"
+#include "graphics/texture_manager.h"
 #include "graphics/win32/win32_window.h"
+#include "graphics/window_manager.h"
 
 namespace iris
 {
@@ -22,15 +25,27 @@ class Win32D3D12Window : public Win32Window
     /**
      * Create a Win32D3D12Window.
      *
+     * @param window_manager
+     *   Window manager object.
+     *
+     * @param texture_manager
+     *   Texture manager object.
+     *
+     * @param material_manager
+     *   Material manager object.
+     *
      * @param width
      *   Width of window.
      *
      * @param height
      *   Height of window.
      */
-    Win32D3D12Window(std::uint32_t width, std::uint32_t height);
-
-    ~Win32D3D12Window() override = default;
+    Win32D3D12Window(
+        WindowManager &window_manager,
+        TextureManager &texture_manager,
+        MaterialManager &material_manager,
+        std::uint32_t width,
+        std::uint32_t height);
 };
 
 }

@@ -8,6 +8,8 @@
 
 #include <cstdint>
 
+#include "graphics/material_manager.h"
+#include "graphics/texture_manager.h"
 #include "graphics/window.h"
 
 namespace iris
@@ -27,8 +29,18 @@ class MacosWindow : public Window
      *
      * @param height
      *   Height of window.
+     *
+     * @param texture_manager
+     *   Texture manager object.
+     *
+     * @param material_manager
+     *   Material manager object.
      */
-    MacosWindow(std::uint32_t width, std::uint32_t height);
+    MacosWindow(
+        std::uint32_t width,
+        std::uint32_t height,
+        TextureManager &texture_manager,
+        MaterialManager &material_manager);
     ~MacosWindow() override = default;
 
     /**

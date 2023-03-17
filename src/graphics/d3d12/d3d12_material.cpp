@@ -97,8 +97,10 @@ D3D12Material::D3D12Material(
     bool render_to_swapchain,
     bool render_to_normal_target,
     bool render_to_position_target,
-    bool has_transparency)
-    : pso_()
+    bool has_transparency,
+    bool wireframe)
+    : Material(render_graph)
+    , pso_()
 {
     ShaderCompiler compiler{
         ShaderLanguage::HLSL, render_graph, light_type, render_to_normal_target, render_to_position_target};
@@ -138,7 +140,7 @@ D3D12Material::D3D12Material(
         (light_type == LightType::AMBIENT) ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
 
     D3D12_RASTERIZER_DESC rasterizer_description = {0};
-    rasterizer_description.FillMode = D3D12_FILL_MODE_SOLID;
+    rasterizer_description.FillMode = wireframe ? D3D12_FILL_MODE_WIREFRAME : D3D12_FILL_MODE_SOLID;
     rasterizer_description.CullMode = D3D12_CULL_MODE_NONE;
     rasterizer_description.FrontCounterClockwise = TRUE;
     rasterizer_description.DepthClipEnable = TRUE;

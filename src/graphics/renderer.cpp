@@ -9,15 +9,17 @@
 #include <cassert>
 
 #include "core/exception.h"
-#include "core/root.h"
 #include "graphics/material_manager.h"
 
 namespace iris
 {
 
-Renderer::Renderer()
+Renderer::Renderer(MaterialManager &material_manager)
     : render_queue_()
     , render_pipeline_()
+    , start_(std::chrono::steady_clock::now())
+    , time_(0u)
+    , material_manager_(material_manager)
 {
 }
 
@@ -30,6 +32,10 @@ void Renderer::render()
     }
 
     pre_render();
+
+    // update time
+    // this is calculated here rather than in time() so all calls to time() produce the same value for a given frame
+    time_ = std::chrono::steady_clock::now() - start_;
 
     // call each command with the appropriate handler
     for (auto &command : render_queue_)
@@ -49,13 +55,21 @@ void Renderer::render()
 
 void Renderer::set_render_pipeline(std::unique_ptr<RenderPipeline> render_pipeline)
 {
-    Root::material_manager().clear();
+    material_manager_.clear();
+    start_ = std::chrono::steady_clock::now();
 
     render_pipeline_ = std::move(render_pipeline);
-    do_set_render_pipeline([this]() {
-        render_queue_ = render_pipeline_->build();
-        render_pipeline_->clear_dirty_bit();
-    });
+    do_set_render_pipeline(
+        [this]
+        {
+            render_queue_ = render_pipeline_->build();
+            render_pipeline_->clear_dirty_bit();
+        });
+}
+
+std::chrono::milliseconds Renderer::time() const
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>(time_);
 }
 
 void Renderer::pre_render()

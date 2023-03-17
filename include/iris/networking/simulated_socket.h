@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <optional>
 
+#include "core/context.h"
 #include "jobs/concurrent_queue.h"
 #include "networking/socket.h"
 
@@ -27,6 +28,9 @@ class SimulatedSocket : public Socket
     /**
      * Construct a new SimulatedSocket.
      *
+     * @param context
+     *   Engine context object.
+     *
      * @param delay
      *   The fixed delay for all packets.
      *
@@ -42,7 +46,12 @@ class SimulatedSocket : public Socket
      *   Socket to adapt. Will be used for underlying communication, but with
      *   simulated conditions.
      */
-    SimulatedSocket(std::chrono::milliseconds delay, std::chrono::milliseconds jitter, float drop_rate, Socket *socket);
+    SimulatedSocket(
+        Context &context,
+        std::chrono::milliseconds delay,
+        std::chrono::milliseconds jitter,
+        float drop_rate,
+        Socket *socket);
 
     // defined in implementation
     ~SimulatedSocket() override;

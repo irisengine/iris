@@ -6,13 +6,16 @@
 
 #pragma once
 
-#include <vector>
+#include <cstddef>
+#include <span>
 
 namespace iris
 {
 
+class RenderGraph;
+
 /**
- * Interface for a Material - a class which which encapsulates how to render a Mesh.
+ * Abstract class for a Material - a class which which encapsulates how to render a Mesh.
  *
  * This interface is deliberately limited, most of the functionality is provided by the implementations, which in turn
  * is only used internally by the engine.
@@ -20,7 +23,26 @@ namespace iris
 class Material
 {
   public:
+    /**
+     * Construct a new Material.
+     *
+     * @param render_graph
+     *   The render render_graph for this material.
+     */
+    Material(const RenderGraph *render_graph);
     virtual ~Material() = default;
+
+    /**
+     * Get the property buffer for this material.
+     *
+     * @returns
+     *   Property buffer span.
+     */
+    std::span<std::byte> property_buffer() const;
+
+  private:
+    /** Property buffer span. */
+    std::span<std::byte> property_buffer_;
 };
 
 }

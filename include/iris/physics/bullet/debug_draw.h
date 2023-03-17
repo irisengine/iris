@@ -14,7 +14,6 @@
 #include <LinearMath/btVector3.h>
 
 #include "core/exception.h"
-#include "core/root.h"
 #include "core/vector3.h"
 #include "graphics/mesh.h"
 #include "graphics/mesh_manager.h"
@@ -44,8 +43,11 @@ class DebugDraw
   public:
     /**
      * Construct a new DebugDraw.
+     *
+     * @param mesh_manager
+     *   Mesh manager object.
      */
-    DebugDraw();
+    DebugDraw(MeshManager &mesh_manager);
 
     /**
      * Update all the registered rigid bodies.
@@ -118,6 +120,12 @@ class DebugDraw
      */
     struct BulletDebugDraw : btIDebugDraw
     {
+        BulletDebugDraw(MeshManager &mesh_manager)
+            : mesh_manager_(mesh_manager)
+            , vertices_()
+        {
+        }
+
         void drawLine(const btVector3 &from, const btVector3 &to, const btVector3 &colour) override
         {
             vertices_.emplace_back(
@@ -177,8 +185,10 @@ class DebugDraw
             // clear the drawn line store for future calls
             vertices_.clear();
 
-            return Root::mesh_manager().unique_mesh(vertices, indices);
+            return mesh_manager_.unique_mesh(vertices, indices);
         }
+
+        MeshManager &mesh_manager_;
 
         /** Cached drawn lines from bullet. */
         std::vector<std::tuple<Vector3, Colour, Vector3, Colour>> vertices_;

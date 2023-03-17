@@ -20,7 +20,6 @@ extern "C"
 
 #include "core/auto_release.h"
 #include "core/error_handling.h"
-#include "core/resource_loader.h"
 #include "core/vector3.h"
 #include "scripting/lua/interop/quaternion.h"
 #include "scripting/lua/interop/register_class.h"
@@ -87,11 +86,11 @@ LuaScript::LuaScript(const std::string &source)
     impl_->state = create_lua_state(source);
 }
 
-LuaScript::LuaScript(const std::string &file, LoadFile)
+LuaScript::LuaScript(ResourceManager &resource_manager, const std::string &file)
     : Script()
     , impl_(std::make_unique<implementation>())
 {
-    const auto script_data = ResourceLoader::instance().load(file);
+    const auto script_data = resource_manager.load(file);
     const std::string source(reinterpret_cast<const char *>(script_data.data()), script_data.size());
 
     impl_->state = create_lua_state(source);

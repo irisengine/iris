@@ -12,9 +12,12 @@
 #include <memory>
 #include <vector>
 
+#include "graphics/material_manager.h"
+#include "graphics/mesh_manager.h"
 #include "graphics/render_command.h"
 #include "graphics/render_graph/render_graph.h"
 #include "graphics/render_pass.h"
+#include "graphics/render_target_manager.h"
 #include "graphics/scene.h"
 #include "graphics/single_entity.h"
 
@@ -35,19 +38,33 @@ class RenderPipeline
     /**
      * Create a new RenderPipeline.
      *
+     * @param material_manager
+     *   Material manager object.
+     *
+     * @param mesh_manager
+     *   Mesh manager object.
+     *
+     * @param render_target_manager
+     *   Render target manager object.
+     *
      * @param width
      *   Width of final render output.
      *
      * @param height
      *   Height of final render output.
      */
-    RenderPipeline(std::uint32_t width, std::uint32_t height);
+    RenderPipeline(
+        MaterialManager &material_manager,
+        MeshManager &mesh_manager,
+        RenderTargetManager &render_target_manager,
+        std::uint32_t width,
+        std::uint32_t height);
     ~RenderPipeline();
 
     RenderPipeline(const RenderPipeline &) = delete;
     RenderPipeline &operator=(const RenderPipeline &) = delete;
-    RenderPipeline(RenderPipeline &&) = default;
-    RenderPipeline &operator=(RenderPipeline &&) = default;
+    RenderPipeline(RenderPipeline &&) = delete;
+    RenderPipeline &operator=(RenderPipeline &&) = delete;
 
     /**
      * Create a new scene.
@@ -164,6 +181,15 @@ class RenderPipeline
      */
     void add_post_processing_passes();
 
+    /** Material manager object. */
+    MaterialManager &material_manager_;
+
+    /** Mesh manager object. */
+    MeshManager &mesh_manager_;
+
+    /** Render target manager object. */
+    RenderTargetManager &render_target_manager_;
+
     /** Collection of created scenes. */
     std::vector<std::unique_ptr<Scene>> scenes_;
 
@@ -179,8 +205,11 @@ class RenderPipeline
     /** Collection of pointers to all render passes in the pipeline. */
     std::vector<RenderPass *> render_passes_;
 
-    /** Collection of created sky boxes. */
+    /** Collection of created sky box entities. */
     std::unordered_map<const RenderPass *, SingleEntity *> sky_box_entities_;
+
+    /** Collection of created sky box render graphs. */
+    std::unordered_map<const RenderPass *, const RenderGraph *> sky_box_render_graphs_;
 
     /** Flag indicating a scene in the pipeline has changed. */
     bool dirty_;

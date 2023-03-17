@@ -19,8 +19,8 @@
 #include "core/error_handling.h"
 #include "events/event.h"
 #include "events/quit_event.h"
-#define DONT_MAKE_GL_FUNCTIONS_EXTERN // get concrete function pointers for all
-                                      // opengl functions
+#include "graphics/material_manager.h"
+#define DONT_MAKE_GL_FUNCTIONS_EXTERN // get concrete function pointers for all opengl functions
 #include "graphics/opengl/opengl.h"
 #include "graphics/opengl/opengl_renderer.h"
 
@@ -210,7 +210,12 @@ void init_opengl(HDC dc)
 namespace iris
 {
 
-Win32OpenGLWindow::Win32OpenGLWindow(std::uint32_t width, std::uint32_t height)
+Win32OpenGLWindow::Win32OpenGLWindow(
+    WindowManager &window_manager,
+    TextureManager &texture_manager,
+    MaterialManager &material_manager,
+    std::uint32_t width,
+    std::uint32_t height)
     : Win32Window(width, height)
 {
     // initialise opengl
@@ -220,7 +225,7 @@ Win32OpenGLWindow::Win32OpenGLWindow(std::uint32_t width, std::uint32_t height)
     // we can now resolve all our opengl functions
     resolve_global_opengl_functions();
 
-    renderer_ = std::make_unique<OpenGLRenderer>(width_, height_);
+    renderer_ = std::make_unique<OpenGLRenderer>(window_manager, texture_manager, material_manager, width_, height_);
 
     ::SetWindowTextA(window_, "iris::opengl");
 }

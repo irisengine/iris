@@ -12,8 +12,8 @@
 #include <random>
 #include <thread>
 
+#include "core/context.h"
 #include "core/random.h"
-#include "core/root.h"
 #include "jobs/concurrent_queue.h"
 #include "jobs/job.h"
 #include "jobs/job_system_manager.h"
@@ -25,6 +25,7 @@ namespace iris
 {
 
 SimulatedSocket::SimulatedSocket(
+    Context &context,
     std::chrono::milliseconds delay,
     std::chrono::milliseconds jitter,
     float drop_rate,
@@ -37,25 +38,25 @@ SimulatedSocket::SimulatedSocket(
     // in order to facilitate message delay without blocking we have write()
     // enqueue data with a time point, this job then grabs them and can wait
     // until the delay has passed before sending
-    Root::jobs_manager().add({[this]()
-                              {
-                                  for (;;)
-                                  {
-                                      if (write_queue_.empty())
-                                      {
-                                          std::this_thread::sleep_for(10ms);
-                                      }
-                                      else
-                                      {
-                                          const auto &[buffer, time_point] = write_queue_.dequeue();
+    context.jobs_manager().add({[this]()
+                                {
+                                    for (;;)
+                                    {
+                                        if (write_queue_.empty())
+                                        {
+                                            std::this_thread::sleep_for(10ms);
+                                        }
+                                        else
+                                        {
+                                            const auto &[buffer, time_point] = write_queue_.dequeue();
 
-                                          // wait until its time to send the data
-                                          std::this_thread::sleep_until(time_point);
+                                            // wait until its time to send the data
+                                            std::this_thread::sleep_until(time_point);
 
-                                          socket_->write(buffer);
-                                      }
-                                  }
-                              }});
+                                            socket_->write(buffer);
+                                        }
+                                    }
+                                }});
 }
 
 SimulatedSocket::~SimulatedSocket() = default;

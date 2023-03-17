@@ -54,31 +54,6 @@ class TextureNode : public Node
      */
     TextureNode(const Texture *texture, UVSource uv_source = UVSource::VERTEX_DATA, const Node *uv_input = nullptr);
 
-    /**
-     * Create a new TextureNode.
-     *
-     * @param path
-     *   Path of texture.
-     *
-     * @param usage
-     *   The usage of the texture.
-     *
-     * @param sampler
-     *   Sampler to use for this texture.
-     *
-     * @param uv_source
-     *   Source of UV data.
-     *
-     * @param uv_input
-     *   Optional node to calculate uv, only valid if uv_source is NODE.
-     */
-    TextureNode(
-        const std::string &path,
-        TextureUsage usage = TextureUsage::IMAGE,
-        const Sampler *sampler = nullptr,
-        UVSource uv_source = UVSource::VERTEX_DATA,
-        const Node *uv_input = nullptr);
-
     ~TextureNode() override = default;
 
     /**

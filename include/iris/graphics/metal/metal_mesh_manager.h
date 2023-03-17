@@ -10,6 +10,7 @@
 #include <memory>
 #include <vector>
 
+#include "core/resource_manager.h"
 #include "graphics/mesh.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/vertex_data.h"
@@ -23,7 +24,14 @@ namespace iris
 class MetalMeshManager : public MeshManager
 {
   public:
-    MetalMeshManager();
+    /**
+     * Construct a new MetalMeshManager.
+     *
+     * @param resource_manager
+     *   Resource manager object.
+     */
+    MetalMeshManager(ResourceManager &resource_manager);
+
     ~MetalMeshManager() override = default;
 
   protected:

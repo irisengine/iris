@@ -56,6 +56,9 @@ class D3D12Material : public Material
      *
      * @param has_transparency
      *   Hint to the renderer that the material will contain transparency.
+     *
+     * @param wireframe
+     *   Flag indicating if wireframe should be rendered.
      */
     D3D12Material(
         const RenderGraph *render_graph,
@@ -66,7 +69,8 @@ class D3D12Material : public Material
         bool render_to_swapchain,
         bool render_to_normal_target,
         bool render_to_position_target,
-        bool has_transparency);
+        bool has_transparency,
+        bool wireframe);
 
     ~D3D12Material() override = default;
 

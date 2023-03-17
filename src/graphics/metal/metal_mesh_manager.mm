@@ -10,6 +10,7 @@
 #include <memory>
 #include <vector>
 
+#include "core/resource_manager.h"
 #include "graphics/mesh.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/metal/metal_mesh.h"
@@ -18,8 +19,8 @@
 namespace iris
 {
 
-MetalMeshManager::MetalMeshManager()
-    : MeshManager(false)
+MetalMeshManager::MetalMeshManager(ResourceManager &resource_manager)
+    : MeshManager(resource_manager, false)
 {
 }
 

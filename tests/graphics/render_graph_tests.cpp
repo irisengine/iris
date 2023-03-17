@@ -15,11 +15,20 @@
 #include "graphics/render_graph/value_node.h"
 #include "graphics/render_pipeline.h"
 
+#include "mocks/mock_material_manager.h"
+#include "mocks/mock_mesh_manager.h"
+#include "mocks/mock_render_target_manager.h"
+#include "mocks/mock_resource_manager.h"
+
 class RenderGraphTest : public ::testing::Test
 {
   public:
     RenderGraphTest()
-        : pipeline_(600u, 600u)
+        : resource_manager_()
+        , material_manager_()
+        , mesh_manager_(resource_manager_)
+        , render_target_manager_()
+        , pipeline_(material_manager_, mesh_manager_, render_target_manager_, 600u, 600u)
     {
     }
 
@@ -29,6 +38,10 @@ class RenderGraphTest : public ::testing::Test
     }
 
   private:
+    MockResourceManager resource_manager_;
+    MockMaterialManager material_manager_;
+    MockMeshManager mesh_manager_;
+    MockRenderTargetManager render_target_manager_;
     iris::RenderPipeline pipeline_;
 };
 

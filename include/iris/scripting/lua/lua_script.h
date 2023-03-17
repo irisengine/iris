@@ -11,6 +11,7 @@
 #include <string>
 
 #include "core/quaternion.h"
+#include "core/resource_manager.h"
 #include "core/vector3.h"
 #include "scripting/script.h"
 
@@ -33,13 +34,6 @@ class LuaScript : public Script
 {
   public:
     /**
-     * Tag to indicate script should be loaded from a file.
-     */
-    struct LoadFile
-    {
-    };
-
-    /**
      * Construct a new LuaScript.
      *
      * @param source
@@ -56,7 +50,7 @@ class LuaScript : public Script
      * @param
      *   Tag to indicate script should be loaded from a file.
      */
-    LuaScript(const std::string &file, LoadFile);
+    LuaScript(ResourceManager &resource_manager, const std::string &file);
 
     ~LuaScript() override;
 

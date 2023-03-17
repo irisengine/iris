@@ -11,6 +11,7 @@
 #include <string>
 
 #include <core/camera.h>
+#include <core/context.h>
 #include <core/transform.h>
 #include <events/event.h>
 #include <graphics/cube_map.h>
@@ -35,9 +36,12 @@ class RenderGraphSample : public Sample
      *   Window to render with.
      *
      * @param render_pipeline
-     *   RenderPipeline to use for sample.
+     *   Render pipeline to use for sample.
+     *
+     * @param context
+     *   Engine context object.
      */
-    RenderGraphSample(iris::Window *window, iris::RenderPipeline &render_pipeline);
+    RenderGraphSample(iris::Window *window, iris::RenderPipeline &render_pipeline, iris::Context &context);
     ~RenderGraphSample() override = default;
 
     /**

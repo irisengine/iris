@@ -12,6 +12,8 @@
 
 #include "graphics/d3d12/d3d12_render_target.h"
 #include "graphics/render_target_manager.h"
+#include "graphics/texture_manager.h"
+#include "graphics/window_manager.h"
 
 namespace iris
 {
@@ -22,7 +24,16 @@ namespace iris
 class D3D12RenderTargetManager : public RenderTargetManager
 {
   public:
-    ~D3D12RenderTargetManager() override = default;
+    /**
+     * Create a new D3D12RenderTargetManager object.
+     *
+     * @param window_manager
+     *   Window manager object.
+     *
+     * @param texture_manager
+     *   Texture manager object.
+     */
+    D3D12RenderTargetManager(WindowManager &window_manager, TextureManager &texture_manager);
 
     /**
      * Create a render target the size of the current window.
@@ -61,6 +72,12 @@ class D3D12RenderTargetManager : public RenderTargetManager
     RenderTarget *create(const RenderTarget *colour_target, const RenderTarget *depth_target) override;
 
   private:
+    /** Window manager object.  */
+    WindowManager &window_manager_;
+
+    /** Texture manager object.  */
+    TextureManager &texture_manager_;
+
     /** Collection of created render targets. */
     std::vector<std::unique_ptr<D3D12RenderTarget>> render_targets_;
 };

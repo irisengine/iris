@@ -15,20 +15,13 @@
 #include <stb_image_write.h>
 
 #include "core/colour.h"
+#include "core/context.h"
 #include "core/exception.h"
-#include "core/root.h"
 #include "core/start.h"
 #include "core/vector3.h"
 #include "jobs/job.h"
 #include "jobs/job_system_manager.h"
 #include "log/log.h"
-
-struct Sphere;
-
-// helpful globals
-std::random_device rd;
-std::mt19937 generator(rd());
-static std::vector<Sphere> scene;
 
 /**
  * Simple ray class.
@@ -50,18 +43,14 @@ struct Ray
  */
 struct Sphere
 {
-    Sphere(
-        const iris::Vector3 &origin,
-        float radius,
-        const iris::Colour &colour)
+    Sphere(const iris::Vector3 &origin, float radius, const iris::Colour &colour)
         : origin(origin)
         , radius(radius)
         , colour(colour)
     {
     }
 
-    std::tuple<float, iris::Vector3, iris::Vector3> intersects(
-        const Ray &ray) const
+    std::tuple<float, iris::Vector3, iris::Vector3> intersects(const Ray &ray) const
     {
         auto L = origin - ray.origin;
         auto tca = L.dot(ray.direction);
@@ -96,6 +85,11 @@ struct Sphere
     float rougness = 0.0f;
 };
 
+// helpful globals
+std::random_device rd;
+std::mt19937 generator(rd());
+static std::vector<Sphere> scene;
+
 iris::Vector3 random_unit_vector()
 {
     std::uniform_real_distribution<float> dist1(0.0f, 1.0f);
@@ -113,11 +107,7 @@ iris::Vector3 random_in_unit_sphere()
     iris::Vector3 p;
     do
     {
-        p =
-            iris::Vector3{
-                dist1(generator), dist1(generator), dist1(generator)} *
-                2.0 -
-            iris::Vector3(1, 1, 1);
+        p = iris::Vector3{dist1(generator), dist1(generator), dist1(generator)} * 2.0 - iris::Vector3(1, 1, 1);
     } while (p.dot(p) >= 1.0);
     return p;
 }
@@ -165,10 +155,7 @@ iris::Colour trace(const Ray &ray, int depth)
     if (hit->is_metal)
     {
         auto reflect = ray.direction - normal * ray.direction.dot(normal) * 2;
-        newRay = {
-            point,
-            iris::Vector3::normalise(
-                reflect + random_in_unit_sphere() * hit->rougness)};
+        newRay = {point, iris::Vector3::normalise(reflect + random_in_unit_sphere() * hit->rougness)};
         newRay.origin += newRay.direction * 0.01f;
     }
     else
@@ -183,26 +170,14 @@ iris::Colour trace(const Ray &ray, int depth)
     return emittance * trace(newRay, depth + 1);
 }
 
-void go(int, char **)
+void go(iris::Context context)
 {
     iris::Logger::instance().ignore_tag("js");
 
-    scene.emplace_back(
-        iris::Vector3{150.0f, 0.0f, -600.0f},
-        100.0f,
-        iris::Colour{0.58f, 0.49f, 0.67f});
-    scene.emplace_back(
-        iris::Vector3{-150.0f, 0.0f, -600.0f},
-        100.0f,
-        iris::Colour{0.99f, 0.78f, 0.84f});
-    scene.emplace_back(
-        iris::Vector3{00.0f, 0.0f, -750.0f},
-        100.0f,
-        iris::Colour{1.0f, 0.87f, 0.82f});
-    scene.emplace_back(
-        iris::Vector3{0.0f, -10100.0f, -600.0f},
-        10000.0f,
-        iris::Colour{1.0f, 1.0f, 1.0f});
+    scene.emplace_back(iris::Vector3{150.0f, 0.0f, -600.0f}, 100.0f, iris::Colour{0.58f, 0.49f, 0.67f});
+    scene.emplace_back(iris::Vector3{-150.0f, 0.0f, -600.0f}, 100.0f, iris::Colour{0.99f, 0.78f, 0.84f});
+    scene.emplace_back(iris::Vector3{00.0f, 0.0f, -750.0f}, 100.0f, iris::Colour{1.0f, 0.87f, 0.82f});
+    scene.emplace_back(iris::Vector3{0.0f, -10100.0f, -600.0f}, 10000.0f, iris::Colour{1.0f, 1.0f, 1.0f});
 
     scene[2].is_metal = true;
     scene[2].rougness = 0.9;
@@ -224,36 +199,35 @@ void go(int, char **)
     {
         for (std::size_t i = 0; i < width; i++)
         {
-            jobs.emplace_back([i, j, fov, counter, &pixels, &dist1]() {
-                const auto dir_x = (i + 0.5f) - width / 2.0f;
-                const auto dir_y = -(j + 0.5f) + height / 2.0f;
-                const auto dir_z = -height / (2.0f * tan(fov / 2.0f));
-
-                iris::Colour pixel;
-
-                auto samples = 100;
-
-                for (int i = 0; i < samples; i++)
+            jobs.emplace_back(
+                [i, j, fov, counter, &pixels, &dist1]()
                 {
-                    pixel += trace(
-                        {{0, 0, 0},
-                         iris::Vector3::normalise(
-                             {dir_x + dist1(generator),
-                              dir_y + dist1(generator),
-                              dir_z})},
-                        1);
-                }
+                    const auto dir_x = (i + 0.5f) - width / 2.0f;
+                    const auto dir_y = -(j + 0.5f) + height / 2.0f;
+                    const auto dir_z = -height / (2.0f * tan(fov / 2.0f));
 
-                pixel *= (1.0 / (float)samples);
+                    iris::Colour pixel;
 
-                // clamp colours
-                pixels[counter + 0u] = static_cast<std::uint8_t>(
-                    (255.0f * std::max(0.0f, std::min(1.0f, (float)pixel.r))));
-                pixels[counter + 1u] = static_cast<std::uint8_t>(
-                    (255.0f * std::max(0.0f, std::min(1.0f, (float)pixel.g))));
-                pixels[counter + 2u] = static_cast<std::uint8_t>(
-                    (255.0f * std::max(0.0f, std::min(1.0f, (float)pixel.b))));
-            });
+                    auto samples = 100;
+
+                    for (int i = 0; i < samples; i++)
+                    {
+                        pixel += trace(
+                            {{0, 0, 0},
+                             iris::Vector3::normalise({dir_x + dist1(generator), dir_y + dist1(generator), dir_z})},
+                            1);
+                    }
+
+                    pixel *= (1.0 / (float)samples);
+
+                    // clamp colours
+                    pixels[counter + 0u] =
+                        static_cast<std::uint8_t>((255.0f * std::max(0.0f, std::min(1.0f, (float)pixel.r))));
+                    pixels[counter + 1u] =
+                        static_cast<std::uint8_t>((255.0f * std::max(0.0f, std::min(1.0f, (float)pixel.g))));
+                    pixels[counter + 2u] =
+                        static_cast<std::uint8_t>((255.0f * std::max(0.0f, std::min(1.0f, (float)pixel.b))));
+                });
 
             counter += 3u;
         }
@@ -265,17 +239,14 @@ void go(int, char **)
         std::vector<iris::Job> batch(std::cend(jobs) - count, std::cend(jobs));
         jobs.erase(std::cend(jobs) - count, std::cend(jobs));
 
-        iris::Root::jobs_manager().wait(batch);
+        context.jobs_manager().wait(batch);
 
     } while (!jobs.empty());
 
     auto end = std::chrono::high_resolution_clock::now();
 
     LOG_INFO(
-        "job_sample",
-        "render time: {}ms",
-        std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
-            .count());
+        "job_sample", "render time: {}ms", std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
 
     stbi_write_png("render.png", width, height, 3, pixels.data(), 3 * width);
 

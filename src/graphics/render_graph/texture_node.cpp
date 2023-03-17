@@ -9,33 +9,14 @@
 #include <cstddef>
 
 #include "core/error_handling.h"
-#include "core/root.h"
 #include "graphics/render_graph/shader_compiler.h"
-#include "graphics/sampler.h"
 #include "graphics/texture.h"
-#include "graphics/texture_manager.h"
 
 namespace iris
 {
 
 TextureNode::TextureNode(const Texture *texture, UVSource uv_source, const Node *uv_input)
     : texture_(texture)
-    , uv_source_(uv_source)
-    , uv_input_(uv_input)
-{
-    ensure(
-        (uv_source_ == UVSource::NODE && uv_input_ != nullptr) ||
-            (uv_source_ != UVSource::NODE && uv_input_ == nullptr),
-        "invalid configuration");
-}
-
-TextureNode::TextureNode(
-    const std::string &path,
-    TextureUsage usage,
-    const Sampler *sampler,
-    UVSource uv_source,
-    const Node *uv_input)
-    : texture_(Root::texture_manager().load(path, usage, sampler))
     , uv_source_(uv_source)
     , uv_input_(uv_input)
 {

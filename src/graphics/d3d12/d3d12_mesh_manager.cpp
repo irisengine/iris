@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <memory>
 
+#include "core/resource_manager.h"
 #include "graphics/d3d12/d3d12_mesh.h"
 #include "graphics/mesh.h"
 #include "graphics/mesh_manager.h"
@@ -17,8 +18,8 @@
 namespace iris
 {
 
-D3D12MeshManager::D3D12MeshManager()
-    : MeshManager(false)
+D3D12MeshManager::D3D12MeshManager(ResourceManager &resource_manager)
+    : MeshManager(resource_manager, false)
 {
 }
 

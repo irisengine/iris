@@ -6,11 +6,13 @@
 
 #pragma once
 
+#include <chrono>
 #include <memory>
 #include <vector>
 
 #include "core/camera.h"
 #include "graphics/lights/light_type.h"
+#include "graphics/material_manager.h"
 #include "graphics/render_command.h"
 #include "graphics/render_pass.h"
 #include "graphics/render_pipeline.h"
@@ -27,7 +29,13 @@ namespace iris
 class Renderer
 {
   public:
-    Renderer();
+    /**
+     * Construct a new Renderer.
+     *
+     * @param material_manager
+     *   Material manager object.
+     */
+    Renderer(MaterialManager &material_manager);
     virtual ~Renderer() = default;
 
     /**
@@ -42,6 +50,14 @@ class Renderer
      *   Pipeline to execute.
      */
     void set_render_pipeline(std::unique_ptr<RenderPipeline> render_pipeline);
+
+    /**
+     * Elapsed time since set_render_pipeline was called. This is also the value that is passed to shaders via TimeNode.
+     *
+     * @returns
+     *   Elapsed time.
+     */
+    std::chrono::milliseconds time() const;
 
   protected:
     /**
@@ -71,6 +87,16 @@ class Renderer
 
     /** Pipeline to execute with render(). */
     std::unique_ptr<RenderPipeline> render_pipeline_;
+
+    /** Time point when set_render_pipeline was called. */
+    std::chrono::steady_clock::time_point start_;
+
+    /** Elapsed time since set_render_pipeline was called. */
+    std::chrono::steady_clock::duration time_;
+
+  private:
+    /** Material manager object. */
+    MaterialManager &material_manager_;
 };
 
 }

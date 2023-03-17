@@ -59,6 +59,8 @@ target_sources(iris PRIVATE
   bone.cpp
   cube_map.cpp
   instanced_entity.cpp
+  material.cpp
+  material_manager.cpp
   mesh.cpp
   mesh_loader.cpp
   mesh_manager.cpp
@@ -75,4 +77,5 @@ target_sources(iris PRIVATE
   texture_manager.cpp
   utils.cpp
   vertex_attributes.cpp
-  window.cpp)
+  window.cpp
+)

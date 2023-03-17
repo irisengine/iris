@@ -1,0 +1,3 @@
+{% if type == 0 %}
+    camera_data->camera{{swizzle}}
+{% endif %}

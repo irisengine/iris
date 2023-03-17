@@ -15,6 +15,7 @@
 
 #include "core/colour.h"
 #include "core/data_buffer.h"
+#include "core/resource_manager.h"
 #include "graphics/cube_map.h"
 #include "graphics/sampler.h"
 #include "graphics/texture.h"
@@ -31,7 +32,7 @@ namespace iris
 class TextureManager
 {
   public:
-    TextureManager();
+    TextureManager(ResourceManager &resource_manager);
     virtual ~TextureManager() = default;
 
     /**
@@ -455,6 +456,9 @@ class TextureManager
         std::size_t ref_count;
         std::unique_ptr<T> asset;
     };
+
+    /** Resource manager object. */
+    ResourceManager &resource_manager_;
 
     /** Collection of loaded textures. */
     std::unordered_map<std::string, LoadedAsset<Texture>> loaded_textures_;

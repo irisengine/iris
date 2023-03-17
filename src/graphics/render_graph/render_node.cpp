@@ -18,7 +18,8 @@ RenderNode::RenderNode()
     : colour_input_(nullptr)
     , specular_power_input_(nullptr)
     , specular_amount_input_(nullptr)
-    , normal_input_(nullptr)
+    , vertex_normal_input_(nullptr)
+    , fragment_normal_input_(nullptr)
     , position_input_(nullptr)
     , shadow_map_input_(nullptr)
     , ambient_occlusion_input_(nullptr)
@@ -61,14 +62,24 @@ void RenderNode::set_specular_amount_input(Node *input)
     specular_amount_input_ = input;
 }
 
-Node *RenderNode::normal_input() const
+Node *RenderNode::vertex_normal_input() const
 {
-    return normal_input_;
+    return vertex_normal_input_;
 }
 
-void RenderNode::set_normal_input(Node *input)
+void RenderNode::set_vertex_normal_input(Node *input)
 {
-    normal_input_ = input;
+    vertex_normal_input_ = input;
+}
+
+Node *RenderNode::fragment_normal_input() const
+{
+    return fragment_normal_input_;
+}
+
+void RenderNode::set_fragment_normal_input(Node *input)
+{
+    fragment_normal_input_ = input;
 }
 
 Node *RenderNode::position_input() const
@@ -116,7 +127,8 @@ std::size_t RenderNode::hash() const
     return combine_hash(
         colour_input_,
         specular_amount_input_,
-        normal_input_,
+        vertex_normal_input_,
+        fragment_normal_input_,
         position_input_,
         shadow_map_input_,
         ambient_occlusion_input_,

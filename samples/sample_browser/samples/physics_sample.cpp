@@ -12,9 +12,9 @@
 #include <sstream>
 
 #include <core/camera.h>
+#include <core/context.h>
 #include <core/matrix4.h>
 #include <core/quaternion.h>
-#include <core/root.h>
 #include <core/transform.h>
 #include <core/vector3.h>
 #include <graphics/cube_map.h>
@@ -91,9 +91,9 @@ void update_camera(
 
 }
 
-PhysicsSample::PhysicsSample(iris::Window *window, iris::RenderPipeline &render_pipeline)
+PhysicsSample::PhysicsSample(iris::Window *window, iris::RenderPipeline &render_pipeline, iris::Context &context)
     : render_target_(nullptr)
-    , physics_(iris::Root::physics_manager().create_physics_system())
+    , physics_(context.physics_manager().create_physics_system())
     , light_transform_()
     , light_(nullptr)
     , camera_(iris::CameraType::PERSPECTIVE, window->width(), window->height())
@@ -122,7 +122,9 @@ PhysicsSample::PhysicsSample(iris::Window *window, iris::RenderPipeline &render_
     auto *floor_graph = render_pipeline.create_render_graph();
     floor_graph->render_node()->set_specular_amount_input(floor_graph->create<iris::ValueNode<float>>(0.0f));
 
-    auto &mesh_manager = iris::Root::mesh_manager();
+    auto &mesh_manager = context.mesh_manager();
+    auto &texture_manager = context.texture_manager();
+    auto &render_target_manager = context.render_target_manager();
 
     scene->create_entity<iris::SingleEntity>(
         floor_graph,
@@ -132,18 +134,14 @@ PhysicsSample::PhysicsSample(iris::Window *window, iris::RenderPipeline &render_
     auto width = 10u;
     auto height = 5u;
 
-    iris::SamplerDescriptor sd{.uses_mips = false};
-    const auto *sampler = iris::Root::texture_manager().create(sd);
+    const auto *texture = texture_manager.load("crate.png");
 
     for (auto y = 0u; y < height; ++y)
     {
         for (auto x = 0u; x < width; ++x)
         {
             auto *box_graph = render_pipeline.create_render_graph();
-            box_graph->render_node()->set_colour_input(
-                box_graph->create<iris::TextureNode>("crate.png", iris::TextureUsage::IMAGE, sampler));
-            box_graph->render_node()->set_specular_amount_input(box_graph->create<iris::ComponentNode>(
-                box_graph->create<iris::TextureNode>("crate_specular.png"), "r"));
+            box_graph->render_node()->set_colour_input(box_graph->create<iris::TextureNode>(texture));
 
             const iris::Vector3 pos{static_cast<float>(x), static_cast<float>(y + 0.5f), 0.0f};
             static const iris::Vector3 half_size{0.5f, 0.5f, 0.5f};
@@ -172,11 +170,11 @@ PhysicsSample::PhysicsSample(iris::Window *window, iris::RenderPipeline &render_
         physics_->create_box_collision_shape({500.0f, 50.0f, 500.0f}),
         iris::RigidBodyType::STATIC);
 
-    const auto *sky_box = iris::Root::texture_manager().create(
-        iris::Colour{0.275f, 0.51f, 0.796f}, iris::Colour{0.5f, 0.5f, 0.5f}, 2048u, 2048u);
+    const auto *sky_box =
+        texture_manager.create(iris::Colour{0.275f, 0.51f, 0.796f}, iris::Colour{0.5f, 0.5f, 0.5f}, 2048u, 2048u);
 
     auto *pass = render_pipeline.create_render_pass(scene);
-    pass->colour_target = iris::Root::render_target_manager().create();
+    pass->colour_target = render_target_manager.create();
     pass->camera = &camera_;
     pass->sky_box = sky_box;
 

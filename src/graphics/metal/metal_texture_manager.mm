@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "core/data_buffer.h"
+#include "core/resource_manager.h"
 #include "graphics/metal/metal_cube_map.h"
 #include "graphics/metal/metal_sampler.h"
 #include "graphics/metal/metal_texture.h"
@@ -20,6 +21,11 @@
 
 namespace iris
 {
+
+MetalTextureManager::MetalTextureManager(ResourceManager &resource_manager)
+    : TextureManager(resource_manager)
+{
+}
 
 std::unique_ptr<Texture> MetalTextureManager::do_create(
     const DataBuffer &data,

@@ -9,6 +9,8 @@
 #include <cstdint>
 #include <memory>
 
+#include "graphics/material_manager.h"
+#include "graphics/texture_manager.h"
 #include "graphics/window.h"
 #include "graphics/window_manager.h"
 
@@ -21,7 +23,14 @@ namespace iris
 class MacosWindowManager : public WindowManager
 {
   public:
-    ~MacosWindowManager() override = default;
+    /**
+     * @param texture_manager
+     *   Texture manager object.
+     *
+     * @param material_manager
+     *   Material manager object.
+     */
+    MacosWindowManager(TextureManager &texture_manager, MaterialManager &material_manager);
 
     /**
      * Create a new Window.
@@ -43,6 +52,12 @@ class MacosWindowManager : public WindowManager
     Window *current_window() const override;
 
   private:
+    /** Texture manager object. */
+    TextureManager &texture_manager_;
+
+    /** Material manager object. */
+    MaterialManager &material_manager_;
+
     /** Current window .*/
     std::unique_ptr<Window> current_window_;
 };

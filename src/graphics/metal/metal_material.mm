@@ -80,7 +80,8 @@ MetalMaterial::MetalMaterial(
     bool render_to_normal_target,
     bool render_to_position_target,
     bool has_transparency)
-    : pipeline_state_()
+    : Material(render_graph)
+    , pipeline_state_()
 {
     ShaderCompiler compiler{
         ShaderLanguage::MSL, render_graph, light_type, render_to_normal_target, render_to_position_target};

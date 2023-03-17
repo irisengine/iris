@@ -8,9 +8,10 @@
 
 #include <cstdint>
 #include <functional>
-#include <string>
+#include <string_view>
 #include <vector>
 
+#include "core/resource_manager.h"
 #include "graphics/animation/animation.h"
 #include "graphics/skeleton.h"
 #include "graphics/texture.h"
@@ -28,6 +29,9 @@ using AnimationCallback = std::function<void(std::vector<Animation>, Skeleton)>;
 /**
  * Load a mesh from file.
  *
+ * @param resource_manager
+ *   Resource manager object.
+ *
  * @param mesh_name
  *   Name of of mesh to load, will be passed to ResourceLoader.
  *
@@ -41,7 +45,8 @@ using AnimationCallback = std::function<void(std::vector<Animation>, Skeleton)>;
  *   Callback for returning loaded animation data.
  */
 void load(
-    const std::string &mesh_name,
+    ResourceManager &resource_manager,
+    std::string_view mesh_name,
     bool flip_uvs,
     MeshDataCallback mesh_data_callback,
     AnimationCallback animation_callback);

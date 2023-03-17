@@ -17,9 +17,9 @@
 #include "core/colour.h"
 #include "core/error_handling.h"
 #include "core/exception.h"
-#include "core/root.h"
 #include "core/vector3.h"
 #include "graphics/mesh.h"
+#include "graphics/mesh_manager.h"
 #include "graphics/scene.h"
 #include "graphics/single_entity.h"
 #include "graphics/vertex_data.h"
@@ -27,6 +27,7 @@
 #include "physics/bullet/bullet_capsule_collision_shape.h"
 #include "physics/bullet/bullet_heightmap_collision_shape.h"
 #include "physics/bullet/bullet_mesh_collision_shape.h"
+
 
 namespace
 {
@@ -84,10 +85,11 @@ class DebugDrawcallback : public btTriangleCallback, public btInternalTriangleIn
 namespace iris
 {
 
-DebugDraw::DebugDraw()
+DebugDraw::DebugDraw(MeshManager &mesh_manager)
     : scene_(nullptr)
-    , bullet_debug_draw_()
+    , bullet_debug_draw_(mesh_manager)
     , meshes_()
+    , bodies_()
 {
 }
 

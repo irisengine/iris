@@ -16,6 +16,7 @@ namespace iris
 {
 
 SimulatedServerSocket::SimulatedServerSocket(
+    Context &context,
     std::chrono::milliseconds delay,
     std::chrono::milliseconds jitter,
     float drop_rate,
@@ -25,6 +26,7 @@ SimulatedServerSocket::SimulatedServerSocket(
     , delay_(delay)
     , jitter_(jitter)
     , drop_rate_(drop_rate)
+    , context_(context)
 {
 }
 
@@ -34,7 +36,7 @@ ServerSocketData SimulatedServerSocket::read()
 
     if (!client_)
     {
-        client_ = std::make_unique<SimulatedSocket>(delay_, jitter_, drop_rate_, client_socket);
+        client_ = std::make_unique<SimulatedSocket>(context_, delay_, jitter_, drop_rate_, client_socket);
     }
 
     return {client_.get(), data, new_client};

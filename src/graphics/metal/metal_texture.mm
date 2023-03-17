@@ -19,7 +19,6 @@
 #include "core/error_handling.h"
 #include "core/exception.h"
 #include "core/macos/macos_ios_utility.h"
-#include "core/resource_loader.h"
 #include "core/vector3.h"
 #include "graphics/sampler.h"
 #include "graphics/texture_usage.h"

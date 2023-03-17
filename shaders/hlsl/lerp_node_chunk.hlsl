@@ -1,0 +1,1 @@
+lerp({{input1}}, {{input2}}, {{lerp_amount}})

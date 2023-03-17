@@ -11,10 +11,9 @@
 #include <vector>
 
 #include "core/error_handling.h"
-#include "core/root.h"
 #include "graphics/material_manager.h"
 #include "graphics/mesh_manager.h"
-#include "graphics/render_graph/arithmetic_node.h"
+#include "graphics/render_graph/binary_operator_node.h"
 #include "graphics/render_graph/blur_node.h"
 #include "graphics/render_graph/component_node.h"
 #include "graphics/render_graph/conditional_node.h"
@@ -54,6 +53,9 @@ namespace
  * @param has_position_target
  *   Flag indicating if positions should be rendered.
  *
+ * @param sky_box_render_graph
+ *   Render graph for the sky box for this scene (if one is present), otherwise nullptr.
+ *
  * @param cmd
  *   Command object to mutate and enqueue, this is passed in so it can be "pre-loaded" with the correct state.
  *
@@ -64,18 +66,25 @@ namespace
  *   Map of directional lights to their associated shadow map render target.
  */
 void encode_light_pass_commands(
+    iris::MaterialManager &material_manager,
     const iris::Scene *scene,
     iris::LightType light_type,
     bool has_normal_target,
     bool has_position_target,
+    const iris::RenderGraph *sky_box_render_graph,
     iris::RenderCommand &cmd,
     std::vector<iris::RenderCommand> &render_queue,
     const std::unordered_map<iris::DirectionalLight *, iris::RenderTarget *> &shadow_maps)
 {
-
     for (const auto &[render_graph, render_entity] : scene->entities())
     {
-        auto *material = iris::Root::material_manager().create(
+        // if we have a sky box we only want to render it once on the ambient pass
+        if ((render_graph == sky_box_render_graph) && (light_type != iris::LightType::AMBIENT))
+        {
+            continue;
+        }
+
+        auto *material = material_manager.create(
             render_graph,
             render_entity.get(),
             light_type,
@@ -129,8 +138,16 @@ void encode_light_pass_commands(
 namespace iris
 {
 
-RenderPipeline::RenderPipeline(std::uint32_t width, std::uint32_t height)
-    : scenes_()
+RenderPipeline::RenderPipeline(
+    MaterialManager &material_manager,
+    MeshManager &mesh_manager,
+    RenderTargetManager &render_target_manager,
+    std::uint32_t width,
+    std::uint32_t height)
+    : material_manager_(material_manager)
+    , mesh_manager_(mesh_manager)
+    , render_target_manager_(render_target_manager)
+    , scenes_()
     , render_graphs_()
     , user_created_passes_()
     , engine_created_passes_()
@@ -148,7 +165,7 @@ RenderPipeline::~RenderPipeline() = default;
 
 Scene *RenderPipeline::create_scene()
 {
-    static RenderGraph default_render_graph{};
+    static RenderGraph default_render_graph{material_manager_.create_property_buffer()};
 
     // using new to access private ctor
     scenes_.push_back(std::unique_ptr<Scene>(new Scene{&default_render_graph, &dirty_}));
@@ -159,7 +176,7 @@ Scene *RenderPipeline::create_scene()
 RenderGraph *RenderPipeline::create_render_graph()
 {
     // using new to access private ctor
-    render_graphs_.push_back(std::unique_ptr<RenderGraph>(new RenderGraph{}));
+    render_graphs_.push_back(std::unique_ptr<RenderGraph>(new RenderGraph{material_manager_.create_property_buffer()}));
 
     return render_graphs_.back().get();
 }
@@ -190,7 +207,7 @@ std::vector<RenderCommand> RenderPipeline::build()
         {
             if (light->casts_shadows())
             {
-                auto *rt = Root::render_target_manager().create(1024u, 1024u);
+                auto *rt = render_target_manager_.create(1024u, 1024u);
                 RenderPass *shadow_pass = create_engine_render_pass(pass->scene);
                 shadow_pass->post_processing_description = {};
                 shadow_pass->camera = std::addressof(light->shadow_camera());
@@ -218,8 +235,8 @@ std::vector<RenderCommand> RenderPipeline::build()
             RenderPass *ao_data_pass = create_engine_render_pass(pass->scene);
             ao_data_pass->post_processing_description = {};
             ao_data_pass->colour_target = nullptr;
-            ao_data_pass->normal_target = Root::render_target_manager().create(width_, height_);
-            ao_data_pass->position_target = Root::render_target_manager().create(width_, height_);
+            ao_data_pass->normal_target = render_target_manager_.create(width_, height_);
+            ao_data_pass->position_target = render_target_manager_.create(width_, height_);
             ao_data_pass->depth_only = true;
             ao_data_pass->clear_colour = true;
             ao_data_pass->camera = pass->camera;
@@ -246,12 +263,12 @@ std::vector<RenderCommand> RenderPipeline::build()
             prev->colour_target = pass->colour_target;
 
             // fudge the colour target of the pre pass and the depth target of the ssao pass into one render target
-            pass->colour_target = Root::render_target_manager().create(prev->colour_target, ao_target);
+            pass->colour_target = render_target_manager_.create(prev->colour_target, ao_target);
             pass->clear_colour = false;
             pass->clear_depth = false;
         }
 
-        // if a skybox has been added enure it has en entity in the scene
+        // if a skybox has been added ensure it has an entity in the scene
         if (pass->sky_box != nullptr)
         {
             auto *scene = pass->scene;
@@ -261,11 +278,12 @@ std::vector<RenderCommand> RenderPipeline::build()
 
             const auto [_, inserted] = sky_box_entities_.try_emplace(
                 pass.get(),
-                scene->create_entity<SingleEntity>(
-                    sky_box_rg, Root::mesh_manager().cube({}), Transform({}, {}, {0.5f})));
+                scene->create_entity_at_front<SingleEntity>(
+                    sky_box_rg, mesh_manager_.cube({}), Transform({}, {}, {0.5f})));
             expect(inserted, "sky box exists");
 
             sky_box_entities_[pass.get()]->set_receive_shadow(false);
+            sky_box_render_graphs_[pass.get()] = sky_box_rg;
         }
     }
 
@@ -297,14 +315,18 @@ std::vector<RenderCommand> RenderPipeline::rebuild()
         const auto has_normal_target = pass->normal_target != nullptr;
         const auto has_position_target = pass->position_target != nullptr;
 
+        const auto *sky_box_rg = (sky_box_render_graphs_.contains(pass)) ? sky_box_render_graphs_[pass] : nullptr;
+
         // encode ambient light pass unless we have used ssao (in which case this gets done by the ssao pass itself)
         if (!pass->post_processing_description.ambient_occlusion)
         {
             encode_light_pass_commands(
+                material_manager_,
                 pass->scene,
                 LightType::AMBIENT,
                 has_normal_target,
                 has_position_target,
+                sky_box_rg,
                 cmd,
                 render_queue,
                 shadow_maps_);
@@ -316,10 +338,12 @@ std::vector<RenderCommand> RenderPipeline::rebuild()
             if (!pass->scene->lighting_rig()->point_lights.empty())
             {
                 encode_light_pass_commands(
+                    material_manager_,
                     pass->scene,
                     LightType::POINT,
                     has_normal_target,
                     has_position_target,
+                    sky_box_rg,
                     cmd,
                     render_queue,
                     shadow_maps_);
@@ -329,37 +353,15 @@ std::vector<RenderCommand> RenderPipeline::rebuild()
             if (!pass->scene->lighting_rig()->directional_lights.empty())
             {
                 encode_light_pass_commands(
+                    material_manager_,
                     pass->scene,
                     LightType::DIRECTIONAL,
                     has_normal_target,
                     has_position_target,
+                    sky_box_rg,
                     cmd,
                     render_queue,
                     shadow_maps_);
-            }
-
-            if (pass->sky_box != nullptr)
-            {
-                auto *scene = pass->scene;
-
-                auto *sky_box_rg = create_render_graph();
-                sky_box_rg->set_render_node<SkyBoxNode>(pass->sky_box);
-
-                auto *material = Root::material_manager().create(
-                    sky_box_rg,
-                    sky_box_entities_[pass],
-                    LightType::AMBIENT,
-                    cmd.render_pass()->colour_target != nullptr,
-                    false,
-                    false,
-                    false);
-                cmd.set_material(material);
-
-                cmd.set_render_entity(sky_box_entities_[pass]);
-
-                cmd.set_type(iris::RenderCommandType::DRAW);
-                cmd.set_light(scene->lighting_rig()->ambient_light.get());
-                render_queue.push_back(cmd);
             }
         }
 
@@ -406,14 +408,14 @@ const RenderTarget *RenderPipeline::add_pass(
     // create new pass with
     cameras_.push_back({CameraType::ORTHOGRAPHIC, width_, height_});
     auto *camera = std::addressof(cameras_.back());
-    const auto *target = Root::render_target_manager().create(width_, height_);
+    const auto *target = render_target_manager_.create(width_, height_);
 
     auto *scene = create_scene();
     auto *rg = create_render_graph();
     create_render_graph_callback(rg, target);
     scene->create_entity<SingleEntity>(
         rg,
-        Root::mesh_manager().sprite({}),
+        mesh_manager_.sprite({}),
         Transform({}, {}, {static_cast<float>(width_), static_cast<float>(height_), 1. - 1}));
 
     auto *pass = create_engine_render_pass(scene);
@@ -449,10 +451,10 @@ void RenderPipeline::add_post_processing_passes()
 
             add_pass(render_passes, [&bloom](RenderGraph *rg, const RenderTarget *target) {
                 rg->render_node()->set_colour_input(rg->create<ConditionalNode>(
-                    rg->create<ArithmeticNode>(
+                    rg->create<BinaryOperatorNode>(
                         rg->create<TextureNode>(target->colour_texture()),
                         rg->create<ValueNode<Colour>>(Colour{0.2126f, 0.7152f, 0.0722f, 0.0f}),
-                        ArithmeticOperator::DOT),
+                        BinaryOperator::DOT),
                     rg->create<ValueNode<float>>(bloom->threshold),
                     rg->create<TextureNode>(target->colour_texture()),
                     rg->create<ValueNode<Colour>>(Colour{0.0f, 0.0f, 0.0f, 1.0f}),
@@ -468,10 +470,10 @@ void RenderPipeline::add_post_processing_passes()
             }
 
             add_pass(render_passes, [null_target](RenderGraph *rg, const RenderTarget *target) {
-                rg->render_node()->set_colour_input(rg->create<ArithmeticNode>(
+                rg->render_node()->set_colour_input(rg->create<BinaryOperatorNode>(
                     rg->create<TextureNode>(null_target->colour_texture()),
                     rg->create<TextureNode>(target->colour_texture()),
-                    ArithmeticOperator::ADD));
+                    BinaryOperator::ADD));
             });
         }
 

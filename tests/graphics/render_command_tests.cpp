@@ -4,6 +4,7 @@
 //                 https://www.boost.org/LICENSE_1_0.txt)                     //
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "core/vector3.h"
@@ -19,6 +20,10 @@
 #include "fakes/fake_material.h"
 #include "fakes/fake_mesh.h"
 #include "fakes/fake_render_target.h"
+#include "mocks/mock_material_manager.h"
+#include "mocks/mock_mesh_manager.h"
+#include "mocks/mock_render_target_manager.h"
+#include "mocks/mock_resource_manager.h"
 
 TEST(render_command_tests, default_ctor)
 {
@@ -34,7 +39,12 @@ TEST(render_command_tests, default_ctor)
 
 TEST(render_command_tests, ctor)
 {
-    iris::RenderPipeline pipeline{600u, 600u};
+    MockResourceManager resource_manager{};
+    MockMaterialManager material_manager{};
+    MockMeshManager mesh_manager{resource_manager};
+    MockRenderTargetManager render_target_manager{};
+
+    iris::RenderPipeline pipeline{material_manager, mesh_manager, render_target_manager, 600u, 600u};
     FakeMesh mesh{};
     const auto type = iris::RenderCommandType::DRAW;
     const FakeMaterial material{};
@@ -66,7 +76,12 @@ TEST(render_command_tests, get_set_type)
 
 TEST(render_command_tests, get_set_render_pass)
 {
-    iris::RenderPipeline pipeline{600u, 600u};
+    MockResourceManager resource_manager{};
+    MockMaterialManager material_manager{};
+    MockMeshManager mesh_manager{resource_manager};
+    MockRenderTargetManager render_target_manager{};
+
+    iris::RenderPipeline pipeline{material_manager, mesh_manager, render_target_manager, 600u, 600u};
     auto *scene = pipeline.create_scene();
     const auto *render_pass = pipeline.create_render_pass(scene);
     iris::RenderCommand cmd{};

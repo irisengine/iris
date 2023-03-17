@@ -10,6 +10,7 @@
 #include <memory>
 #include <vector>
 
+#include "core/resource_manager.h"
 #include "graphics/mesh.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/vertex_data.h"
@@ -25,9 +26,11 @@ class OpenGLMeshManager : public MeshManager
   public:
     /**
      * Construct a new OpenGLMeshManager.
+     *
+     * @param resource_manager
+     *   Resource manager object.
      */
-    OpenGLMeshManager();
-    ~OpenGLMeshManager() override = default;
+    OpenGLMeshManager(ResourceManager &resource_manager);
 
   protected:
     /**

@@ -13,7 +13,6 @@
 
 #include "core/camera.h"
 #include "core/error_handling.h"
-#include "core/root.h"
 #include "core/vector3.h"
 #include "graphics/constant_buffer_writer.h"
 #include "graphics/instanced_entity.h"
@@ -102,12 +101,12 @@ void draw_meshes(const iris::RenderEntity *entity)
  * @return
  *   SSBO with all textures loaded at the correct index.
  */
-std::unique_ptr<iris::SSBO> create_texture_table_ssbo()
+std::unique_ptr<iris::SSBO> create_texture_table_ssbo(iris::TextureManager &texture_manager)
 {
-    const auto textures = iris::Root::texture_manager().textures();
+    const auto textures = texture_manager.textures();
     const auto max_index = textures.back()->index();
     auto texture_table = std::make_unique<iris::SSBO>((max_index + 1u) * sizeof(GLuint64), 3u);
-    const auto *blank_texture = static_cast<const iris::OpenGLTexture *>(iris::Root::texture_manager().blank_texture());
+    const auto *blank_texture = static_cast<const iris::OpenGLTexture *>(texture_manager.blank_texture());
     auto iter = std::cbegin(textures);
 
     // write bindless handles into the SSBO
@@ -137,13 +136,12 @@ std::unique_ptr<iris::SSBO> create_texture_table_ssbo()
  * @return
  *   SSBO with all cube maps loaded at the correct index.
  */
-std::unique_ptr<iris::SSBO> create_cube_map_table_ssbo()
+std::unique_ptr<iris::SSBO> create_cube_map_table_ssbo(iris::TextureManager &texture_manager)
 {
-    const auto cube_maps = iris::Root::texture_manager().cube_maps();
+    const auto cube_maps = texture_manager.cube_maps();
     const auto max_index = cube_maps.back()->index();
     auto cube_map_table = std::make_unique<iris::SSBO>((max_index + 1u) * sizeof(GLuint64), 4u);
-    const auto *blank_cube_map =
-        static_cast<const iris::OpenGLCubeMap *>(iris::Root::texture_manager().blank_cube_map());
+    const auto *blank_cube_map = static_cast<const iris::OpenGLCubeMap *>(texture_manager.blank_cube_map());
     auto iter = std::cbegin(cube_maps);
 
     // write bindless handles into the SSBO
@@ -172,8 +170,15 @@ std::unique_ptr<iris::SSBO> create_cube_map_table_ssbo()
 namespace iris
 {
 
-OpenGLRenderer::OpenGLRenderer(std::uint32_t width, std::uint32_t height)
-    : Renderer()
+OpenGLRenderer::OpenGLRenderer(
+    WindowManager &window_manager,
+    TextureManager &texture_manager,
+    MaterialManager &material_manager,
+    std::uint32_t width,
+    std::uint32_t height)
+    : Renderer(material_manager)
+    , window_manager_(window_manager)
+    , texture_manager_(texture_manager)
     , width_(width)
     , height_(height)
     , bone_data_()
@@ -227,8 +232,8 @@ void OpenGLRenderer::do_set_render_pipeline(std::function<void()> build_queue)
             static_cast<const OpenGLRenderTarget *>(pass->position_target)};
     }
 
-    texture_table_ = create_texture_table_ssbo();
-    cube_map_table_ = create_cube_map_table_ssbo();
+    texture_table_ = create_texture_table_ssbo(texture_manager_);
+    cube_map_table_ = create_cube_map_table_ssbo(texture_manager_);
 }
 
 void OpenGLRenderer::execute_pass_start(RenderCommand &command)
@@ -240,7 +245,7 @@ void OpenGLRenderer::execute_pass_start(RenderCommand &command)
     // else we bind the supplied target
     if (frame_buffer.colour_target() == nullptr)
     {
-        const auto scale = Root::window_manager().current_window()->screen_scale();
+        const auto scale = window_manager_.current_window()->screen_scale();
 
         ::glViewport(0, 0, width_ * scale, height_ * scale);
         expect(check_opengl_error, "could not set viewport");
@@ -275,6 +280,7 @@ void OpenGLRenderer::execute_pass_start(RenderCommand &command)
     light_data_.clear();
 
     camera_data_ = std::make_unique<UBO>((sizeof(Matrix4) * 3u) + sizeof(Vector3), 0u);
+    render_values_ = std::make_unique<UBO>(64u, 6u);
 
     // calculate view matrix for normals
     auto normal_view = Matrix4::transpose(Matrix4::invert(camera->view()));
@@ -419,6 +425,10 @@ void OpenGLRenderer::execute_draw(RenderCommand &command)
         }
     }
 
+    const auto time_value = static_cast<float>(time().count()) / 1000.0f;
+    ConstantBufferWriter writer(*render_values_);
+    writer.write(time_value);
+
     ::glBindBufferBase(GL_UNIFORM_BUFFER, 0, camera_data_->handle());
     expect(check_opengl_error, "could not bind camera data ubo");
 
@@ -433,6 +443,9 @@ void OpenGLRenderer::execute_draw(RenderCommand &command)
 
     ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, cube_map_table_->handle());
     expect(check_opengl_error, "could not bind cube map data ssbo");
+
+    ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, render_values_->handle());
+    expect(check_opengl_error, "could not bind cube render value ssbo");
 
     // bind model data, depending on if we're rendering a single or instanced entity
     if (render_entity->type() != RenderEntityType::INSTANCED)
@@ -454,10 +467,10 @@ void OpenGLRenderer::execute_present(RenderCommand &)
 #if defined(IRIS_PLATFORM_MACOS)
     ::glSwapAPPLE();
 #elif defined(IRIS_PLATFORM_WIN32)
-    const auto *window = static_cast<Win32OpenGLWindow *>(Root::window_manager().current_window());
+    const auto *window = static_cast<Win32OpenGLWindow *>(window_manager_.current_window());
     ::SwapBuffers(window->device_context());
 #elif defined(IRIS_PLATFORM_LINUX)
-    const auto *window = static_cast<LinuxWindow *>(Root::window_manager().current_window());
+    const auto *window = static_cast<LinuxWindow *>(window_manager_.current_window());
     ::glXSwapBuffers(window->display(), window->window());
 #endif
 }

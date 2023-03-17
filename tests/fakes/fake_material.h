@@ -15,5 +15,10 @@
 class FakeMaterial : public iris::Material
 {
   public:
+    FakeMaterial()
+        : Material(nullptr)
+    {
+    }
+
     ~FakeMaterial() override = default;
 };

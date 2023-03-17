@@ -20,6 +20,7 @@
 
 #include "core/quaternion.h"
 #include "core/vector3.h"
+#include "graphics/mesh_manager.h"
 #include "graphics/scene.h"
 #include "physics/bullet/bullet_collision_shape.h"
 #include "physics/bullet/debug_draw.h"
@@ -44,8 +45,11 @@ class BulletPhysicsSystem : public PhysicsSystem
   public:
     /**
      * Construct a new BulletPhysicsSystem.
+     *
+     * @param mesh_manager
+     *   Mesh manager object.
      */
-    BulletPhysicsSystem();
+    BulletPhysicsSystem(MeshManager &mesh_manager);
 
     ~BulletPhysicsSystem() override;
 

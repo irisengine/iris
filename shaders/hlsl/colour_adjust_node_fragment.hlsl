@@ -25,5 +25,5 @@ float4 main(PSInput input) : SV_TARGET
     float3 mapped = fragment_colour.rgb / (fragment_colour.rgb + float3(1.0, 1.0, 1.0));
     mapped = pow(fragment_colour.rgb, float3(gamma, gamma, gamma));
 
-    return float4(mapped.r, mapped.g, mapped.b, 1.0);
+    return float4(mapped.r, mapped.g, mapped.b, fragment_colour.a);
 }

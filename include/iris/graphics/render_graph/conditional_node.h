@@ -18,7 +18,8 @@ class ShaderCompiler;
 
 enum class ConditionalOperator : std::uint8_t
 {
-    GREATER
+    GREATER,
+    LESS,
 };
 
 /**

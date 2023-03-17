@@ -8,12 +8,13 @@
 
 #include <functional>
 
+#include "core/context.h"
+
 namespace iris
 {
 
 /**
- * Start the engine! This performs all platform and subsystem initialisation
- * before calling the supplied entry.
+ * Start the engine! This performs all platform and subsystem initialisation before calling the supplied entry.
  *
  * @param argc
  *   argc from main()
@@ -22,24 +23,11 @@ namespace iris
  *   argv from main()
  *
  * @param entry
- *   Entry point into game, will be passed argc and argv back.
+ *   Entry point into game, will be passed an engine context object.
+ *
+ * @param debug
+ *   If the engine should be started in debug mode.
  */
-void start(int argc, char **argv, std::function<void(int, char **)> entry);
-
-/**
- * Start the engine! This performs all platform and subsystem initialisation
- * before calling the supplied entry. This enables additional debugging and is
- * mainly used for diagnosing engine issues.
- *
- * @param argc
- *   argc from main()
- *
- * @param argv
- *   argv from main()
- *
- * @param entry
- *   Entry point into game, will be passed argc and argv back.
- */
-void start_debug(int argc, char **argv, std::function<void(int, char **)> entry);
+void start(int argc, char **argv, std::function<void(Context)> entry, bool debug = false);
 
 }
