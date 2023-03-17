@@ -172,14 +172,14 @@ Some additional snippets are included below.
 
 **Create a window**
 ```c++
-#include "iris/core/root.h"
+#include "iris/core/context.h"
 #include "iris/events/event.h"
 #include "iris/graphics/window.h"
 #include "iris/graphics/window_manager.h"
 
-void go(int, char **)
+void go(iris::Context context)
 {
-    auto *window = iris::Root::window_manager().create_window(800, 800);
+    auto *window = context.window_manager().create_window(800, 800);
     auto running = true;
 
     do
@@ -212,24 +212,21 @@ int main(int argc, char **argv)
 The public API of iris is versioned using [semver](https://semver.org/). This means that when upgrading you can expect the following outcomes:
 * Major version -> your project could no longer compile/link
 * Minor version -> your project may not function the same as before
-* Patch version -> your project should function the same, if you were not relying on the broken behavior.
+* Patch version -> your project should function the same, if you were not relying on the broken behaviour.
 
 The internal API could change frequently and should not be used. As a rule of thumb the public API is defined in any header file in the top-level folders in `inlcude/iris` and any subfolders are internal.
 
 ### Compile/Runtime choices
 Iris provides the user with several runtime choices e.g. rendering backend and physics engine. These are all runtime decisions (see [Managers](#managers)) and implemented via classic class inheritance. Some choices don't make sense to make at runtime e.g. `Semaphore` will be implemented with platform specific primitives so there is no runtime choice to make. To remove the overheard of inheritance and make this a simple compile time choice we define a single header ([semaphore.h](/include/iris/core/semaphore.h)) with the API and provide several different implementations ([macos](/src/core/macos/semaphore.cpp), [windows](/src/core/win32/semaphore.cpp)). Cmake can then pick the appropriate one when building. We use the [pimpl](https://en.cppreference.com/w/cpp/language/pimpl) idiom to keep implementation details out of the header.
 
-### Managers
-In order to easily facilitate the runtime selection of components iris makes use of several manager classes. A manager class can be thought of as a factory class with state. Managers are registered in [`Root`](/include/iris/core/root.h) and then accessed via the [`Root`](/include/iris/core/root.h) API. [`start()`](/include/iris/core/start.h) registers all builtin components for a given platform and sets sensible defaults. It may seem like a lot of machinery to have to registers managers, access them via [`Root`](/include/iris/core/root.h) then use those to actually create the objects you want, but the advantage is a complete decoupling of the implementation from [`Root`](/include/iris/core/root.h). It is therefore possible to provide your own implementations of these components, register, then use them.
+### Context & Managers
+To start the engine you call `iris::start` to which you pass a callback. Iris will perform all necessary startup and then call your callback passing to it an engine [`Context`](/include/iris/core/context.h). This [`Context`](/include/iris/core/context.h) object contains everything required to use the engine. In order to easily facilitate the runtime selection of components iris makes use of several manager classes. A manager class can be thought of as a factory class with state. Default managers are registered for you on the [`Context`](/include/iris/core/context.h). It may seem like a lot of machinery to have to registers managers but the advantage is a complete decoupling of the implementation from [`Context`](/include/iris/core/context.h). It is therefore possible to provide your own implementations of these components, register, then use them.
 
 ### Memory management
 Iris manages the memory and lifetime of primitives for the user. If the engine is creating an object and returns a pointer it can be assumed that the pointer is not null and will remain valid until explicitly returned to the engine by the user.
 
 ### [`core`](/include/iris/core)
 The directory contains primitives used throughout the engine. Details on some key parts are defined below.
-
-#### Root
-The [`Root`](/include/iris/core/root.h) provides singleton access to various core parts of iris, including the registered [managers](#managers).
 
 #### Start
 The [`start`](/include/iris/core/start.h) function allows iris to perform all engine start up and tear down before handing over to a user supplied function. All iris functions are undefined if called outside the provided callback.
@@ -373,10 +370,6 @@ Main scene ~~~~~~~~ -----.
 Iris doesn't use separate threads for each component (e.g. one thread for rendering and another for physics) instead it provides an API for executing independent jobs. This allows for a more scalable approach to parallelism without having to worry about synchronisation between components.
 
 A [`job`](/include/iris/jobs/job.h) represents a function call and can be a named function or a lambda.
-
-For simplicity the API for scheduling jobs is exposed via `Root`. There are two options for scheduling:
-* `add_jobs()` - fire and forget
-* `wait_for_jobs()` - caller waits for all jobs to finish
 
 Note that a key part of the design is to allow jobs to schedule other jobs with either method.
 
