@@ -169,7 +169,11 @@ iris::Key x11_key_to_engine_key(unsigned int key_code)
 namespace iris
 {
 
-LinuxWindow::LinuxWindow(std::uint32_t width, std::uint32_t height)
+LinuxWindow::LinuxWindow(
+    std::uint32_t width,
+    std::uint32_t height,
+    TextureManager &texture_manager,
+    MaterialManager &material_manager)
     : Window(width, height)
 {
     display_ = {::XOpenDisplay(nullptr), ::XCloseDisplay};
@@ -313,7 +317,7 @@ LinuxWindow::LinuxWindow(std::uint32_t width, std::uint32_t height)
 
     ensure(::glXMakeCurrent(display_, window_, context_) == True, "could not make context current");
 
-    renderer_ = std::make_unique<OpenGLRenderer>(width_, height_);
+    renderer_ = std::make_unique<OpenGLRenderer>(texture_manager, material_manager, width_, height_);
 
     const auto scale = screen_scale();
 
