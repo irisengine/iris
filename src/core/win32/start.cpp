@@ -34,6 +34,18 @@
 namespace
 {
 
+/**
+ * Create the engine context object, with defaults for the current platform.
+ *
+ * @param argc
+ *   Number of command line arguments.
+ *
+ * @param argv
+ *   Array of command line arguments.
+ *
+ * @returns
+ *   Engine conetext object.
+ */
 iris::Context create_context(int argc, char **argv)
 {
     iris::Context ctx{argc, argv};

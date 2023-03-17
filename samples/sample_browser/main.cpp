@@ -81,9 +81,10 @@ RenderState create_render_state(iris::Context &context, iris::Window *window, ir
     scene->create_entity<iris::SingleEntity>(
         rg, context.mesh_manager().sprite({1.0f, 1.0f, 1.0f}), iris::Transform{{0.0f}, {}, {1920.0f, 1080.0f, 1.0f}});
 
-    iris::PostProcessingDescription post_processing_description{//.bloom = {iris::BloomDescription{6.0f}},
-                                                                .colour_adjust = {iris::ColourAdjustDescription{}},
-                                                                .anti_aliasing = {iris::AntiAliasingDescription{}}};
+    iris::PostProcessingDescription post_processing_description{
+        .bloom = {iris::BloomDescription{6.0f}},
+        .colour_adjust = {iris::ColourAdjustDescription{}},
+        .anti_aliasing = {iris::AntiAliasingDescription{}}};
 
     auto *pass = render_pipeline->create_render_pass(scene);
     pass->camera = camera;
@@ -94,13 +95,11 @@ RenderState create_render_state(iris::Context &context, iris::Window *window, ir
 
 void go(iris::Context context)
 {
-    // iris::Root::set_graphics_api("opengl");
-
     context.resource_manager().set_root_directory("assets");
     auto &rtm = context.render_target_manager();
 
     auto window = context.window_manager().create_window(1920, 1080);
-    std::size_t sample_number = 3u;
+    std::size_t sample_number = 0u;
 
     iris::Camera camera{iris::CameraType::ORTHOGRAPHIC, window->width(), window->height()};
 
@@ -114,11 +113,13 @@ void go(iris::Context context)
     iris::Looper looper{
         0ms,
         16ms,
-        [&sample = sample](auto, auto) {
+        [&sample = sample](auto, auto)
+        {
             sample->fixed_update();
             return true;
         },
-        [&, &sample = sample](std::chrono::microseconds elapsed, auto) {
+        [&, &sample = sample](std::chrono::microseconds elapsed, auto)
+        {
             auto running = true;
             auto event = window->pump_event();
             while (event)

@@ -61,9 +61,9 @@ PSInput main(
     float4 bone_weights : TEXCOORD7,
     uint instance_id : SV_InstanceID)
 {
-## for variable in variables
-    {{variable}}
-## endfor
+    {% for variable in variables %}
+        {{variable}}
+    {% endfor %}
 
     matrix bone_transform = mul(bones[bone_ids[0]], bone_weights[0]);
     bone_transform += mul(bones[bone_ids[1]], bone_weights[1]);

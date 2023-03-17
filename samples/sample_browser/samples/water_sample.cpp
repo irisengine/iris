@@ -447,27 +447,29 @@ WaterSample::WaterSample(iris::Window *window, iris::RenderPipeline &render_pipe
                     water_graph->create<iris::ValueNode<float>>(0.0f),
                     water_graph->create<iris::ValueNode<float>>(0.0f)),
                 ".xy"),
-            water_graph->create<iris::FragmentNode>(iris::FragmentDataType::TEX_COORD),
+            water_graph->create<iris::FragmentNode>(iris::FragmentDataType::TEX_COORD, ".xy"),
             iris::BinaryOperator::ADD),
-        water_graph->create<iris::TextureNode>(
-            flow_map,
-            iris::UVSource::NODE,
-            water_graph->create<iris::BinaryOperatorNode>(
+        water_graph->create<iris::ComponentNode>(
+            water_graph->create<iris::TextureNode>(
+                flow_map,
+                iris::UVSource::NODE,
                 water_graph->create<iris::BinaryOperatorNode>(
-                    water_graph->create<iris::ComponentNode>(
-                        water_graph->create<iris::CombineNode>(
-                            water_graph->create<iris::PropertyNode>("water_offset_x"),
-                            water_graph->create<iris::PropertyNode>("water_offset_y"),
-                            water_graph->create<iris::ValueNode<float>>(0.0f),
-                            water_graph->create<iris::ValueNode<float>>(0.0f)),
-                        ".xy"),
                     water_graph->create<iris::BinaryOperatorNode>(
-                        water_graph->create<iris::TimeNode>(),
-                        water_graph->create<iris::ValueNode<float>>(0.01f),
-                        iris::BinaryOperator::MULTIPLY),
-                    iris::BinaryOperator::ADD),
-                water_graph->create<iris::FragmentNode>(iris::FragmentDataType::TEX_COORD),
-                iris::BinaryOperator::ADD)),
+                        water_graph->create<iris::ComponentNode>(
+                            water_graph->create<iris::CombineNode>(
+                                water_graph->create<iris::PropertyNode>("water_offset_x"),
+                                water_graph->create<iris::PropertyNode>("water_offset_y"),
+                                water_graph->create<iris::ValueNode<float>>(0.0f),
+                                water_graph->create<iris::ValueNode<float>>(0.0f)),
+                            ".xy"),
+                        water_graph->create<iris::BinaryOperatorNode>(
+                            water_graph->create<iris::TimeNode>(),
+                            water_graph->create<iris::ValueNode<float>>(0.01f),
+                            iris::BinaryOperator::MULTIPLY),
+                        iris::BinaryOperator::ADD),
+                    water_graph->create<iris::FragmentNode>(iris::FragmentDataType::TEX_COORD, ".xy"),
+                    iris::BinaryOperator::ADD)),
+            ".xy"),
         iris::BinaryOperator::ADD);
 
     static constexpr iris::Colour water_base_colour{0.17f, 0.53f, 0.54f};

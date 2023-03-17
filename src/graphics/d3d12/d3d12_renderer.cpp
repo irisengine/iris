@@ -169,6 +169,9 @@ void copy_descriptor(
 /**
  * Helper function to encode commands for uploading textures.
  *
+ * @param texture_manager
+ *   Texture manager object.
+ *
  * @param uploaded_textures
  *   Set of all textures that have been uploaded (will be updated).
  *
@@ -185,11 +188,14 @@ void upload_textures(
     ID3D12GraphicsCommandList *command_list)
 {
     // encode commands to copy all textures to their target heaps
-    for (auto *texture : texture_manager.textures() | std::views::filter([](const auto *element) {
-                             return !(
-                                 (element->usage() == iris::TextureUsage::RENDER_TARGET) ||
-                                 (element->usage() == iris::TextureUsage::DEPTH));
-                         }))
+    for (auto *texture :
+         texture_manager.textures() | std::views::filter(
+                                          [](const auto *element)
+                                          {
+                                              return !(
+                                                  (element->usage() == iris::TextureUsage::RENDER_TARGET) ||
+                                                  (element->usage() == iris::TextureUsage::DEPTH));
+                                          }))
     {
         const auto *d3d12_tex = static_cast<const iris::D3D12Texture *>(texture);
 
@@ -260,6 +266,9 @@ void upload_textures(
 /**
  * Helper function to build the texture table - a global GPU buffer of all textures (used for bindless rendering)
  *
+ * @param texture_manager
+ *   Texture manager object.
+ *
  * @returns
  *   D3D12DescriptorHandle to a first element in table with all loaded textures.
  */
@@ -306,6 +315,9 @@ iris::D3D12DescriptorHandle create_texture_table(iris::TextureManager &texture_m
 
 /**
  * Helper function to build the cube map table - a global GPU buffer of all cube maps (used for bindless rendering)
+ *
+ * @param texture_manager
+ *   Texture manager object.
  *
  * @returns
  *   D3D12DescriptorHandle to a first element in table with all loaded cube maps.
