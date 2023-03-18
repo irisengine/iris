@@ -46,6 +46,16 @@ void Window::set_render_pipeline(std::unique_ptr<RenderPipeline> render_pipeline
     renderer_->set_render_pipeline(std::move(render_pipeline));
 }
 
+Renderer *Window::renderer() const
+{
+    return renderer_.get();
+}
+
+void Window::set_renderer(std::unique_ptr<Renderer> renderer)
+{
+    renderer_ = std::move(renderer);
+}
+
 std::chrono::milliseconds Window::time() const
 {
     return renderer_->time();

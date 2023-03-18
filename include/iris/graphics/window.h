@@ -93,6 +93,24 @@ class Window
     void set_render_pipeline(std::unique_ptr<RenderPipeline> render_pipeline);
 
     /**
+     * Get the renderer object for the window.
+     *
+     * @returns
+     *   Window renderer.
+     */
+    Renderer *renderer() const;
+
+    /**
+     * Set the renderer for the window.
+     *
+     * This method is really meant for setting the renderer before any rendering has happened.
+     *
+     * @param renderer
+     *   New renderer.
+     */
+    void set_renderer(std::unique_ptr<Renderer> renderer);
+
+    /**
      * Elapsed time since set_render_pipeline was called. This is also the value that is passed to shaders via TimeNode.
      *
      * @returns
