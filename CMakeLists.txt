@@ -13,6 +13,7 @@ include(GenerateExportHeader)
 
 # set options for library
 option(IRIS_BUILD_UNIT_TESTS "whether to build unit tests" ON)
+option(IRIS_BUILD_TOOLS "whether to build tools" ON)
 
 set(ASM_OPTIONS "-x assembler-with-cpp")
 
@@ -145,6 +146,10 @@ endif()
 add_subdirectory("shaders")
 add_subdirectory("src")
 add_subdirectory("samples")
+
+if(IRIS_BUILD_TOOLS)
+  add_subdirectory("tools")
+endif()
 
 if(IRIS_BUILD_UNIT_TESTS)
   enable_testing()
