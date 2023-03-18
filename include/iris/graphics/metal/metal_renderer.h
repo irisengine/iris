@@ -87,7 +87,6 @@ class MetalRenderer : public Renderer
     void execute_present(RenderCommand &command) override;
     void post_render() override;
 
-  private:
     /**
      * Internal struct encapsulating data needed for a frame.
      */
