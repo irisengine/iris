@@ -4,6 +4,7 @@
 //                 https://www.boost.org/LICENSE_1_0.txt)                     //
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <cwchar>
 #include <iostream>
 #include <memory>
 #include <optional>
@@ -23,6 +24,8 @@
 #include "graphics/window_manager.h"
 #include "log/log.h"
 
+#include "metal_gui_renderer.h"
+
 using namespace std::chrono_literals;
 
 void go(iris::Context ctx)
@@ -30,6 +33,9 @@ void go(iris::Context ctx)
     LOG_INFO("sclera", "hello sclera");
 
     auto *window = ctx.window_manager().create_window(1920, 1080);
+    window->set_renderer(std::make_unique<MetalGuiRenderer>(
+        ctx.texture_manager(), ctx.material_manager(), window->width(), window->height()));
+
     iris::Camera camera{iris::CameraType::ORTHOGRAPHIC, window->width(), window->height()};
 
     auto render_pipeline = std::make_unique<iris::RenderPipeline>(
@@ -50,7 +56,7 @@ void go(iris::Context ctx)
         0ms,
         30ms,
         [](auto, auto) { return true; },
-        [window](auto, auto)
+        [&](auto, auto)
         {
             auto running = true;
 
@@ -61,6 +67,8 @@ void go(iris::Context ctx)
                 {
                     running = false;
                 }
+
+                static_cast<MetalGuiRenderer *>(window->renderer())->handle_input(*event);
 
                 event = window->pump_event();
             }
@@ -75,6 +83,6 @@ void go(iris::Context ctx)
 
 int main(int argc, char **argv)
 {
-    iris::start(argc, argv, go);
+    iris::start(argc, argv, go, true);
     return 0;
 }
