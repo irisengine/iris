@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.18)
 
 project(
   iris
-  VERSION "4.0.1"
+  VERSION "4.1.0"
   DESCRIPTION "Cross-platform game engine"
   LANGUAGES C CXX)
 
