@@ -35,7 +35,7 @@ id<MTLBuffer> create_buffer(const std::vector<T> &data)
     // create buffer with data
     return [device newBufferWithBytes:static_cast<const void *>(data.data())
                                length:sizeof(T) * data.size()
-                              options:MTLResourceOptionCPUCacheModeDefault];
+                              options:MTLResourceCPUCacheModeDefaultCache];
 }
 
 }
