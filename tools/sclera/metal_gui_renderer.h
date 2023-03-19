@@ -9,20 +9,16 @@
 #include <cstdint>
 #include <memory>
 
+#include "core/context.h"
 #include "events/event.h"
-#include "graphics/material_manager.h"
 #include "graphics/render_command.h"
 #include "graphics/renderer.h"
-#include "graphics/texture_manager.h"
+#include "graphics/scene.h"
 
 class MetalGuiRenderer : public iris::Renderer
 {
   public:
-    MetalGuiRenderer(
-        iris::TextureManager &texture_manager,
-        iris::MaterialManager &material_manager,
-        std::uint32_t width,
-        std::uint32_t height);
+    MetalGuiRenderer(iris::Context &ctx, std::uint32_t width, std::uint32_t height, iris::Scene *scene);
     ~MetalGuiRenderer();
     MetalGuiRenderer(const MetalGuiRenderer &) = delete;
     MetalGuiRenderer &operator=(const MetalGuiRenderer &) = delete;
@@ -46,4 +42,5 @@ class MetalGuiRenderer : public iris::Renderer
 
     std::uint32_t width_;
     std::uint32_t height_;
+    bool show_demo_;
 };

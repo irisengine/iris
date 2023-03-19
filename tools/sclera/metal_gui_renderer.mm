@@ -8,18 +8,28 @@
 
 #include <CoreText/CoreText.h>
 #include <cstdint>
+#include <format>
 #include <functional>
 #include <memory>
 
 #include <Metal/Metal.h>
 #include <optional>
+#include <string>
 
 #include "backends/imgui_impl_metal.h"
+#include "core/context.h"
 #include "core/macos/macos_ios_utility.h"
+#include "core/quaternion.h"
+#include "core/transform.h"
+#include "core/vector3.h"
+#include "events/keyboard_event.h"
 #include "events/mouse_button_event.h"
 #include "graphics/metal/metal_renderer.h"
 #include "graphics/render_command.h"
+#include "graphics/render_entity_type.h"
 #include "graphics/renderer.h"
+#include "graphics/scene.h"
+#include "graphics/single_entity.h"
 #include "graphics/texture_manager.h"
 #include "imgui.h"
 #include "log/log.h"
@@ -99,6 +109,11 @@ class ActualMetalGuiRenderer : public iris::MetalRenderer
     std::function<void()> execute_pass_end_hook_;
 };
 
+std::string label_name(std::string_view label, std::uint32_t id)
+{
+    return std::string{label} + std::to_string(id);
+}
+
 }
 
 struct MetalGuiRenderer::implementation
@@ -122,15 +137,12 @@ struct MetalGuiRenderer::implementation
     std::unique_ptr<ActualMetalGuiRenderer> renderer;
 };
 
-MetalGuiRenderer::MetalGuiRenderer(
-    iris::TextureManager &texture_manager,
-    iris::MaterialManager &material_manager,
-    std::uint32_t width,
-    std::uint32_t height)
-    : iris::Renderer(material_manager)
+MetalGuiRenderer::MetalGuiRenderer(iris::Context &ctx, std::uint32_t width, std::uint32_t height, iris::Scene *scene)
+    : iris::Renderer(ctx.material_manager())
     , impl_(std::make_unique<implementation>())
     , width_(width)
     , height_(height)
+    , show_demo_(false)
 {
     impl_->io().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     impl_->io().ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
@@ -151,19 +163,125 @@ MetalGuiRenderer::MetalGuiRenderer(
     impl_->command_queue = [device newCommandQueue];
     impl_->pass_descriptor = [MTLRenderPassDescriptor new];
     impl_->renderer = std::make_unique<ActualMetalGuiRenderer>(
-        texture_manager,
-        material_manager,
+        ctx.texture_manager(),
+        ctx.material_manager(),
         width,
         height,
-        [&]
+        [&, scene]
         {
+            static std::vector<iris::SingleEntity *> entities;
+
             impl_->io().DisplaySize = ImVec2(width_, height_);
             impl_->io().DeltaTime = 1.0f / 30.0f;
 
             ::ImGui_ImplMetal_NewFrame(impl_->renderer->single_pass_descriptor());
             ::ImGui::NewFrame();
 
-            ::ImGui::ShowDemoWindow(nullptr);
+            if (show_demo_)
+            {
+                ::ImGui::ShowDemoWindow(nullptr);
+            }
+
+            ::ImGui::Begin("Object creator", nullptr, ImGuiWindowFlags_None);
+            if (::ImGui::Button("Add Box"))
+            {
+                entities.push_back(scene->create_entity<iris::SingleEntity>(
+                    nullptr, ctx.mesh_manager().cube(iris::Colour{1.0f, 1.0f, 1.0f}), iris::Transform{{}, {}, {1.0f}}));
+            }
+
+            auto counter = 0u;
+            for (auto *entity : entities)
+            {
+                if (::ImGui::TreeNode(label_name("Object", counter).c_str()))
+                {
+                    auto position = entity->position();
+                    float pos_x = position.x;
+                    float pos_y = position.y;
+                    float pos_z = position.z;
+
+                    ::ImGui::LabelText("", "Position");
+                    {
+                        ::ImGui::Text("X:");
+                        ::ImGui::SameLine();
+                        ::ImGui::DragFloat(label_name("##px", counter).c_str(), &pos_x);
+                    }
+                    {
+                        ::ImGui::Text("Y:");
+                        ::ImGui::SameLine();
+                        ::ImGui::DragFloat(label_name("##py", counter).c_str(), &pos_y);
+                    }
+                    {
+                        ::ImGui::Text("Z:");
+                        ::ImGui::SameLine();
+                        ::ImGui::DragFloat(label_name("##pz", counter).c_str(), &pos_z);
+                    }
+
+                    const iris::Vector3 new_position{pos_x, pos_y, pos_z};
+                    if (new_position != position)
+                    {
+                        entity->set_position(new_position);
+                    }
+
+                    auto rotation = entity->orientation();
+                    auto [rot_x, rot_y, rot_z] = rotation.to_euler_angles();
+
+                    ::ImGui::LabelText("", "Rotation");
+                    {
+                        ::ImGui::Text("X:");
+                        ::ImGui::SameLine();
+                        ::ImGui::DragFloat(label_name("##rx", counter).c_str(), &rot_x, 0.5f);
+                    }
+                    {
+                        ::ImGui::Text("Y:");
+                        ::ImGui::SameLine();
+                        ::ImGui::DragFloat(label_name("##ry", counter).c_str(), &rot_y, 0.5f);
+                    }
+                    {
+                        ::ImGui::Text("Z:");
+                        ::ImGui::SameLine();
+                        ::ImGui::DragFloat(label_name("##rz", counter).c_str(), &rot_z, 0.5f);
+                    }
+
+                    const iris::Quaternion new_rotation{rot_x, rot_y, rot_z};
+                    if (new_rotation != rotation)
+                    {
+                        entity->set_orientation(new_rotation);
+                    }
+
+                    auto scale = entity->scale();
+                    float scale_x = scale.x;
+                    float scale_y = scale.y;
+                    float scale_z = scale.z;
+
+                    ::ImGui::LabelText("", "Scale");
+                    {
+                        ::ImGui::Text("X:");
+                        ::ImGui::SameLine();
+                        ::ImGui::DragFloat(label_name("##sx", counter).c_str(), &scale_x);
+                    }
+                    {
+                        ::ImGui::Text("Y:");
+                        ::ImGui::SameLine();
+                        ::ImGui::DragFloat(label_name("##sy", counter).c_str(), &scale_y);
+                    }
+                    {
+                        ::ImGui::Text("Z:");
+                        ::ImGui::SameLine();
+                        ::ImGui::DragFloat(label_name("##sz", counter).c_str(), &scale_z);
+                    }
+
+                    const iris::Vector3 new_scale{scale_x, scale_y, scale_z};
+                    if (new_scale != scale)
+                    {
+                        entity->set_scale(new_scale);
+                    }
+                    ::ImGui::TreePop();
+                }
+
+                ++counter;
+            }
+
+            ::ImGui::End();
 
             ::ImGui::Render();
             ::ImGui_ImplMetal_RenderDrawData(
@@ -242,6 +360,10 @@ void MetalGuiRenderer::handle_input(iris::Event event)
         {
             impl_->io().AddMouseButtonEvent(*imgui_button, *imgui_state);
         }
+    }
+    else if (event.is_key(iris::Key::I, iris::KeyState::DOWN))
+    {
+        show_demo_ = !show_demo_;
     }
 }
 

@@ -8,6 +8,8 @@
 
 #include <cmath>
 #include <iosfwd>
+#include <numbers>
+#include <tuple>
 
 #include "core/utils.h"
 #include "core/vector3.h"
@@ -404,6 +406,30 @@ class Quaternion
         }
 
         return *this;
+    }
+
+    std::tuple<float, float, float> to_euler_angles()
+    {
+        float x_angle = 0.0f;
+        float y_angle = 0.0f;
+        float z_angle = 0.0f;
+
+        // roll (x-axis rotation)
+        double sinr_cosp = 2 * (w * x + y * z);
+        double cosr_cosp = 1 - 2 * (x * x + y * y);
+        z_angle = std::atan2(sinr_cosp, cosr_cosp);
+
+        // pitch (y-axis rotation)
+        double sinp = std::sqrt(1 + 2 * (w * y - x * z));
+        double cosp = std::sqrt(1 - 2 * (w * y - x * z));
+        y_angle = 2 * std::atan2(sinp, cosp) - std::numbers::pi_v<float> / 2;
+
+        //// yaw (z-axis rotation)
+        double siny_cosp = 2 * (w * z + x * y);
+        double cosy_cosp = 1 - 2 * (y * y + z * z);
+        x_angle = std::atan2(siny_cosp, cosy_cosp);
+
+        return {x_angle, y_angle, z_angle};
     }
 
     /** Angle of rotation. */
