@@ -16,6 +16,9 @@
 #include <optional>
 #include <string>
 
+#include "imgui.h"
+
+#include "ImGuizmo.h"
 #include "backends/imgui_impl_metal.h"
 #include "core/context.h"
 #include "core/macos/macos_ios_utility.h"
@@ -31,7 +34,6 @@
 #include "graphics/scene.h"
 #include "graphics/single_entity.h"
 #include "graphics/texture_manager.h"
-#include "imgui.h"
 #include "log/log.h"
 
 namespace
@@ -137,12 +139,18 @@ struct MetalGuiRenderer::implementation
     std::unique_ptr<ActualMetalGuiRenderer> renderer;
 };
 
-MetalGuiRenderer::MetalGuiRenderer(iris::Context &ctx, std::uint32_t width, std::uint32_t height, iris::Scene *scene)
+MetalGuiRenderer::MetalGuiRenderer(
+    iris::Context &ctx,
+    std::uint32_t width,
+    std::uint32_t height,
+    iris::Scene *scene,
+    iris::Camera &camera)
     : iris::Renderer(ctx.material_manager())
     , impl_(std::make_unique<implementation>())
     , width_(width)
     , height_(height)
     , show_demo_(false)
+    , camera_(camera)
 {
     impl_->io().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     impl_->io().ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
@@ -176,6 +184,9 @@ MetalGuiRenderer::MetalGuiRenderer(iris::Context &ctx, std::uint32_t width, std:
 
             ::ImGui_ImplMetal_NewFrame(impl_->renderer->single_pass_descriptor());
             ::ImGui::NewFrame();
+
+            ::ImGuizmo::SetOrthographic(false);
+            ::ImGuizmo::BeginFrame();
 
             if (show_demo_)
             {
@@ -280,6 +291,47 @@ MetalGuiRenderer::MetalGuiRenderer(iris::Context &ctx, std::uint32_t width, std:
 
                 ++counter;
             }
+
+            ::ImGuizmo::Enable(true);
+            ::ImGuizmo::SetRect(0, 0, impl_->io().DisplaySize.x, impl_->io().DisplaySize.y);
+
+            static const float identityMatrix[16] = {
+                1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f};
+            auto inv_view = iris::Matrix4::transpose(camera_.view());
+            const auto inv_proj = iris::Matrix4::transpose(camera_.projection());
+            ::ImGuizmo::DrawGrid(inv_view.data(), inv_proj.data(), identityMatrix, 1000.f);
+
+            const iris::Transform transform{{}, {}, {1.0f}};
+            ::ImGuizmo::DrawCubes(inv_view.data(), inv_proj.data(), transform.matrix().data(), 1);
+            if (!entities.empty())
+            {
+                static float bounds[] = {-0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f};
+                auto transform = iris::Matrix4::transpose(entities[0]->transform());
+                auto *transform_ptr = transform.data();
+                ::ImGuizmo::Manipulate(
+                    inv_view.data(),
+                    inv_proj.data(),
+                    ::ImGuizmo::TRANSLATE,
+                    ::ImGuizmo::WORLD,
+                    const_cast<float *>(transform_ptr),
+                    nullptr,
+                    nullptr,
+                    bounds,
+                    nullptr);
+
+                entities[0]->set_transform(iris::Matrix4::transpose(transform));
+            }
+
+            // const auto viewManipulateRight = impl_->io().DisplaySize.x;
+            // const auto viewManipulateTop = 0.0f;
+            //::ImGuizmo::ViewManipulate(
+            //    inv_view.data(),
+            //    200.0f,
+            //    ImVec2(viewManipulateRight - 128, viewManipulateTop),
+            //    ImVec2(128, 128),
+            //    0x10101010);
+
+            // camera_.set_view(iris::Matrix4::invert(inv_view));
 
             ::ImGui::End();
 

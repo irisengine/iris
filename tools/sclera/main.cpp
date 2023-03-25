@@ -94,10 +94,10 @@ void go(iris::Context ctx)
     auto *scene = render_pipeline->create_scene();
     scene->create_light<iris::DirectionalLight>(iris::Vector3{-1.0f});
 
-    auto *window = ctx.window_manager().create_window(1920, 1080);
-    window->set_renderer(std::make_unique<MetalGuiRenderer>(ctx, width, height, scene));
-
     iris::Camera camera{iris::CameraType::PERSPECTIVE, width, height};
+
+    auto *window = ctx.window_manager().create_window(1920, 1080);
+    window->set_renderer(std::make_unique<MetalGuiRenderer>(ctx, width, height, scene, camera));
 
     ctx.texture_manager().blank_texture();
     auto sky_box =

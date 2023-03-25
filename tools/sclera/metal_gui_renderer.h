@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <memory>
 
+#include "core/camera.h"
 #include "core/context.h"
 #include "events/event.h"
 #include "graphics/render_command.h"
@@ -18,7 +19,12 @@
 class MetalGuiRenderer : public iris::Renderer
 {
   public:
-    MetalGuiRenderer(iris::Context &ctx, std::uint32_t width, std::uint32_t height, iris::Scene *scene);
+    MetalGuiRenderer(
+        iris::Context &ctx,
+        std::uint32_t width,
+        std::uint32_t height,
+        iris::Scene *scene,
+        iris::Camera &camera);
     ~MetalGuiRenderer();
     MetalGuiRenderer(const MetalGuiRenderer &) = delete;
     MetalGuiRenderer &operator=(const MetalGuiRenderer &) = delete;
@@ -43,4 +49,5 @@ class MetalGuiRenderer : public iris::Renderer
     std::uint32_t width_;
     std::uint32_t height_;
     bool show_demo_;
+    iris::Camera &camera_;
 };

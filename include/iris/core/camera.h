@@ -45,7 +45,7 @@ class Camera
      * @param translate
      *   Amount to translate.
      */
-    void translate(const Vector3 &translat);
+    void translate(const Vector3 &translate);
 
     /**
      * Set the view matrix for the camera.

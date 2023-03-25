@@ -380,7 +380,8 @@ class Matrix4
     {
         const auto e = elements_;
 
-        const auto calculate_cell = [&e, &matrix](std::size_t row_num, std::size_t col_num) {
+        const auto calculate_cell = [&e, &matrix](std::size_t row_num, std::size_t col_num)
+        {
             return (e[row_num + 0u] * matrix[col_num + 0u]) + (e[row_num + 1u] * matrix[col_num + 4u]) +
                    (e[row_num + 2u] * matrix[col_num + 8u]) + (e[row_num + 3u] * matrix[col_num + 12u]);
         };
