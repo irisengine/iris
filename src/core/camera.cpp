@@ -77,6 +77,11 @@ Camera::Camera(CameraType type, std::uint32_t width, std::uint32_t height, std::
     LOG_ENGINE_INFO("camera", "constructed");
 }
 
+void Camera::look_at(const Vector3 &target)
+{
+    view_ = Matrix4::make_look_at(position_, target, up_);
+}
+
 void Camera::translate(const Vector3 &translate)
 {
     position_ += translate;

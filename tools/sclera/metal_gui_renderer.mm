@@ -299,13 +299,10 @@ MetalGuiRenderer::MetalGuiRenderer(
                 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f};
             auto inv_view = iris::Matrix4::transpose(camera_.view());
             const auto inv_proj = iris::Matrix4::transpose(camera_.projection());
-            ::ImGuizmo::DrawGrid(inv_view.data(), inv_proj.data(), identityMatrix, 1000.f);
+            ::ImGuizmo::DrawGrid(inv_view.data(), inv_proj.data(), identityMatrix, 100.f);
 
-            const iris::Transform transform{{}, {}, {1.0f}};
-            ::ImGuizmo::DrawCubes(inv_view.data(), inv_proj.data(), transform.matrix().data(), 1);
             if (!entities.empty())
             {
-                static float bounds[] = {-0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f};
                 auto transform = iris::Matrix4::transpose(entities[0]->transform());
                 auto *transform_ptr = transform.data();
                 ::ImGuizmo::Manipulate(
@@ -316,22 +313,11 @@ MetalGuiRenderer::MetalGuiRenderer(
                     const_cast<float *>(transform_ptr),
                     nullptr,
                     nullptr,
-                    bounds,
+                    nullptr,
                     nullptr);
 
                 entities[0]->set_transform(iris::Matrix4::transpose(transform));
             }
-
-            // const auto viewManipulateRight = impl_->io().DisplaySize.x;
-            // const auto viewManipulateTop = 0.0f;
-            //::ImGuizmo::ViewManipulate(
-            //    inv_view.data(),
-            //    200.0f,
-            //    ImVec2(viewManipulateRight - 128, viewManipulateTop),
-            //    ImVec2(128, 128),
-            //    0x10101010);
-
-            // camera_.set_view(iris::Matrix4::invert(inv_view));
 
             ::ImGui::End();
 

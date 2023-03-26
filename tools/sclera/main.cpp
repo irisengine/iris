@@ -95,6 +95,8 @@ void go(iris::Context ctx)
     scene->create_light<iris::DirectionalLight>(iris::Vector3{-1.0f});
 
     iris::Camera camera{iris::CameraType::PERSPECTIVE, width, height};
+    camera.translate({0.0f, 10.0f, 0.0f});
+    camera.look_at({});
 
     auto *window = ctx.window_manager().create_window(1920, 1080);
     window->set_renderer(std::make_unique<MetalGuiRenderer>(ctx, width, height, scene, camera));

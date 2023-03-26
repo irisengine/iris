@@ -39,6 +39,8 @@ class Camera
      */
     Camera(CameraType type, std::uint32_t width, std::uint32_t height, std::uint32_t depth = 1000u);
 
+    void look_at(const Vector3 &target);
+
     /**
      * Translate the camera.
      *
