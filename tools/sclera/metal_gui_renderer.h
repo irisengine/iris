@@ -15,16 +15,12 @@
 #include "graphics/render_command.h"
 #include "graphics/renderer.h"
 #include "graphics/scene.h"
+#include "graphics/window.h"
 
 class MetalGuiRenderer : public iris::Renderer
 {
   public:
-    MetalGuiRenderer(
-        iris::Context &ctx,
-        std::uint32_t width,
-        std::uint32_t height,
-        iris::Scene *scene,
-        iris::Camera &camera);
+    MetalGuiRenderer(iris::Context &ctx, const iris::Window *window, iris::Scene *scene, iris::Camera &camera);
     ~MetalGuiRenderer();
     MetalGuiRenderer(const MetalGuiRenderer &) = delete;
     MetalGuiRenderer &operator=(const MetalGuiRenderer &) = delete;
@@ -38,7 +34,7 @@ class MetalGuiRenderer : public iris::Renderer
     void execute_present(iris::RenderCommand &command) override;
     void post_render() override;
 
-    void handle_input(iris::Event event);
+    void handle_input(const iris::Event &event);
 
   private:
     void do_set_render_pipeline(std::function<void()> build_queue) override;
@@ -46,8 +42,6 @@ class MetalGuiRenderer : public iris::Renderer
     struct implementation;
     std::unique_ptr<implementation> impl_;
 
-    std::uint32_t width_;
-    std::uint32_t height_;
-    bool show_demo_;
-    iris::Camera &camera_;
+    const iris::Window *window_;
+    [[maybe_unused]] iris::Camera &camera_;
 };
