@@ -36,6 +36,8 @@ class MetalGuiRenderer : public iris::Renderer
 
     void handle_input(const iris::Event &event);
 
+    bool is_mouse_captured() const;
+
   private:
     void do_set_render_pipeline(std::function<void()> build_queue) override;
 

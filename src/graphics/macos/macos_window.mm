@@ -7,6 +7,8 @@
 #include "graphics/macos/macos_window.h"
 
 #include <memory>
+#include <queue>
+#include <unordered_map>
 
 #import <Appkit/Appkit.h>
 #import <Foundation/Foundation.h>
@@ -159,13 +161,25 @@ iris::Key macos_key_to_engine_Key(const std::uint16_t key_code)
     return key;
 }
 
+iris::Key macos_modifier_key_to_engine_Key(NSEventModifierFlags modifier)
+{
+    auto key = iris::Key::UNKNOWN;
+
+    if (modifier & NSEventModifierFlagOption)
+    {
+        key = iris::Key::OPTION;
+    }
+
+    return key;
+}
+
 /**
  * Helper method to handle native keyboard events.
  *
  * @param event
  *   Native Event object.
  */
-iris::KeyboardEvent handle_keyboard_event(NSEvent *event)
+iris::KeyboardEvent handle_keyboard_event(NSEvent *event, bool modifier_only)
 {
     // extract the Key code from the event
     const std::uint16_t key_code = [event keyCode];
@@ -174,7 +188,8 @@ iris::KeyboardEvent handle_keyboard_event(NSEvent *event)
     const auto type = ([event type] == NSEventTypeKeyDown) ? iris::KeyState::DOWN : iris::KeyState::UP;
 
     // convert Key code and dispatch
-    const auto key = macos_key_to_engine_Key(key_code);
+    const auto key =
+        modifier_only ? macos_modifier_key_to_engine_Key([event modifierFlags]) : macos_key_to_engine_Key(key_code);
 
     return {key, type};
 }
@@ -244,7 +259,9 @@ std::uint32_t MacosWindow::screen_scale() const
 
 std::optional<Event> MacosWindow::pump_event()
 {
-    std::optional<Event> evt{};
+    static std::queue<Event> event_queue{};
+    static std::unordered_map<Key, KeyState> modifier_key_state{
+        {Key::OPTION, KeyState::DOWN}, {Key::COMMAND, KeyState::DOWN}};
 
     NSEvent *event = nil;
 
@@ -263,23 +280,57 @@ std::optional<Event> MacosWindow::pump_event()
             case NSEventTypeKeyUp:
                 if (!event.ARepeat)
                 {
-                    evt = handle_keyboard_event(event);
+                    event_queue.push(handle_keyboard_event(event, false));
                 }
                 break;
             case NSEventTypeLeftMouseDragged: [[fallthrough]];
             case NSEventTypeRightMouseDragged: [[fallthrough]];
-            case NSEventTypeMouseMoved: evt = handle_mouse_event(event); break;
-            case NSEventTypeLeftMouseDown: evt = MouseButtonEvent{MouseButton::LEFT, MouseButtonState::DOWN}; break;
-            case NSEventTypeLeftMouseUp: evt = MouseButtonEvent{MouseButton::LEFT, MouseButtonState::UP}; break;
-            case NSEventTypeRightMouseDown: evt = MouseButtonEvent{MouseButton::RIGHT, MouseButtonState::DOWN}; break;
-            case NSEventTypeRightMouseUp: evt = MouseButtonEvent{MouseButton::RIGHT, MouseButtonState::UP}; break;
-            case NSEventTypeScrollWheel: evt = ScrollWheelEvent{static_cast<float>([event scrollingDeltaY])}; break;
+            case NSEventTypeMouseMoved: event_queue.push(handle_mouse_event(event)); break;
+            case NSEventTypeLeftMouseDown:
+                event_queue.push(MouseButtonEvent{MouseButton::LEFT, MouseButtonState::DOWN});
+                break;
+            case NSEventTypeLeftMouseUp:
+                event_queue.push(MouseButtonEvent{MouseButton::LEFT, MouseButtonState::UP});
+                break;
+            case NSEventTypeRightMouseDown:
+                event_queue.push(MouseButtonEvent{MouseButton::RIGHT, MouseButtonState::DOWN});
+                break;
+            case NSEventTypeRightMouseUp:
+                event_queue.push(MouseButtonEvent{MouseButton::RIGHT, MouseButtonState::UP});
+                break;
+            case NSEventTypeScrollWheel:
+                event_queue.push(ScrollWheelEvent{static_cast<float>([event scrollingDeltaY])});
+                break;
             default: break;
+        }
+
+        const auto current_option_key_state =
+            ([NSEvent modifierFlags] & NSEventModifierFlagOption) == NSEventModifierFlagOption ? KeyState::DOWN
+                                                                                               : KeyState::UP;
+        if (std::exchange(modifier_key_state[Key::OPTION], current_option_key_state) != current_option_key_state)
+        {
+            event_queue.push(KeyboardEvent{Key::OPTION, current_option_key_state});
+        }
+
+        const auto current_command_key_state =
+            ([NSEvent modifierFlags] & NSEventModifierFlagCommand) == NSEventModifierFlagCommand ? KeyState::DOWN
+                                                                                                 : KeyState::UP;
+        if (std::exchange(modifier_key_state[Key::COMMAND], current_command_key_state) != current_command_key_state)
+        {
+            event_queue.push(KeyboardEvent{Key::COMMAND, current_command_key_state});
         }
 
         // dispatch the Event to other objects, this stops us swallowing
         // all events and preventing anything else from receiving them
         [NSApp sendEvent:event];
+    }
+
+    std::optional<Event> evt{};
+
+    if (!event_queue.empty())
+    {
+        evt = event_queue.front();
+        event_queue.pop();
     }
 
     return evt;

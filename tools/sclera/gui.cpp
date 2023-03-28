@@ -408,3 +408,8 @@ void Gui::handle_input(const iris::Event &event)
         io_.AddMouseWheelEvent(0.0f, scroll.delta_y);
     }
 }
+
+bool Gui::is_mouse_captured() const
+{
+    return io_.WantCaptureMouse;
+}

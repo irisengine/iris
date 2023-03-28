@@ -28,6 +28,8 @@ class Gui
 
     void handle_input(const iris::Event &event);
 
+    bool is_mouse_captured() const;
+
   protected:
     virtual void pre_render() = 0;
     virtual void post_render() = 0;

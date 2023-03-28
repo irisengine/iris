@@ -44,37 +44,37 @@ namespace
  * @param key_map
  *   Map of user pressed keys.
  */
-void update_camera(iris::Camera &camera, const std::unordered_map<iris::Key, iris::KeyState> &key_map)
+void update_camera(iris::Camera &camera, bool track_up, bool track_down, bool track_left, bool track_right)
 {
     static auto speed = 2.0f;
     iris::Vector3 velocity;
 
-    if (key_map.at(iris::Key::W) == iris::KeyState::DOWN)
-    {
-        velocity += camera.direction() * speed;
-    }
+    // if (key_map.at(iris::Key::W) == iris::KeyState::DOWN)
+    //{
+    //     velocity += camera.direction() * speed;
+    // }
 
-    if (key_map.at(iris::Key::S) == iris::KeyState::DOWN)
-    {
-        velocity -= camera.direction() * speed;
-    }
+    // if (key_map.at(iris::Key::S) == iris::KeyState::DOWN)
+    //{
+    //     velocity -= camera.direction() * speed;
+    // }
 
-    if (key_map.at(iris::Key::A) == iris::KeyState::DOWN)
+    if (track_left)
     {
         velocity -= camera.right() * speed;
     }
 
-    if (key_map.at(iris::Key::D) == iris::KeyState::DOWN)
+    if (track_right)
     {
         velocity += camera.right() * speed;
     }
 
-    if (key_map.at(iris::Key::Q) == iris::KeyState::DOWN)
+    if (track_up)
     {
         velocity += camera.right().cross(camera.direction()) * speed;
     }
 
-    if (key_map.at(iris::Key::E) == iris::KeyState::DOWN)
+    if (track_down)
     {
         velocity -= camera.right().cross(camera.direction()) * speed;
     }
@@ -123,14 +123,18 @@ void go(iris::Context ctx)
         {iris::Key::E, iris::KeyState::UP},
     };
 
-    auto right_mouse_down = false;
+    auto left_mouse_down = false;
+    auto track_up = false;
+    auto track_down = false;
+    auto track_left = false;
+    auto track_right = false;
 
     iris::Looper looper{
         0ms,
         30ms,
         [&](auto, auto)
         {
-            update_camera(camera, key_map);
+            update_camera(camera, track_up, track_down, track_left, track_right);
             return true;
         },
         [&](auto, auto)
@@ -140,6 +144,9 @@ void go(iris::Context ctx)
             auto event = window->pump_event();
             while (event)
             {
+                auto *metal_renderer = static_cast<MetalGuiRenderer *>(window->renderer());
+                metal_renderer->handle_input(*event);
+
                 if (event->is_quit() || event->is_key(iris::Key::ESCAPE))
                 {
                     running = false;
@@ -154,19 +161,39 @@ void go(iris::Context ctx)
                     static const auto sensitivity = 0.0025f;
                     const auto mouse = event->mouse();
 
-                    if (right_mouse_down)
+                    if (left_mouse_down && (key_map[iris::Key::OPTION] == iris::KeyState::DOWN) &&
+                        (key_map[iris::Key::COMMAND] == iris::KeyState::DOWN))
+                    {
+                        static constexpr auto threshold = 0.5f;
+
+                        track_up = mouse.delta_y > threshold;
+                        track_down = mouse.delta_y < -threshold;
+                        track_left = mouse.delta_x > threshold;
+                        track_right = mouse.delta_x < -threshold;
+                    }
+                    else if (left_mouse_down && (key_map[iris::Key::OPTION] == iris::KeyState::DOWN))
                     {
                         camera.adjust_yaw(mouse.delta_x * sensitivity);
                         camera.adjust_pitch(-mouse.delta_y * sensitivity);
                     }
+                    else
+                    {
+                        track_up = false;
+                        track_down = false;
+                        track_left = false;
+                        track_right = false;
+                    }
                 }
-                else if (event->is_mouse_button((iris::MouseButton::RIGHT)))
+                else if (event->is_mouse_button((iris::MouseButton::LEFT)))
                 {
                     const auto mouse_button = event->mouse_button();
-                    right_mouse_down = mouse_button.state == iris::MouseButtonState::DOWN;
+                    left_mouse_down = mouse_button.state == iris::MouseButtonState::DOWN;
                 }
-
-                static_cast<MetalGuiRenderer *>(window->renderer())->handle_input(*event);
+                else if (event->is_scroll_wheel() && !metal_renderer->is_mouse_captured())
+                {
+                    const auto scroll = event->scroll_wheel();
+                    camera.translate(camera.direction() * scroll.delta_y);
+                }
 
                 event = window->pump_event();
             }

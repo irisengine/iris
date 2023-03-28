@@ -418,6 +418,11 @@ void MetalGuiRenderer::handle_input(const iris::Event &event)
     //}
 }
 
+bool MetalGuiRenderer::is_mouse_captured() const
+{
+    return impl_->gui->is_mouse_captured();
+}
+
 void MetalGuiRenderer::do_set_render_pipeline(std::function<void()> build_queue)
 {
     impl_->renderer->do_set_render_pipeline(build_queue);
