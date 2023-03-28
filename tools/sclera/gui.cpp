@@ -251,7 +251,8 @@ void object_editor_tree_ui(std::vector<iris::SingleEntity *> &entities)
 void selected_object_gizmo_ui(
     ::ImGuiIO &io,
     const std::vector<iris::SingleEntity *> &entities,
-    const iris::Camera &camera)
+    const iris::Camera &camera,
+    ::ImGuizmo::OPERATION transform_operation)
 {
     ::ImGuizmo::SetOrthographic(false);
     ::ImGuizmo::BeginFrame();
@@ -275,7 +276,7 @@ void selected_object_gizmo_ui(
         ::ImGuizmo::Manipulate(
             inv_view.data(),
             inv_proj.data(),
-            ::ImGuizmo::TRANSLATE,
+            transform_operation,
             ::ImGuizmo::WORLD,
             const_cast<float *>(transform_ptr),
             nullptr,
@@ -298,6 +299,7 @@ Gui::Gui(iris::Context &ctx, const iris::Window *window, iris::Scene *scene, iri
     , camera_(camera)
     , entities_()
     , show_demo_(false)
+    , transform_operation_(::ImGuizmo::TRANSLATE)
 {
     const auto scale = window_->screen_scale();
 
@@ -332,7 +334,7 @@ void Gui::render()
 
         object_creator_ui(iris_ctx_, entities_, scene_);
         object_editor_tree_ui(entities_);
-        selected_object_gizmo_ui(io_, entities_, camera_);
+        selected_object_gizmo_ui(io_, entities_, camera_, transform_operation_);
     }
 
     ::ImGui::Render();
@@ -375,12 +377,21 @@ void Gui::handle_input(const iris::Event &event)
             io_.AddMouseButtonEvent(*imgui_button, *imgui_state);
         }
     }
-    else if (event.is_key(iris::Key::I, iris::KeyState::DOWN))
-    {
-    }
     else if (event.is_key())
     {
         const auto key = event.key();
+        if (key.state == iris::KeyState::DOWN)
+        {
+            switch (key.key)
+            {
+                using enum iris::Key;
+                case TAB: show_demo_ = !show_demo_; break;
+                case W: transform_operation_ = ::ImGuizmo::TRANSLATE; break;
+                case E: transform_operation_ = ::ImGuizmo::ROTATE; break;
+                case R: transform_operation_ = ::ImGuizmo::SCALE; break;
+                default: break;
+            }
+        }
         if ((key.key == iris::Key::TAB) && (key.state == iris::KeyState::DOWN))
         {
             show_demo_ = !show_demo_;

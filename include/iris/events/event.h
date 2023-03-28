@@ -6,7 +6,9 @@
 
 #pragma once
 
+#include <concepts>
 #include <cstdint>
+#include <memory>
 #include <variant>
 
 #include "core/exception.h"

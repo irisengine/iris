@@ -8,6 +8,9 @@
 
 #include <vector>
 
+#include "imgui.h"
+
+#include "ImGuizmo.h"
 #include "core/auto_release.h"
 #include "core/camera.h"
 #include "core/context.h"
@@ -15,7 +18,6 @@
 #include "graphics/scene.h"
 #include "graphics/single_entity.h"
 #include "graphics/window.h"
-#include "imgui.h"
 
 class Gui
 {
@@ -38,4 +40,5 @@ class Gui
     iris::Camera &camera_;
     std::vector<iris::SingleEntity *> entities_;
     bool show_demo_;
+    ::ImGuizmo::OPERATION transform_operation_;
 };
