@@ -13,15 +13,21 @@
 #include "imgui.h"
 
 #include "backends/imgui_impl_metal.h"
+#include "core/context.h"
 #include "core/macos/macos_ios_utility.h"
+#include "graphics/scene.h"
+#include "graphics/single_entity.h"
 #include "graphics/window.h"
 
 MetalGui::MetalGui(
+    iris::Context &ctx,
     const iris::Window *window,
+    iris::Scene *scene,
+    iris::Camera &camera,
     MTLRenderPassDescriptor *pass_descriptor,
     std::function<id<MTLCommandBuffer>()> get_command_buffer,
     std::function<id<MTLRenderCommandEncoder>()> get_render_encoder)
-    : Gui(window)
+    : Gui(ctx, window, scene, camera)
     , command_queue_(nullptr)
     , pass_descriptor_(pass_descriptor)
     , get_command_buffer_(get_command_buffer)

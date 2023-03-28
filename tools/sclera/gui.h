@@ -6,15 +6,21 @@
 
 #pragma once
 
+#include <vector>
+
 #include "core/auto_release.h"
+#include "core/camera.h"
+#include "core/context.h"
 #include "events/event.h"
+#include "graphics/scene.h"
+#include "graphics/single_entity.h"
 #include "graphics/window.h"
 #include "imgui.h"
 
 class Gui
 {
   public:
-    Gui(const iris::Window *window);
+    Gui(iris::Context &ctx, const iris::Window *window, iris::Scene *scene, iris::Camera &camera);
     virtual ~Gui() = default;
     void render();
 
@@ -24,7 +30,12 @@ class Gui
     virtual void pre_render() = 0;
     virtual void post_render() = 0;
 
-    iris::AutoRelease<::ImGuiContext *, nullptr> ctx_;
+    iris::Context &iris_ctx_;
+    iris::AutoRelease<::ImGuiContext *, nullptr> imgui_ctx_;
     ::ImGuiIO &io_;
     const iris::Window *window_;
+    iris::Scene *scene_;
+    iris::Camera &camera_;
+    std::vector<iris::SingleEntity *> entities_;
+    bool show_demo_;
 };

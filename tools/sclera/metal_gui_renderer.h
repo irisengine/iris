@@ -43,5 +43,5 @@ class MetalGuiRenderer : public iris::Renderer
     std::unique_ptr<implementation> impl_;
 
     const iris::Window *window_;
-    [[maybe_unused]] iris::Camera &camera_;
+    iris::Camera &camera_;
 };

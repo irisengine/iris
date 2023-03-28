@@ -12,13 +12,20 @@
 
 #include <Metal/Metal.h>
 
+#include "core/camera.h"
+#include "core/context.h"
+#include "graphics/scene.h"
+#include "graphics/single_entity.h"
 #include "graphics/window.h"
 
 class MetalGui : public Gui
 {
   public:
     MetalGui(
+        iris::Context &ctx,
         const iris::Window *window,
+        iris::Scene *scene,
+        iris::Camera &camera,
         MTLRenderPassDescriptor *pass_descriptor,
         std::function<id<MTLCommandBuffer>()> get_command_buffer,
         std::function<id<MTLRenderCommandEncoder>()> get_render_encoder);

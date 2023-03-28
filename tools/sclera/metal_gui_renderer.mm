@@ -330,7 +330,10 @@ MetalGuiRenderer::MetalGuiRenderer(
         });
 
     impl_->gui = std::make_unique<MetalGui>(
+        ctx,
         window_,
+        scene,
+        camera_,
         impl_->renderer->single_pass_descriptor(),
         [this] { return impl_->renderer->command_buffer(); },
         [this] { return impl_->renderer->render_encoder(); });
