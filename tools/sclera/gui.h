@@ -43,4 +43,5 @@ class Gui
     std::vector<iris::SingleEntity *> entities_;
     bool show_demo_;
     ::ImGuizmo::OPERATION transform_operation_;
+    iris::SingleEntity *selected_;
 };

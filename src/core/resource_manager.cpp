@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <vector>
 
 #include "core/error_handling.h"
 
@@ -39,6 +40,20 @@ const DataBuffer &ResourceManager::load(std::string_view resource)
 void ResourceManager::set_root_directory(const std::filesystem::path &root)
 {
     root_ = root;
+}
+
+std::vector<std::string> ResourceManager::available_resources() const
+{
+    std::vector<std::string> paths{};
+    const auto iter = std::filesystem::directory_iterator{root_};
+
+    std::transform(
+        std::filesystem::begin(iter),
+        std::filesystem::end(iter),
+        std::back_inserter(paths),
+        [](const auto &path) { return path.path().filename().native(); });
+
+    return paths;
 }
 
 }

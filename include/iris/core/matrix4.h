@@ -13,6 +13,7 @@
 #include "core/quaternion.h"
 #include "core/utils.h"
 #include "core/vector3.h"
+#include "core/vector4.h"
 
 namespace iris
 {
@@ -439,11 +440,18 @@ class Matrix4
     {
         return {
             vector.x * elements_[0] + vector.y * elements_[1] + vector.z * elements_[2] + elements_[3],
-
             vector.x * elements_[4] + vector.y * elements_[5] + vector.z * elements_[6] + elements_[7],
-
             vector.x * elements_[8] + vector.y * elements_[9] + vector.z * elements_[10] + elements_[11],
         };
+    }
+
+    constexpr Vector4 operator*(const Vector4 &vector) const
+    {
+        return {
+            vector.x * elements_[0] + vector.y * elements_[1] + vector.z * elements_[2] + vector.w * elements_[3],
+            vector.x * elements_[4] + vector.y * elements_[5] + vector.z * elements_[6] + vector.w * elements_[7],
+            vector.x * elements_[8] + vector.y * elements_[9] + vector.z * elements_[10] + vector.w * elements_[11],
+            vector.x * elements_[12] + vector.y * elements_[13] + vector.z * elements_[14] + vector.w * elements_[15]};
     }
 
     /**

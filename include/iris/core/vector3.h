@@ -98,6 +98,7 @@ class Vector3
     {
         return Vector3(*this) *= scale;
     }
+
     /**
      * Component wise add a Vector3 to this vector3.
      *

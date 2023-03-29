@@ -48,6 +48,8 @@ class ResourceManager
      */
     void set_root_directory(const std::filesystem::path &root);
 
+    std::vector<std::string> available_resources() const;
+
   protected:
     /**
      * Implementations should override this to perform their specific data loading logic.

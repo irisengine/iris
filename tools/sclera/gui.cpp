@@ -17,6 +17,7 @@
 #include "graphics/scene.h"
 #include "graphics/single_entity.h"
 #include "graphics/window.h"
+#include "log/log.h"
 
 namespace
 {
@@ -250,7 +251,7 @@ void object_editor_tree_ui(std::vector<iris::SingleEntity *> &entities)
 
 void selected_object_gizmo_ui(
     ::ImGuiIO &io,
-    const std::vector<iris::SingleEntity *> &entities,
+    iris::SingleEntity *selected,
     const iris::Camera &camera,
     ::ImGuizmo::OPERATION transform_operation)
 {
@@ -269,9 +270,9 @@ void selected_object_gizmo_ui(
     const auto m = iris::Matrix4::transpose(iris::Transform({}, {}, {1.0f}).matrix());
     ::ImGuizmo::DrawCubes(inv_view.data(), inv_proj.data(), m.data(), 1);
 
-    if (!entities.empty())
+    if (selected != nullptr)
     {
-        auto transform = iris::Matrix4::transpose(entities[0]->transform());
+        auto transform = iris::Matrix4::transpose(selected->transform());
         auto *transform_ptr = transform.data();
         ::ImGuizmo::Manipulate(
             inv_view.data(),
@@ -284,8 +285,10 @@ void selected_object_gizmo_ui(
             nullptr,
             nullptr);
 
-        entities[0]->set_transform(iris::Matrix4::transpose(transform));
+        selected->set_transform(iris::Matrix4::transpose(transform));
     }
+
+    LOG_DEBUG("gui", "{} {}", ::ImGuizmo::IsOver(), ::ImGuizmo::IsUsing());
 }
 
 }
@@ -302,6 +305,7 @@ Gui::Gui(iris::Context &ctx, const iris::Window *window, iris::Scene *scene, iri
     , transform_operation_(::ImGuizmo::TRANSLATE)
 {
     const auto scale = window_->screen_scale();
+    const auto resources = ctx.resource_manager().available_resources();
 
     io_.ConfigFlags |= ::ImGuiConfigFlags_NavEnableKeyboard;
     io_.ConfigFlags |= ::ImGuiConfigFlags_NavEnableGamepad;
@@ -334,7 +338,7 @@ void Gui::render()
 
         object_creator_ui(iris_ctx_, entities_, scene_);
         object_editor_tree_ui(entities_);
-        selected_object_gizmo_ui(io_, entities_, camera_, transform_operation_);
+        selected_object_gizmo_ui(io_, selected_, camera_, transform_operation_);
     }
 
     ::ImGui::Render();
@@ -376,6 +380,41 @@ void Gui::handle_input(const iris::Event &event)
         {
             io_.AddMouseButtonEvent(*imgui_button, *imgui_state);
         }
+
+        if (event.is_mouse_button(iris::MouseButton::LEFT, iris::MouseButtonState::DOWN) && !is_mouse_captured())
+        {
+            const iris::Vector3 mouse_coord{
+                (2.0f * x) / window_->width() - 1.0f, 1.0f - (2.0f * y) / window_->height(), 1.0f};
+
+            const auto to_world = iris::Matrix4::invert(camera_.projection() * camera_.view());
+
+            auto from = to_world * iris::Vector4(mouse_coord.x, mouse_coord.y, -1.0f, 1.0f);
+            auto to = to_world * iris::Vector4(mouse_coord.x, mouse_coord.y, 1.0f, 1.0f);
+            from /= from.w;
+            to /= to.w;
+
+            const auto origin = from.xyz();
+            const auto direction = iris::Vector3::normalise(to.xyz() - from.xyz());
+            const auto radius = std::numbers::sqrt2_v<float>;
+
+            selected_ = nullptr;
+
+            for (auto *entity : entities_)
+            {
+                const auto centre = entity->position();
+
+                const auto b = direction.dot(origin - centre);
+                const auto c = (origin - centre).dot(origin - centre) - std::pow(radius, 2.0f);
+
+                const auto t = (std::pow(b, 2.0f) - c);
+
+                if (t >= 0.0f)
+                {
+                    selected_ = entity;
+                    break;
+                }
+            }
+        }
     }
     else if (event.is_key())
     {
@@ -391,10 +430,6 @@ void Gui::handle_input(const iris::Event &event)
                 case R: transform_operation_ = ::ImGuizmo::SCALE; break;
                 default: break;
             }
-        }
-        if ((key.key == iris::Key::TAB) && (key.state == iris::KeyState::DOWN))
-        {
-            show_demo_ = !show_demo_;
         }
 
         if (const auto imgui_key = iris_to_imgui_key(key.key); imgui_key)
