@@ -8,6 +8,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <ranges>
 #include <sstream>
 #include <vector>
 
@@ -52,6 +53,8 @@ std::vector<std::string> ResourceManager::available_resources() const
         std::filesystem::end(iter),
         std::back_inserter(paths),
         [](const auto &path) { return path.path().filename().native(); });
+
+    std::ranges::sort(paths);
 
     return paths;
 }

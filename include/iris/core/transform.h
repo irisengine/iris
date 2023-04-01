@@ -6,6 +6,9 @@
 
 #pragma once
 
+#include <iosfwd>
+#include <tuple>
+
 #include "core/matrix4.h"
 #include "core/quaternion.h"
 #include "core/vector3.h"
@@ -124,6 +127,8 @@ class Transform
      */
     void set_scale(const Vector3 &scale);
 
+    std::tuple<Vector3, Quaternion, Vector3> decompose() const;
+
     /**
      * Equality operator.
      *
@@ -194,6 +199,8 @@ class Transform
      *   This Transform after the supplied transform has been applied.
      */
     Transform &operator*=(const Matrix4 &other);
+
+    friend std::ostream &operator<<(std::ostream &out, const Transform &t);
 
   private:
     /** Translation component. */

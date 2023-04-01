@@ -65,7 +65,7 @@ class Vector3
     {
     }
 
-    /**d221G
+    /**
      * Multiply each component by a scalar value.
      *
      * @param scale
@@ -97,6 +97,38 @@ class Vector3
     constexpr Vector3 operator*(float scale) const
     {
         return Vector3(*this) *= scale;
+    }
+
+    /**
+     * Divide each component by a scalar value.
+     *
+     * @param scale
+     *   scalar value.
+     *
+     * @return
+     *   Reference to this vector3.
+     */
+    constexpr Vector3 &operator/=(float scale)
+    {
+        x /= scale;
+        y /= scale;
+        z /= scale;
+
+        return *this;
+    }
+
+    /**
+     * Create a new Vector3 which is this Vector3 with each component divided by a scalar value.
+     *
+     * @param scale
+     *   scalar value.
+     *
+     * @return
+     *   Copy of this Vector3 with each component divided by a scalar value.
+     */
+    constexpr Vector3 operator/(float scale) const
+    {
+        return Vector3(*this) /= scale;
     }
 
     /**

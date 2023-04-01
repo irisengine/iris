@@ -6,7 +6,9 @@
 
 #include "gui.h"
 
+#include <deque>
 #include <optional>
+#include <ranges>
 #include <vector>
 
 #include "imgui.h"
@@ -14,6 +16,7 @@
 #include "ImGuizmo.h"
 #include "core/auto_release.h"
 #include "core/context.h"
+#include "entity.h"
 #include "graphics/scene.h"
 #include "graphics/single_entity.h"
 #include "graphics/window.h"
@@ -145,23 +148,62 @@ std::string label_name(std::string_view label, std::uint32_t id)
     return std::string{label} + std::to_string(id);
 }
 
-void object_creator_ui(iris::Context &ctx, std::vector<iris::SingleEntity *> &entities, iris::Scene *scene)
+void object_creator_ui(iris::Context &ctx, std::deque<Entity> &entities, iris::Scene *scene, Entity **selected_entity)
 {
     if (::ImGui::Button("Add Box"))
     {
-        entities.push_back(scene->create_entity<iris::SingleEntity>(
-            nullptr, ctx.mesh_manager().cube(iris::Colour{1.0f, 1.0f, 1.0f}), iris::Transform{{}, {}, {1.0f}}));
+        auto *entity = scene->create_entity<iris::SingleEntity>(
+            nullptr, ctx.mesh_manager().cube(iris::Colour{1.0f, 1.0f, 1.0f}), iris::Transform{{}, {}, {1.0f}});
+
+        auto &new_entity = entities.emplace_back(std::vector{entity}, iris::Vector3{});
+        *selected_entity = std::addressof(new_entity);
+    }
+
+    ::ImGui::SameLine();
+
+    if (::ImGui::Button("Add model"))
+    {
+        ImGui::OpenPopup("model_select_popup");
+    }
+
+    if (ImGui::BeginPopup("model_select_popup"))
+    {
+        const auto is_fbx = [](const auto &str) { return str.ends_with(".fbx"); };
+
+        for (const auto &model : ctx.resource_manager().available_resources() | std::ranges::views::filter(is_fbx))
+        {
+            if (ImGui::Selectable(model.c_str()))
+            {
+                const auto mesh_parts = ctx.mesh_manager().load_mesh(model);
+                std::vector<iris::SingleEntity *> engine_entities{};
+
+                for (const auto &mesh : mesh_parts.mesh_data)
+                {
+                    engine_entities.push_back(
+                        scene->create_entity<iris::SingleEntity>(nullptr, mesh.mesh, iris::Transform{{}, {}, {1.0f}}));
+                }
+
+                auto &new_entity = entities.emplace_back(engine_entities);
+                *selected_entity = std::addressof(new_entity);
+                (*selected_entity)
+                    ->set_transform(
+                        iris::Transform{{}, {{1.0f, 0.0f, 0.0f}, -std::numbers::pi_v<float> / 2.0f}, {1.0f}});
+            }
+        }
+        ImGui::EndPopup();
     }
 }
 
-void object_editor_tree_ui(std::vector<iris::SingleEntity *> &entities)
+void object_editor_tree_ui(std::deque<Entity> &entities)
 {
     auto counter = 0u;
-    for (auto *entity : entities)
+    for (auto &entity : entities)
     {
+        auto [position, rotation, scale] = entity.transform().decompose();
+        auto dirty = false;
+
         if (::ImGui::TreeNode(label_name("Object", counter).c_str()))
         {
-            auto position = entity->position();
             float pos_x = position.x;
             float pos_y = position.y;
             float pos_z = position.z;
@@ -186,10 +228,10 @@ void object_editor_tree_ui(std::vector<iris::SingleEntity *> &entities)
             const iris::Vector3 new_position{pos_x, pos_y, pos_z};
             if (new_position != position)
             {
-                entity->set_position(new_position);
+                position = new_position;
+                dirty = true;
             }
 
-            auto rotation = entity->orientation();
             auto [rot_x, rot_y, rot_z] = rotation.to_euler_angles();
 
             ::ImGui::LabelText("", "Rotation");
@@ -212,10 +254,10 @@ void object_editor_tree_ui(std::vector<iris::SingleEntity *> &entities)
             const iris::Quaternion new_rotation{rot_x, rot_y, rot_z};
             if (new_rotation != rotation)
             {
-                entity->set_orientation(new_rotation);
+                rotation = new_rotation;
+                dirty = true;
             }
 
-            auto scale = entity->scale();
             float scale_x = scale.x;
             float scale_y = scale.y;
             float scale_z = scale.z;
@@ -240,9 +282,15 @@ void object_editor_tree_ui(std::vector<iris::SingleEntity *> &entities)
             const iris::Vector3 new_scale{scale_x, scale_y, scale_z};
             if (new_scale != scale)
             {
-                entity->set_scale(new_scale);
+                scale = new_scale;
+                dirty = true;
             }
             ::ImGui::TreePop();
+        }
+
+        if (dirty)
+        {
+            entity.set_transform({position, rotation, scale});
         }
 
         ++counter;
@@ -251,7 +299,7 @@ void object_editor_tree_ui(std::vector<iris::SingleEntity *> &entities)
 
 void selected_object_gizmo_ui(
     ::ImGuiIO &io,
-    iris::SingleEntity *selected,
+    Entity *selected,
     const iris::Camera &camera,
     ::ImGuizmo::OPERATION transform_operation)
 {
@@ -261,19 +309,17 @@ void selected_object_gizmo_ui(
     ::ImGuizmo::Enable(true);
     ::ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
 
-    static const float identityMatrix[16] = {
-        1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f};
+    static const std::array<float, 16> identity_matrix = {
+        {1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f}};
     auto inv_view = iris::Matrix4::transpose(camera.view());
     const auto inv_proj = iris::Matrix4::transpose(camera.projection());
-    ::ImGuizmo::DrawGrid(inv_view.data(), inv_proj.data(), identityMatrix, 100.f);
-
-    const auto m = iris::Matrix4::transpose(iris::Transform({}, {}, {1.0f}).matrix());
-    ::ImGuizmo::DrawCubes(inv_view.data(), inv_proj.data(), m.data(), 1);
+    ::ImGuizmo::DrawGrid(inv_view.data(), inv_proj.data(), identity_matrix.data(), 100.f);
 
     if (selected != nullptr)
     {
-        auto transform = iris::Matrix4::transpose(selected->transform());
+        auto transform = iris::Matrix4::transpose(selected->transform().matrix());
         auto *transform_ptr = transform.data();
+
         ::ImGuizmo::Manipulate(
             inv_view.data(),
             inv_proj.data(),
@@ -285,10 +331,8 @@ void selected_object_gizmo_ui(
             nullptr,
             nullptr);
 
-        selected->set_transform(iris::Matrix4::transpose(transform));
+        selected->set_transform(iris::Transform{iris::Matrix4::transpose(transform)});
     }
-
-    LOG_DEBUG("gui", "{} {}", ::ImGuizmo::IsOver(), ::ImGuizmo::IsUsing());
 }
 
 }
@@ -336,7 +380,7 @@ void Gui::render()
     {
         AutoBegin begin{"Object creator", nullptr, ImGuiWindowFlags_None};
 
-        object_creator_ui(iris_ctx_, entities_, scene_);
+        object_creator_ui(iris_ctx_, entities_, scene_, &selected_);
         object_editor_tree_ui(entities_);
         selected_object_gizmo_ui(io_, selected_, camera_, transform_operation_);
     }
@@ -399,9 +443,9 @@ void Gui::handle_input(const iris::Event &event)
 
             selected_ = nullptr;
 
-            for (auto *entity : entities_)
+            for (auto &entity : entities_)
             {
-                const auto centre = entity->position();
+                const auto centre = entity.transform().translation();
 
                 const auto b = direction.dot(origin - centre);
                 const auto c = (origin - centre).dot(origin - centre) - std::pow(radius, 2.0f);
@@ -410,7 +454,7 @@ void Gui::handle_input(const iris::Event &event)
 
                 if (t >= 0.0f)
                 {
-                    selected_ = entity;
+                    selected_ = std::addressof(entity);
                     break;
                 }
             }

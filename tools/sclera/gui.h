@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <vector>
+#include <deque>
 
 #include "imgui.h"
 
@@ -14,6 +14,7 @@
 #include "core/auto_release.h"
 #include "core/camera.h"
 #include "core/context.h"
+#include "entity.h"
 #include "events/event.h"
 #include "graphics/scene.h"
 #include "graphics/single_entity.h"
@@ -40,8 +41,8 @@ class Gui
     const iris::Window *window_;
     iris::Scene *scene_;
     iris::Camera &camera_;
-    std::vector<iris::SingleEntity *> entities_;
+    std::deque<Entity> entities_;
     bool show_demo_;
     ::ImGuizmo::OPERATION transform_operation_;
-    iris::SingleEntity *selected_;
+    Entity *selected_;
 };

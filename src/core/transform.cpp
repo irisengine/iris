@@ -7,6 +7,7 @@
 #include "core/transform.h"
 
 #include <cmath>
+#include <ostream>
 
 #include "core/matrix4.h"
 #include "core/quaternion.h"
@@ -22,7 +23,7 @@
  * @returns
  *   Tuple of <translation, rotation, scale>
  */
-std::tuple<iris::Vector3, iris::Quaternion, iris::Vector3> decompose(iris::Matrix4 matrix)
+std::tuple<iris::Vector3, iris::Quaternion, iris::Vector3> decompose_matrix(iris::Matrix4 matrix)
 {
     // extract translation
     const iris::Vector3 translation = matrix.column(3u);
@@ -48,7 +49,7 @@ std::tuple<iris::Vector3, iris::Quaternion, iris::Vector3> decompose(iris::Matri
 
     iris::Quaternion rotation{};
 
-    // the following code is cribbed from OgreQuaternion.cpp FromRotatinMatrix
+    // the following code is cribbed from OgreQuaternion.cpp FromRotationMatrix
     // commit: e1c3732c51f9099bed10d36805b738015adc8f47
     // which in turn is based on:
     //  Algorithm in Ken Shoemake's article in 1987 SIGGRAPH course notes
@@ -109,7 +110,7 @@ Transform::Transform()
 Transform::Transform(const Matrix4 &matrix)
     : Transform({0.0f}, {}, {0.0f})
 {
-    const auto [translation, rotation, scale] = decompose(matrix);
+    const auto [translation, rotation, scale] = decompose_matrix(matrix);
 
     translation_ = translation;
     rotation_ = rotation;
@@ -130,7 +131,7 @@ Matrix4 Transform::matrix() const
 
 void Transform::set_matrix(const Matrix4 &matrix)
 {
-    const auto [translation, rotation, scale] = decompose(matrix);
+    const auto [translation, rotation, scale] = decompose_matrix(matrix);
 
     translation_ = translation;
     rotation_ = rotation;
@@ -174,6 +175,11 @@ void Transform::set_scale(const Vector3 &scale)
     scale_ = scale;
 }
 
+std::tuple<iris::Vector3, iris::Quaternion, iris::Vector3> Transform::decompose() const
+{
+    return {translation_, rotation_, scale_};
+}
+
 bool Transform::operator==(const Transform &other) const
 {
     return (translation_ == other.translation_) && (rotation_ == other.rotation_) && (scale_ == other.scale_);
@@ -203,13 +209,19 @@ Transform &Transform::operator*=(const Matrix4 &other)
 {
     auto new_matrix = matrix() * other;
 
-    const auto [translation, rotation, scale] = decompose(new_matrix);
+    const auto [translation, rotation, scale] = decompose_matrix(new_matrix);
 
     translation_ = translation;
     rotation_ = rotation;
     scale_ = scale;
 
     return *this;
+}
+
+std::ostream &operator<<(std::ostream &out, const Transform &t)
+{
+    out << "translation: " << t.translation_ << " rotation: " << t.rotation_ << " scale: " << t.scale_;
+    return out;
 }
 
 }

@@ -20,6 +20,7 @@ add_executable(sclera
   ${imgui_SOURCE_DIR}/imgui_tables.cpp
   ${imgui_SOURCE_DIR}/imgui_widgets.cpp
   ${imgui_gizmo_SOURCE_DIR}/ImGuizmo.cpp
+  entity.cpp
   gui.cpp
   main.cpp
   metal_gui.mm
