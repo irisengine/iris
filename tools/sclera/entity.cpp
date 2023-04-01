@@ -99,3 +99,8 @@ bool Entity::intersects(const iris::Vector3 &origin, const iris::Vector3 &direct
 
     return intersects;
 }
+
+std::vector<iris::SingleEntity *> Entity::entities() const
+{
+    return entities_;
+}

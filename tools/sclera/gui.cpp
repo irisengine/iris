@@ -148,15 +148,26 @@ std::string label_name(std::string_view label, std::uint32_t id)
     return std::string{label} + std::to_string(id);
 }
 
-void object_creator_ui(iris::Context &ctx, std::deque<Entity> &entities, iris::Scene *scene, Entity **selected_entity)
+void object_creator_ui(
+    iris::Context &ctx,
+    std::deque<Entity> &entities,
+    std::unordered_map<Entity *, std::function<void()>> &entity_creators,
+    iris::Scene *scene,
+    Entity **selected_entity)
 {
     if (::ImGui::Button("Add Box"))
     {
-        auto *entity = scene->create_entity<iris::SingleEntity>(
-            nullptr, ctx.mesh_manager().cube(iris::Colour{1.0f, 1.0f, 1.0f}), iris::Transform{{}, {}, {1.0f}});
+        const auto creator = [&]
+        {
+            auto *entity = scene->create_entity<iris::SingleEntity>(
+                nullptr, ctx.mesh_manager().cube(iris::Colour{1.0f, 1.0f, 1.0f}), iris::Transform{{}, {}, {1.0f}});
 
-        auto &new_entity = entities.emplace_back(std::vector{entity}, iris::Vector3{});
+            return Entity{std::vector{entity}, iris::Vector3{}};
+        };
+
+        auto &new_entity = entities.emplace_back(creator());
         *selected_entity = std::addressof(new_entity);
+        entity_creators[*selected_entity] = creator;
     }
 
     ::ImGui::SameLine();
@@ -170,24 +181,30 @@ void object_creator_ui(iris::Context &ctx, std::deque<Entity> &entities, iris::S
     {
         const auto is_fbx = [](const auto &str) { return str.ends_with(".fbx"); };
 
-        for (const auto &model : ctx.resource_manager().available_resources() | std::ranges::views::filter(is_fbx))
+        for (auto model : ctx.resource_manager().available_resources() | std::ranges::views::filter(is_fbx))
         {
             if (ImGui::Selectable(model.c_str()))
             {
-                const auto mesh_parts = ctx.mesh_manager().load_mesh(model);
-                std::vector<iris::SingleEntity *> engine_entities{};
-
-                for (const auto &mesh : mesh_parts.mesh_data)
+                const auto creator = [model, scene, selected_entity, &ctx, &entities]
                 {
-                    engine_entities.push_back(
-                        scene->create_entity<iris::SingleEntity>(nullptr, mesh.mesh, iris::Transform{{}, {}, {1.0f}}));
-                }
+                    const auto mesh_parts = ctx.mesh_manager().load_mesh(model);
+                    std::vector<iris::SingleEntity *> engine_entities{};
 
-                auto &new_entity = entities.emplace_back(engine_entities);
-                *selected_entity = std::addressof(new_entity);
-                (*selected_entity)
-                    ->set_transform(
-                        iris::Transform{{}, {{1.0f, 0.0f, 0.0f}, -std::numbers::pi_v<float> / 2.0f}, {1.0f}});
+                    for (const auto &mesh : mesh_parts.mesh_data)
+                    {
+                        engine_entities.push_back(scene->create_entity<iris::SingleEntity>(
+                            nullptr, mesh.mesh, iris::Transform{{}, {}, {1.0f}}));
+                    }
+
+                    auto &new_entity = entities.emplace_back(engine_entities);
+                    *selected_entity = std::addressof(new_entity);
+                    (*selected_entity)
+                        ->set_transform(
+                            iris::Transform{{}, {{1.0f, 0.0f, 0.0f}, -std::numbers::pi_v<float> / 2.0f}, {1.0f}});
+                };
+
+                creator();
+                entity_creators[*selected_entity] = creator;
             }
         }
         ImGui::EndPopup();
@@ -320,6 +337,9 @@ void selected_object_gizmo_ui(
         auto transform = iris::Matrix4::transpose(selected->transform().matrix());
         auto *transform_ptr = transform.data();
 
+        const auto snap_value = transform_operation == ::ImGuizmo::ROTATE ? 45.0f : 1.0f;
+        std::array<float, 3u> snap = {snap_value, snap_value, snap_value};
+
         ::ImGuizmo::Manipulate(
             inv_view.data(),
             inv_proj.data(),
@@ -327,7 +347,7 @@ void selected_object_gizmo_ui(
             ::ImGuizmo::WORLD,
             const_cast<float *>(transform_ptr),
             nullptr,
-            nullptr,
+            snap.data(),
             nullptr,
             nullptr);
 
@@ -380,7 +400,7 @@ void Gui::render()
     {
         AutoBegin begin{"Object creator", nullptr, ImGuiWindowFlags_None};
 
-        object_creator_ui(iris_ctx_, entities_, scene_, &selected_);
+        object_creator_ui(iris_ctx_, entities_, entity_creators_, scene_, &selected_);
         object_editor_tree_ui(entities_);
         selected_object_gizmo_ui(io_, selected_, camera_, transform_operation_);
     }
@@ -393,6 +413,7 @@ void Gui::handle_input(const iris::Event &event)
 {
     static auto x = window_->width() / 2.0f;
     static auto y = window_->height() / 2.0f;
+    static auto control = false;
 
     if (event.is_mouse())
     {
@@ -472,6 +493,33 @@ void Gui::handle_input(const iris::Event &event)
                 case W: transform_operation_ = ::ImGuizmo::TRANSLATE; break;
                 case E: transform_operation_ = ::ImGuizmo::ROTATE; break;
                 case R: transform_operation_ = ::ImGuizmo::SCALE; break;
+                case D:
+                {
+                    if ((selected_ != nullptr) && control)
+                    {
+                        const auto creator = entity_creators_[selected_];
+                        creator();
+                        entity_creators_[selected_] = creator;
+                    }
+                    break;
+                }
+                case FORWARD_DELETE:
+                {
+                    if (selected_ != nullptr)
+                    {
+                        for (auto *entity : selected_->entities())
+                        {
+                            scene_->remove(entity);
+                        }
+
+                        std::erase_if(entities_, [this](const Entity &e) { return std::addressof(e) == selected_; });
+                        selected_ = nullptr;
+                    }
+
+                    break;
+                }
+                case CONTROL: [[fallthrough]];
+                case COMMAND: control = true; break;
                 default: break;
             }
         }

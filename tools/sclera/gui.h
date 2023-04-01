@@ -7,6 +7,8 @@
 #pragma once
 
 #include <deque>
+#include <functional>
+#include <unordered_map>
 
 #include "imgui.h"
 
@@ -45,4 +47,5 @@ class Gui
     bool show_demo_;
     ::ImGuizmo::OPERATION transform_operation_;
     Entity *selected_;
+    std::unordered_map<Entity *, std::function<void()>> entity_creators_;
 };

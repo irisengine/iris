@@ -31,6 +31,8 @@ class Entity
 
     bool intersects(const iris::Vector3 &origin, const iris::Vector3 &direction);
 
+    std::vector<iris::SingleEntity *> entities() const;
+
   private:
     std::vector<iris::SingleEntity *> entities_;
 
