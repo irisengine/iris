@@ -56,6 +56,7 @@ target_sources(iris PRIVATE
   ${INCLUDE_ROOT}/weight.h
   ${INCLUDE_ROOT}/window.h
   ${INCLUDE_ROOT}/window_manager.h
+  ${INCLUDE_ROOT}/yaml_scene_loader.h
   bone.cpp
   cube_map.cpp
   instanced_entity.cpp
@@ -78,4 +79,5 @@ target_sources(iris PRIVATE
   utils.cpp
   vertex_attributes.cpp
   window.cpp
+  yaml_scene_loader.cpp
 )

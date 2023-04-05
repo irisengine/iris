@@ -47,7 +47,7 @@ elseif(IRIS_PLATFORM MATCHES "IOS")
 endif()
 
 # default link options (maybe extended by platform below)
-set(IRIS_LINKED_LIBS IrrXML zlibstatic BulletDynamics BulletCollision LinearMath assimp lua)
+set(IRIS_LINKED_LIBS IrrXML zlibstatic BulletDynamics BulletCollision LinearMath assimp lua yaml-cpp)
 set(IRIS_LINKED_LIBS_PRIVATE)
 
 # handle platform specific setup including setting default graphics apis

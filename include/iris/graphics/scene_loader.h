@@ -6,19 +6,26 @@
 
 #pragma once
 
-#include <string_view>
+#include <functional>
+#include <vector>
 
-#include <gmock/gmock.h>
+namespace iris
+{
 
-#include "core/data_buffer.h"
-#include "core/resource_manager.h"
+class Scene;
+class SingleEntity;
 
-class MockResourceManager : public iris::ResourceManager
+class SceneLoader
 {
   public:
-    MOCK_METHOD(bool, exists, (std::string_view), (const override));
+    virtual ~SceneLoader() = default;
 
-  protected:
-    MOCK_METHOD(iris::DataBuffer, do_load, (std::string_view), (override));
-    MOCK_METHOD(void, do_save, (std::string_view, const iris::DataBuffer &), (override));
+    virtual void load(
+        Scene *scene,
+        std::function<void(const std::vector<iris::SingleEntity *> &, std::string_view file_name)> entity_callback =
+            nullptr) const = 0;
+
+  private:
 };
+
+}

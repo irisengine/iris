@@ -38,6 +38,12 @@ const DataBuffer &ResourceManager::load(std::string_view resource)
     return loaded_resource->second;
 }
 
+void ResourceManager::save(std::string_view resource, const DataBuffer &data)
+{
+    resources_[std::string{resource}] = data;
+    do_save(resource, data);
+}
+
 void ResourceManager::set_root_directory(const std::filesystem::path &root)
 {
     root_ = root;

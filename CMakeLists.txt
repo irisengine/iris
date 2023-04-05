@@ -67,6 +67,10 @@ set(ASSIMP_NO_EXPORT ON CACHE BOOL "" FORCE)
 set(INJA_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(BUILD_BENCHMARK OFF CACHE BOOL "" FORCE)
 set(COVERALLS OFF CACHE BOOL "" FORCE)
+set(YAML_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(YAML_CPP_FORMAT_SOURCE OFF CACHE BOOL "" FORCE)
+set(YAML_CPP_BUILD_CONTRIB OFF CACHE BOOL "" FORCE)
+set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
 
 # fetch third party libraries
 # note that in most cases we manually populate and add, this alloes us to use
@@ -128,6 +132,17 @@ FetchContent_GetProperties(inja)
 if(NOT inja_POPULATED)
   FetchContent_Populate(inja)
   add_subdirectory(${inja_SOURCE_DIR} ${inja_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
+
+FetchContent_Declare(
+  yamlcpp
+  GIT_REPOSITORY https://github.com/jbeder/yaml-cpp/
+  GIT_TAG yaml-cpp-0.7.0)
+FetchContent_GetProperties(yamlcpp)
+
+if(NOT yamlcpp_POPULATED)
+  FetchContent_Populate(yamlcpp)
+  add_subdirectory(${yamlcpp_SOURCE_DIR} ${yamlcpp_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif()
 
 if(IRIS_PLATFORM MATCHES "WIN32")

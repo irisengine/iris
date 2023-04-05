@@ -40,6 +40,8 @@ class ResourceManager
      */
     const DataBuffer &load(std::string_view resource);
 
+    void save(std::string_view resource, const DataBuffer &data);
+
     /**
      * Set root resource location. Note that implementations may choose to ignore this.
      *
@@ -49,6 +51,8 @@ class ResourceManager
     void set_root_directory(const std::filesystem::path &root);
 
     std::vector<std::string> available_resources() const;
+
+    virtual bool exists(std::string_view resource) const = 0;
 
   protected:
     /**
@@ -61,6 +65,8 @@ class ResourceManager
      *   Loaded data.
      */
     virtual DataBuffer do_load(std::string_view resource) = 0;
+
+    virtual void do_save(std::string_view resource, const DataBuffer &data) = 0;
 
     /** Resource root. */
     std::filesystem::path root_;

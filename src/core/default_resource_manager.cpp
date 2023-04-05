@@ -16,6 +16,11 @@
 namespace iris
 {
 
+bool DefaultResourceManager::exists(std::string_view resource) const
+{
+    return std::filesystem::exists(root_ / resource);
+}
+
 DataBuffer DefaultResourceManager::do_load(std::string_view resource)
 {
     std::stringstream strm{};
@@ -29,6 +34,12 @@ DataBuffer DefaultResourceManager::do_load(std::string_view resource)
     const auto *str_ptr = reinterpret_cast<const std::byte *>(str.data());
 
     return {str_ptr, str_ptr + str.length()};
+}
+
+void DefaultResourceManager::do_save(std::string_view resource, const DataBuffer &data)
+{
+    std::fstream f(root_ / resource, std::ios::out | std::ios::binary);
+    f.write(reinterpret_cast<const char *>(data.data()), data.size());
 }
 
 }

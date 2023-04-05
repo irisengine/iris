@@ -19,6 +19,9 @@ namespace iris
  */
 class DefaultResourceManager : public ResourceManager
 {
+  public:
+    bool exists(std::string_view resource) const override;
+
   protected:
     /**
      * Load data frm disk.
@@ -30,6 +33,8 @@ class DefaultResourceManager : public ResourceManager
      *   Loaded data.
      */
     DataBuffer do_load(std::string_view resource) override;
+
+    void do_save(std::string_view resource, const DataBuffer &data) override;
 };
 
 }

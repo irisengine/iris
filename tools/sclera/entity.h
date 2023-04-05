@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <string>
+#include <string_view>
 #include <vector>
 
 #include "core/transform.h"
@@ -17,11 +19,7 @@
 class Entity
 {
   public:
-    Entity(const std::vector<iris::SingleEntity *> &entities);
-
-    Entity(const std::vector<iris::SingleEntity *> &entities, const iris::Vector3 &centre);
-
-    iris::Vector3 centre() const;
+    Entity(const std::vector<iris::SingleEntity *> &entities, std::string_view file_name);
 
     iris::Transform transform() const;
 
@@ -33,10 +31,12 @@ class Entity
 
     std::vector<iris::SingleEntity *> entities() const;
 
+    std::string file_name() const;
+
   private:
     std::vector<iris::SingleEntity *> entities_;
 
-    iris::Vector3 centre_;
-
     iris::Transform transform_;
+
+    std::string file_name_;
 };

@@ -31,6 +31,7 @@
 #include "graphics/render_target_manager.h"
 #include "graphics/renderer.h"
 #include "graphics/scene.h"
+#include "graphics/scene_loader.h"
 #include "graphics/single_entity.h"
 #include "log/log.h"
 
@@ -173,6 +174,14 @@ Scene *RenderPipeline::create_scene()
     return scenes_.back().get();
 }
 
+Scene *RenderPipeline::create_scene(const SceneLoader &loader)
+{
+    auto *scene = create_scene();
+    loader.load(scene);
+
+    return scene;
+}
+
 RenderGraph *RenderPipeline::create_render_graph()
 {
     // using new to access private ctor
@@ -247,13 +256,16 @@ std::vector<RenderCommand> RenderPipeline::build()
             const auto prev_camera = prev->camera;
 
             // add a pass to calculate ssao (combined with the ambient light pass)
-            auto *ao_target = add_pass(pre_process_passes, [prev, ssao](RenderGraph *rg, const RenderTarget *target) {
-                rg->set_render_node<AmbientOcclusionNode>(
-                    rg->create<TextureNode>(target->colour_texture()),
-                    rg->create<TextureNode>(prev->normal_target->colour_texture()),
-                    rg->create<TextureNode>(prev->position_target->colour_texture()),
-                    *ssao);
-            });
+            auto *ao_target = add_pass(
+                pre_process_passes,
+                [prev, ssao](RenderGraph *rg, const RenderTarget *target)
+                {
+                    rg->set_render_node<AmbientOcclusionNode>(
+                        rg->create<TextureNode>(target->colour_texture()),
+                        rg->create<TextureNode>(prev->normal_target->colour_texture()),
+                        rg->create<TextureNode>(prev->position_target->colour_texture()),
+                        *ssao);
+                });
 
             // ensure we render with the perspective camera not the orthographic camera that will be created for the
             // new pass
@@ -445,51 +457,63 @@ void RenderPipeline::add_post_processing_passes()
 
         if (const auto bloom = description.bloom; bloom)
         {
-            const auto *null_target = add_pass(render_passes, [](RenderGraph *rg, const RenderTarget *target) {
-                rg->render_node()->set_colour_input(rg->create<TextureNode>(target->colour_texture()));
-            });
+            const auto *null_target = add_pass(
+                render_passes,
+                [](RenderGraph *rg, const RenderTarget *target)
+                { rg->render_node()->set_colour_input(rg->create<TextureNode>(target->colour_texture())); });
 
-            add_pass(render_passes, [&bloom](RenderGraph *rg, const RenderTarget *target) {
-                rg->render_node()->set_colour_input(rg->create<ConditionalNode>(
-                    rg->create<BinaryOperatorNode>(
+            add_pass(
+                render_passes,
+                [&bloom](RenderGraph *rg, const RenderTarget *target)
+                {
+                    rg->render_node()->set_colour_input(rg->create<ConditionalNode>(
+                        rg->create<BinaryOperatorNode>(
+                            rg->create<TextureNode>(target->colour_texture()),
+                            rg->create<ValueNode<Colour>>(Colour{0.2126f, 0.7152f, 0.0722f, 0.0f}),
+                            BinaryOperator::DOT),
+                        rg->create<ValueNode<float>>(bloom->threshold),
                         rg->create<TextureNode>(target->colour_texture()),
-                        rg->create<ValueNode<Colour>>(Colour{0.2126f, 0.7152f, 0.0722f, 0.0f}),
-                        BinaryOperator::DOT),
-                    rg->create<ValueNode<float>>(bloom->threshold),
-                    rg->create<TextureNode>(target->colour_texture()),
-                    rg->create<ValueNode<Colour>>(Colour{0.0f, 0.0f, 0.0f, 1.0f}),
-                    ConditionalOperator::GREATER));
-            });
+                        rg->create<ValueNode<Colour>>(Colour{0.0f, 0.0f, 0.0f, 1.0f}),
+                        ConditionalOperator::GREATER));
+                });
 
             for (auto i = 0u; i < bloom->iterations; ++i)
             {
-                add_pass(render_passes, [](RenderGraph *rg, const RenderTarget *target) {
-                    rg->render_node()->set_colour_input(
-                        rg->create<BlurNode>(rg->create<TextureNode>(target->colour_texture())));
-                });
+                add_pass(
+                    render_passes,
+                    [](RenderGraph *rg, const RenderTarget *target) {
+                        rg->render_node()->set_colour_input(
+                            rg->create<BlurNode>(rg->create<TextureNode>(target->colour_texture())));
+                    });
             }
 
-            add_pass(render_passes, [null_target](RenderGraph *rg, const RenderTarget *target) {
-                rg->render_node()->set_colour_input(rg->create<BinaryOperatorNode>(
-                    rg->create<TextureNode>(null_target->colour_texture()),
-                    rg->create<TextureNode>(target->colour_texture()),
-                    BinaryOperator::ADD));
-            });
+            add_pass(
+                render_passes,
+                [null_target](RenderGraph *rg, const RenderTarget *target)
+                {
+                    rg->render_node()->set_colour_input(rg->create<BinaryOperatorNode>(
+                        rg->create<TextureNode>(null_target->colour_texture()),
+                        rg->create<TextureNode>(target->colour_texture()),
+                        BinaryOperator::ADD));
+                });
         }
 
         if (const auto colour_adjust = description.colour_adjust; colour_adjust)
         {
-            add_pass(render_passes, [&colour_adjust](RenderGraph *rg, const RenderTarget *target) {
-                rg->set_render_node<ColourAdjustNode>(
-                    rg->create<TextureNode>(target->colour_texture()), *colour_adjust);
-            });
+            add_pass(
+                render_passes,
+                [&colour_adjust](RenderGraph *rg, const RenderTarget *target) {
+                    rg->set_render_node<ColourAdjustNode>(
+                        rg->create<TextureNode>(target->colour_texture()), *colour_adjust);
+                });
         }
 
         if (description.anti_aliasing)
         {
-            add_pass(render_passes, [](RenderGraph *rg, const RenderTarget *target) {
-                rg->set_render_node<AntiAliasingNode>(rg->create<TextureNode>(target->colour_texture()));
-            });
+            add_pass(
+                render_passes,
+                [](RenderGraph *rg, const RenderTarget *target)
+                { rg->set_render_node<AntiAliasingNode>(rg->create<TextureNode>(target->colour_texture())); });
         }
 
         render_passes.back()->colour_target = input_target;

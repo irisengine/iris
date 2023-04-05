@@ -24,6 +24,8 @@
 namespace iris
 {
 
+class SceneLoader;
+
 /**
  * This class encapsulates all the logic and machinery of rendering. It creates and manages the primitives a user needs
  * to build their desired rendered output.
@@ -76,6 +78,8 @@ class RenderPipeline
      *   Pointer to Scene.
      */
     Scene *create_scene();
+
+    Scene *create_scene(const SceneLoader &loader);
 
     /**
      * Create a RenderGraph for use with this pipeline.

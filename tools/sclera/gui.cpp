@@ -20,7 +20,9 @@
 #include "graphics/scene.h"
 #include "graphics/single_entity.h"
 #include "graphics/window.h"
+#include "graphics/yaml_scene_loader.h"
 #include "log/log.h"
+#include "yaml-cpp/yaml.h"
 
 namespace
 {
@@ -143,6 +145,65 @@ struct AutoBegin
     }
 };
 
+struct AutoSequence
+{
+    AutoSequence(::YAML::Emitter &out)
+        : out_(out)
+    {
+        out_ << ::YAML::BeginSeq;
+    }
+
+    ~AutoSequence()
+    {
+        out_ << ::YAML::EndSeq;
+    }
+
+    ::YAML::Emitter &out_;
+};
+
+struct AutoMap
+{
+    AutoMap(::YAML::Emitter &out)
+        : out_(out)
+    {
+        out_ << ::YAML::BeginMap;
+    }
+
+    ~AutoMap()
+    {
+        out_ << ::YAML::EndMap;
+    }
+
+    ::YAML::Emitter &out_;
+};
+
+YAML::Emitter &operator<<(YAML::Emitter &out, const iris::Vector3 &v)
+{
+    out << YAML::Flow;
+    AutoSequence seq{out};
+    out << v.x << v.y << v.z;
+
+    return out;
+}
+
+YAML::Emitter &operator<<(YAML::Emitter &out, const iris::Quaternion &q)
+{
+    out << YAML::Flow;
+    AutoSequence seq{out};
+    out << q.x << q.y << q.z << q.w;
+
+    return out;
+}
+
+template <class T>
+void serialise_yaml_key_value(::YAML::Emitter &out, const std::string &key, const T &value)
+{
+    out << ::YAML::Key;
+    out << key;
+    out << ::YAML::Value;
+    out << value;
+}
+
 std::string label_name(std::string_view label, std::uint32_t id)
 {
     return std::string{label} + std::to_string(id);
@@ -162,7 +223,7 @@ void object_creator_ui(
             auto *entity = scene->create_entity<iris::SingleEntity>(
                 nullptr, ctx.mesh_manager().cube(iris::Colour{1.0f, 1.0f, 1.0f}), iris::Transform{{}, {}, {1.0f}});
 
-            return Entity{std::vector{entity}, iris::Vector3{}};
+            return Entity{std::vector{entity}, ""};
         };
 
         auto &new_entity = entities.emplace_back(creator());
@@ -196,7 +257,7 @@ void object_creator_ui(
                             nullptr, mesh.mesh, iris::Transform{{}, {}, {1.0f}}));
                     }
 
-                    auto &new_entity = entities.emplace_back(engine_entities);
+                    auto &new_entity = entities.emplace_back(engine_entities, model);
                     *selected_entity = std::addressof(new_entity);
                     (*selected_entity)
                         ->set_transform(
@@ -355,6 +416,34 @@ void selected_object_gizmo_ui(
     }
 }
 
+void save_scene(iris::Context &ctx, std::deque<Entity> &entities)
+{
+    ::YAML::Emitter out;
+
+    AutoMap models{out};
+    out << ::YAML::Key << "models";
+    out << ::YAML::Value;
+
+    AutoSequence seq{out};
+    for (const auto &entity : entities)
+    {
+        AutoMap map{out};
+
+        const auto [position, rotation, scale] = entity.transform().decompose();
+
+        serialise_yaml_key_value(out, "file_name", entity.file_name());
+        serialise_yaml_key_value(out, "position", position);
+        serialise_yaml_key_value(out, "rotation", rotation);
+        serialise_yaml_key_value(out, "scale", scale);
+    }
+
+    const auto *string_ptr = out.c_str();
+    iris::DataBuffer data(std::strlen(string_ptr));
+    std::memcpy(data.data(), string_ptr, std::strlen(string_ptr));
+
+    ctx.resource_manager().save("scene.yml", data);
+}
+
 }
 
 Gui::Gui(iris::Context &ctx, const iris::Window *window, iris::Scene *scene, iris::Camera &camera)
@@ -368,8 +457,14 @@ Gui::Gui(iris::Context &ctx, const iris::Window *window, iris::Scene *scene, iri
     , show_demo_(false)
     , transform_operation_(::ImGuizmo::TRANSLATE)
 {
+    if (ctx.resource_manager().exists("scene.yml"))
+    {
+        iris::YamlSceneLoader loader{iris_ctx_, "scene.yml"};
+        loader.load(
+            scene, [this](const auto &entities, auto file_name) { entities_.emplace_back(entities, file_name); });
+    }
+
     const auto scale = window_->screen_scale();
-    const auto resources = ctx.resource_manager().available_resources();
 
     io_.ConfigFlags |= ::ImGuiConfigFlags_NavEnableKeyboard;
     io_.ConfigFlags |= ::ImGuiConfigFlags_NavEnableGamepad;
@@ -500,6 +595,14 @@ void Gui::handle_input(const iris::Event &event)
                         const auto creator = entity_creators_[selected_];
                         creator();
                         entity_creators_[selected_] = creator;
+                    }
+                    break;
+                }
+                case S:
+                {
+                    if (control)
+                    {
+                        save_scene(iris_ctx_, entities_);
                     }
                     break;
                 }
