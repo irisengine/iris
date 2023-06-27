@@ -781,8 +781,8 @@ std::string ShaderCompiler::vertex_shader() const
     {
         strm << R"(
 #version 430 core
-precision mediump float;
 #extension GL_ARB_bindless_texture : require
+precision mediump float;
         )";
     }
 
@@ -799,8 +799,8 @@ std::string ShaderCompiler::fragment_shader() const
     {
         strm << R"(
 #version 430 core
-precision mediump float;
 #extension GL_ARB_bindless_texture : require
+precision mediump float;
         )";
     }
 

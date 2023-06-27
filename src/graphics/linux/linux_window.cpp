@@ -25,6 +25,7 @@
 #include "events/scroll_wheel_event.h"
 #include "graphics/linux/scoped_error_handler.h"
 #include "graphics/window_manager.h"
+#include "log/log.h"
 #define DONT_MAKE_GL_FUNCTIONS_EXTERN // get concrete function pointers for all
                                       // opengl functions
 #include "graphics/opengl/opengl.h"
@@ -285,7 +286,7 @@ LinuxWindow::LinuxWindow(
     ::XSelectInput(
         display_,
         window_,
-        KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | ExposureMask);
+        KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | ExposureMask | EnterWindowMask | LeaveWindowMask);
 
     // register for close window events
     Atom wmDeleteMessage = XInternAtom(display_, "WM_DELETE_WINDOW", False);
@@ -332,10 +333,6 @@ LinuxWindow::LinuxWindow(
 
     ::XSetLocaleModifiers("");
 
-    // hide cursor
-    ::XFixesHideCursor(display_, window_);
-    ::XFlush(display_);
-
     // move cursor to centre of screen
     ::XWarpPointer(display_, None, window_, 0, 0, 0, 0, changes.width / 2, changes.height / 2);
 }
@@ -350,12 +347,12 @@ std::optional<Event> LinuxWindow::pump_event()
 {
     XEvent event{0};
 
-    while (::XCheckWindowEvent(
-               display_,
-               window_,
-               KeyPressMask | KeyReleaseMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | ExposureMask,
-               &event) == True)
+    ::XPending(display_);
+
+    while (::XQLength(display_))
     {
+        ::XNextEvent(display_, &event);
+
         if (event.type == KeyPress)
         {
             events_.emplace(KeyboardEvent{x11_key_to_engine_key(::XLookupKeysym(&event.xkey, 0)), KeyState::DOWN});
@@ -405,6 +402,25 @@ std::optional<Event> LinuxWindow::pump_event()
             x = event.xmotion.x;
             y = event.xmotion.y;
         }
+        else if (event.type == ClientMessage)
+        {
+            const auto protocol = event.xclient.data.l[0];
+
+            if (static_cast<Atom>(protocol) == ::XInternAtom(display_, "WM_DELETE_WINDOW", False))
+            {
+                events_.emplace(QuitEvent{});
+            }
+        }
+        else if (event.type == EnterNotify)
+        {
+            ::XFixesHideCursor(display_, window_);
+            ::XFlush(display_);
+        }
+        else if (event.type == LeaveNotify)
+        {
+            ::XFixesShowCursor(display_, window_);
+            ::XFlush(display_);
+        } 
     }
 
     std::optional<Event> next_event{};

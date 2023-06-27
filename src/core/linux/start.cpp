@@ -60,7 +60,7 @@ iris::Context create_context(int argc, char **argv)
         std::move(opengl_material_manager),
         std::move(opengl_render_target_manager));
 
-    ctx.set_graphics_api("d3d12");
+    ctx.set_graphics_api("opengl");
 
     ctx.register_physics_api("bullet", std::make_unique<iris::BulletPhysicsManager>(ctx.mesh_manager()));
     ctx.set_physics_api("bullet");
